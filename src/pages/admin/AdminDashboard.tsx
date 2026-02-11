@@ -15,6 +15,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="card">
                     <h3>Partner Companies</h3>
+                    <h3>Partner Companies</h3>
                     <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>12</p>
                 </div>
             </div>

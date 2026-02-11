@@ -1,0 +1,55 @@
+:root {
+    /* Brand Colors */
+    --primary: 250 80% 55%;
+    /* Rich Indigo */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 70% 45%;
+    /* Teal */
+    --secondary-foreground: 0 0% 100%;
+    --accent: 330 80% 60%;
+    /* Vibrant Pink */
+    --accent-foreground: 0 0% 100%;
+
+    /* Neutral Colors */
+    --background: 220 20% 97%;
+    /* Light Blue-Grey */
+    --foreground: 222 47% 11%;
+    /* Dark Blue-Grey */
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+
+    /* Status Colors */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --danger: 346 87% 43%;
+
+    /* Spacing */
+    --radius-sm: 0.3rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+
+    /* Typography */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+}

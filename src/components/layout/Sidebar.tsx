@@ -17,7 +17,7 @@ const Sidebar = () => {
 
     const getLinks = () => {
         switch (user.role) {
-            case 'student':
+            case 'intern':
                 return [
                     { to: '/student/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
                     { to: '/student/logs', icon: FileText, label: 'Daily Logs' },

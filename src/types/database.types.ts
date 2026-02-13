@@ -24,7 +24,7 @@ export interface Tasks {
     title: string;
     description: string;
     assigned_to: string; // UUID, Foreign Key referencing `users.id`
-    status : TaskStatus;
+    status: TaskStatus;
     priority: TaskPriority;
     due_date: string; // ISO Date String
     created_by: string; // UUID, Foreign Key referencing `users.id`
@@ -60,7 +60,7 @@ export interface Announcement {
 export interface Evaluation {
 
     id: string; //UUID, PK
-    intern_id: string; //UUID, FK reference to 'users.id' where role = 'student'
+    intern_id: string; //UUID, FK reference to 'users.id' where role = 'intern'
     supervisor_id: string; // UUID, FK reference to 'users.id' where role = 'supervisor'
     score: number; // Int Range from 1-10 or 1-5
     feedback: string;

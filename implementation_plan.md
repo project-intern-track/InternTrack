@@ -5,8 +5,10 @@ Distribute development tasks for the "InternTrack" application based on the prov
 
 ## Team Composition & Roles
 - **Clement (FS - Lead)**: Full Stack - Core Architecture, Code Review, "Glue" Code, Reports, Lead Developer
+- **Nathaniel (FS)**: Full Stack - Admin Features (Manage Interns, Announcements, Settings)
 - **Victor (BE)**: Backend - API, Database, Security
-- **Angelito (FE)**: Frontend - Admin UI Focus
+- **Angelito (FE)**: Frontend - Admin Dashboard & Styling
+- **Yuan (FE)**: Frontend - Admin Features (Tasks, Attendance) & Intern Feedback
 - **Judito (FE)**: Frontend - Intern UI Focus
 - **Jay (FE)**: Frontend - Supervisor UI Focus
 
@@ -74,14 +76,18 @@ To avoid merge conflicts, we will follow a strict **Feature Branch Workflow**.
 
 ### 2. Branch Naming Convention
 - `feature/admin-dashboard` (Angelito)
+- `feature/manage-interns` (Nathaniel)
+- `feature/manage-tasks` (Yuan)
 - `feature/intern-tasks` (Judito)
 - `backend/auth-setup` (Victor)
 - `fix/login-bug` (Clement)
 
 ### 3. Preventing Conflicts
 - **Component Isolation**:
-    - **Angelito** works *only* in `src/pages/admin`.
-    - **Judito** works *only* in `src/pages/student`.
+    - **Angelito** works *only* in `src/pages/admin/dashboard` and `src/styles`.
+    - **Nathaniel** works in `src/pages/admin/interns`, `src/pages/admin/announcements`, and `src/pages/settings`.
+    - **Yuan** works in `src/pages/admin/tasks`, `src/pages/admin/attendance`, and `src/pages/student/feedback`.
+    - **Judito** works *only* in `src/pages/student` (dashboard, tasks, timelog).
     - **Jay** works *only* in `src/pages/supervisor`.
     - **Victor** works *only* on Supabase/API and `src/services`.
     - **Clement**: Handle shared components (`src/components/common`) and routing (`App.tsx`).
@@ -104,17 +110,17 @@ These tasks must be completed first to allow other work to proceed.
 ## Priority 2: Admin Panel
 - [ ] **Admin Dashboard** (Angelito - FE)
     - Implement analytics widgets (Total Interns, Active, etc.).
-- [ ] **Manage Interns** (Angelito - FE)
+- [ ] **Manage Interns** (Nathaniel - FS)
     - CRUD (Create, Read, Update, Delete) functionality for Intern accounts.
     - "Intern List" table with filtering.
     - Backend logic support (Victor - BE).
-- [ ] **Manage Tasks** (Angelito - FE)
+- [ ] **Manage Tasks** (Yuan - FE)
     - UI for creating tasks and assigning them to interns.
     - Backend logic to link tasks to users (Victor - BE support).
-- [ ] **Monitor Attendance** (Jay - FE)
+- [ ] **Monitor Attendance** (Yuan - FE)
     - View daily attendance logs.
     - "Time In / Time Out" display logic.
-- [ ] **Create Announcements** (Victor - BE)
+- [ ] **Create Announcements** (Nathaniel - FS)
     - Form to post announcements visible to all interns.
     - API and database logic for announcements.
 
@@ -127,7 +133,7 @@ These tasks must be completed first to allow other work to proceed.
 - [ ] **Time Log** (Judito - FE)
     - "Clock In/Out" button functionality.
     - Timer/Calculator for hours rendered.
-- [ ] **Performance Feedback** (Judito - FE)
+- [ ] **Performance Feedback** (Yuan - FE)
     - Read-only view of supervisor feedback.
 
 ## Priority 4: Supervisor Panel
@@ -143,7 +149,7 @@ These tasks must be completed first to allow other work to proceed.
 - [ ] **Reports Generation** (Clement - FS Lead)
     - Generate PDF/Excel reports for Weekly/Monthly summaries.
     - Printable Internship Report logic.
-- [ ] **Settings & Profile** (Clement - FS)
+- [ ] **Settings & Profile** (Nathaniel - FS)
     - User profile management (Password change, avatar).
 
 ## Verification Plan
@@ -180,12 +186,14 @@ This schedule distributes the work over 10 working days, allowing more time for 
     *   [ ] Define TypeScript Interfaces/Types for all DB tables. [High]
     *   [ ] Set up Zod schemas for input validation (API Layer). [High]
 *   **Angelito (FE)**: Global CSS, Design System (Variables, Typography). [High]
-*   **Judito, Jay**: Environment setup, codebase study. [High]
+*   **Nathaniel, Yuan, Judito, Jay**: Environment setup, codebase study. [High]
 
 #### Days 3-4: Static UI Implementation (Frontend)
-*   **Angelito (FE)**: `AdminDashboard` UI (Sidebar, Stats Grid), `ManageInterns` Table UI, "Add Intern" Modal. [Medium]
+*   **Angelito (FE)**: `AdminDashboard` UI (Sidebar, Stats Grid). [Medium]
+*   **Nathaniel (FS)**: `ManageInterns` Table UI, "Add Intern" Modal, Announcements Form UI. [Medium]
+*   **Yuan (FE)**: `ManageTasks` UI, `MonitorAttendance` UI, `PerformanceFeedback` UI. [Medium]
 *   **Judito (FE)**: `StudentDashboard` UI, `TaskCard` component, `TimeLog` Widget UI. [Medium]
-*   **Jay (FE)**: `SupervisorDashboard` UI (Intern List), `MonitorAttendance` UI. [Medium]
+*   **Jay (FE)**: `SupervisorDashboard` UI (Intern List). [Medium]
 *   **Victor (BE)**: Announcements API & DB logic. [Medium]
 *   **Clement (FS)**: `Settings` Profile Form UI. [Low]
 
@@ -202,14 +210,18 @@ This schedule distributes the work over 10 working days, allowing more time for 
 *Goal: Connect FE to BE, functionality, and polish.*
 
 #### Days 6-7: Data Integration (Connecting FE to Supabase)
-*   **Angelito (FE)**: Connect "Add Intern" -> Supabase Auth `signUp`, Connect "Manage Tasks" to API. [High]
+*   **Nathaniel (FS)**: Connect "Add Intern" -> Supabase Auth `signUp`, Connect Announcements to API. [High]
+*   **Yuan (FE)**: Connect "Manage Tasks" to API, Connect "Monitor Attendance" to API. [High]
 *   **Judito (FE)**: Fetch Tasks -> Display on Dashboard -> "Mark as Done", Connect "Clock In/Out". [High]
-*   **Jay (FE)**: Fetch Intern list -> Display on Supervisor Dashboard, Connect "Monitor Attendance". [Medium]
+*   **Jay (FE)**: Fetch Intern list -> Display on Supervisor Dashboard. [Medium]
+*   **Angelito (FE)**: Connect Admin Dashboard analytics widgets to live data. [Medium]
 
 #### Days 8-9: Advanced Modules
 *   **Clement (FS)**: Reports Logic (Generate CSV/PDF), Print Layouts. [Low]
+*   **Nathaniel (FS)**: Settings & Profile integration, Announcements polish. [Low]
 *   **Jay (FE)**: "Approve Tasks" flow (Supervisor approves implementation). [Medium]
-*   **Victor (BE)**: Announcements System integration, Optimize queries, secure endpoints. [Medium]
+*   **Yuan (FE)**: Performance Feedback integration (connect to evaluations API). [Low]
+*   **Victor (BE)**: Optimize queries, secure endpoints. [Medium]
 *   **Angelito (FE)**: Chart.js integration for Admin Analytics. [Low]
 *   **Judito (FE)**: Announcements Display (Intern-facing view). [Low]
 

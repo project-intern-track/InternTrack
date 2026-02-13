@@ -19,9 +19,9 @@ const Sidebar = () => {
         switch (user.role) {
             case 'intern':
                 return [
-                    { to: '/student/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                    { to: '/student/logs', icon: FileText, label: 'Daily Logs' },
-                    { to: '/student/schedule', icon: Calendar, label: 'Schedule' },
+                    { to: '/intern/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                    { to: '/intern/logs', icon: FileText, label: 'Daily Logs' },
+                    { to: '/intern/schedule', icon: Calendar, label: 'Schedule' },
                 ];
             case 'supervisor':
                 return [
@@ -41,26 +41,16 @@ const Sidebar = () => {
     };
 
     return (
-        <aside style={{
-            width: '260px',
-            backgroundColor: 'hsl(var(--card))',
-            borderRight: '1px solid hsl(var(--border))',
-            height: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'fixed',
-            left: 0,
-            top: 0
-        }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid hsl(var(--border))', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ background: 'hsl(var(--primary))', padding: '0.25rem', borderRadius: '4px', color: 'white', display: 'flex' }}>
+        <aside className="sidebar">
+            <div className="sidebar-header">
+                <div className="sidebar-logo">
                     <Briefcase size={20} />
                 </div>
-                <span style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>InternTrack</span>
+                <span className="sidebar-title">InternTrack</span>
             </div>
 
-            <nav style={{ flex: 1, padding: '1rem' }}>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <nav className="sidebar-nav">
+                <ul>
                     {getLinks().map((link) => (
                         <li key={link.to}>
                             <NavLink
@@ -68,18 +58,6 @@ const Sidebar = () => {
                                 className={({ isActive }) =>
                                     isActive ? 'active-link' : 'nav-link'
                                 }
-                                style={({ isActive }) => ({
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.75rem',
-                                    padding: '0.75rem 1rem',
-                                    borderRadius: 'var(--radius-md)',
-                                    textDecoration: 'none',
-                                    color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                                    backgroundColor: isActive ? 'hsl(var(--primary) / 0.1)' : 'transparent',
-                                    fontWeight: isActive ? 500 : 400,
-                                    transition: 'all 0.2s'
-                                })}
                             >
                                 <link.icon size={20} />
                                 {link.label}
@@ -89,16 +67,14 @@ const Sidebar = () => {
                 </ul>
             </nav>
 
-            <div style={{ padding: '1rem', borderTop: '1px solid hsl(var(--border))' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', padding: '0 0.5rem' }}>
-                    <img
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%' }}
-                    />
-                    <div style={{ overflow: 'hidden' }}>
-                        <div style={{ fontSize: '0.875rem', fontWeight: '500', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', textTransform: 'capitalize' }}>{user.role}</div>
+            <div className="sidebar-footer">
+                <div className="sidebar-user">
+                    <div className="avatar avatar-sm" style={{ backgroundColor: 'hsl(var(--sidebar-hover))', color: 'hsl(var(--sidebar-foreground))' }}>
+                        {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </div>
+                    <div style={{ overflow: 'hidden', flex: 1 }}>
+                        <div className="sidebar-user-name">{user.name}</div>
+                        <div className="sidebar-user-role">{user.role}</div>
                     </div>
                 </div>
                 <button

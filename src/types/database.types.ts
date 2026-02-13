@@ -1,6 +1,6 @@
 // Aliases for database types
-export type UserRole = 'admin' | 'supervisor' | 'student';
-export type TaskStatus = 'to' | 'in-progress' | 'review' | 'completed';
+export type UserRole = 'admin' | 'supervisor' | 'intern';
+export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 
@@ -12,7 +12,7 @@ export interface Users {
 
     id: string; // UUID, Primary Key (PK), references `auth.users.id`
     email: string; // Must Be Unique
-    fullname: string;
+    full_name: string;
     avatar_url: string;
     role: UserRole;
     created_at: string; // ISO Date String, Default to current timestamp on creation
@@ -24,7 +24,7 @@ export interface Tasks {
     title: string;
     description: string;
     assigned_to: string; // UUID, Foreign Key referencing `users.id`
-    status : TaskStatus;
+    status: TaskStatus;
     priority: TaskPriority;
     due_date: string; // ISO Date String
     created_by: string; // UUID, Foreign Key referencing `users.id`
@@ -60,7 +60,7 @@ export interface Announcement {
 export interface Evaluation {
 
     id: string; //UUID, PK
-    intern_id: string; //UUID, FK reference to 'users.id' where role = 'student'
+    intern_id: string; //UUID, FK reference to 'users.id' where role = 'intern'
     supervisor_id: string; // UUID, FK reference to 'users.id' where role = 'supervisor'
     score: number; // Int Range from 1-10 or 1-5
     feedback: string;

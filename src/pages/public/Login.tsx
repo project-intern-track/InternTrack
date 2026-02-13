@@ -27,12 +27,12 @@ const Login = () => {
                 <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Select User Role</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-                    <button onClick={() => handleLogin('student')} className="btn" style={{ justifyContent: 'flex-start', border: '1px solid hsl(var(--border))', background: 'white' }}>
+                    <button onClick={() => handleLogin('intern')} className="btn" style={{ justifyContent: 'flex-start', border: '1px solid hsl(var(--border))', background: 'white' }}>
                         <div style={{ padding: '0.5rem', borderRadius: '50%', background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}>
                             <User size={20} />
                         </div>
                         <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontWeight: '600' }}>Student</div>
+                            <div style={{ fontWeight: '600' }}>Intern</div>
                             <div style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>Access logs, tasks, and reports</div>
                         </div>
                     </button>

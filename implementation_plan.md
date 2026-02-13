@@ -8,7 +8,8 @@ Distribute development tasks for the "InternTrack" application based on the prov
 - **Nathaniel (FS)**: Full Stack - Admin Features (Manage Interns, Announcements, Settings)
 - **Victor (BE)**: Backend - API, Database, Security
 - **Angelito (FE)**: Frontend - Admin Dashboard & Styling
-- **Yuan (FE)**: Frontend - Admin Features (Tasks, Attendance) & Intern Feedback
+- **Yuan (FE)**: Frontend - Admin Features (Tasks, Attendance)
+- **Kevin (FE)**: Frontend - Intern Feedback, Announcements Display, Settings Profile UI
 - **Judito (FE)**: Frontend - Intern UI Focus
 - **Jay (FE)**: Frontend - Supervisor UI Focus
 
@@ -78,15 +79,18 @@ To avoid merge conflicts, we will follow a strict **Feature Branch Workflow**.
 - `feature/admin-dashboard` (Angelito)
 - `feature/manage-interns` (Nathaniel)
 - `feature/manage-tasks` (Yuan)
+- `feature/intern-feedback` (Kevin)
 - `feature/intern-tasks` (Judito)
+- `feature/supervisor-panel` (Jay)
 - `backend/auth-setup` (Victor)
 - `fix/login-bug` (Clement)
 
 ### 3. Preventing Conflicts
 - **Component Isolation**:
     - **Angelito** works *only* in `src/pages/admin/dashboard` and `src/styles`.
-    - **Nathaniel** works in `src/pages/admin/interns`, `src/pages/admin/announcements`, and `src/pages/settings`.
-    - **Yuan** works in `src/pages/admin/tasks`, `src/pages/admin/attendance`, and `src/pages/student/feedback`.
+    - **Nathaniel** works in `src/pages/admin/interns`, `src/pages/admin/announcements`.
+    - **Yuan** works in `src/pages/admin/tasks` and `src/pages/admin/attendance`.
+    - **Kevin** works in `src/pages/student/feedback`, `src/pages/student/announcements`, and `src/pages/settings`.
     - **Judito** works *only* in `src/pages/student` (dashboard, tasks, timelog).
     - **Jay** works *only* in `src/pages/supervisor`.
     - **Victor** works *only* on Supabase/API and `src/services`.
@@ -133,7 +137,7 @@ These tasks must be completed first to allow other work to proceed.
 - [ ] **Time Log** (Judito - FE)
     - "Clock In/Out" button functionality.
     - Timer/Calculator for hours rendered.
-- [ ] **Performance Feedback** (Yuan - FE)
+- [ ] **Performance Feedback** (Kevin - FE)
     - Read-only view of supervisor feedback.
 
 ## Priority 4: Supervisor Panel
@@ -149,8 +153,10 @@ These tasks must be completed first to allow other work to proceed.
 - [ ] **Reports Generation** (Clement - FS Lead)
     - Generate PDF/Excel reports for Weekly/Monthly summaries.
     - Printable Internship Report logic.
-- [ ] **Settings & Profile** (Nathaniel - FS)
+- [ ] **Settings & Profile** (Kevin - FE UI, Nathaniel - FS Integration)
     - User profile management (Password change, avatar).
+- [ ] **Announcements Display** (Kevin - FE)
+    - Intern-facing view of announcements.
 
 ## Verification Plan
 
@@ -180,22 +186,22 @@ This schedule distributes the work over 10 working days, allowing more time for 
 *   **Clement (FS - Lead)**:
     *   [x] Set up Supabase Project (Completed). [High]
     *   [ ] Project scaffolding, React Router implementation, Layout wrappers. [High]
-    *   [ ] Run SQL scripts to create Tables (`users`, `tasks`, `attendance`), RLS Policies. [High]
+    *   [x] Run SQL scripts to create Tables (`users`, `tasks`, `attendance`), RLS Policies. [High] ✅ (Done 2026-02-13)
     *   [ ] GitHub Repo setup, AuthProvider context. [High]
 *   **Victor (BE)**:
     *   [ ] Define TypeScript Interfaces/Types for all DB tables. [High]
     *   [ ] Set up Zod schemas for input validation (API Layer). [High]
 *   **Angelito (FE)**: Global CSS, Design System (Variables, Typography). [High]
-*   **Nathaniel, Yuan, Judito, Jay**: Environment setup, codebase study. [High]
+*   **Nathaniel, Yuan, Kevin, Judito, Jay**: Environment setup, codebase study. [High]
 
 #### Days 3-4: Static UI Implementation (Frontend)
 *   **Angelito (FE)**: `AdminDashboard` UI (Sidebar, Stats Grid). [Medium]
 *   **Nathaniel (FS)**: `ManageInterns` Table UI, "Add Intern" Modal, Announcements Form UI. [Medium]
-*   **Yuan (FE)**: `ManageTasks` UI, `MonitorAttendance` UI, `PerformanceFeedback` UI. [Medium]
+*   **Yuan (FE)**: `ManageTasks` UI, `MonitorAttendance` UI. [Medium]
+*   **Kevin (FE)**: `PerformanceFeedback` UI, `Settings` Profile Form UI, `AnnouncementsDisplay` UI. [Medium]
 *   **Judito (FE)**: `StudentDashboard` UI, `TaskCard` component, `TimeLog` Widget UI. [Medium]
 *   **Jay (FE)**: `SupervisorDashboard` UI (Intern List). [Medium]
 *   **Victor (BE)**: Announcements API & DB logic. [Medium]
-*   **Clement (FS)**: `Settings` Profile Form UI. [Low]
 
 #### Day 5: Backend Logic & API Construction
 *   **Victor (BE)**:
@@ -212,18 +218,19 @@ This schedule distributes the work over 10 working days, allowing more time for 
 #### Days 6-7: Data Integration (Connecting FE to Supabase)
 *   **Nathaniel (FS)**: Connect "Add Intern" -> Supabase Auth `signUp`, Connect Announcements to API. [High]
 *   **Yuan (FE)**: Connect "Manage Tasks" to API, Connect "Monitor Attendance" to API. [High]
+*   **Kevin (FE)**: Connect "Performance Feedback" to evaluations API. [Medium]
 *   **Judito (FE)**: Fetch Tasks -> Display on Dashboard -> "Mark as Done", Connect "Clock In/Out". [High]
 *   **Jay (FE)**: Fetch Intern list -> Display on Supervisor Dashboard. [Medium]
 *   **Angelito (FE)**: Connect Admin Dashboard analytics widgets to live data. [Medium]
 
 #### Days 8-9: Advanced Modules
 *   **Clement (FS)**: Reports Logic (Generate CSV/PDF), Print Layouts. [Low]
-*   **Nathaniel (FS)**: Settings & Profile integration, Announcements polish. [Low]
+*   **Nathaniel (FS)**: Settings & Profile integration (with Kevin's UI), Announcements polish. [Low]
 *   **Jay (FE)**: "Approve Tasks" flow (Supervisor approves implementation). [Medium]
-*   **Yuan (FE)**: Performance Feedback integration (connect to evaluations API). [Low]
+*   **Kevin (FE)**: Announcements Display integration (intern-facing view), Settings UI polish. [Low]
 *   **Victor (BE)**: Optimize queries, secure endpoints. [Medium]
 *   **Angelito (FE)**: Chart.js integration for Admin Analytics. [Low]
-*   **Judito (FE)**: Announcements Display (Intern-facing view). [Low]
+*   **Judito (FE)**: Intern Dashboard polish, edge cases. [Low]
 
 #### Day 10: Testing, Polish & Deployment
 *   **Clement (Lead)**: Final Code Review, Merge `dev` -> `main`. [High]

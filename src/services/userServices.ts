@@ -10,13 +10,13 @@ import type { Users } from "../types/database.types"; // User Interface From Dat
 export const userService = {
 
 
-    async getUsers () {
+    async getUsers() {
 
-        const {data, error} = await supabase
+        const { data, error } = await supabase
             .from('users')
             .select('*');
 
-        if (error)  throw new Error(`Error Fetching Users: ${error.message}`);
+        if (error) throw new Error(`Error Fetching Users: ${error.message}`);
         return data;
     },
 
@@ -41,11 +41,11 @@ export const userService = {
 
 
     // Fetch Users (KAN 26 Functions)
-    async fetchInterns () {
-        const {data, error} = await supabase
+    async fetchInterns() {
+        const { data, error } = await supabase
             .from('users')
             .select('*')
-            .eq('role', 'student'); // Filter User Roles
+            .eq('role', 'intern'); // Filter User Roles
 
         if (error) throw new Error(`Error Fetching Interns: ${error.message}`);
         return data as Users[];

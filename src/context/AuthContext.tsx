@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setTimeout(() => {
             const mockUser: User = {
                 id: '1',
-                name: role === 'student' ? 'Alice Student' : role === 'supervisor' ? 'Bob Supervisor' : 'Charlie Admin',
+                name: role === 'intern' ? 'Alice Intern' : role === 'supervisor' ? 'Bob Supervisor' : 'Charlie Admin',
                 email: `${role}@interntrack.com`,
                 role: role,
                 avatarUrl: `https://ui-avatars.com/api/?name=${role}&background=random`,

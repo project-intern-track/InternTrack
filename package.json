@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:link": "npx supabase link --project-ref vhzpbtgwfmhzrepualwc",
+    "db:push": "npx supabase db push",
+    "db:status": "npx supabase migration list"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",

@@ -28,3 +28,6 @@ dist-ssr
 .env
 .env.local
 .env.*.
+
+# Supabase CLI (local cache only — migrations are tracked)
+supabase/.temp/

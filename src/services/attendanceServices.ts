@@ -9,9 +9,9 @@ import type { Attendance } from "../types/database.types"; // Attendance Interfa
 // Attendance Services Functions
 export const attendanceService = {
 
-    async getAttendance () {
+    async getAttendance() {
 
-        const {data, error} = await supabase
+        const { data, error } = await supabase
             .from('attendance')
             .select('*');
 
@@ -21,7 +21,7 @@ export const attendanceService = {
     },
 
 
-    async createAttendance (newAttendanceData: Omit<Attendance, 'id' | 'created_at'>) {
+    async createAttendance(newAttendanceData: Omit<Attendance, 'id' | 'created_at'>) {
 
         const validation = attendanceSchema.safeParse(newAttendanceData);
 
@@ -42,7 +42,7 @@ export const attendanceService = {
 
     },
 
-    async clockIn (userId: string) {
+    async clockIn(userId: string) {
 
         const { data, error } = await supabase
             .from('attendance')
@@ -62,21 +62,21 @@ export const attendanceService = {
 
     },
 
-    async clockOut (attendanceId: string, timeInString: string) {
+    async clockOut(attendanceId: string, timeInString: string) {
         // Fetch the existing attendance record to calculate total hours
         const timeOut = new Date().toISOString();
 
-        
+
         // Calculate Total Hours
         const timeIn = new Date(timeInString); // Calls The Time In Strinf From Specific Attendance Record
         const timeOutDate = new Date(timeOut);
         const totalHours = (timeOutDate.getTime() - timeIn.getTime()) / (1000 * 60 * 60); // Convert milliseconds to hours
 
-        const {data, error} = await supabase
+        const { data, error } = await supabase
             .from('attendance')
             .update({
-                time_out: Number(totalHours.toFixed(2)), // Ensure Total Hours is Rounded to 2 Decimal Places
-                total_hours: totalHours
+                time_out: timeOut, // ISO timestamp string for clock-out time
+                total_hours: Number(totalHours.toFixed(2)) // Rounded to 2 decimal places
             })
             .eq('id', attendanceId) // PK Reference for the specific attendance record
             .select()

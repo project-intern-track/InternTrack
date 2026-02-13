@@ -1,6 +1,6 @@
 // Aliases for database types
-export type UserRole = 'admin' | 'supervisor' | 'student';
-export type TaskStatus = 'to' | 'in-progress' | 'review' | 'completed';
+export type UserRole = 'admin' | 'supervisor' | 'intern';
+export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 
@@ -12,7 +12,7 @@ export interface Users {
 
     id: string; // UUID, Primary Key (PK), references `auth.users.id`
     email: string; // Must Be Unique
-    fullname: string;
+    full_name: string;
     avatar_url: string;
     role: UserRole;
     created_at: string; // ISO Date String, Default to current timestamp on creation

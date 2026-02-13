@@ -7,9 +7,9 @@ import { z } from "zod";
 // Users Schema (for creating new users — excludes id & created_at)
 export const usersSchema = z.object({
     email: z.string().email("Invalid email address"),
-    fullname: z.string().min(1, "Full name is required"),
-    avatar_url: z.string().url("Invalid avatar URL"),
-    role: z.enum(["admin", "supervisor", "student"]),
+    full_name: z.string().min(1, "Full name is required"),
+    avatar_url: z.string().url("Invalid avatar URL").optional().or(z.literal('')),
+    role: z.enum(["admin", "supervisor", "intern"]),
 });
 
 // Tasks Schema (for creating new tasks — excludes id & created_at)
@@ -17,7 +17,7 @@ export const taskSchema = z.object({
     title: z.string().min(1, "Task title is required"),
     description: z.string().min(1, "Task description is required"),
     assigned_to: z.string().uuid("Invalid assigned_to user ID"),
-    status: z.enum(["to", "in-progress", "review", "completed"]),
+    status: z.enum(["todo", "in-progress", "review", "done"]),
     priority: z.enum(["low", "medium", "high"]),
     due_date: z.string().min(1, "Due date is required"),
     created_by: z.string().uuid("Invalid created_by user ID"),
@@ -38,7 +38,7 @@ export const announcementSchema = z.object({
     title: z.string().min(1, "Announcement title is required"),
     content: z.string().min(1, "Announcement content is required"),
     created_by: z.string().uuid("Invalid created_by user ID"),
-    visibility: z.enum(["all", "admin", "supervisor", "student"]),
+    visibility: z.enum(["all", "admin", "supervisor", "intern"]),
 });
 
 // Evaluation Schema (for creating new evaluations — excludes id & created_at)

@@ -31,8 +31,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Login />} />
 
-      {/* Student Routes */}
-      <Route path="/student" element={
+      {/* Intern Routes */}
+      <Route path="/intern" element={
         <ProtectedRoute allowedRoles={['intern']}>
           <DashboardLayout />
         </ProtectedRoute>

@@ -5,11 +5,6 @@ import Login from './pages/public/Login';
 import DashboardLayout from './layouts/DashboardLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
-import Approvals from './pages/supervisor/Approvals';
-import Evaluations from './pages/supervisor/Evaluations';
-import Performance from './pages/supervisor/Performance';
-import Feedback from './pages/supervisor/Feedback';
-import Settings from './pages/supervisor/Settings';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
 // Protected Route Wrapper
@@ -53,12 +48,9 @@ function AppRoutes() {
           <DashboardLayout />
         </ProtectedRoute>
       }>
-        <Route path="Dashboard" element={<SupervisorDashboard />} />
-        <Route path="Approvals" element={<Approvals />} />
-        <Route path="Performance" element={<Performance />} />
-        <Route path="Evaluations" element={<Evaluations />} />
-        <Route path="Feedback" element={<Feedback />} />
-        <Route path="Settings" element={<Settings />} />
+        <Route path="dashboard" element={<SupervisorDashboard />} />
+        <Route path="interns" element={<div>Interns Page Placeholder</div>} />
+        <Route path="approvals" element={<div>Approvals Page Placeholder</div>} />
       </Route>
 
       {/* Admin Routes */}

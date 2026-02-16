@@ -1,0 +1,18 @@
+import { Settings as SettingsIcon } from 'lucide-react';
+
+const Settings = () => {
+    return (
+        <div className="placeholder-page">
+            <div className="placeholder-icon">
+                <SettingsIcon size={48} />
+            </div>
+            <h1 className="placeholder-title">Settings</h1>
+            <p className="placeholder-description">
+                Configure system settings and administrative preferences.
+            </p>
+            <div className="placeholder-badge">Coming Soon</div>
+        </div>
+    );
+};
+
+export default Settings;

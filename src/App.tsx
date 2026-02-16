@@ -7,9 +7,33 @@ import ForgotPassword from './pages/public/ForgotPassword';
 import ResetPassword from './pages/public/ResetPassword';
 import VerifyEmail from './pages/public/VerifyEmail';
 import DashboardLayout from './layouts/DashboardLayout';
+
+// Student/Intern Pages
 import StudentDashboard from './pages/student/StudentDashboard';
+import StudentDailyLogs from './pages/student/DailyLogs';
+import StudentSchedule from './pages/student/Schedule';
+import StudentReports from './pages/student/Reports';
+import StudentSettings from './pages/student/Settings';
+import StudentAnnouncements from './pages/student/Announcements';
+
+// Supervisor Pages
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
+import SupervisorManageInterns from './pages/supervisor/ManageInterns';
+import SupervisorManageTasks from './pages/supervisor/ManageTasks';
+import SupervisorMonitorAttendance from './pages/supervisor/MonitorAttendance';
+import SupervisorReports from './pages/supervisor/Reports';
+import SupervisorSettings from './pages/supervisor/Settings';
+import SupervisorAnnouncements from './pages/supervisor/Announcements';
+
+// Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminManageInterns from './pages/admin/ManageInterns';
+import AdminManageTasks from './pages/admin/ManageTasks';
+import AdminMonitorAttendance from './pages/admin/MonitorAttendance';
+import AdminReports from './pages/admin/Reports';
+import AdminSettings from './pages/admin/Settings';
+import AdminAnnouncements from './pages/admin/Announcements';
+
 import { Briefcase } from 'lucide-react';
 import './styles/auth.css';
 
@@ -93,8 +117,11 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route path="dashboard" element={<StudentDashboard />} />
-        <Route path="logs" element={<div>Logs Page Placeholder</div>} />
-        <Route path="schedule" element={<div>Schedule Page Placeholder</div>} />
+        <Route path="logs" element={<StudentDailyLogs />} />
+        <Route path="schedule" element={<StudentSchedule />} />
+        <Route path="reports" element={<StudentReports />} />
+        <Route path="announcements/:type" element={<StudentAnnouncements />} />
+        <Route path="settings" element={<StudentSettings />} />
       </Route>
 
       {/* Supervisor Routes */}
@@ -104,8 +131,12 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route path="dashboard" element={<SupervisorDashboard />} />
-        <Route path="interns" element={<div>Interns Page Placeholder</div>} />
-        <Route path="approvals" element={<div>Approvals Page Placeholder</div>} />
+        <Route path="interns" element={<SupervisorManageInterns />} />
+        <Route path="tasks" element={<SupervisorManageTasks />} />
+        <Route path="attendance" element={<SupervisorMonitorAttendance />} />
+        <Route path="reports" element={<SupervisorReports />} />
+        <Route path="announcements/:type" element={<SupervisorAnnouncements />} />
+        <Route path="settings" element={<SupervisorSettings />} />
       </Route>
 
       {/* Admin Routes */}
@@ -115,8 +146,12 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="users" element={<div>Users Page Placeholder</div>} />
-        <Route path="settings" element={<div>Settings Page Placeholder</div>} />
+        <Route path="interns" element={<AdminManageInterns />} />
+        <Route path="tasks" element={<AdminManageTasks />} />
+        <Route path="attendance" element={<AdminMonitorAttendance />} />
+        <Route path="reports" element={<AdminReports />} />
+        <Route path="announcements/:type" element={<AdminAnnouncements />} />
+        <Route path="settings" element={<AdminSettings />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

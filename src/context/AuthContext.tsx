@@ -213,20 +213,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isHandlingAuth.current = true;
 
         try {
+            console.log('AuthContext: Starting signup for', email);
             const result = await authService.signUp(email, password, metadata);
+            console.log('AuthContext: Signup result from service:', result);
 
             if (result.error) {
-                setState((prev) => ({ ...prev, isLoading: false }));
+                console.error('AuthContext: Signup error:', result.error);
+                setState({ user: null, isAuthenticated: false, isLoading: false });
                 return { error: result.error };
             }
 
             // If Supabase requires email confirmation, session will be null
             if (!result.session || !result.user) {
-                setState((prev) => ({ ...prev, isLoading: false }));
+                console.log('AuthContext: Email confirmation required, no session created');
+                setState({ user: null, isAuthenticated: false, isLoading: false });
                 return { error: null }; // Success — but user needs to confirm email
             }
 
             // If auto-confirmed, load the profile directly
+            console.log('AuthContext: User auto-confirmed, loading profile');
             const user = await ensureUserProfile(
                 result.user.id,
                 result.user.email || email,

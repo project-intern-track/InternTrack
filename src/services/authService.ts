@@ -12,6 +12,10 @@ export interface SignUpMetadata {
     full_name: string;
     role: UserRole;
     avatar_url?: string;
+    ojt_role?: string;
+    start_date?: string;
+    required_hours?: number;
+    ojt_type?: 'required' | 'voluntary';
 }
 
 export interface AuthResult {
@@ -33,7 +37,11 @@ export const authService = {
      */
     async signUp(email: string, password: string, metadata: SignUpMetadata): Promise<AuthResult> {
         try {
+            console.log('authService: Creating auth user for', email);
+            console.log('authService: Metadata:', metadata);
+            
             // 1. Create the auth user in Supabase Auth
+            // The trigger function will automatically create the profile in the users table
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
@@ -41,38 +49,23 @@ export const authService = {
                     data: {
                         full_name: metadata.full_name,
                         role: metadata.role,
-                        avatar_url: metadata.avatar_url || '',
+                        avatar_url: metadata.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(metadata.full_name)}&background=random`,
+                        ojt_role: metadata.ojt_role || '',
+                        start_date: metadata.start_date || '',
+                        required_hours: metadata.required_hours || 0,
+                        ojt_type: metadata.ojt_type || 'required',
                     },
                 },
             });
+
+            console.log('authService: Supabase response:', { user: data.user?.id, session: !!data.session, error });
 
             if (error) {
                 return { user: null, session: null, error: error.message };
             }
 
-            // 2. Create the public profile in the `users` table
-            if (data.user) {
-                const { error: profileError } = await supabase
-                    .from('users')
-                    .insert({
-                        id: data.user.id,
-                        email: email,
-                        full_name: metadata.full_name,
-                        role: metadata.role,
-                        avatar_url: metadata.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(metadata.full_name)}&background=random`,
-                    });
-
-                if (profileError) {
-                    console.error('Error creating user profile:', profileError.message);
-                    // Note: The auth user was created but profile failed.
-                    // This is handled gracefully - the profile can be re-created on next login.
-                    return {
-                        user: data.user,
-                        session: data.session,
-                        error: `Account created but profile setup failed: ${profileError.message}`,
-                    };
-                }
-            }
+            // The profile is created automatically by the database trigger
+            // No need to manually insert into the users table
 
             return {
                 user: data.user,
@@ -81,6 +74,7 @@ export const authService = {
             };
         } catch (err) {
             const message = err instanceof Error ? err.message : 'An unexpected error occurred during sign up';
+            console.error('authService: Exception during signup:', message);
             return { user: null, session: null, error: message };
         }
     },

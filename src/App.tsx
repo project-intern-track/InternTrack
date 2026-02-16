@@ -5,6 +5,7 @@ import Login from './pages/public/Login';
 import Signup from './pages/public/Signup';
 import ForgotPassword from './pages/public/ForgotPassword';
 import ResetPassword from './pages/public/ResetPassword';
+import VerifyEmail from './pages/public/VerifyEmail';
 import DashboardLayout from './layouts/DashboardLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
@@ -81,6 +82,7 @@ function AppRoutes() {
       {/* Public routes */}
       <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
 

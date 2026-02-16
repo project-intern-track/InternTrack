@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Loader2, AlertCircle, Info, Eye, EyeOff } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import '../../styles/auth.css';
 
 const OJT_ROLES = [
@@ -44,9 +44,20 @@ const Signup = () => {
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [successEmail, setSuccessEmail] = useState('');
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [signupSuccess, setSignupSuccess] = useState(false);
+    const [signupEmail, setSignupEmail] = useState('');
+
+    // Handle navigation after successful signup
+    useEffect(() => {
+        if (signupSuccess && signupEmail) {
+            console.log('Navigating to verify-email page with email:', signupEmail);
+            const timer = setTimeout(() => {
+                navigate('/verify-email', { state: { email: signupEmail }, replace: true });
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [signupSuccess, signupEmail, navigate]);
 
     const validateField = (field: string): string | undefined => {
         switch (field) {
@@ -118,6 +129,8 @@ const Signup = () => {
         if (!validateAll()) return;
 
         setIsSubmitting(true);
+        console.log('Signing up with:', { email: email.trim(), fullName: fullName.trim(), role });
+        
         const result = await signUp(email.trim(), password, {
             full_name: fullName.trim(),
             role: 'intern',
@@ -127,39 +140,21 @@ const Signup = () => {
             ojt_type: ojtType,
         });
 
+        console.log('Signup result:', result);
+
         if (result.error) {
             let msg = result.error;
             if (msg.toLowerCase().includes('already registered')) msg = 'An account with this email already exists. Please sign in instead.';
             setError(msg);
             setIsSubmitting(false);
         } else {
-            setSuccessEmail(email.trim());
-            setSuccess(true);
+            console.log('Signup successful, preparing to navigate');
+            // Don't navigate immediately - use effect to handle it after state settles
             setIsSubmitting(false);
+            setSignupEmail(email.trim());
+            setSignupSuccess(true);
         }
     };
-
-    if (success) {
-        return (
-            <div className="auth-page" style={{ justifyContent: 'center', alignItems: 'center' }}>
-                <div className="auth-success-card">
-                    <div className="auth-success-icon"><Mail size={36} /></div>
-                    <h2>Check your email!</h2>
-                    <p>We've sent a confirmation link to:</p>
-                    <p className="auth-success-email">{successEmail}</p>
-                    <div className="auth-info-box" id="email-confirmation-notice">
-                        <Info size={18} className="auth-info-icon" />
-                        <div>
-                            <strong>Important:</strong> You must click the confirmation link in your email
-                            before you can sign in. Check your <strong>spam/junk folder</strong>.
-                        </div>
-                    </div>
-                    <button onClick={() => navigate('/')} className="auth-submit-btn" id="go-to-login">Go to Login</button>
-                    <p className="auth-success-hint">Didn't receive the email? Wait a minute, then try signing up again.</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="auth-page">

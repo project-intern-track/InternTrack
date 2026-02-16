@@ -3,6 +3,7 @@ export type UserRole = 'admin' | 'supervisor' | 'intern';
 export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
+export type OJTType = 'required' | 'voluntary';
 
 
 // ===============
@@ -15,6 +16,10 @@ export interface Users {
     full_name: string;
     avatar_url: string;
     role: UserRole;
+    ojt_role?: string; // OJT role/position (e.g., "Frontend Developer")
+    start_date?: string; // ISO Date String, start date of internship
+    required_hours?: number; // Total required hours for the internship
+    ojt_type?: OJTType; // Type of OJT (required or voluntary)
     created_at: string; // ISO Date String, Default to current timestamp on creation
 }
 

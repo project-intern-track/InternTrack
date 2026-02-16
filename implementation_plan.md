@@ -112,17 +112,18 @@ These tasks must be completed first to allow other work to proceed.
 - [x] **Global Styling & Theme** (Yuan - FE) ✅ **COMPLETE**
     - ✅ Implement Figma color palette, typography (variables.css).
     - ✅ Comprehensive design system with 800+ lines of CSS.
-- [ ] **Authentication System** (Victor - BE + Clement - FS) ⚠️ **NOT ASSIGNED YET**
-    - Create `authService.ts` with Supabase Auth integration:
+- [x] **Authentication System** (Victor - BE + Clement - FS) ✅ **COMPLETE**
+    - ✅ Created `authService.ts` with Supabase Auth integration:
         - `signUp(email, password, metadata)` - Register new users
         - `signIn(email, password)` - Login existing users
         - `signOut()` - Logout users
         - `resetPassword(email)` - Password recovery
         - `updatePassword(newPassword)` - Change password
-    - Update `AuthContext.tsx` to use real Supabase auth instead of mock
-    - Create proper Login page with email/password form (currently mock role selector)
-    - Create Signup page for new user registration
-    - Handle auth state persistence and session management
+    - ✅ Updated `AuthContext.tsx` to use real Supabase auth instead of mock
+    - ✅ Created proper Login page with email/password form
+    - ✅ Created Signup page for new user registration
+    - ✅ Created ForgotPassword and ResetPassword pages
+    - ✅ Handle auth state persistence and session management
 
 ## Priority 2: Admin Panel
 - [ ] **Admin Dashboard** (Angelito - FE)

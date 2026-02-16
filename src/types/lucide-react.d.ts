@@ -56,6 +56,9 @@ declare module 'lucide-react' {
     export const AlertCircle: Icon;
     export const Info: Icon;
     export const Loader2: Icon;
+    export const ArrowRight: Icon;
+    export const ArrowLeft: Icon;
+    export const RefreshCw: Icon;
 
     // Allow any other icon export
     const icons: Record<string, Icon>;

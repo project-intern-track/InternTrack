@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.warn('User profile not found, attempting to create from auth metadata...');
         const fullName = (userMetadata?.full_name as string) || email.split('@')[0] || 'User';
         const role = (userMetadata?.role as UserRole) || 'intern';
-        const avatarUrl = (userMetadata?.avatar_url as string) || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+        const avatarUrl = (userMetadata?.avatar_url as string) || undefined;
 
         try {
             const { error: insertError } = await supabase

@@ -1,16 +1,10 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-    LayoutDashboard,
-    FileText,
-    Calendar,
-    Settings,
-    Users,
-    ClipboardList,
-    Bell,
     ChevronDown,
-    Menu,
-    X
+    X,
+    LogOut,
+    Loader2
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -20,10 +14,27 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
-    const { user } = useAuth();
+    const { user, signOut } = useAuth();
+    const navigate = useNavigate();
     const [announcementsOpen, setAnnouncementsOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     if (!user) return null;
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        if (onClose) onClose();
+        
+        // Navigate immediately for better UX
+        navigate('/');
+        
+        // Let signOut complete in background
+        try {
+            await signOut();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
 
     const getLinks = () => {
         switch (user.role) {
@@ -135,6 +146,26 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                         </li>
                     </ul>
                 </nav>
+
+                <div className="sidebar-footer">
+                    <button 
+                        className="sidebar-logout-btn"
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                    >
+                        {isLoggingOut ? (
+                            <>
+                                <Loader2 size={20} className="spinner" />
+                                <span>Logging out...</span>
+                            </>
+                        ) : (
+                            <>
+                                <LogOut size={20} />
+                                <span>Logout</span>
+                            </>
+                        )}
+                    </button>
+                </div>
             </aside>
         </>
     );

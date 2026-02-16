@@ -37,9 +37,6 @@ export const authService = {
      */
     async signUp(email: string, password: string, metadata: SignUpMetadata): Promise<AuthResult> {
         try {
-            console.log('authService: Creating auth user for', email);
-            console.log('authService: Metadata:', metadata);
-            
             // 1. Create the auth user in Supabase Auth
             // The trigger function will automatically create the profile in the users table
             const { data, error } = await supabase.auth.signUp({
@@ -58,8 +55,6 @@ export const authService = {
                 },
             });
 
-            console.log('authService: Supabase response:', { user: data.user?.id, session: !!data.session, error });
-
             if (error) {
                 return { user: null, session: null, error: error.message };
             }
@@ -74,7 +69,6 @@ export const authService = {
             };
         } catch (err) {
             const message = err instanceof Error ? err.message : 'An unexpected error occurred during sign up';
-            console.error('authService: Exception during signup:', message);
             return { user: null, session: null, error: message };
         }
     },

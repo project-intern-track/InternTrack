@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
@@ -45,19 +45,6 @@ const Signup = () => {
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
-    const [signupSuccess, setSignupSuccess] = useState(false);
-    const [signupEmail, setSignupEmail] = useState('');
-
-    // Handle navigation after successful signup
-    useEffect(() => {
-        if (signupSuccess && signupEmail) {
-            console.log('Navigating to verify-email page with email:', signupEmail);
-            const timer = setTimeout(() => {
-                navigate('/verify-email', { state: { email: signupEmail }, replace: true });
-            }, 100);
-            return () => clearTimeout(timer);
-        }
-    }, [signupSuccess, signupEmail, navigate]);
 
     const validateField = (field: string): string | undefined => {
         switch (field) {
@@ -129,8 +116,6 @@ const Signup = () => {
         if (!validateAll()) return;
 
         setIsSubmitting(true);
-        console.log('Signing up with:', { email: email.trim(), fullName: fullName.trim(), role });
-        
         const result = await signUp(email.trim(), password, {
             full_name: fullName.trim(),
             role: 'intern',
@@ -140,19 +125,14 @@ const Signup = () => {
             ojt_type: ojtType,
         });
 
-        console.log('Signup result:', result);
-
         if (result.error) {
             let msg = result.error;
             if (msg.toLowerCase().includes('already registered')) msg = 'An account with this email already exists. Please sign in instead.';
             setError(msg);
             setIsSubmitting(false);
         } else {
-            console.log('Signup successful, preparing to navigate');
-            // Don't navigate immediately - use effect to handle it after state settles
-            setIsSubmitting(false);
-            setSignupEmail(email.trim());
-            setSignupSuccess(true);
+            // Navigate immediately on success
+            navigate('/verify-email', { state: { email: email.trim() }, replace: true });
         }
     };
 

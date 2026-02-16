@@ -1,5 +1,4 @@
 import { useAuth } from '../../context/AuthContext';
-import { TrendingUp } from 'lucide-react';
 
 const AdminDashboard = () => {
     const { user } = useAuth();
@@ -30,8 +29,7 @@ const AdminDashboard = () => {
                     <div className="stat-value">124</div>
                     <div className="stat-footer">
                         <span className="stat-trend positive">
-                            <TrendingUp size={14} />
-                            +12%
+                            ↑ +12%
                         </span>
                         <span className="stat-description">vs last month</span>
                     </div>

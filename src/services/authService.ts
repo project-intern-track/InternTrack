@@ -4,6 +4,8 @@
 import { supabase } from './supabaseClient';
 import type { User as SupabaseUser, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import type { UserRole } from '../types/database.types';
+import { announcementSchema } from './validation';
+import { announcementService } from './announcementService';
 
 // ========================
 // Types
@@ -75,6 +77,24 @@ export const authService = {
 
             // The profile is created automatically by the database trigger
             // No need to manually insert into the users table
+
+            // Create announcement for intern sign up even if the account is not verified: Record still created
+            if (data.user) {
+
+                try {
+                    await announcementService.createAnnouncement({
+                        title: `New Intern Registration: ${data.user?.email}`,
+                        content: `New Intern, ${metadata.full_name}, has registered with the email ${data.user.email}. Please verify their account and welcome them to the team!`,
+                        created_by: data.user.id,
+                        visibility: 'admin' // Only Admins Can see and verify new intern registrations
+
+                    });
+
+                } catch (announcementError) {
+                    console.error('Error creating announcement for new intern:', announcementError instanceof Error ? announcementError.message : announcementError);
+                }
+
+            }
 
             return {
                 user: data.user,
@@ -254,7 +274,7 @@ export const authService = {
      * @param intern - User's Data: InternData 
      * @param adminUser - Current User: Admin User Privileges
      */ 
-    async addIntern(intern: InternData, adminUser: { role: UserRole } | null): Promise<AuthResult> {
+    async addIntern(intern: InternData, adminUser: { id: string, role: UserRole } | null): Promise<AuthResult> {
 
         if (adminUser?.role !== 'admin') {
             return { user: null, session: null, error: 'Unauthorized: Only admins can add interns' };
@@ -265,18 +285,25 @@ export const authService = {
             // Check if E-mail is recorded as an existing intern user in DB
             const { email, password, ...metadata } = intern;
 
-            // Create auth user in Supabase Auth
-            const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-                options: {
-                    data: metadata,
-                },
-            });
+            // Wait for the sign up data process
+            const result = await this.signUp(email, password, metadata);
 
-            if (error) { return { user: null, session: null, error: error.message }; }
+            if (result.error) return result;    
 
-            return { user: data.user, session: data.session, error: null,};
+            /**
+             * Announcement Creation For Add Intern
+             */
+            if (result.user) {
+                await announcementService.createAnnouncement({
+                            title: "Official Onboarding",
+                            content: `${intern.full_name} has been added by ${adminUser.id}`,
+                            created_by: adminUser.id,
+                            visibility: 'all' 
+                        });
+            }
+
+
+            return result;
 
         } catch (error) {
             return { user: null, session: null, error: error instanceof Error ? error.message : 'An unexpected error occurred' };

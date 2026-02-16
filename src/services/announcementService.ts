@@ -21,10 +21,20 @@ export const announcementService = {
     },
 
 
+    /**
+     * Create Announcement with appropriate data validation
+     * Updated Function
+     */
+    async createAnnouncement (content: {
+        title: string;
+        content: string;
+        created_by: string;
+        visibility: 'all' | 'admin' | 'supervisor' | 'intern';
+        // Possibility to add created_at time ISO string
 
-    async createAnnouncement (newAnnouncementData: Omit<Announcement, 'id' | 'created_at'>) {
+    }) {
 
-        const validation = announcementSchema.safeParse(newAnnouncementData);
+        const validation = announcementSchema.safeParse(content);
 
         if (!validation.success) {
             throw new Error(`Invalid Announcement Data: ${validation.error.message}`);
@@ -32,13 +42,12 @@ export const announcementService = {
 
         const { data, error } = await supabase
             .from('announcements')
-            .insert(newAnnouncementData)
+            .insert(content)
             .select()
             .single();
 
         if (error) throw new Error(`Error Creating Announcement: ${error.message}`);
-        return data as Announcement;
-
+        return data;
     }
 
 }

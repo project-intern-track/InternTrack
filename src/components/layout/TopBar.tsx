@@ -10,10 +10,23 @@ const TopBar = () => {
         <div className="topbar">
             <div className="topbar-user">
                 <div className="topbar-avatar">
-                    {user.avatarUrl ? (
+                    {user.avatarUrl && !user.avatarUrl.includes('ui-avatars.com') ? (
                         <img src={user.avatarUrl} alt={user.name} />
                     ) : (
-                        <span>{user.name.split(' ').map(n => n[0]).join('').toUpperCase()}</span>
+                        <svg
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#555"
+                            strokeWidth="1.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="10" r="3" />
+                            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
+                        </svg>
                     )}
                 </div>
                 <div className="topbar-user-info">

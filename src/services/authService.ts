@@ -24,6 +24,20 @@ export interface AuthResult {
     error: string | null;
 }
 
+export interface InternData{
+    full_name: string;
+    email: string;
+    password: string;
+    role: 'intern';
+    avatar_url?: string;
+    ojt_role?: string;
+    start_date?: string;
+    required_hours?: number;
+    ojt_type?: 'required' | 'voluntary';
+}
+
+
+
 // ========================
 // Auth Service Functions
 // ========================
@@ -232,4 +246,43 @@ export const authService = {
             return { error: message };
         }
     },
+
+
+    /**
+     * Parameters - InternData, Admin User Object
+     * Additional function to add an intern with specific metadata
+     * @param intern - User's Data: InternData 
+     * @param adminUser - Current User: Admin User Privileges
+     */ 
+    async addIntern(intern: InternData, adminUser: { role: UserRole } | null): Promise<AuthResult> {
+
+        if (adminUser?.role !== 'admin') {
+            return { user: null, session: null, error: 'Unauthorized: Only admins can add interns' };
+        }
+
+        try {
+
+            // Check if E-mail is recorded as an existing intern user in DB
+            const { email, password, ...metadata } = intern;
+
+            // Create auth user in Supabase Auth
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: metadata,
+                },
+            });
+
+            if (error) { return { user: null, session: null, error: error.message }; }
+
+            return { user: data.user, session: data.session, error: null,};
+
+        } catch (error) {
+            return { user: null, session: null, error: error instanceof Error ? error.message : 'An unexpected error occurred' };
+        }
+
+    }
+
 };
+

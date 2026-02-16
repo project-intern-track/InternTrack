@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { User, UserRole, AuthState } from '../types';
 
+/* eslint-disable react-refresh/only-export-components */
+
 interface AuthContextType extends AuthState {
     login: (role: UserRole) => void;
     logout: () => void;

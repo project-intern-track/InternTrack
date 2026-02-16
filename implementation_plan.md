@@ -191,8 +191,8 @@ This schedule distributes the work over 10 working days, allowing more time for 
 *   **Victor (BE)**:
     *   [x] Define TypeScript Interfaces/Types for all DB tables. [High]
     *   [x] Set up Zod schemas for input validation (API Layer). [High]
-*   **Yuan (FE)**: [] Global CSS, Design System (Variables, Typography). [High]
-*   **Nathaniel, Yuan, Kevin, Judito, Jay**: [] Environment setup, codebase study. [High]
+*   **Yuan (FE)**: [ ] Global CSS, Design System (Variables, Typography). [High]
+*   **Nathaniel, Yuan, Kevin, Judito, Jay**: [x] Environment setup, codebase study. [High]
 
 #### Days 3-4: Static UI Implementation (Frontend)
 *   **Angelito (FE)**: []`AdminDashboard` UI (Sidebar, Stats Grid). [Medium]
@@ -210,7 +210,7 @@ This schedule distributes the work over 10 working days, allowing more time for 
 *   **Clement (FS)**:
     *   [ ] Helper functions for date formatting. [Medium]
     *   [ ] Review RLS policies. [High]
-*   **Clement (FS)**: Routing logic refinements (Redirects, Loading states). [Medium]
+*   **Clement (FS)**: []Routing logic refinements (Redirects, Loading states). [Medium]
 
 ### Week 2: Integration & Advanced Features
 *Goal: Connect FE to BE, functionality, and polish.*

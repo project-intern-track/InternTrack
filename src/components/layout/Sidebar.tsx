@@ -7,7 +7,9 @@ import {
     Settings,
     LogOut,
     Users,
-    Briefcase
+    Briefcase,
+    ClipboardList,
+    BarChart
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -27,8 +29,11 @@ const Sidebar = () => {
             case 'supervisor':
                 return [
                     { to: '/supervisor/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                    { to: '/supervisor/interns', icon: Users, label: 'Interns' },
-                    { to: '/supervisor/approvals', icon: FileText, label: 'Approvals' },
+                    { to: '/supervisor/approvals', icon: ClipboardList, label: 'Approvals' },
+                    { to: '/supervisor/performance', icon: BarChart, label: 'Performance' },
+                    { to: '/supervisor/evaluations', icon: Briefcase, label: 'Evaluations' },
+                    { to: '/supervisor/feedback', icon: FileText, label: 'Feedback' },
+                    { to: '/supervisor/settings', icon: Settings, label: 'Settings' },
                 ];
             case 'admin':
                 return [

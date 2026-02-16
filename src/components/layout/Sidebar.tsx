@@ -1,20 +1,27 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard,
     FileText,
     Calendar,
     Settings,
-    LogOut,
     Users,
-    Briefcase,
     ClipboardList,
-    BarChart
+    Bell,
+    ChevronDown,
+    Menu,
+    X
 } from 'lucide-react';
+import { useState } from 'react';
 
-const Sidebar = () => {
-    const { user, signOut } = useAuth();
-    const navigate = useNavigate();
+interface SidebarProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
+    const { user } = useAuth();
+    const [announcementsOpen, setAnnouncementsOpen] = useState(false);
 
     if (!user) return null;
 
@@ -22,24 +29,26 @@ const Sidebar = () => {
         switch (user.role) {
             case 'intern':
                 return [
-                    { to: '/intern/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                    { to: '/intern/logs', icon: FileText, label: 'Daily Logs' },
-                    { to: '/intern/schedule', icon: Calendar, label: 'Schedule' },
+                    { to: '/intern/dashboard', label: 'Dashboard' },
+                    { to: '/intern/logs', label: 'Daily Logs' },
+                    { to: '/intern/schedule', label: 'Schedule' },
+                    { to: '/intern/reports', label: 'Reports Section' },
                 ];
             case 'supervisor':
                 return [
-                    { to: '/supervisor/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                    { to: '/supervisor/approvals', icon: ClipboardList, label: 'Approvals' },
-                    { to: '/supervisor/performance', icon: BarChart, label: 'Performance' },
-                    { to: '/supervisor/evaluations', icon: Briefcase, label: 'Evaluations' },
-                    { to: '/supervisor/feedback', icon: FileText, label: 'Feedback' },
-                    { to: '/supervisor/settings', icon: Settings, label: 'Settings' },
+                    { to: '/supervisor/dashboard', label: 'Dashboard' },
+                    { to: '/supervisor/interns', label: 'Manage Interns' },
+                    { to: '/supervisor/tasks', label: 'Manage Tasks' },
+                    { to: '/supervisor/attendance', label: 'Monitor Attendance' },
+                    { to: '/supervisor/reports', label: 'Reports Section' },
                 ];
             case 'admin':
                 return [
-                    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                    { to: '/admin/users', icon: Users, label: 'User Management' },
-                    { to: '/admin/settings', icon: Settings, label: 'System Settings' },
+                    { to: '/admin/dashboard', label: 'Dashboard' },
+                    { to: '/admin/interns', label: 'Manage interns' },
+                    { to: '/admin/tasks', label: 'Manage tasks' },
+                    { to: '/admin/attendance', label: 'Monitor attendance' },
+                    { to: '/admin/reports', label: 'Reports Section' },
                 ];
             default:
                 return [];
@@ -47,54 +56,87 @@ const Sidebar = () => {
     };
 
     return (
-        <aside className="sidebar">
-            <div className="sidebar-header">
-                <div className="sidebar-logo">
-                    <Briefcase size={20} />
-                </div>
-                <span className="sidebar-title">InternTrack</span>
-            </div>
+        <>
+            <div className={`sidebar-overlay ${isOpen ? 'active' : ''}`} onClick={onClose}></div>
+            <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+                <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
+                    <X size={24} />
+                </button>
 
-            <nav className="sidebar-nav">
-                <ul>
-                    {getLinks().map((link) => (
-                        <li key={link.to}>
-                            <NavLink
-                                to={link.to}
-                                className={({ isActive }) =>
-                                    isActive ? 'active-link' : 'nav-link'
-                                }
+                <div className="sidebar-header">
+                    <img src="/heroIcon.png" alt="InternTrack" className="sidebar-logo-img" />
+                    <div className="sidebar-brand">
+                        <span className="sidebar-brand-intern">Intern</span>
+                        <span className="sidebar-brand-track">Track</span>
+                    </div>
+                </div>
+
+                <nav className="sidebar-nav">
+                    <ul>
+                        {getLinks().map((link) => (
+                            <li key={link.to}>
+                                <NavLink
+                                    to={link.to}
+                                    className={({ isActive }) =>
+                                        isActive ? 'sidebar-link active' : 'sidebar-link'
+                                    }
+                                    onClick={onClose}
+                                >
+                                    {link.label}
+                                </NavLink>
+                            </li>
+                        ))}
+                        
+                        <li>
+                            <button 
+                                className="sidebar-link sidebar-dropdown-toggle"
+                                onClick={() => setAnnouncementsOpen(!announcementsOpen)}
                             >
-                                <link.icon size={20} />
-                                {link.label}
+                                <span>Announcements</span>
+                                <ChevronDown 
+                                    size={16} 
+                                    className={`sidebar-dropdown-icon ${announcementsOpen ? 'open' : ''}`}
+                                />
+                            </button>
+                            {announcementsOpen && (
+                                <ul className="sidebar-submenu">
+                                    <li>
+                                        <NavLink 
+                                            to={`/${user.role}/announcements/company`}
+                                            className="sidebar-sublink"
+                                            onClick={onClose}
+                                        >
+                                            Company Notices
+                                        </NavLink>
+                                    </li>
+                                    <li>
+                                        <NavLink 
+                                            to={`/${user.role}/announcements/internship`}
+                                            className="sidebar-sublink"
+                                            onClick={onClose}
+                                        >
+                                            Internship Reminders
+                                        </NavLink>
+                                    </li>
+                                </ul>
+                            )}
+                        </li>
+
+                        <li>
+                            <NavLink
+                                to={`/${user.role}/settings`}
+                                className={({ isActive }) =>
+                                    isActive ? 'sidebar-link active' : 'sidebar-link'
+                                }
+                                onClick={onClose}
+                            >
+                                Settings
                             </NavLink>
                         </li>
-                    ))}
-                </ul>
-            </nav>
-
-            <div className="sidebar-footer">
-                <div className="sidebar-user">
-                    <div className="avatar avatar-sm" style={{ backgroundColor: 'hsl(var(--sidebar-hover))', color: 'hsl(var(--sidebar-foreground))' }}>
-                        {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </div>
-                    <div style={{ overflow: 'hidden', flex: 1 }}>
-                        <div className="sidebar-user-name">{user.name}</div>
-                        <div className="sidebar-user-role">{user.role}</div>
-                    </div>
-                </div>
-                <button
-                    onClick={async () => {
-                        await signOut();
-                        navigate('/');
-                    }}
-                    className="btn-ghost"
-                    style={{ width: '100%', justifyContent: 'flex-start', color: 'hsl(var(--danger))' }}
-                >
-                    <LogOut size={18} /> Logout
-                </button>
-            </div>
-        </aside>
+                    </ul>
+                </nav>
+            </aside>
+        </>
     );
 };
 

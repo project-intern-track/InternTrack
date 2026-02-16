@@ -1,18 +1,18 @@
-import { Settings as SettingsIcon } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 
-const Settings = () => {
+const ManageTasks = () => {
     return (
         <div className="placeholder-page">
             <div className="placeholder-icon">
-                <SettingsIcon size={48} />
+                <ClipboardList size={48} />
             </div>
-            <h1 className="placeholder-title">Settings</h1>
+            <h1 className="placeholder-title">Manage Tasks</h1>
             <p className="placeholder-description">
-                Manage your supervisor profile and preferences.
+                Create, assign, and track tasks for your interns.
             </p>
             <div className="placeholder-badge">Coming Soon</div>
         </div>
     );
 };
 
-export default Settings;
+export default ManageTasks;

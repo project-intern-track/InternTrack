@@ -1,21 +1,31 @@
 import { Outlet } from 'react-router-dom';
+import { useState } from 'react';
+import { Menu } from 'lucide-react';
 import Sidebar from '../components/layout/Sidebar';
+import TopBar from '../components/layout/TopBar';
 
 const DashboardLayout = () => {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
     return (
-        <div style={{ display: 'flex' }}>
-            <Sidebar />
-            <main style={{
-                flex: 1,
-                marginLeft: '260px',
-                padding: '2rem',
-                minHeight: '100vh',
-                backgroundColor: 'hsl(var(--background))'
-            }}>
-                <div className="container">
+        <div className="dashboard-container">
+            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            
+            <div className="dashboard-main">
+                <button 
+                    className="hamburger-menu" 
+                    onClick={() => setSidebarOpen(true)}
+                    aria-label="Open menu"
+                >
+                    <Menu size={24} />
+                </button>
+
+                <TopBar />
+
+                <main className="dashboard-content">
                     <Outlet />
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     );
 };

@@ -1,0 +1,247 @@
+// ============================
+// Auth Service - Supabase Auth
+// ============================
+import { supabase } from './supabaseClient';
+import type { User as SupabaseUser, Session, AuthChangeEvent } from '@supabase/supabase-js';
+import type { UserRole } from '../types/database.types';
+
+// ========================
+// Types
+// ========================
+export interface SignUpMetadata {
+    full_name: string;
+    role: UserRole;
+    avatar_url?: string;
+}
+
+export interface AuthResult {
+    user: SupabaseUser | null;
+    session: Session | null;
+    error: string | null;
+}
+
+// ========================
+// Auth Service Functions
+// ========================
+export const authService = {
+
+    /**
+     * Register a new user with Supabase Auth and create a profile in the `users` table.
+     * @param email - User email address
+     * @param password - User password (min 6 characters)
+     * @param metadata - Additional user metadata (full_name, role)
+     */
+    async signUp(email: string, password: string, metadata: SignUpMetadata): Promise<AuthResult> {
+        try {
+            // 1. Create the auth user in Supabase Auth
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: metadata.full_name,
+                        role: metadata.role,
+                        avatar_url: metadata.avatar_url || '',
+                    },
+                },
+            });
+
+            if (error) {
+                return { user: null, session: null, error: error.message };
+            }
+
+            // 2. Create the public profile in the `users` table
+            if (data.user) {
+                const { error: profileError } = await supabase
+                    .from('users')
+                    .insert({
+                        id: data.user.id,
+                        email: email,
+                        full_name: metadata.full_name,
+                        role: metadata.role,
+                        avatar_url: metadata.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(metadata.full_name)}&background=random`,
+                    });
+
+                if (profileError) {
+                    console.error('Error creating user profile:', profileError.message);
+                    // Note: The auth user was created but profile failed.
+                    // This is handled gracefully - the profile can be re-created on next login.
+                    return {
+                        user: data.user,
+                        session: data.session,
+                        error: `Account created but profile setup failed: ${profileError.message}`,
+                    };
+                }
+            }
+
+            return {
+                user: data.user,
+                session: data.session,
+                error: null,
+            };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred during sign up';
+            return { user: null, session: null, error: message };
+        }
+    },
+
+    /**
+     * Sign in an existing user with email and password.
+     * @param email - User email address
+     * @param password - User password
+     */
+    async signIn(email: string, password: string): Promise<AuthResult> {
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) {
+                return { user: null, session: null, error: error.message };
+            }
+
+            return {
+                user: data.user,
+                session: data.session,
+                error: null,
+            };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred during sign in';
+            return { user: null, session: null, error: message };
+        }
+    },
+
+    /**
+     * Sign out the current user.
+     */
+    async signOut(): Promise<{ error: string | null }> {
+        try {
+            const { error } = await supabase.auth.signOut();
+
+            if (error) {
+                return { error: error.message };
+            }
+
+            return { error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred during sign out';
+            return { error: message };
+        }
+    },
+
+    /**
+     * Send a password reset email to the user.
+     * @param email - User email address
+     */
+    async resetPassword(email: string): Promise<{ error: string | null }> {
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`,
+            });
+
+            if (error) {
+                return { error: error.message };
+            }
+
+            return { error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { error: message };
+        }
+    },
+
+    /**
+     * Update the current user's password.
+     * @param newPassword - The new password (min 6 characters)
+     */
+    async updatePassword(newPassword: string): Promise<{ error: string | null }> {
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: newPassword,
+            });
+
+            if (error) {
+                return { error: error.message };
+            }
+
+            return { error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { error: message };
+        }
+    },
+
+    /**
+     * Get the current authenticated user session.
+     */
+    async getSession(): Promise<{ session: Session | null; error: string | null }> {
+        try {
+            const { data, error } = await supabase.auth.getSession();
+
+            if (error) {
+                return { session: null, error: error.message };
+            }
+
+            return { session: data.session, error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { session: null, error: message };
+        }
+    },
+
+    /**
+     * Fetch the user's profile from the public `users` table.
+     * @param userId - The user's UUID from auth
+     */
+    async getUserProfile(userId: string) {
+        try {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', userId)
+                .single();
+
+            if (error) {
+                return { profile: null, error: error.message };
+            }
+
+            return { profile: data, error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { profile: null, error: message };
+        }
+    },
+
+    /**
+     * Subscribe to auth state changes (login, logout, token refresh).
+     * @param callback - Function to call on auth state change
+     * @returns Unsubscribe function
+     */
+    onAuthStateChange(callback: (event: AuthChangeEvent, session: Session | null) => void) {
+        const { data } = supabase.auth.onAuthStateChange(callback);
+        return data.subscription.unsubscribe;
+    },
+
+    /**
+     * Resend the email confirmation link to a user.
+     * @param email - The user's email address
+     */
+    async resendConfirmation(email: string): Promise<{ error: string | null }> {
+        try {
+            const { error } = await supabase.auth.resend({
+                type: 'signup',
+                email,
+            });
+
+            if (error) {
+                return { error: error.message };
+            }
+
+            return { error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { error: message };
+        }
+    },
+};

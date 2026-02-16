@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard,
@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 
 const Sidebar = () => {
-    const { user, logout } = useAuth();
+    const { user, signOut } = useAuth();
+    const navigate = useNavigate();
 
     if (!user) return null;
 
@@ -78,7 +79,10 @@ const Sidebar = () => {
                     </div>
                 </div>
                 <button
-                    onClick={logout}
+                    onClick={async () => {
+                        await signOut();
+                        navigate('/');
+                    }}
                     className="btn-ghost"
                     style={{ width: '100%', justifyContent: 'flex-start', color: 'hsl(var(--danger))' }}
                 >

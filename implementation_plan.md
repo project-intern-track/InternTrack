@@ -99,17 +99,30 @@ To avoid merge conflicts, we will follow a strict **Feature Branch Workflow**.
 - **Small PRs**: Submit small, focused Pull Requests. Don't touch files outside your assigned module.
 
 ## Priority 1: Foundation (Core)
-**Necessart First To Do**
+**Necessary First To Do**
 These tasks must be completed first to allow other work to proceed.
 
-- [ ] **Database Schema & Auth Setup** (Victor - BE)
-    - Define tables: Users, Tasks, Attendance, Announcements.
-    - Ensure Role-Based Access Control (RBAC) is enforced in API.
-- [ ] **Project Structure & Routing** (Clement - FS)
-    - Set up protected routes for Admin, Intern, Supervisor.
-    - Implement Sidebar/Navigation that changes based on User Role.
-- [ ] **Global Styling & Theme** (Angelito - FE)
-    - Implement Figma color palette, typography (variables.css).
+- [x] **Database Schema & Auth Setup** (Victor - BE) ✅ **COMPLETE**
+    - ✅ Define tables: Users, Tasks, Attendance, Announcements.
+    - ✅ RLS Policies created in SQL migration.
+    - ⚠️ **PENDING**: Real Supabase authentication integration (see below).
+- [x] **Project Structure & Routing** (Clement - FS) ✅ **COMPLETE**
+    - ✅ Set up protected routes for Admin, Intern, Supervisor.
+    - ✅ Implement Sidebar/Navigation that changes based on User Role.
+- [x] **Global Styling & Theme** (Yuan - FE) ✅ **COMPLETE**
+    - ✅ Implement Figma color palette, typography (variables.css).
+    - ✅ Comprehensive design system with 800+ lines of CSS.
+- [ ] **Authentication System** (Victor - BE + Clement - FS) ⚠️ **NOT ASSIGNED YET**
+    - Create `authService.ts` with Supabase Auth integration:
+        - `signUp(email, password, metadata)` - Register new users
+        - `signIn(email, password)` - Login existing users
+        - `signOut()` - Logout users
+        - `resetPassword(email)` - Password recovery
+        - `updatePassword(newPassword)` - Change password
+    - Update `AuthContext.tsx` to use real Supabase auth instead of mock
+    - Create proper Login page with email/password form (currently mock role selector)
+    - Create Signup page for new user registration
+    - Handle auth state persistence and session management
 
 ## Priority 2: Admin Panel
 - [ ] **Admin Dashboard** (Angelito - FE)
@@ -191,10 +204,16 @@ This schedule distributes the work over 10 working days, allowing more time for 
 *   **Victor (BE)**:
     *   [x] Define TypeScript Interfaces/Types for all DB tables. [High]
     *   [x] Set up Zod schemas for input validation (API Layer). [High]
-*   **Yuan (FE)**: [ ] Global CSS, Design System (Variables, Typography). [High]
+*   **Yuan (FE)**: [x] Global CSS, Design System (Variables, Typography). [High] ✅
 *   **Nathaniel, Yuan, Kevin, Judito, Jay**: [x] Environment setup, codebase study. [High]
 
-#### Days 3-4: Static UI Implementation (Frontend)
+#### Days 3-4: Authentication & Static UI Implementation
+*   **Victor (BE) + Clement (FS)**: [ ] **Authentication System** [CRITICAL]
+    *   Create `authService.ts` with real Supabase Auth
+    *   Update `AuthContext.tsx` to replace mock auth
+    *   Implement Sign Up, Sign In, Sign Out, Password Reset
+    *   Update Login page with email/password form
+    *   Test auth flow and session persistence
 *   **Angelito (FE)**: []`AdminDashboard` UI (Sidebar, Stats Grid). [Medium]
 *   **Nathaniel (FS)**: []`ManageInterns` Table UI, "Add Intern" Modal, Announcements Form UI. [Medium]
 *   **Yuan (FE)**: []`ManageTasks` UI, `MonitorAttendance` UI. [Medium]

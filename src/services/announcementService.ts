@@ -25,14 +25,15 @@ export const announcementService = {
      * Create Announcement with appropriate data validation
      * Updated Function
      */
-    async createAnnouncement (content: {
-        title: string;
-        content: string;
-        created_by: string;
-        visibility: 'all' | 'admin' | 'supervisor' | 'intern';
-        // Possibility to add created_at time ISO string
+    async createAnnouncement (
+        content: {
+            title: string;
+            content: string;
+            created_by: string;
+            visibility: 'all' | 'admin' | 'supervisor' | 'intern';
+            // Possibility to add created_at time ISO string
 
-    }) {
+        }) {
 
         const validation = announcementSchema.safeParse(content);
 

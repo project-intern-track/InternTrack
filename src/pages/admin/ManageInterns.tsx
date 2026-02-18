@@ -263,10 +263,13 @@ const ManageInterns = () => {
             <div style={{
                 borderRadius: '8px',
                 border: '1px solid #e5e5e5',
-                overflow: 'hidden',
-                backgroundColor: 'white'
+                overflow: 'auto', // Allow horizontal/vertical scrolls
+                backgroundColor: 'white',
+                width: '100%', // Locks Width
+                display: 'block' // Ensures Scroll behavior
             }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+                
+                <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', textAlign: 'center' }}> 
                     <thead>
                         <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
                             <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Name</th>

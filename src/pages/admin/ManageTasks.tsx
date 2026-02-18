@@ -90,9 +90,25 @@ const ManageTasks = () => {
 
     return (
         <div>
+         <style>{`
+            @media (max-width: 768px) {
+                .manage-tasks-filter-row {
+                    flex-direction: column !important;
+                    align-items: stretch !important;
+                }
+                .manage-tasks-filter-label {
+                    margin-bottom: 0.5rem;
+                }
+            }
+            @media (max-width: 480px) {
+                .manage-tasks-filter-row {
+                    padding: 0.5rem !important;
+                }
+            }
+        `}</style>
          <div className="row row-between" style={{ marginBottom: '2rem' }}>
-            <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Tasks</h1>    
-            <button className='btn btn-primary' style={{marginLeft: "45px",fontSize: "20px"}}>
+            <h1 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: "32px"}}>Manage Tasks</h1>    
+            <button className='btn btn-primary' style={{fontSize: "15px"}}>
                 + Create Task</button>
          </div>
                 
@@ -124,17 +140,13 @@ const ManageTasks = () => {
          </div>
         </div>
 
-       <div className="filter-row" style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: '1rem',
+       <div className="row manage-tasks-filter-row" style={{
           padding: '0.75rem 1rem',
           borderRadius: '8px',
           backgroundColor: '#f5f5dc',
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
         }}>
-       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+       <div className="manage-tasks-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
          <Menu size={20} style={{ color: '#333' }} />
          <span style={{ fontWeight: 500, color: '#333' }}>Filters:</span>
        </div>
@@ -175,12 +187,7 @@ const ManageTasks = () => {
         </div>
 
         
-        <div style={{ 
-            marginTop: '2rem',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '1.5rem'
-        }}>
+        <div className="grid-3" style={{ marginTop: '2rem' }}>
             {sampleTasks.map((task) => {
                 const priorityStyle = getPriorityStyle(task.priority);
                 return (
@@ -282,9 +289,7 @@ const ManageTasks = () => {
                         <button
                             className="btn btn-primary"
                             style={{
-                                width: '100%',
                                 marginTop: 'auto',
-                                padding: '0.625rem 1rem',
                                 fontSize: '0.875rem'
                             }}
                         >

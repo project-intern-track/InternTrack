@@ -1173,6 +1173,18 @@ textarea:disabled {
     padding: 0.75rem 1rem;
   }
 
+  .topbar-user-info {
+    display: flex;
+  }
+
+  .topbar-user-name {
+    font-size: 1rem;
+  }
+
+  .topbar-user-role {
+    font-size: 0.8125rem;
+  }
+
   .dashboard-welcome {
     font-size: 1.5rem;
   }
@@ -1228,7 +1240,25 @@ textarea:disabled {
   }
 
   .topbar-user-info {
-    display: none;
+    display: flex;
+  }
+
+  .topbar-user-name {
+    font-size: 0.9375rem;
+  }
+
+  .topbar-user-role {
+    font-size: 0.75rem;
+  }
+
+  .topbar {
+    padding: 0.75rem 1rem;
+    margin: 1rem;
+  }
+
+  .topbar-avatar {
+    width: 40px;
+    height: 40px;
   }
 
   .dashboard-welcome {

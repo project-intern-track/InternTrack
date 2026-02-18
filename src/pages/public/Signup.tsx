@@ -18,7 +18,8 @@ const OJT_ROLES = [
 ];
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const isValidName = (name: string) => name.trim().length >= 2;
+// Name must contain only letters, spaces, dots, or hyphens (no numbers)
+const isValidName = (name: string) => /^[a-zA-Z\s.-]+$/.test(name) && name.trim().length >= 2;
 
 interface FieldErrors {
     fullName?: string;
@@ -61,7 +62,15 @@ const Signup = () => {
                 return undefined;
             case 'password':
                 if (!password) return 'Password is required.';
-                if (password.length < 6) return 'Password must be at least 6 characters.';
+                {
+                    const missing = [];
+                    if (password.length < 6) missing.push('be at least 6 characters');
+                    if (!/[A-Z]/.test(password)) missing.push('contain a capital letter');
+                    if (!/[0-9]/.test(password)) missing.push('contain a number');
+                    if (!/[^a-zA-Z0-9]/.test(password)) missing.push('contain a special symbol');
+
+                    if (missing.length > 0) return 'Password must: ' + missing.join(', ');
+                }
                 return undefined;
             case 'startDate':
                 if (!startDate) return 'Start date is required.';
@@ -97,7 +106,12 @@ const Signup = () => {
 
     const handleChange = (field: string, value: string) => {
         switch (field) {
-            case 'fullName': setFullName(value); break;
+            case 'fullName':
+                // Only allow letters, spaces, dots, and hyphens. Block numbers/other symbols.
+                if (/^[a-zA-Z\s.-]*$/.test(value)) {
+                    setFullName(value);
+                }
+                break;
             case 'role': setRole(value); break;
             case 'email': setEmail(value); break;
             case 'password': setPassword(value); break;

@@ -21,7 +21,15 @@ const ResetPassword = () => {
     const validateField = (field: string): string | undefined => {
         if (field === 'newPassword') {
             if (!newPassword) return 'New password is required.';
-            if (newPassword.length < 6) return 'Password must be at least 6 characters.';
+            {
+                const missing = [];
+                if (newPassword.length < 6) missing.push('be at least 6 characters');
+                if (!/[A-Z]/.test(newPassword)) missing.push('contain a capital letter');
+                if (!/[0-9]/.test(newPassword)) missing.push('contain a number');
+                if (!/[^a-zA-Z0-9]/.test(newPassword)) missing.push('contain a special symbol');
+
+                if (missing.length > 0) return 'Password must: ' + missing.join(', ');
+            }
         }
         if (field === 'confirmPassword') {
             if (!confirmPassword) return 'Please confirm your password.';

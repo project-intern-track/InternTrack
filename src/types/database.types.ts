@@ -5,6 +5,7 @@ export type TaskPriority = 'low' | 'medium' | 'high';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 export type OJTType = 'required' | 'voluntary';
 export type UserStatus = 'active' | 'archived';
+export type AnnouncementPriority = 'low' | 'medium' | 'high';
 
 
 // ===============
@@ -59,6 +60,7 @@ export interface Announcement {
     id: string; // UUID, PK
     title: string;
     content: string;
+    priority: AnnouncementPriority;
     created_by: string; // UUID, FK Reference to `users.id`
     visibility: 'all' | UserRole; // Array of UserRoles that can see this announcement
     created_at: string; // ISO Date String, Default to current timestamp on creation

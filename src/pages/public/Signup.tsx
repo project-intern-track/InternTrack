@@ -166,6 +166,8 @@ const Signup = () => {
             {/* Right half: signup form */}
             <div className="auth-form-panel">
                 <div className="auth-form-inner">
+                    <img src="/heroLogo.png" alt="InternTrack Logo" className="auth-mobile-logo" />
+
                     {error && (
                         <div className="auth-error" id="signup-error">
                             <AlertCircle size={18} className="auth-error-alert-icon" />

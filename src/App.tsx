@@ -27,14 +27,14 @@ import StudentAnnouncements from "./pages/student/Announcements";
 import SupervisorDashboard from "./pages/supervisor/SupervisorDashboard";
 import SupervisorManageInterns from "./pages/supervisor/ManageInterns";
 import SupervisorAnnouncements from "./pages/supervisor/SupervisorAnnouncements";
-import Approvals from "./pages/supervisor/Approvals";
+import SupervisorApprovals from "./pages/supervisor/SupervisorApprovals";
 import InternPerformance from "./pages/supervisor/InternPerformance";
 import SupervisorManageTasks from "./pages/supervisor/ManageTasks";
 import SupervisorMonitorAttendance from "./pages/supervisor/MonitorAttendance";
 import SupervisorReports from "./pages/supervisor/Reports";
 import SupervisorSettings from "./pages/supervisor/Settings";
 import Evaluations from "./pages/supervisor/Evaluations";
-import Feedback from "./pages/supervisor/Feedback";
+import FeedbackDashboard from "./pages/supervisor/FeedbackDashboard";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -209,13 +209,13 @@ function AppRoutes() {
           <Route path="dashboard" element={<SupervisorDashboard />} />
           <Route path="interns" element={<SupervisorManageInterns />} />
           <Route path="SupervisorAnnouncements" element={<SupervisorAnnouncements />} />
-          <Route path="Approvals" element={<Approvals />} />
+          <Route path="SupervisorApprovals" element={<SupervisorApprovals />} />
           <Route path="InternPerformance" element={<InternPerformance />} />
           <Route path="tasks" element={<SupervisorManageTasks />} />
           <Route path="MonitorAttendance" element={<SupervisorMonitorAttendance />} />
           <Route path="reports" element={<SupervisorReports />} />
           <Route path="Evaluations" element={<Evaluations />} />
-          <Route path="Feedback" element={<Feedback />} />
+          <Route path="FeedbackDashboard" element={<FeedbackDashboard />} />
           <Route path="settings" element={<SupervisorSettings />} />
         </Route>
 

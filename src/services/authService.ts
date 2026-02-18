@@ -59,6 +59,22 @@ export const authService = {
                 return { user: null, session: null, error: error.message };
             }
 
+            // When email confirmation is enabled, Supabase does NOT return an
+            // error for duplicate emails (to prevent email enumeration attacks).
+            // Instead, it returns a user with an empty `identities` array.
+            // We detect this and surface a user-friendly error.
+            if (
+                data.user &&
+                Array.isArray(data.user.identities) &&
+                data.user.identities.length === 0
+            ) {
+                return {
+                    user: null,
+                    session: null,
+                    error: 'Email already exists. Please use another email account.',
+                };
+            }
+
             // The profile is created automatically by the database trigger
             // No need to manually insert into the users table
 

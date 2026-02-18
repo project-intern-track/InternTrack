@@ -302,19 +302,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const signIn = async (email: string, password: string) => {
         clearRecoveryFlag(); // Normal login — clear any stale recovery flag
-        setState((prev) => ({ ...prev, isLoading: true }));
+        // Note: we do NOT set isLoading here. The form component manages its
+        // own `isSubmitting` state. Setting global isLoading would unmount
+        // the form (PublicRoute swaps it for LoadingScreen), losing all state.
         isHandlingAuth.current = true;
 
         try {
             const result = await authService.signIn(email, password);
 
             if (result.error) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: result.error };
             }
 
             if (!result.user) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: 'Sign in succeeded but no user was returned.' };
             }
 
@@ -325,10 +325,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             );
 
             if (!user) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: 'Could not load your user profile. Please contact an administrator.' };
             }
 
+            // Only set global state on success — this triggers the
+            // PublicRoute redirect to the dashboard.
             setState({
                 user: user,
                 isAuthenticated: true,
@@ -338,7 +339,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             return { error: null };
         } catch (err) {
-            setState((prev) => ({ ...prev, isLoading: false }));
             const message = err instanceof Error ? err.message : 'An unexpected error occurred';
             return { error: message };
         } finally {
@@ -347,22 +347,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const signUp = async (email: string, password: string, metadata: SignUpMetadata) => {
-        setState((prev) => ({ ...prev, isLoading: true }));
+        // Note: we do NOT set isLoading here (same reason as signIn above).
         isHandlingAuth.current = true;
 
         try {
             const result = await authService.signUp(email, password, metadata);
 
             if (result.error) {
-                setState({ user: null, isAuthenticated: false, isLoading: false, isPasswordRecovery: false });
                 return { error: result.error };
             }
 
             if (!result.session || !result.user) {
-                setState({ user: null, isAuthenticated: false, isLoading: false, isPasswordRecovery: false });
+                // Email confirmation required — no session yet
                 return { error: null };
             }
 
+            // Auto-confirmed: load profile and transition to dashboard
             const user = await ensureUserProfile(
                 result.user.id,
                 result.user.email || email,
@@ -378,7 +378,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             return { error: null };
         } catch (err) {
-            setState({ user: null, isAuthenticated: false, isLoading: false, isPasswordRecovery: false });
             const message = err instanceof Error ? err.message : 'An unexpected error occurred';
             return { error: message };
         } finally {

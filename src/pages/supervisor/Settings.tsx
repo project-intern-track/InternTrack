@@ -1,136 +1,146 @@
-import { Settings as SettingsIcon } from 'lucide-react';
+
 
 const Settings = () => {
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1rem' }}>
+    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-        <SettingsIcon size={36} />
         <div>
-          <h1 style={{ margin: 0 }}>Settings</h1>
-          <p style={{ color: '#555', margin: 0 }}>
-            Manage your supervisor profile and preferences.
+          <h1 style={{ margin: 0, color:'#ff8c42'}}>Settings</h1>
+          <p style={{ margin: 0, color: '#555' }}>
+            Manage your profile and account preferences.
           </p>
         </div>
       </div>
 
-      {/* Profile Information Container */}
+      {/* PROFILE INFORMATION */}
       <div style={{
         border: '1px solid #ccc',
+        backgroundColor:'#e8ddd08e',
         borderRadius: '0.5rem',
-        padding: '1rem',
-        marginBottom: '1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
+        padding: '1.5rem',
+        marginBottom: '2rem'
       }}>
-        <h2 style={{ margin: 0 }}>Profile Information</h2>
-        <label style={{ fontSize: '0.85rem', color: '#666' }}>Full Name</label>
-        <input
-          type="text"
-          placeholder="John Doe"
-          disabled
-          style={{
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: '1px solid #ccc',
-            backgroundColor: '#f5f5f5',
-          }}
-        />
+        <h2 style={{ marginBottom: '1rem' }}>Profile Information</h2>
 
-        <label style={{ fontSize: '0.85rem', color: '#666' }}>Email</label>
-        <input
-          type="email"
-          placeholder="john.doe@example.com"
-          disabled
-          style={{
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: '1px solid #ccc',
-            backgroundColor: '#f5f5f5',
-          }}
-        />
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '1.5rem'
+        }}>
+          {/* LEFT */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label>Full Name</label>
+              <input
+                type="text"
+                defaultValue="Test Supervisor"
+                style={inputStyle}
+              />
+            </div>
 
-        <button
-          style={{
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: 'none',
-            backgroundColor: '#fa721d',
-            color: 'white',
-            fontWeight: 'bold',
-            cursor: 'not-allowed',
-          }}
-        >
-          Update Profile
-        </button>
+            <div>
+              <label>Account Type</label>
+              <input
+                type="text"
+                defaultValue="Supervisor"
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+          </div>
+
+          {/* RIGHT */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label>Email Address</label>
+              <input
+                type="email"
+                defaultValue="testsupervisor@email.com"
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label>Date Created</label>
+              <input
+                type="text"
+                defaultValue="January 15, 2026"
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Save Changes Button */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+          <button style={primaryButtonStyle}>
+            Save Changes
+          </button>
+        </div>
       </div>
 
-      {/* Change Password Container */}
+      {/* CHANGE PASSWORD */}
       <div style={{
         border: '1px solid #ccc',
         borderRadius: '0.5rem',
-        padding: '1rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
+        backgroundColor:'#e8ddd08e',
+        padding: '1.5rem'
       }}>
-        <h2 style={{ margin: 0 }}>Change Password</h2>
-        <label style={{ fontSize: '0.85rem', color: '#666' }}>Current Password</label>
-        <input
-          type="password"
-          placeholder="••••••••"
-          disabled
-          style={{
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: '1px solid #ccc',
-            backgroundColor: '#f5f5f5',
-          }}
-        />
+        <h2 style={{ marginBottom: '1rem' }}>Change Password</h2>
 
-        <label style={{ fontSize: '0.85rem', color: '#666' }}>New Password</label>
-        <input
-          type="password"
-          placeholder="••••••••"
-          disabled
-          style={{
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: '1px solid #ccc',
-            backgroundColor: '#f5f5f5',
-          }}
-        />
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '1.5rem'
+        }}>
+          {/* LEFT */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label>Current Password</label>
+              <input type="password" style={inputStyle} />
+            </div>
 
-        <label style={{ fontSize: '0.85rem', color: '#666' }}>Confirm Password</label>
-        <input
-          type="password"
-          placeholder="••••••••"
-          disabled
-          style={{
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: '1px solid #ccc',
-            backgroundColor: '#f5f5f5',
-          }}
-        />
+            <div>
+              <label>New Password</label>
+              <input type="password" style={inputStyle} />
+            </div>
+          </div>
 
-        <button
-          style={{
-            padding: '0.5rem',
-            borderRadius: '0.25rem',
-            border: 'none',
-            backgroundColor: '#fa721d',
-            color: 'white',
-            fontWeight: 'bold',
-            cursor: 'not-allowed',
-          }}
-        >
-          Change Password
-        </button>
+          {/* RIGHT */}
+          <div>
+            <label>Confirm New Password</label>
+            <input type="password" style={inputStyle} />
+          </div>
+        </div>
+
+        {/* Update Password Button */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+          <button style={primaryButtonStyle}>
+            Update Password
+          </button>
+        </div>
       </div>
     </div>
   );
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.5rem',
+  borderRadius: '0.25rem',
+  border: '1px solid #ccc',
+  marginTop: '0.25rem'
+};
+
+const primaryButtonStyle: React.CSSProperties = {
+  padding: '0.5rem 1.25rem',
+  borderRadius: '0.25rem',
+  border: 'none',
+  backgroundColor: '#f87e32',
+  color: 'white',
+  cursor: 'pointer'
 };
 
 export default Settings;

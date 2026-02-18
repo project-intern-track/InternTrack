@@ -47,11 +47,9 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
             case 'supervisor':
                 return [
                     { to: '/supervisor/dashboard', label: 'Dashboard' },
-                    { to: '/supervisor/SupervisorAnnouncements', label: 'Announcements' },
                     { to: '/supervisor/SupervisorApprovals', label: 'Approve Tasks' },
                     { to: '/supervisor/InternPerformance', label: 'Intern Performance' },
                     { to: '/supervisor/Evaluations', label: 'Evaluations' },
-                    { to: '/supervisor/MonitorAttendance', label: 'Attendance' },
                     { to: '/supervisor/FeedbackDashboard', label: 'Feedback' },
                     { to: '/supervisor/settings', label: 'Settings' },
                 ];

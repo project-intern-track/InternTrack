@@ -1,4 +1,3 @@
-import { BarChart } from 'lucide-react';
 
 type Intern = {
   id: string;
@@ -20,12 +19,11 @@ const interns: Intern[] = [
 
 const InternPerformance = () => {
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '1rem' }}>
+    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <BarChart size={36} />
         <div>
-          <h1 style={{ margin: 0 }}>Intern Performance</h1>
+          <h1 style={{ margin: 0, color: '#ff8c42' }}>Intern Performance</h1>
           <p style={{ color: '#555', margin: 0 }}>
             Overview of intern attendance, tasks, and performance metrics.
           </p>

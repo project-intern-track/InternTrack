@@ -1,4 +1,6 @@
-type Evaluation = {
+import { useState } from 'react';
+
+export type Evaluation = {
   id: string;
   title: string;
   description: string;
@@ -7,23 +9,55 @@ type Evaluation = {
   status: 'Pending' | 'In Progress' | 'Completed';
 };
 
-// Dummy static data
-const dummyEvaluations: Evaluation[] = [
-  { id: '1', title: 'Project Report', description: 'Evaluate the intern project report', due_date: '2026-02-22', priority: 'High', status: 'Pending' },
-  { id: '2', title: 'Code Review', description: 'Review the submitted code', due_date: '2026-02-21', priority: 'Medium', status: 'In Progress' },
-  { id: '3', title: 'Presentation', description: 'Evaluate the final presentation', due_date: '2026-02-25', priority: 'High', status: 'Pending' },
-  { id: '4', title: 'Attendance Check', description: 'Review intern attendance logs', due_date: '2026-02-20', priority: 'Low', status: 'Completed' },
-  { id: '5', title: 'Feedback Survey', description: 'Evaluate feedback survey responses', due_date: '2026-02-23', priority: 'Medium', status: 'Pending' },
-];
-
 const Evaluations = () => {
+const [evaluations] = useState<Evaluation[]>([]);
+
+
+  // Calculations
+  const totalEvaluated = evaluations.filter(e => e.status === 'Completed').length;
+  const averageCompletion = evaluations.length > 0 ? (totalEvaluated / evaluations.length) * 100 : 0;
+  const improvementTrend = totalEvaluated; // Number of completed tasks (numeric trend)
+
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem' }}>
-      <h1>Evaluations</h1>
+    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
+      <h1 style={{ color: '#ff8c42' }}>Evaluations</h1>
       <p style={{ color: '#555' }}>Manage evaluations for interns here.</p>
 
+      {/* Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+        {[
+          { label: 'Total Interns Evaluated', value: totalEvaluated },
+          { label: 'Average Task Completion', value: `${averageCompletion.toFixed(0)}%` },
+          { label: 'Improvement Trend', value: improvementTrend },
+        ].map((item, idx) => (
+          <div
+            key={idx}
+            style={{
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              backgroundColor: '#ffffff',
+              textAlign: 'center',
+              border: '1px solid #ccc',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '0.5rem',
+              minHeight: '120px',
+            }}
+          >
+            <h3 style={{ margin: 0, fontSize: '1rem', color: '#555' }}>{item.label}</h3>
+            <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Evaluation Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
-        {dummyEvaluations.map(task => (
+        {evaluations.length === 0 && (
+          <p style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '1rem' }}>No evaluations available</p>
+        )}
+        {evaluations.map(task => (
           <div key={task.id} style={{
             border: '1px solid #ccc',
             borderRadius: '0.5rem',

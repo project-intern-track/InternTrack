@@ -19,6 +19,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /** Key used in localStorage to track pending password recovery. */
 const RECOVERY_FLAG_KEY = 'pending_password_recovery';
+const LAST_KNOWN_ROLE_KEY = 'last_known_user_role';
+
+function isUserRole(value: unknown): value is UserRole {
+    return value === 'admin' || value === 'supervisor' || value === 'intern';
+}
+
+function getRoleFromPath(pathname: string): UserRole | null {
+    if (pathname.startsWith('/admin')) return 'admin';
+    if (pathname.startsWith('/supervisor')) return 'supervisor';
+    if (pathname.startsWith('/intern')) return 'intern';
+    return null;
+}
+
+function getLastKnownRole(): UserRole | null {
+    try {
+        const value = localStorage.getItem(LAST_KNOWN_ROLE_KEY);
+        return isUserRole(value) ? value : null;
+    } catch {
+        return null;
+    }
+}
+
+function setLastKnownRole(role: UserRole): void {
+    try {
+        localStorage.setItem(LAST_KNOWN_ROLE_KEY, role);
+    } catch {
+        // ignore storage write errors
+    }
+}
+
+function clearLastKnownRole(): void {
+    try {
+        localStorage.removeItem(LAST_KNOWN_ROLE_KEY);
+    } catch {
+        // ignore storage remove errors
+    }
+}
 
 /**
  * Checks url hash, query params, and localStorage for Supabase recovery indicators.
@@ -56,6 +93,65 @@ function detectRecoveryFromUrl(): boolean {
 /** Removes the localStorage recovery flag. */
 function clearRecoveryFlag(): void {
     try { localStorage.removeItem(RECOVERY_FLAG_KEY); } catch { /* ignore */ }
+}
+
+function mapSessionToFallbackUser(sessionUser: {
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+    app_metadata?: Record<string, unknown>;
+}): User {
+    const roleFromUserMetadata = sessionUser.user_metadata?.role;
+    const roleFromAppMetadata = sessionUser.app_metadata?.role;
+    const roleFromPath = getRoleFromPath(window.location.pathname);
+    const lastKnownRole = getLastKnownRole();
+
+    const role: UserRole =
+        (isUserRole(roleFromUserMetadata) && roleFromUserMetadata) ||
+        (isUserRole(roleFromAppMetadata) && roleFromAppMetadata) ||
+        roleFromPath ||
+        lastKnownRole ||
+        'intern';
+
+    return {
+        id: sessionUser.id,
+        name: (sessionUser.user_metadata?.full_name as string) || (sessionUser.email?.split('@')[0] ?? 'User'),
+        email: sessionUser.email || '',
+        role,
+        avatarUrl: (sessionUser.user_metadata?.avatar_url as string) || undefined,
+    };
+}
+
+function getCachedSessionUserFromStorage(): {
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+    app_metadata?: Record<string, unknown>;
+} | null {
+    try {
+        const authTokenKey = Object.keys(localStorage).find((key) => /^sb-.*-auth-token$/.test(key));
+        if (!authTokenKey) return null;
+
+        const rawValue = localStorage.getItem(authTokenKey);
+        if (!rawValue) return null;
+
+        const parsedValue = JSON.parse(rawValue) as unknown;
+        const valueRecord = (parsedValue ?? {}) as Record<string, unknown>;
+        const currentSession = (valueRecord.currentSession ?? valueRecord.session) as Record<string, unknown> | undefined;
+        const user = (currentSession?.user ?? valueRecord.user) as Record<string, unknown> | undefined;
+
+        const id = typeof user?.id === 'string' ? user.id : null;
+        if (!id) return null;
+
+        return {
+            id,
+            email: typeof user?.email === 'string' ? user.email : null,
+            user_metadata: (user?.user_metadata as Record<string, unknown>) || {},
+            app_metadata: (user?.app_metadata as Record<string, unknown>) || {},
+        };
+    } catch {
+        return null;
+    }
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -157,29 +253,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
      * Always sets isLoading to false, even on failure.
      */
     const loadProfileAndSetState = useCallback(async (
-        sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown> },
+        sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown>; app_metadata?: Record<string, unknown> },
         passwordRecovery: boolean
     ) => {
+        const fallbackUser = mapSessionToFallbackUser(sessionUser);
+        setLastKnownRole(fallbackUser.role);
+
+        // Immediately authenticate from auth session so refresh/new-tab never blocks on profile query.
+        setState({
+            user: fallbackUser,
+            isAuthenticated: true,
+            isLoading: false,
+            isPasswordRecovery: passwordRecovery,
+        });
+
         try {
-            const user = await ensureUserProfile(
-                sessionUser.id,
-                sessionUser.email || '',
-                sessionUser.user_metadata
-            );
-            setState({
-                user: user,
-                isAuthenticated: !!user,
-                isLoading: false,
-                isPasswordRecovery: passwordRecovery,
-            });
+            const profileResult = await Promise.race([
+                ensureUserProfile(
+                    sessionUser.id,
+                    sessionUser.email || '',
+                    sessionUser.user_metadata
+                ),
+                new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+            ]);
+
+            if (profileResult) {
+                setLastKnownRole(profileResult.role);
+                setState((prev) => ({
+                    ...prev,
+                    user: profileResult,
+                    isAuthenticated: true,
+                    isLoading: false,
+                    isPasswordRecovery: passwordRecovery,
+                }));
+            }
         } catch (err) {
             console.error('Failed to load user profile:', err);
-            setState({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false,
-                isPasswordRecovery: false,
-            });
+            // Keep the fallback user from auth metadata and avoid forcing logout.
         }
     }, [ensureUserProfile]);
 
@@ -188,8 +298,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // ========================
     useEffect(() => {
         let initialLoadResolved = false;
+        let isMounted = true;
+
+        const resolveAsUnauthenticated = () => {
+            initialLoadResolved = true;
+            setUnauthenticated();
+        };
 
         const setUnauthenticated = () => {
+            if (!isMounted) return;
             setState({
                 user: null,
                 isAuthenticated: false,
@@ -198,66 +315,102 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             });
         };
 
-        // 1. Check active session immediately (robust check for new tabs)
-        authService.getSession().then(({ session }) => {
+        const resolveInitialLoad = async () => {
             if (initialLoadResolved) return;
 
-            if (session?.user) {
-                // Determine recovery: either we already detected it from the URL,
-                // or the hash type indicates recovery.
-                loadProfileAndSetState(session.user, recoveryFromUrl.current).then(() => {
-                    initialLoadResolved = true;
-                });
-            } else {
-                // If no session found via getSession, we still wait for onAuthStateChange
-                // in case it's an initial sign-in flow or token exchange.
-                // But if it's just a new tab, onAuthStateChange usually confirms "null" session too.
-            }
-        });
+            try {
+                const sessionResult = await Promise.race([
+                    authService.getSession(),
+                    new Promise<{ session: null; error: string }>((resolve) => {
+                        setTimeout(() => resolve({ session: null, error: 'Session initialization timed out' }), 5000);
+                    }),
+                ]);
+                
+                if (!isMounted) return;
 
-        // 2. Subscribe to auth changes
+                if (sessionResult.error) {
+                    console.warn('Session initialization failed:', sessionResult.error);
+                    const cachedSessionUser = getCachedSessionUserFromStorage();
+                    if (cachedSessionUser) {
+                        initialLoadResolved = true;
+                        await loadProfileAndSetState(cachedSessionUser, recoveryFromUrl.current);
+                        return;
+                    }
+                    resolveAsUnauthenticated();
+                    return;
+                }
+
+                if (sessionResult.session?.user) {
+                    initialLoadResolved = true;
+                    await loadProfileAndSetState(sessionResult.session.user, recoveryFromUrl.current);
+                } else {
+                    // No active session
+                    if (recoveryFromUrl.current) {
+                        // Wait for recovery token exchange
+                        initialLoadResolved = true;
+                        setState({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: true,
+                            isPasswordRecovery: true,
+                        });
+                    } else {
+                        resolveAsUnauthenticated();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading session:', error);
+                if (isMounted) {
+                    const cachedSessionUser = getCachedSessionUserFromStorage();
+                    if (cachedSessionUser) {
+                        initialLoadResolved = true;
+                        await loadProfileAndSetState(cachedSessionUser, recoveryFromUrl.current);
+                        return;
+                    }
+                    resolveAsUnauthenticated();
+                }
+            }
+        };
+
+        // Start initial load immediately
+        resolveInitialLoad();
+
+        // Set a safety timeout to prevent infinite loading
+        const safetyTimeout = setTimeout(() => {
+            if (!initialLoadResolved && isMounted) {
+                console.warn('Session load timeout - setting unauthenticated');
+                resolveAsUnauthenticated();
+            }
+        }, 5000);
+
+        // Subscribe to auth changes
         const unsubscribe = authService.onAuthStateChange(async (event, session) => {
+            if (!isMounted) return;
+            
             // Skip if signIn/signUp is actively handling this
             if (isHandlingAuth.current) return;
 
             if (event === 'INITIAL_SESSION') {
                 if (initialLoadResolved) return;
 
-                // If getSession already handled it, good. If not:
                 if (session?.user) {
-                    initialLoadResolved = true;
                     await loadProfileAndSetState(session.user, recoveryFromUrl.current);
+                    initialLoadResolved = true;
                 } else {
-                    // No session yet.
-                    if (recoveryFromUrl.current) {
-                        setState({
-                            user: null,
-                            isAuthenticated: false,
-                            isLoading: true, // stay loading — recovery code exchange in progress
-                            isPasswordRecovery: true,
-                        });
-                    } else {
-                        // Only resolve to unauthenticated if getSession also failed/finished
-                        // But strictly speaking, INITIAL_SESSION with null means "no session".
-                        initialLoadResolved = true;
-                        setUnauthenticated();
-                    }
+                    resolveAsUnauthenticated();
                 }
 
             } else if (event === 'PASSWORD_RECOVERY' && session?.user) {
-                initialLoadResolved = true;
                 await loadProfileAndSetState(session.user, true);
+                initialLoadResolved = true;
 
             } else if (event === 'SIGNED_IN' && session?.user) {
-                if (!initialLoadResolved) {
-                    initialLoadResolved = true;
-                    const isRecovery = recoveryFromUrl.current;
-                    await loadProfileAndSetState(session.user, isRecovery);
-                    return;
-                }
-                await loadProfileAndSetState(session.user, false);
+                const isRecovery = recoveryFromUrl.current;
+                await loadProfileAndSetState(session.user, isRecovery);
+                initialLoadResolved = true;
 
             } else if (event === 'SIGNED_OUT') {
+                initialLoadResolved = true;
                 setUnauthenticated();
 
             } else if (event === 'TOKEN_REFRESHED' && session?.user) {
@@ -267,23 +420,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         session.user.email || '',
                         session.user.user_metadata
                     );
-                    if (user) {
+                    if (user && isMounted) {
+                        setLastKnownRole(user.role);
                         setState((prev) => ({
                             ...prev,
                             user,
                             isAuthenticated: true,
                             isLoading: false,
                         }));
-                    } else {
+                    } else if (isMounted) {
                         setState((prev) => ({ ...prev, isLoading: false }));
                     }
                 } catch {
-                    setState((prev) => ({ ...prev, isLoading: false }));
+                    if (isMounted) {
+                        setState((prev) => ({ ...prev, isLoading: false }));
+                    }
                 }
             }
         });
 
         return () => {
+            isMounted = false;
+            clearTimeout(safetyTimeout);
             unsubscribe();
         };
     }, [ensureUserProfile, loadProfileAndSetState]);
@@ -328,6 +486,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 isLoading: false,
                 isPasswordRecovery: false,
             });
+            setLastKnownRole(user.role);
 
             return { error: null };
         } catch (err) {
@@ -367,6 +526,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 isLoading: false,
                 isPasswordRecovery: false,
             });
+            if (user) setLastKnownRole(user.role);
 
             return { error: null };
         } catch (err) {
@@ -381,6 +541,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Optimistic, instant logout.
         // We set state immediately so the UI transitions to Login screen without waiting on network.
         clearRecoveryFlag();
+        clearLastKnownRole();
         setState({
             user: null,
             isAuthenticated: false,

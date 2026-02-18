@@ -48,8 +48,10 @@ const SupervisorDashboard = () => {
 
   return (
     <div>
-      <h1>Welcome back, {user?.name || user?.name}</h1>
-      <p style={{ color: 'hsl(var(--muted-foreground))' }}>Supervisor Dashboard</p>
+     <h1 style={{ color: '#ff8c42' }}>
+  Welcome back, {user?.name || user?.name}
+</h1>
+<p style={{ color: 'hsl(var(--muted-foreground))' }}>Supervisor Dashboard</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
         <div className="card">

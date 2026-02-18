@@ -153,17 +153,19 @@ const AdminDashboard = () => {
             <div className="stats-grid">
                 <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="stat-header">
-                        <span className="stat-label">Total Interns</span>
+                        <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Total Interns</span>
                     </div>
                     <div className="stat-value">124</div>
                     <div className="stat-footer">
-                        <span className="stat-trend positive">↑ +12%</span>
+                        <span className="stat-trend positive">
+                            ↑ +12%
+                        </span>
                         <span className="stat-description">vs last month</span>
                     </div>
                 </div>
                 <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="stat-header">
-                        <span className="stat-label">Active Interns</span>
+                        <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Active Interns</span>
                     </div>
                     <div className="stat-value">94</div>
                     <div className="stat-footer">
@@ -172,7 +174,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="stat-header">
-                        <span className="stat-label">Pending Applications</span>
+                        <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Pending Applications</span>
                     </div>
                     <div className="stat-value">34</div>
                     <div className="stat-footer">
@@ -184,16 +186,18 @@ const AdminDashboard = () => {
             {/* Charts Section */}
             <div className="dashboard-grid">
                 <div className="chart-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
-                    <div className="chart-header">
-                        <div className="chart-title">
-                            <UserPlus className="chart-icon" fill="black" />
-                            <span>New Registers</span>
+                    <div className="chart-head-container" style={{ backgroundColor: '#f6f6f6', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', marginLeft: '0.5rem' }}>
+                        <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0' }}>
+                            <div className="chart-title">
+                                <UserPlus className="chart-icon" />
+                                <span>New Registers</span>
+                            </div>
+                            <select className="chart-filter" aria-label="Filter time period" style={{ backgroundColor: '#eeeeee' }}>
+                                <option>Last 30 Days</option>
+                                <option>Last 60 Days</option>
+                                <option>Last 90 Days</option>
+                            </select>
                         </div>
-                        <select className="chart-filter" aria-label="Filter time period" style={{ backgroundColor: '#eeeeee' }}>
-                            <option>Last 30 Days</option>
-                            <option>Last 60 Days</option>
-                            <option>Last 90 Days</option>
-                        </select>
                     </div>
                     <div className="chart-content" style={{ height: '300px', backgroundColor: '#ffffff' }}>
                         <Bar data={data} options={options} />

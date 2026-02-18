@@ -52,13 +52,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
      * Tries to ensure a profile exists. If the profile doesn't exist in the
      * `users` table (e.g. RLS blocked the INSERT during signup), attempt to
      * create it from the auth user's metadata.
+     *
+     * IMPORTANT: Uses INSERT (not UPSERT) so existing profiles are never
+     * overwritten — this prevents an admin's role being reset to 'intern'.
      */
     const ensureUserProfile = useCallback(async (userId: string, email: string, userMetadata?: Record<string, unknown>): Promise<User | null> => {
         // First try to load the existing profile
         let user = await fetchUserProfile(userId, email);
         if (user) return user;
 
-        // Profile doesn't exist — try to create it from auth metadata
+        // Small delay to handle race conditions with the trigger
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Retry once — the trigger may not have finished yet
+        user = await fetchUserProfile(userId, email);
+        if (user) return user;
+
+        // Profile truly doesn't exist — INSERT (never upsert) from auth metadata
         console.warn('User profile not found, attempting to create from auth metadata...');
         const fullName = (userMetadata?.full_name as string) || email.split('@')[0] || 'User';
         const role = (userMetadata?.role as UserRole) || 'intern';
@@ -67,15 +77,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             const { error: insertError } = await supabase
                 .from('users')
-                .upsert({
+                .insert({
                     id: userId,
                     email: email,
                     full_name: fullName,
                     role: role,
                     avatar_url: avatarUrl,
-                }, { onConflict: 'id' });
+                });
 
             if (insertError) {
+                // If it's a duplicate key error, the profile was created by the trigger
+                // between our check and the insert — just load it
+                if (insertError.code === '23505') {
+                    user = await fetchUserProfile(userId, email);
+                    return user;
+                }
                 console.error('Failed to create user profile:', insertError.message);
                 return null;
             }

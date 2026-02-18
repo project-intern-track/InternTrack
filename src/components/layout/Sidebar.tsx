@@ -1,7 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-    ChevronDown,
     X,
     LogOut,
     Loader2
@@ -16,7 +15,6 @@ interface SidebarProps {
 const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
-    const [announcementsOpen, setAnnouncementsOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     if (!user) return null;
@@ -24,10 +22,10 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     const handleLogout = async () => {
         setIsLoggingOut(true);
         if (onClose) onClose();
-        
+
         // Navigate immediately for better UX
         navigate('/');
-        
+
         // Let signOut complete in background
         try {
             await signOut();
@@ -41,25 +39,31 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
             case 'intern':
                 return [
                     { to: '/intern/dashboard', label: 'Dashboard' },
-                    { to: '/intern/logs', label: 'Daily Logs' },
-                    { to: '/intern/schedule', label: 'Schedule' },
-                    { to: '/intern/reports', label: 'Reports Section' },
+                    { to: '/intern/tasks', label: 'Task List' },
+                    { to: '/intern/logs', label: 'Time Log' },
+                    { to: '/intern/feedback', label: 'Performance Feedback' },
+                    { to: '/intern/settings', label: 'Settings' },
                 ];
             case 'supervisor':
                 return [
                     { to: '/supervisor/dashboard', label: 'Dashboard' },
-                    { to: '/supervisor/interns', label: 'Manage Interns' },
-                    { to: '/supervisor/tasks', label: 'Manage Tasks' },
-                    { to: '/supervisor/attendance', label: 'Monitor Attendance' },
-                    { to: '/supervisor/reports', label: 'Reports Section' },
+                    { to: '/supervisor/tasks', label: 'Approve Tasks' },
+                    { to: '/supervisor/performance', label: 'Intern Performance' },
+                    { to: '/supervisor/evaluations', label: 'Evaluations' },
+                    { to: '/supervisor/feedback', label: 'Feedback' },
+                    { to: '/supervisor/settings', label: 'Settings' },
                 ];
             case 'admin':
                 return [
                     { to: '/admin/dashboard', label: 'Dashboard' },
-                    { to: '/admin/interns', label: 'Manage interns' },
-                    { to: '/admin/tasks', label: 'Manage tasks' },
-                    { to: '/admin/attendance', label: 'Monitor attendance' },
-                    { to: '/admin/reports', label: 'Reports Section' },
+                    { to: '/admin/interns', label: 'Manage Interns' },
+                    { to: '/admin/attendance', label: 'Monitor Attendance' },
+                    { to: '/admin/tasks', label: 'Manage Tasks' },
+                    { to: '/admin/manage-admins', label: 'Manage Admins' },
+                    { to: '/admin/manage-supervisors', label: 'Manage Supervisors' },
+                    { to: '/admin/reports', label: 'Reports' },
+                    { to: '/admin/announcements', label: 'Announcements' },
+                    { to: '/admin/settings', label: 'Settings' },
                 ];
             default:
                 return [];
@@ -97,58 +101,11 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                                 </NavLink>
                             </li>
                         ))}
-                        
-                        <li>
-                            <button 
-                                className="sidebar-link sidebar-dropdown-toggle"
-                                onClick={() => setAnnouncementsOpen(!announcementsOpen)}
-                            >
-                                <span>Announcements</span>
-                                <ChevronDown 
-                                    size={16} 
-                                    className={`sidebar-dropdown-icon ${announcementsOpen ? 'open' : ''}`}
-                                />
-                            </button>
-                            {announcementsOpen && (
-                                <ul className="sidebar-submenu">
-                                    <li>
-                                        <NavLink 
-                                            to={`/${user.role}/announcements/company`}
-                                            className="sidebar-sublink"
-                                            onClick={onClose}
-                                        >
-                                            Company Notices
-                                        </NavLink>
-                                    </li>
-                                    <li>
-                                        <NavLink 
-                                            to={`/${user.role}/announcements/internship`}
-                                            className="sidebar-sublink"
-                                            onClick={onClose}
-                                        >
-                                            Internship Reminders
-                                        </NavLink>
-                                    </li>
-                                </ul>
-                            )}
-                        </li>
-
-                        <li>
-                            <NavLink
-                                to={`/${user.role}/settings`}
-                                className={({ isActive }) =>
-                                    isActive ? 'sidebar-link active' : 'sidebar-link'
-                                }
-                                onClick={onClose}
-                            >
-                                Settings
-                            </NavLink>
-                        </li>
                     </ul>
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button 
+                    <button
                         className="sidebar-logout-btn"
                         onClick={handleLogout}
                         disabled={isLoggingOut}

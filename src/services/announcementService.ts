@@ -10,19 +10,19 @@ import type { Announcement } from "../types/database.types"; // Announcement Int
 // Announcement Services Functions
 export const announcementService = {
 
-    async getAnnouncements () {
+    async getAnnouncements() {
 
         const { data, error } = await supabase
             .from('announcements')
             .select("*");
 
         if (error) throw new Error(`Error Fetching Announcements: ${error.message}`);
-        return data;
+        return data as Announcement[];
     },
 
 
 
-    async createAnnouncement (newAnnouncementData: Omit<Announcement, 'id' | 'created_at'>) {
+    async createAnnouncement(newAnnouncementData: Omit<Announcement, 'id' | 'created_at'>) {
 
         const validation = announcementSchema.safeParse(newAnnouncementData);
 

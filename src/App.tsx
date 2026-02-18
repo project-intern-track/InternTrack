@@ -198,7 +198,7 @@ function AppRoutes() {
         <Route path="tasks" element={<AdminManageTasks />} />
         <Route path="attendance" element={<AdminMonitorAttendance />} />
         <Route path="reports" element={<AdminReports />} />
-        <Route path="announcements/:type" element={<AdminAnnouncements />} />
+        <Route path="announcements" element={<AdminAnnouncements />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 

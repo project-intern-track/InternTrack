@@ -16,7 +16,18 @@ const AdminDashboard = () => {
     const maxValue = Math.max(...chartData.map(d => d.value));
 
     return (
-        <div className="admin-dashboard">
+        <div className="admin-dashboard" style={{ backgroundColor: '#ffffff' }}>
+            <style>{`
+                .admin-dashboard {
+                    background-color: #ffffff !important;
+                }
+                .dashboard-main {
+                    background-color: #ffffff !important;
+                }
+                .dashboard-container {
+                    background-color: #ffffff !important;
+                }
+            `}</style>
             <h1 className="dashboard-welcome">
                 Welcome back, <span className="highlight">Admin {user?.name}</span>!
             </h1>

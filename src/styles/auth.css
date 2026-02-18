@@ -38,8 +38,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 1rem 3rem;
-    /* Reduced top/bottom padding */
+    padding: 1.5rem 3rem;
     overflow-y: auto;
 }
 
@@ -52,31 +51,29 @@
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    /* Tightened from 1.5rem */
+    gap: 0.75rem;
 }
 
 .auth-field {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
-    /* Tightened from 0.5rem */
+    gap: 0.25rem;
 }
 
 .auth-label {
     font-family: 'Poppins', sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 125%;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.2;
     letter-spacing: 0%;
     color: #000000;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 /* Beige/tan input styling */
 .auth-input {
     width: 100%;
-    padding: 0.875rem 1rem;
+    padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
     line-height: 1.5;
     color: #000000;
@@ -108,7 +105,7 @@
 /* Select dropdown */
 .auth-select {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
     line-height: 1.5;
     color: hsl(var(--foreground));
@@ -228,10 +225,10 @@
 /* Orange submit button */
 .auth-submit-btn {
     width: 100%;
-    padding: 0.875rem 1.25rem;
+    padding: 0.75rem 1.25rem;
     font-size: 1rem;
     font-weight: 600;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
     border-radius: 8px;
     background: hsl(var(--orange));
     color: white;
@@ -277,7 +274,7 @@
 /* Footer */
 .auth-footer {
     text-align: center;
-    margin-top: 2.5rem;
+    margin-top: 1.5rem;
 }
 
 .auth-footer p {
@@ -753,43 +750,51 @@
 @media (max-width: 768px) {
     .auth-page {
         flex-direction: column;
-        height: 100vh;
-        /* Restore full height */
-        overflow: hidden;
-        /* Prevent body scroll if content fits */
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
     }
 
-    /* Option 2: Hide sidebar, show small logo instead */
+    /* Show compact header instead of large hero image */
     .auth-hero {
-        display: none;
+        flex: 0 0 auto;
+        height: auto;
+        min-height: 0;
+    }
+
+    .auth-hero-image {
+        height: 140px;
+        object-fit: cover;
+        border-radius: 0;
+        border-bottom-left-radius: 24px;
+        border-bottom-right-radius: 24px;
     }
 
     .auth-mobile-logo {
-        display: block;
-        width: 100%;
-        max-width: 140px;
-        /* Much larger logo */
-        margin: 0 auto 3rem;
-        /* More space below */
-        object-fit: contain;
-        background-color: #000;
-        /* Black box background */
-        padding: 0.75rem;
-        /* Slightly more padding */
-        border-radius: 16px;
-        /* Rounded corners */
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        display: none;
     }
 
     .auth-form-panel {
-        padding: 2rem 1.5rem;
-        height: 100%;
-        /* Take full height */
+        padding: 1.5rem 1.5rem 2rem;
+        justify-content: flex-start;
+        overflow-y: visible;
     }
 
     .auth-field-row {
         flex-direction: column;
-        gap: 1.125rem;
+        gap: 0.75rem;
+    }
+
+    .auth-form {
+        gap: 0.875rem;
+    }
+
+    .auth-label {
+        font-size: 13px;
+    }
+
+    .auth-footer {
+        margin-top: 1.25rem;
     }
 }
 

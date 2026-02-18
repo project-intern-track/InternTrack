@@ -126,8 +126,14 @@ const Signup = () => {
         });
 
         if (result.error) {
-            let msg = result.error;
-            if (msg.toLowerCase().includes('already registered')) msg = 'An account with this email already exists. Please sign in instead.';
+            const msg = result.error;
+
+            // If this is a duplicate email error, highlight the email field too
+            if (msg.toLowerCase().includes('email already exists')) {
+                setFieldErrors((prev) => ({ ...prev, email: msg }));
+                setTouched((prev) => ({ ...prev, email: true }));
+            }
+
             setError(msg);
             setIsSubmitting(false);
         } else {

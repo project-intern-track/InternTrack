@@ -59,6 +59,22 @@ export const authService = {
                 return { user: null, session: null, error: error.message };
             }
 
+            // When email confirmation is enabled, Supabase does NOT return an
+            // error for duplicate emails (to prevent email enumeration attacks).
+            // Instead, it returns a user with an empty `identities` array.
+            // We detect this and surface a user-friendly error.
+            if (
+                data.user &&
+                Array.isArray(data.user.identities) &&
+                data.user.identities.length === 0
+            ) {
+                return {
+                    user: null,
+                    session: null,
+                    error: 'Email already exists. Please use another email account.',
+                };
+            }
+
             // The profile is created automatically by the database trigger
             // No need to manually insert into the users table
 
@@ -124,6 +140,12 @@ export const authService = {
      */
     async resetPassword(email: string): Promise<{ error: string | null }> {
         try {
+            // Mark that a password recovery is pending. This flag is checked
+            // by detectRecoveryFromUrl() when the user clicks the email link
+            // and lands back on the app — even if Supabase redirects to "/"
+            // instead of "/reset-password".
+            try { localStorage.setItem('pending_password_recovery', 'true'); } catch { /* ignore */ }
+
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/reset-password`,
             });

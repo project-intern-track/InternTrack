@@ -12,15 +12,62 @@ interface AuthContextType extends AuthState {
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<{ error: string | null }>;
     updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
+    clearPasswordRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/** Key used in localStorage to track pending password recovery. */
+const RECOVERY_FLAG_KEY = 'pending_password_recovery';
+
+/**
+ * Checks url hash, query params, and localStorage for Supabase recovery indicators.
+ * Works for both implicit (`#type=recovery`) and PKCE (`?code=...`) flows,
+ * and also handles the case where Supabase redirects to "/" instead of
+ * "/reset-password" (e.g. when the redirect URL isn't in the allow-list).
+ */
+function detectRecoveryFromUrl(): boolean {
+    try {
+        // 1. Implicit flow: hash contains type=recovery
+        const hash = window.location.hash.substring(1);
+        const hashParams = new URLSearchParams(hash);
+        if (hashParams.get('type') === 'recovery') return true;
+
+        // 2. PKCE flow: /reset-password?code=<code>
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.has('code') && window.location.pathname.includes('reset-password')) return true;
+
+        // 3. Fallback: the user requested a password reset from this browser.
+        //    When Supabase redirects to "/" (because redirect URL isn't allow-listed),
+        //    we detect the recovery via the localStorage flag + a code/token in the URL.
+        const hasPendingRecovery = localStorage.getItem(RECOVERY_FLAG_KEY) === 'true';
+        if (hasPendingRecovery) {
+            // Has a Supabase auth code or access token in the URL?
+            const hasCode = queryParams.has('code');
+            const hasAccessToken = hashParams.has('access_token');
+            if (hasCode || hasAccessToken) return true;
+        }
+    } catch {
+        // Ignore URL parsing / localStorage errors
+    }
+    return false;
+}
+
+/** Removes the localStorage recovery flag. */
+function clearRecoveryFlag(): void {
+    try { localStorage.removeItem(RECOVERY_FLAG_KEY); } catch { /* ignore */ }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    // Detect recovery from URL synchronously on first render —
+    // before any async auth events have a chance to redirect.
+    const recoveryFromUrl = useRef(detectRecoveryFromUrl());
+
     const [state, setState] = useState<AuthState>({
         user: null,
         isAuthenticated: false,
-        isLoading: true, // Start as true — we're checking the session
+        isLoading: true,
+        isPasswordRecovery: recoveryFromUrl.current,
     });
 
     // Track whether signIn/signUp is actively handling profile loading,
@@ -106,70 +153,132 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [fetchUserProfile]);
 
     /**
-     * On mount: check for existing session + listen for auth state changes.
+     * Helper: loads a profile and sets authenticated state.
+     * Always sets isLoading to false, even on failure.
      */
+    const loadProfileAndSetState = useCallback(async (
+        sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown> },
+        passwordRecovery: boolean
+    ) => {
+        try {
+            const user = await ensureUserProfile(
+                sessionUser.id,
+                sessionUser.email || '',
+                sessionUser.user_metadata
+            );
+            setState({
+                user: user,
+                isAuthenticated: !!user,
+                isLoading: false,
+                isPasswordRecovery: passwordRecovery,
+            });
+        } catch (err) {
+            console.error('Failed to load user profile:', err);
+            setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                isPasswordRecovery: false,
+            });
+        }
+    }, [ensureUserProfile]);
+
+    // ========================
+    // Session Init + Auth Listener
+    // ========================
     useEffect(() => {
-        // 1. Check the current session
-        const initSession = async () => {
-            const { session } = await authService.getSession();
+        let initialLoadResolved = false;
 
-            if (session?.user) {
-                const user = await ensureUserProfile(
-                    session.user.id,
-                    session.user.email || '',
-                    session.user.user_metadata
-                );
-
-                setState({
-                    user: user,
-                    isAuthenticated: !!user,
-                    isLoading: false,
-                });
-            } else {
-                setState({
-                    user: null,
-                    isAuthenticated: false,
-                    isLoading: false,
-                });
-            }
+        const setUnauthenticated = () => {
+            setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                isPasswordRecovery: false,
+            });
         };
 
-        initSession();
+        // 1. Check active session immediately (robust check for new tabs)
+        authService.getSession().then(({ session }) => {
+            if (initialLoadResolved) return;
 
-        // 2. Subscribe to auth changes (login, logout, token refresh)
+            if (session?.user) {
+                // Determine recovery: either we already detected it from the URL,
+                // or the hash type indicates recovery.
+                loadProfileAndSetState(session.user, recoveryFromUrl.current).then(() => {
+                    initialLoadResolved = true;
+                });
+            } else {
+                // If no session found via getSession, we still wait for onAuthStateChange
+                // in case it's an initial sign-in flow or token exchange.
+                // But if it's just a new tab, onAuthStateChange usually confirms "null" session too.
+            }
+        });
+
+        // 2. Subscribe to auth changes
         const unsubscribe = authService.onAuthStateChange(async (event, session) => {
             // Skip if signIn/signUp is actively handling this
             if (isHandlingAuth.current) return;
 
-            if (event === 'SIGNED_IN' && session?.user) {
-                const user = await ensureUserProfile(
-                    session.user.id,
-                    session.user.email || '',
-                    session.user.user_metadata
-                );
-                setState({
-                    user: user,
-                    isAuthenticated: !!user,
-                    isLoading: false,
-                });
+            if (event === 'INITIAL_SESSION') {
+                if (initialLoadResolved) return;
+
+                // If getSession already handled it, good. If not:
+                if (session?.user) {
+                    initialLoadResolved = true;
+                    await loadProfileAndSetState(session.user, recoveryFromUrl.current);
+                } else {
+                    // No session yet.
+                    if (recoveryFromUrl.current) {
+                        setState({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: true, // stay loading — recovery code exchange in progress
+                            isPasswordRecovery: true,
+                        });
+                    } else {
+                        // Only resolve to unauthenticated if getSession also failed/finished
+                        // But strictly speaking, INITIAL_SESSION with null means "no session".
+                        initialLoadResolved = true;
+                        setUnauthenticated();
+                    }
+                }
+
+            } else if (event === 'PASSWORD_RECOVERY' && session?.user) {
+                initialLoadResolved = true;
+                await loadProfileAndSetState(session.user, true);
+
+            } else if (event === 'SIGNED_IN' && session?.user) {
+                if (!initialLoadResolved) {
+                    initialLoadResolved = true;
+                    const isRecovery = recoveryFromUrl.current;
+                    await loadProfileAndSetState(session.user, isRecovery);
+                    return;
+                }
+                await loadProfileAndSetState(session.user, false);
+
             } else if (event === 'SIGNED_OUT') {
-                setState({
-                    user: null,
-                    isAuthenticated: false,
-                    isLoading: false,
-                });
+                setUnauthenticated();
+
             } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-                const user = await ensureUserProfile(
-                    session.user.id,
-                    session.user.email || '',
-                    session.user.user_metadata
-                );
-                if (user) {
-                    setState({
-                        user: user,
-                        isAuthenticated: true,
-                        isLoading: false,
-                    });
+                try {
+                    const user = await ensureUserProfile(
+                        session.user.id,
+                        session.user.email || '',
+                        session.user.user_metadata
+                    );
+                    if (user) {
+                        setState((prev) => ({
+                            ...prev,
+                            user,
+                            isAuthenticated: true,
+                            isLoading: false,
+                        }));
+                    } else {
+                        setState((prev) => ({ ...prev, isLoading: false }));
+                    }
+                } catch {
+                    setState((prev) => ({ ...prev, isLoading: false }));
                 }
             }
         });
@@ -177,30 +286,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return () => {
             unsubscribe();
         };
-    }, [ensureUserProfile]);
+    }, [ensureUserProfile, loadProfileAndSetState]);
 
     // ========================
     // Auth Actions
     // ========================
 
     const signIn = async (email: string, password: string) => {
-        setState((prev) => ({ ...prev, isLoading: true }));
+        clearRecoveryFlag(); // Normal login — clear any stale recovery flag
+        // Note: we do NOT set isLoading here. The form component manages its
+        // own `isSubmitting` state. Setting global isLoading would unmount
+        // the form (PublicRoute swaps it for LoadingScreen), losing all state.
         isHandlingAuth.current = true;
 
         try {
             const result = await authService.signIn(email, password);
 
             if (result.error) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: result.error };
             }
 
             if (!result.user) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: 'Sign in succeeded but no user was returned.' };
             }
 
-            // Directly load the profile — don't rely on onAuthStateChange timing
             const user = await ensureUserProfile(
                 result.user.id,
                 result.user.email || email,
@@ -208,41 +317,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             );
 
             if (!user) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: 'Could not load your user profile. Please contact an administrator.' };
             }
 
+            // Only set global state on success — this triggers the
+            // PublicRoute redirect to the dashboard.
             setState({
                 user: user,
                 isAuthenticated: true,
                 isLoading: false,
+                isPasswordRecovery: false,
             });
 
             return { error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { error: message };
         } finally {
             isHandlingAuth.current = false;
         }
     };
 
     const signUp = async (email: string, password: string, metadata: SignUpMetadata) => {
-        setState((prev) => ({ ...prev, isLoading: true }));
+        // Note: we do NOT set isLoading here (same reason as signIn above).
         isHandlingAuth.current = true;
 
         try {
             const result = await authService.signUp(email, password, metadata);
 
             if (result.error) {
-                setState({ user: null, isAuthenticated: false, isLoading: false });
                 return { error: result.error };
             }
 
-            // If Supabase requires email confirmation, session will be null
             if (!result.session || !result.user) {
-                setState({ user: null, isAuthenticated: false, isLoading: false });
-                return { error: null }; // Success — but user needs to confirm email
+                // Email confirmation required — no session yet
+                return { error: null };
             }
 
-            // If auto-confirmed, load the profile directly
+            // Auto-confirmed: load profile and transition to dashboard
             const user = await ensureUserProfile(
                 result.user.id,
                 result.user.email || email,
@@ -253,9 +365,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 user: user,
                 isAuthenticated: !!user,
                 isLoading: false,
+                isPasswordRecovery: false,
             });
 
             return { error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { error: message };
         } finally {
             isHandlingAuth.current = false;
         }
@@ -263,12 +379,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const signOut = async () => {
         setState((prev) => ({ ...prev, isLoading: true }));
-        await authService.signOut();
-        setState({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-        });
+        try {
+            await authService.signOut();
+        } catch (err) {
+            console.error('Sign out error:', err);
+        } finally {
+            // Always clear auth state, regardless of whether Supabase errored.
+            clearRecoveryFlag();
+            setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                isPasswordRecovery: false,
+            });
+        }
     };
 
     const resetPassword = async (email: string) => {
@@ -279,6 +403,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return await authService.updatePassword(newPassword);
     };
 
+    // Wrapped in useCallback so the reference is stable and doesn't cause
+    // infinite re-renders when used as a useEffect dependency.
+    const clearPasswordRecovery = useCallback(() => {
+        recoveryFromUrl.current = false;
+        clearRecoveryFlag();
+        setState((prev) => {
+            if (!prev.isPasswordRecovery) return prev; // no-op, avoid re-render
+            return { ...prev, isPasswordRecovery: false };
+        });
+    }, []);
+
     return (
         <AuthContext.Provider
             value={{
@@ -288,6 +423,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 signOut,
                 resetPassword,
                 updatePassword,
+                clearPasswordRecovery,
             }}
         >
             {children}

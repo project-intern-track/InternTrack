@@ -378,20 +378,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const signOut = async () => {
-        setState((prev) => ({ ...prev, isLoading: true }));
+        // Optimistic, instant logout.
+        // We set state immediately so the UI transitions to Login screen without waiting on network.
+        clearRecoveryFlag();
+        setState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            isPasswordRecovery: false,
+        });
+
+        // Fire-and-forget the backend sign-out
         try {
             await authService.signOut();
         } catch (err) {
-            console.error('Sign out error:', err);
-        } finally {
-            // Always clear auth state, regardless of whether Supabase errored.
-            clearRecoveryFlag();
-            setState({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false,
-                isPasswordRecovery: false,
-            });
+            console.error('Sign out error (ignored, UI already logged out):', err);
         }
     };
 

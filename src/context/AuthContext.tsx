@@ -107,24 +107,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     /**
      * On mount: check for existing session + listen for auth state changes.
+     *
+     * We use a single code-path via `onAuthStateChange` which fires immediately
+     * with an `INITIAL_SESSION` event (Supabase JS v2.39+). A parallel
+     * `getSession()` call acts as a fallback in case `INITIAL_SESSION` is not
+     * received within a short window (e.g. due to an older Supabase client
+     * version or an unexpected error).
      */
     useEffect(() => {
-        // 1. Check the current session
-        const initSession = async () => {
-            const { session } = await authService.getSession();
+        // Track whether the initial loading state has been resolved so that
+        // only the first resolver (either onAuthStateChange or initSession)
+        // takes effect and the other is a no-op.
+        let initialLoadResolved = false;
+
+        const resolveSession = async (session: { user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } } | null) => {
+            if (initialLoadResolved) return;
+            initialLoadResolved = true;
 
             if (session?.user) {
-                const user = await ensureUserProfile(
-                    session.user.id,
-                    session.user.email || '',
-                    session.user.user_metadata
-                );
+                try {
+                    const user = await ensureUserProfile(
+                        session.user.id,
+                        session.user.email || '',
+                        session.user.user_metadata
+                    );
 
-                setState({
-                    user: user,
-                    isAuthenticated: !!user,
-                    isLoading: false,
-                });
+                    setState({
+                        user: user,
+                        isAuthenticated: !!user,
+                        isLoading: false,
+                    });
+                } catch (err) {
+                    console.error('Failed to resolve session profile:', err);
+                    setState({
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                    });
+                }
             } else {
                 setState({
                     user: null,
@@ -134,14 +154,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
         };
 
-        initSession();
-
-        // 2. Subscribe to auth changes (login, logout, token refresh)
+        // 1. Subscribe to auth changes (login, logout, token refresh, initial session)
         const unsubscribe = authService.onAuthStateChange(async (event, session) => {
             // Skip if signIn/signUp is actively handling this
             if (isHandlingAuth.current) return;
 
-            if (event === 'SIGNED_IN' && session?.user) {
+            if (event === 'INITIAL_SESSION') {
+                // This fires once on subscription setup — resolves the loading state
+                await resolveSession(session);
+            } else if (event === 'SIGNED_IN' && session?.user) {
+                // Only process if the initial load already resolved (otherwise
+                // Supabase may fire SIGNED_IN right after INITIAL_SESSION and
+                // we'd double-load).
+                if (!initialLoadResolved) {
+                    await resolveSession(session);
+                    return;
+                }
                 const user = await ensureUserProfile(
                     session.user.id,
                     session.user.email || '',
@@ -174,7 +202,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
         });
 
+        // 2. Fallback: If INITIAL_SESSION was not received (e.g. older Supabase
+        //    client), manually check the session after a short delay.
+        const fallbackTimer = setTimeout(async () => {
+            if (!initialLoadResolved) {
+                console.warn('INITIAL_SESSION not received, falling back to getSession()');
+                try {
+                    const { session } = await authService.getSession();
+                    await resolveSession(session);
+                } catch (err) {
+                    console.error('Fallback getSession failed:', err);
+                    if (!initialLoadResolved) {
+                        initialLoadResolved = true;
+                        setState({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: false,
+                        });
+                    }
+                }
+            }
+        }, 2000);
+
         return () => {
+            clearTimeout(fallbackTimer);
             unsubscribe();
         };
     }, [ensureUserProfile]);

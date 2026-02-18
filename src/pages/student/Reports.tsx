@@ -1,18 +1,18 @@
-import { Settings as SettingsIcon } from 'lucide-react';
+import { BarChart } from 'lucide-react';
 
-const Settings = () => {
+const Reports = () => {
     return (
         <div className="placeholder-page">
             <div className="placeholder-icon">
-                <SettingsIcon size={48} />
+                <BarChart size={48} />
             </div>
-            <h1 className="placeholder-title">Settings</h1>
+            <h1 className="placeholder-title">Reports Section</h1>
             <p className="placeholder-description">
-                Manage your supervisor profile and preferences.
+                Generate and view comprehensive reports of your internship performance.
             </p>
             <div className="placeholder-badge">Coming Soon</div>
         </div>
     );
 };
 
-export default Settings;
+export default Reports;

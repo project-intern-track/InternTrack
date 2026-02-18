@@ -1,18 +1,18 @@
-import { Settings as SettingsIcon } from 'lucide-react';
+import { Users } from 'lucide-react';
 
-const Settings = () => {
+const ManageInterns = () => {
     return (
         <div className="placeholder-page">
             <div className="placeholder-icon">
-                <SettingsIcon size={48} />
+                <Users size={48} />
             </div>
-            <h1 className="placeholder-title">Settings</h1>
+            <h1 className="placeholder-title">Manage Interns</h1>
             <p className="placeholder-description">
-                Manage your supervisor profile and preferences.
+                View, manage, and monitor all interns under your supervision.
             </p>
             <div className="placeholder-badge">Coming Soon</div>
         </div>
     );
 };
 
-export default Settings;
+export default ManageInterns;

@@ -37,7 +37,11 @@ declare module 'lucide-react' {
     export const Search: Icon;
     export const Plus: Icon;
     export const Edit: Icon;
+    export const Pencil: Icon;
     export const Trash: Icon;
+    export const Archive: Icon;
+    export const Download: Icon;
+    export const Filter: Icon;
     export const Eye: Icon;
     export const EyeOff: Icon;
 
@@ -56,6 +60,9 @@ declare module 'lucide-react' {
     export const AlertCircle: Icon;
     export const Info: Icon;
     export const Loader2: Icon;
+    export const ArrowRight: Icon;
+    export const ArrowLeft: Icon;
+    export const RefreshCw: Icon;
 
     // Allow any other icon export
     const icons: Record<string, Icon>;

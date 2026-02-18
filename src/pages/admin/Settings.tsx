@@ -8,7 +8,7 @@ const Settings = () => {
             </div>
             <h1 className="placeholder-title">Settings</h1>
             <p className="placeholder-description">
-                Manage your supervisor profile and preferences.
+                Configure system settings and administrative preferences.
             </p>
             <div className="placeholder-badge">Coming Soon</div>
         </div>

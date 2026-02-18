@@ -14,6 +14,10 @@ CREATE TABLE IF NOT EXISTS public.users (
   full_name TEXT,
   avatar_url TEXT,
   role TEXT NOT NULL DEFAULT 'intern' CHECK (role IN ('admin', 'supervisor', 'intern')),
+  ojt_role TEXT,
+  start_date DATE,
+  required_hours INTEGER,
+  ojt_type TEXT DEFAULT 'required' CHECK (ojt_type IN ('required', 'voluntary')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -267,13 +271,17 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = ''
 AS $$
 BEGIN
-  INSERT INTO public.users (id, email, full_name, avatar_url, role)
+  INSERT INTO public.users (id, email, full_name, avatar_url, role, ojt_role, start_date, required_hours, ojt_type)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data ->> 'full_name', ''),
     COALESCE(NEW.raw_user_meta_data ->> 'avatar_url', ''),
-    COALESCE(NEW.raw_user_meta_data ->> 'role', 'intern')
+    COALESCE(NEW.raw_user_meta_data ->> 'role', 'intern'),
+    COALESCE(NEW.raw_user_meta_data ->> 'ojt_role', NULL),
+    COALESCE((NEW.raw_user_meta_data ->> 'start_date')::date, NULL),
+    COALESCE((NEW.raw_user_meta_data ->> 'required_hours')::integer, NULL),
+    COALESCE(NEW.raw_user_meta_data ->> 'ojt_type', 'required')
   );
   RETURN NEW;
 END;

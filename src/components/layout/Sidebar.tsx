@@ -1,44 +1,69 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-    LayoutDashboard,
-    FileText,
-    Calendar,
-    Settings,
+    X,
     LogOut,
-    Users,
-    Briefcase,
-    ClipboardList,
-    BarChart
+    Loader2
 } from 'lucide-react';
+import { useState } from 'react';
 
-const Sidebar = () => {
-    const { user, logout } = useAuth();
+interface SidebarProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
+    const { user, signOut } = useAuth();
+    const navigate = useNavigate();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     if (!user) return null;
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        if (onClose) onClose();
+
+        // Navigate immediately for better UX
+        navigate('/');
+
+        // Let signOut complete in background
+        try {
+            await signOut();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
 
     const getLinks = () => {
         switch (user.role) {
             case 'intern':
                 return [
-                    { to: '/student/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                    { to: '/student/logs', icon: FileText, label: 'Daily Logs' },
-                    { to: '/student/schedule', icon: Calendar, label: 'Schedule' },
+                    { to: '/intern/dashboard', label: 'Dashboard' },
+                    { to: '/intern/tasks', label: 'Task List' },
+                    { to: '/intern/logs', label: 'Time Log' },
+                    { to: '/intern/feedback', label: 'Performance Feedback' },
+                    { to: '/intern/settings', label: 'Settings' },
                 ];
             case 'supervisor':
                 return [
-                    { to: '/supervisor/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                    { to: '/supervisor/approvals', icon: ClipboardList, label: 'Approvals' },
-                    { to: '/supervisor/performance', icon: BarChart, label: 'Performance' },
-                    { to: '/supervisor/evaluations', icon: Briefcase, label: 'Evaluations' },
-                    { to: '/supervisor/feedback', icon: FileText, label: 'Feedback' },
-                    { to: '/supervisor/settings', icon: Settings, label: 'Settings' },
+                    { to: '/supervisor/dashboard', label: 'Dashboard' },
+                    { to: '/supervisor/tasks', label: 'Approve Tasks' },
+                    { to: '/supervisor/performance', label: 'Intern Performance' },
+                    { to: '/supervisor/evaluations', label: 'Evaluations' },
+                    { to: '/supervisor/feedback', label: 'Feedback' },
+                    { to: '/supervisor/settings', label: 'Settings' },
                 ];
             case 'admin':
                 return [
-                    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                    { to: '/admin/users', icon: Users, label: 'User Management' },
-                    { to: '/admin/settings', icon: Settings, label: 'System Settings' },
+                    { to: '/admin/dashboard', label: 'Dashboard' },
+                    { to: '/admin/interns', label: 'Manage Interns' },
+                    { to: '/admin/attendance', label: 'Monitor Attendance' },
+                    { to: '/admin/tasks', label: 'Manage Tasks' },
+                    { to: '/admin/manage-admins', label: 'Manage Admins' },
+                    { to: '/admin/manage-supervisors', label: 'Manage Supervisors' },
+                    { to: '/admin/reports', label: 'Reports' },
+                    { to: '/admin/announcements', label: 'Announcements' },
+                    { to: '/admin/settings', label: 'Settings' },
                 ];
             default:
                 return [];
@@ -46,75 +71,60 @@ const Sidebar = () => {
     };
 
     return (
-        <aside style={{
-            width: '260px',
-            backgroundColor: 'hsl(var(--card))',
-            borderRight: '1px solid hsl(var(--border))',
-            height: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'fixed',
-            left: 0,
-            top: 0
-        }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid hsl(var(--border))', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ background: 'hsl(var(--primary))', padding: '0.25rem', borderRadius: '4px', color: 'white', display: 'flex' }}>
-                    <Briefcase size={20} />
-                </div>
-                <span style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>InternTrack</span>
-            </div>
+        <>
+            <div className={`sidebar-overlay ${isOpen ? 'active' : ''}`} onClick={onClose}></div>
+            <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+                <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
+                    <X size={24} />
+                </button>
 
-            <nav style={{ flex: 1, padding: '1rem' }}>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {getLinks().map((link) => (
-                        <li key={link.to}>
-                            <NavLink
-                                to={link.to}
-                                className={({ isActive }) =>
-                                    isActive ? 'active-link' : 'nav-link'
-                                }
-                                style={({ isActive }) => ({
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.75rem',
-                                    padding: '0.75rem 1rem',
-                                    borderRadius: 'var(--radius-md)',
-                                    textDecoration: 'none',
-                                    color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                                    backgroundColor: isActive ? 'hsl(var(--primary) / 0.1)' : 'transparent',
-                                    fontWeight: isActive ? 500 : 400,
-                                    transition: 'all 0.2s'
-                                })}
-                            >
-                                <link.icon size={20} />
-                                {link.label}
-                            </NavLink>
-                        </li>
-                    ))}
-                </ul>
-            </nav>
-
-            <div style={{ padding: '1rem', borderTop: '1px solid hsl(var(--border))' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', padding: '0 0.5rem' }}>
-                    <img
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%' }}
-                    />
-                    <div style={{ overflow: 'hidden' }}>
-                        <div style={{ fontSize: '0.875rem', fontWeight: '500', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', textTransform: 'capitalize' }}>{user.role}</div>
+                <div className="sidebar-header">
+                    <img src="/heroIcon.png" alt="InternTrack" className="sidebar-logo-img" />
+                    <div className="sidebar-brand">
+                        <span className="sidebar-brand-intern">Intern</span>
+                        <span className="sidebar-brand-track">Track</span>
                     </div>
                 </div>
-                <button
-                    onClick={logout}
-                    className="btn-ghost"
-                    style={{ width: '100%', justifyContent: 'flex-start', color: 'hsl(var(--danger))' }}
-                >
-                    <LogOut size={18} /> Logout
-                </button>
-            </div>
-        </aside>
+
+                <nav className="sidebar-nav">
+                    <ul>
+                        {getLinks().map((link) => (
+                            <li key={link.to}>
+                                <NavLink
+                                    to={link.to}
+                                    className={({ isActive }) =>
+                                        isActive ? 'sidebar-link active' : 'sidebar-link'
+                                    }
+                                    onClick={onClose}
+                                >
+                                    {link.label}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+
+                <div className="sidebar-footer">
+                    <button
+                        className="sidebar-logout-btn"
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                    >
+                        {isLoggingOut ? (
+                            <>
+                                <Loader2 size={20} className="spinner" />
+                                <span>Logging out...</span>
+                            </>
+                        ) : (
+                            <>
+                                <LogOut size={20} />
+                                <span>Logout</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 };
 

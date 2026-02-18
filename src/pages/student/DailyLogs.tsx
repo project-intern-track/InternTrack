@@ -1,18 +1,18 @@
-import { Settings as SettingsIcon } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
-const Settings = () => {
+const DailyLogs = () => {
     return (
         <div className="placeholder-page">
             <div className="placeholder-icon">
-                <SettingsIcon size={48} />
+                <FileText size={48} />
             </div>
-            <h1 className="placeholder-title">Settings</h1>
+            <h1 className="placeholder-title">Daily Logs</h1>
             <p className="placeholder-description">
-                Manage your supervisor profile and preferences.
+                Track your daily activities and progress during your internship.
             </p>
             <div className="placeholder-badge">Coming Soon</div>
         </div>
     );
 };
 
-export default Settings;
+export default DailyLogs;

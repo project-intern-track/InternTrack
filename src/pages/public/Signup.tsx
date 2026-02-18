@@ -187,7 +187,10 @@ const Signup = () => {
                 <div className="auth-form-inner">
                     <div className="auth-mobile-header">
                         <img src="/heroIcon.png" alt="InternTrack" className="auth-mobile-icon" />
-                        <img src="/heroLogo.png" alt="InternTrack Logo" className="auth-hero-mobile-logo" />
+                        <div className="auth-mobile-wordmark" aria-label="InternTrack">
+                            <span className="auth-mobile-wordmark-intern">Intern</span>
+                            <span className="auth-mobile-wordmark-track">Track</span>
+                        </div>
                     </div>
 
                     {error && (

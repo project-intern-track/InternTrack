@@ -739,12 +739,25 @@
     text-decoration: underline;
 }
 
+/* Hero mobile logo (for tablet/mobile) */
+.auth-hero-mobile-logo {
+    display: none;
+}
+
+.auth-mobile-icon {
+    display: none;
+}
+
+.auth-mobile-header {
+    display: none;
+}
+
 /* ========================
    Responsive
    ======================== */
 .auth-mobile-logo {
     display: none;
-    /* Hide on desktop */
+    /* Hide on all devices */
 }
 
 @media (max-width: 768px) {
@@ -753,31 +766,70 @@
         height: auto;
         min-height: 100vh;
         overflow-y: auto;
+        background: #fafafa;
     }
 
-    /* Show compact header instead of large hero image */
+    /* Hero section only shows image on desktop, hidden on mobile */
     .auth-hero {
         flex: 0 0 auto;
-        height: auto;
-        min-height: 0;
+        height: 0;
+        background: transparent;
+        display: none;
+        overflow: hidden;
     }
 
     .auth-hero-image {
-        height: 140px;
-        object-fit: cover;
-        border-radius: 0;
-        border-bottom-left-radius: 24px;
-        border-bottom-right-radius: 24px;
-    }
-
-    .auth-mobile-logo {
         display: none;
     }
 
     .auth-form-panel {
-        padding: 1.5rem 1.5rem 2rem;
-        justify-content: flex-start;
+        padding: 2rem 1.5rem;
+        justify-content: center;
         overflow-y: visible;
+        display: flex;
+        align-items: center;
+        min-height: auto;
+    }
+
+    .auth-form-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 380px;
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .auth-mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: #000000;
+        padding: 0.5rem;
+        border-radius: 8px;
+        margin: 0rem auto 2rem auto;
+        width: fit-content;
+        max-width: calc(100% - 1rem);
+    }
+
+    .auth-mobile-icon {
+        display: block;
+        height: 50px;
+        width: auto;
+        max-width: 60px;
+        object-fit: contain;
+    }
+
+    .auth-hero-mobile-logo {
+        display: block;
+        height: 50px;
+        width: auto;
+        max-width: 180px;
+        object-fit: contain;
     }
 
     .auth-field-row {
@@ -801,6 +853,29 @@
 @media (max-width: 480px) {
     .auth-form-panel {
         padding: 1.5rem 1.25rem;
+        min-height: auto;
+    }
+
+    .auth-form-inner {
+        padding: 1.5rem;
+    }
+
+    .auth-mobile-header {
+        padding: 0.5rem;
+        margin-bottom: 1.5rem;
+        gap: 0.5rem;
+        width: fit-content;
+        max-width: calc(100% - 1rem);
+    }
+
+    .auth-mobile-icon {
+        height: 40px;
+        max-width: 50px;
+    }
+
+    .auth-hero-mobile-logo {
+        height: 40px;
+        max-width: 150px;
     }
 
     .auth-success-card {

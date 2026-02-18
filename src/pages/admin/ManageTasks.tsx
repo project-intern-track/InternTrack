@@ -107,7 +107,7 @@ const ManageTasks = () => {
             }
         `}</style>
          <div className="row row-between" style={{ marginBottom: '2rem' }}>
-            <h1 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: "32px"}}>Manage Tasks</h1>    
+            <h1 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: "31px"}}>Manage Tasks</h1>    
             <button className='btn btn-primary' style={{fontSize: "15px"}}>
                 + Create Task</button>
          </div>

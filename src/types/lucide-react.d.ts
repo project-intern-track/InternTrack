@@ -37,7 +37,11 @@ declare module 'lucide-react' {
     export const Search: Icon;
     export const Plus: Icon;
     export const Edit: Icon;
+    export const Pencil: Icon;
     export const Trash: Icon;
+    export const Archive: Icon;
+    export const Download: Icon;
+    export const Filter: Icon;
     export const Eye: Icon;
     export const EyeOff: Icon;
 

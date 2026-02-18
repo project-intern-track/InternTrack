@@ -62,12 +62,25 @@ export const userService = {
             query = query.eq('ojt_role', filters.role);
         }
 
-        // Apply search filter
-        if (filters?.search) {
-            const term = `%${filters.search}%`;
-            query = query.or(
-                `full_name.ilike.${term},email.ilike.${term},ojt_role.ilike.${term},ojt_id.eq.${parseInt(filters.search) || 0}`
-            );
+        // Apply search filter — use individual ilike filters combined with .or()
+        if (filters?.search && filters.search.trim()) {
+            const searchTerm = filters.search.trim();
+            const wildcardTerm = `%${searchTerm}%`;
+
+            // Build the OR conditions for text search
+            const orConditions: string[] = [
+                `full_name.ilike.${wildcardTerm}`,
+                `email.ilike.${wildcardTerm}`,
+                `ojt_role.ilike.${wildcardTerm}`,
+            ];
+
+            // Only include ojt_id match if the search term is a valid number
+            const numericSearch = parseInt(searchTerm, 10);
+            if (!isNaN(numericSearch)) {
+                orConditions.push(`ojt_id.eq.${numericSearch}`);
+            }
+
+            query = query.or(orConditions.join(','));
         }
 
         // Apply sort

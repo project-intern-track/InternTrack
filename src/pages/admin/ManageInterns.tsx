@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Search,
     Filter,
@@ -20,11 +20,24 @@ const ManageInterns = () => {
     const [stats, setStats] = useState({ totalInterns: 0, totalRoles: 0, archivedInterns: 0 });
 
     // Filters
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchInput, setSearchInput] = useState('');       // what the user types (immediate)
+    const [debouncedSearch, setDebouncedSearch] = useState(''); // actual search sent to backend
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [roleFilter, setRoleFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [availableRoles, setAvailableRoles] = useState<string[]>([]);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Debounce search input → debouncedSearch (300ms)
+    useEffect(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            setDebouncedSearch(searchInput);
+        }, 300);
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, [searchInput]);
 
     // Load interns with current filters
     const loadInterns = useCallback(async () => {
@@ -32,7 +45,7 @@ const ManageInterns = () => {
             setLoading(true);
             setError(null);
             const data = await userService.fetchInterns({
-                search: searchTerm || undefined,
+                search: debouncedSearch || undefined,
                 role: roleFilter,
                 status: statusFilter,
                 sortDirection,
@@ -43,7 +56,7 @@ const ManageInterns = () => {
         } finally {
             setLoading(false);
         }
-    }, [searchTerm, sortDirection, roleFilter, statusFilter]);
+    }, [debouncedSearch, sortDirection, roleFilter, statusFilter]);
 
     // Load stats and roles on mount
     useEffect(() => {
@@ -155,8 +168,8 @@ const ManageInterns = () => {
                         className="input"
                         placeholder="Search by name, role, email, or OJT ID"
                         style={{ paddingLeft: '3rem' }}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
                     />
                 </div>
             </div>

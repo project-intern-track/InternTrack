@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 // ========================
 // Environmental Variables
@@ -8,7 +8,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 declare global {
 	interface Window {
-		__interntrack_supabase__?: ReturnType<typeof createClient>;
+		__interntrack_supabase__?: SupabaseClient<any>;
 	}
 }
 
@@ -19,7 +19,7 @@ const noOpLock = async <T>(
 ) => fn();
 
 // Connection Engine (browser singleton to avoid multiple GoTrueClient instances)
-export const supabase = window.__interntrack_supabase__ ?? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase: SupabaseClient<any> = window.__interntrack_supabase__ ?? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 	auth: {
 		persistSession: true,
 		autoRefreshToken: true,

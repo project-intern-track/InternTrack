@@ -188,8 +188,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // ========================
     useEffect(() => {
         let initialLoadResolved = false;
+        let isMounted = true;
 
         const setUnauthenticated = () => {
+            if (!isMounted) return;
             setState({
                 user: null,
                 isAuthenticated: false,
@@ -198,66 +200,73 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             });
         };
 
-        // 1. Check active session immediately (robust check for new tabs)
-        authService.getSession().then(({ session }) => {
+        const resolveInitialLoad = async () => {
             if (initialLoadResolved) return;
+            initialLoadResolved = true;
 
-            if (session?.user) {
-                // Determine recovery: either we already detected it from the URL,
-                // or the hash type indicates recovery.
-                loadProfileAndSetState(session.user, recoveryFromUrl.current).then(() => {
-                    initialLoadResolved = true;
-                });
-            } else {
-                // If no session found via getSession, we still wait for onAuthStateChange
-                // in case it's an initial sign-in flow or token exchange.
-                // But if it's just a new tab, onAuthStateChange usually confirms "null" session too.
+            try {
+                const { session } = await authService.getSession();
+                
+                if (!isMounted) return;
+
+                if (session?.user) {
+                    await loadProfileAndSetState(session.user, recoveryFromUrl.current);
+                } else {
+                    // No active session
+                    if (recoveryFromUrl.current) {
+                        // Wait for recovery token exchange
+                        setState({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: true,
+                            isPasswordRecovery: true,
+                        });
+                    } else {
+                        setUnauthenticated();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading session:', error);
+                if (isMounted) {
+                    setUnauthenticated();
+                }
             }
-        });
+        };
 
-        // 2. Subscribe to auth changes
+        // Start initial load immediately
+        resolveInitialLoad();
+
+        // Set a safety timeout to prevent infinite loading
+        const safetyTimeout = setTimeout(() => {
+            if (!initialLoadResolved && isMounted) {
+                console.warn('Session load timeout - setting unauthenticated');
+                initialLoadResolved = true;
+                setUnauthenticated();
+            }
+        }, 5000);
+
+        // Subscribe to auth changes
         const unsubscribe = authService.onAuthStateChange(async (event, session) => {
+            if (!isMounted) return;
+            
             // Skip if signIn/signUp is actively handling this
             if (isHandlingAuth.current) return;
 
             if (event === 'INITIAL_SESSION') {
-                if (initialLoadResolved) return;
-
-                // If getSession already handled it, good. If not:
-                if (session?.user) {
-                    initialLoadResolved = true;
-                    await loadProfileAndSetState(session.user, recoveryFromUrl.current);
-                } else {
-                    // No session yet.
-                    if (recoveryFromUrl.current) {
-                        setState({
-                            user: null,
-                            isAuthenticated: false,
-                            isLoading: true, // stay loading — recovery code exchange in progress
-                            isPasswordRecovery: true,
-                        });
-                    } else {
-                        // Only resolve to unauthenticated if getSession also failed/finished
-                        // But strictly speaking, INITIAL_SESSION with null means "no session".
-                        initialLoadResolved = true;
-                        setUnauthenticated();
-                    }
-                }
+                // Already handled by resolveInitialLoad above
+                return;
 
             } else if (event === 'PASSWORD_RECOVERY' && session?.user) {
                 initialLoadResolved = true;
                 await loadProfileAndSetState(session.user, true);
 
             } else if (event === 'SIGNED_IN' && session?.user) {
-                if (!initialLoadResolved) {
-                    initialLoadResolved = true;
-                    const isRecovery = recoveryFromUrl.current;
-                    await loadProfileAndSetState(session.user, isRecovery);
-                    return;
-                }
-                await loadProfileAndSetState(session.user, false);
+                initialLoadResolved = true;
+                const isRecovery = recoveryFromUrl.current;
+                await loadProfileAndSetState(session.user, isRecovery);
 
             } else if (event === 'SIGNED_OUT') {
+                initialLoadResolved = true;
                 setUnauthenticated();
 
             } else if (event === 'TOKEN_REFRESHED' && session?.user) {
@@ -267,23 +276,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         session.user.email || '',
                         session.user.user_metadata
                     );
-                    if (user) {
+                    if (user && isMounted) {
                         setState((prev) => ({
                             ...prev,
                             user,
                             isAuthenticated: true,
                             isLoading: false,
                         }));
-                    } else {
+                    } else if (isMounted) {
                         setState((prev) => ({ ...prev, isLoading: false }));
                     }
                 } catch {
-                    setState((prev) => ({ ...prev, isLoading: false }));
+                    if (isMounted) {
+                        setState((prev) => ({ ...prev, isLoading: false }));
+                    }
                 }
             }
         });
 
         return () => {
+            isMounted = false;
+            clearTimeout(safetyTimeout);
             unsubscribe();
         };
     }, [ensureUserProfile, loadProfileAndSetState]);

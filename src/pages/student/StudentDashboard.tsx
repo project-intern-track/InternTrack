@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { FaCheckCircle } from "react-icons/fa";
 import { FiClock } from "react-icons/fi";
 import { BsHourglassSplit } from "react-icons/bs";
+import { announcementService } from "../../services/announcementService";
+import type { Announcement } from "../../types/database.types";
+import { Loader2 } from "lucide-react";
 
 /* ---- Define User Type (adjust if your AuthContext differs) ---- */
 interface User {
@@ -16,6 +19,47 @@ interface AuthContextType {
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth() as AuthContextType;
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        const data = await announcementService.getAnnouncements();
+        // Sort by created_at desc
+        const sorted = (data || []).sort((a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setAnnouncements(sorted);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnnouncements();
+  }, []);
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
+  const getPriorityColor = (p: string) => {
+    switch (p) {
+      case 'high': return '#ef4444'; // Red
+      case 'medium': return '#eab308'; // Yellow
+      case 'low': return '#3b82f6'; // Blue
+      default: return '#9ca3af';
+    }
+  };
+
+  const getPriorityLabel = (p: string) => {
+    return p.charAt(0).toUpperCase() + p.slice(1) + " Priority";
+  };
 
   /* --- Styles (Typed) --- */
   const styles: Record<string, React.CSSProperties> = {
@@ -102,7 +146,9 @@ const StudentDashboard: React.FC = () => {
 
     announcementTitle: {
       color: "#ff7a00",
-      marginBottom: "10px",
+      marginBottom: "20px",
+      fontSize: "1.5rem",
+      fontWeight: 700,
     },
 
     announcementBox: {
@@ -112,6 +158,21 @@ const StudentDashboard: React.FC = () => {
       padding: "20px",
       color: "#666",
       boxShadow: "-2px 4px 8px -4px rgba(0,0,0,0.25)",
+      overflowY: 'auto',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '1rem',
+    },
+
+    announcementCard: {
+      padding: '1.5rem',
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: '#F9F7F4', // Admin style match
+      borderRadius: '8px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      border: '1px solid #e5e5e5',
+      flexShrink: 0
     },
   };
 
@@ -155,7 +216,62 @@ const StudentDashboard: React.FC = () => {
       {/* Announcements */}
       <div style={styles.announcementSection}>
         <h3 style={styles.announcementTitle}>Announcements</h3>
-        <div style={styles.announcementBox}>No new announcements.</div>
+
+        <div style={styles.announcementBox}>
+          {loading ? (
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', color: '#64748b' }}>
+              <Loader2 className="spinner" /> Loading announcements...
+            </div>
+          ) : announcements.length === 0 ? (
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              No new announcements.
+            </div>
+          ) : (
+            announcements.map((announcement) => (
+              <div key={announcement.id} style={styles.announcementCard}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1f2937' }}>
+                    {announcement.title}
+                  </h3>
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <p style={{ margin: 0, color: '#4b5563', lineHeight: '1.5' }}>
+                    {announcement.content}
+                  </p>
+                </div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '0.875rem',
+                  color: '#6b7280',
+                  marginTop: 'auto'
+                }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <span>Priority:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <div style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        backgroundColor: getPriorityColor(announcement.priority)
+                      }} />
+                      <span style={{ fontWeight: 600, color: '#111827' }}>
+                        {getPriorityLabel(announcement.priority)}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <span>Date Created:</span>
+                    <span style={{ fontWeight: 600, color: '#111827' }}>
+                      {formatDate(announcement.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

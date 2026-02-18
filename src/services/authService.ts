@@ -140,6 +140,19 @@ export const authService = {
      */
     async resetPassword(email: string): Promise<{ error: string | null }> {
         try {
+            // Check if email exists using the database function
+            // This bypasses RLS while only exposing email existence (not full user data)
+            const { data: emailExists, error: checkError } = await supabase
+                .rpc('check_email_exists', { check_email: email });
+
+            if (checkError) {
+                return { error: 'Unable to verify email. Please try again.' };
+            }
+
+            if (!emailExists) {
+                return { error: 'This email is not registered.' };
+            }
+
             // Mark that a password recovery is pending. This flag is checked
             // by detectRecoveryFromUrl() when the user clicks the email link
             // and lands back on the app — even if Supabase redirects to "/"

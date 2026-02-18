@@ -58,6 +58,48 @@ function clearRecoveryFlag(): void {
     try { localStorage.removeItem(RECOVERY_FLAG_KEY); } catch { /* ignore */ }
 }
 
+function mapSessionToFallbackUser(sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }): User {
+    const metadataRole = sessionUser.user_metadata?.role;
+    const role: UserRole =
+        metadataRole === 'admin' || metadataRole === 'supervisor' || metadataRole === 'intern'
+            ? metadataRole
+            : 'intern';
+
+    return {
+        id: sessionUser.id,
+        name: (sessionUser.user_metadata?.full_name as string) || (sessionUser.email?.split('@')[0] ?? 'User'),
+        email: sessionUser.email || '',
+        role,
+        avatarUrl: (sessionUser.user_metadata?.avatar_url as string) || undefined,
+    };
+}
+
+function getCachedSessionUserFromStorage(): { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null {
+    try {
+        const authTokenKey = Object.keys(localStorage).find((key) => /^sb-.*-auth-token$/.test(key));
+        if (!authTokenKey) return null;
+
+        const rawValue = localStorage.getItem(authTokenKey);
+        if (!rawValue) return null;
+
+        const parsedValue = JSON.parse(rawValue) as unknown;
+        const valueRecord = (parsedValue ?? {}) as Record<string, unknown>;
+        const currentSession = (valueRecord.currentSession ?? valueRecord.session) as Record<string, unknown> | undefined;
+        const user = (currentSession?.user ?? valueRecord.user) as Record<string, unknown> | undefined;
+
+        const id = typeof user?.id === 'string' ? user.id : null;
+        if (!id) return null;
+
+        return {
+            id,
+            email: typeof user?.email === 'string' ? user.email : null,
+            user_metadata: (user?.user_metadata as Record<string, unknown>) || {},
+        };
+    } catch {
+        return null;
+    }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Detect recovery from URL synchronously on first render —
     // before any async auth events have a chance to redirect.
@@ -160,26 +202,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown> },
         passwordRecovery: boolean
     ) => {
+        const fallbackUser = mapSessionToFallbackUser(sessionUser);
+
+        // Immediately authenticate from auth session so refresh/new-tab never blocks on profile query.
+        setState({
+            user: fallbackUser,
+            isAuthenticated: true,
+            isLoading: false,
+            isPasswordRecovery: passwordRecovery,
+        });
+
         try {
-            const user = await ensureUserProfile(
-                sessionUser.id,
-                sessionUser.email || '',
-                sessionUser.user_metadata
-            );
-            setState({
-                user: user,
-                isAuthenticated: !!user,
-                isLoading: false,
-                isPasswordRecovery: passwordRecovery,
-            });
+            const profileResult = await Promise.race([
+                ensureUserProfile(
+                    sessionUser.id,
+                    sessionUser.email || '',
+                    sessionUser.user_metadata
+                ),
+                new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+            ]);
+
+            if (profileResult) {
+                setState((prev) => ({
+                    ...prev,
+                    user: profileResult,
+                    isAuthenticated: true,
+                    isLoading: false,
+                    isPasswordRecovery: passwordRecovery,
+                }));
+            }
         } catch (err) {
             console.error('Failed to load user profile:', err);
-            setState({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false,
-                isPasswordRecovery: false,
-            });
+            // Keep the fallback user from auth metadata and avoid forcing logout.
         }
     }, [ensureUserProfile]);
 
@@ -189,6 +243,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         let initialLoadResolved = false;
         let isMounted = true;
+
+        const resolveAsUnauthenticated = () => {
+            initialLoadResolved = true;
+            setUnauthenticated();
+        };
 
         const setUnauthenticated = () => {
             if (!isMounted) return;
@@ -202,19 +261,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         const resolveInitialLoad = async () => {
             if (initialLoadResolved) return;
-            initialLoadResolved = true;
 
             try {
-                const { session } = await authService.getSession();
+                const sessionResult = await Promise.race([
+                    authService.getSession(),
+                    new Promise<{ session: null; error: string }>((resolve) => {
+                        setTimeout(() => resolve({ session: null, error: 'Session initialization timed out' }), 5000);
+                    }),
+                ]);
                 
                 if (!isMounted) return;
 
-                if (session?.user) {
-                    await loadProfileAndSetState(session.user, recoveryFromUrl.current);
+                if (sessionResult.error) {
+                    console.warn('Session initialization failed:', sessionResult.error);
+                    const cachedSessionUser = getCachedSessionUserFromStorage();
+                    if (cachedSessionUser) {
+                        initialLoadResolved = true;
+                        await loadProfileAndSetState(cachedSessionUser, recoveryFromUrl.current);
+                        return;
+                    }
+                    resolveAsUnauthenticated();
+                    return;
+                }
+
+                if (sessionResult.session?.user) {
+                    initialLoadResolved = true;
+                    await loadProfileAndSetState(sessionResult.session.user, recoveryFromUrl.current);
                 } else {
                     // No active session
                     if (recoveryFromUrl.current) {
                         // Wait for recovery token exchange
+                        initialLoadResolved = true;
                         setState({
                             user: null,
                             isAuthenticated: false,
@@ -222,13 +299,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             isPasswordRecovery: true,
                         });
                     } else {
-                        setUnauthenticated();
+                        resolveAsUnauthenticated();
                     }
                 }
             } catch (error) {
                 console.error('Error loading session:', error);
                 if (isMounted) {
-                    setUnauthenticated();
+                    const cachedSessionUser = getCachedSessionUserFromStorage();
+                    if (cachedSessionUser) {
+                        initialLoadResolved = true;
+                        await loadProfileAndSetState(cachedSessionUser, recoveryFromUrl.current);
+                        return;
+                    }
+                    resolveAsUnauthenticated();
                 }
             }
         };
@@ -240,8 +323,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const safetyTimeout = setTimeout(() => {
             if (!initialLoadResolved && isMounted) {
                 console.warn('Session load timeout - setting unauthenticated');
-                initialLoadResolved = true;
-                setUnauthenticated();
+                resolveAsUnauthenticated();
             }
         }, 5000);
 
@@ -253,17 +335,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (isHandlingAuth.current) return;
 
             if (event === 'INITIAL_SESSION') {
-                // Already handled by resolveInitialLoad above
-                return;
+                if (initialLoadResolved) return;
+
+                if (session?.user) {
+                    await loadProfileAndSetState(session.user, recoveryFromUrl.current);
+                    initialLoadResolved = true;
+                } else {
+                    resolveAsUnauthenticated();
+                }
 
             } else if (event === 'PASSWORD_RECOVERY' && session?.user) {
-                initialLoadResolved = true;
                 await loadProfileAndSetState(session.user, true);
+                initialLoadResolved = true;
 
             } else if (event === 'SIGNED_IN' && session?.user) {
-                initialLoadResolved = true;
                 const isRecovery = recoveryFromUrl.current;
                 await loadProfileAndSetState(session.user, isRecovery);
+                initialLoadResolved = true;
 
             } else if (event === 'SIGNED_OUT') {
                 initialLoadResolved = true;

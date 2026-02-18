@@ -124,6 +124,12 @@ export const authService = {
      */
     async resetPassword(email: string): Promise<{ error: string | null }> {
         try {
+            // Mark that a password recovery is pending. This flag is checked
+            // by detectRecoveryFromUrl() when the user clicks the email link
+            // and lands back on the app — even if Supabase redirects to "/"
+            // instead of "/reset-password".
+            try { localStorage.setItem('pending_password_recovery', 'true'); } catch { /* ignore */ }
+
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/reset-password`,
             });

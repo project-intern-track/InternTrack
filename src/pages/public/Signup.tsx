@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
@@ -47,6 +47,19 @@ const Signup = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+    // Re-validate required hours when OJT type changes
+    useEffect(() => {
+        if (touched.requiredHours) {
+            const err = validateField('requiredHours');
+            setFieldErrors((prev) => {
+                const next = { ...prev };
+                if (err) next.requiredHours = err;
+                else delete next.requiredHours;
+                return next;
+            });
+        }
+    }, [ojtType]);
+
     const validateField = (field: string): string | undefined => {
         switch (field) {
             case 'fullName':
@@ -77,7 +90,9 @@ const Signup = () => {
                 return undefined;
             case 'requiredHours':
                 if (!requiredHours) return 'Required hours is needed.';
-                if (Number(requiredHours) <= 0) return 'Must be greater than 0.';
+                const h = Number(requiredHours);
+                if (isNaN(h) || h <= 0) return 'Must be greater than 0.';
+                if (ojtType === 'voluntary' && h < 500) return 'Voluntary OJT requires at least 500 hours.';
                 return undefined;
             default: return undefined;
         }
@@ -116,7 +131,11 @@ const Signup = () => {
             case 'email': setEmail(value); break;
             case 'password': setPassword(value); break;
             case 'startDate': setStartDate(value); break;
-            case 'requiredHours': setRequiredHours(value); break;
+            case 'requiredHours':
+                if (/^\d{0,4}$/.test(value)) {
+                    setRequiredHours(value);
+                }
+                break;
         }
         if (touched[field]) {
             setFieldErrors((prev) => { const n = { ...prev }; delete (n as Record<string, string | undefined>)[field]; return n; });
@@ -248,8 +267,8 @@ const Signup = () => {
                             <div className="auth-field">
                                 <label htmlFor="signup-hours" className="auth-label">Required Hours</label>
                                 <div className={touched.requiredHours && fieldErrors.requiredHours ? 'auth-input-error' : ''}>
-                                    <input id="signup-hours" type="number" className="auth-input" placeholder="Enter hours"
-                                        min="1" value={requiredHours}
+                                    <input id="signup-hours" type="text" inputMode="numeric" className="auth-input" placeholder="Enter hours"
+                                        value={requiredHours}
                                         onChange={(e) => handleChange('requiredHours', e.target.value)}
                                         onBlur={() => handleBlur('requiredHours')} disabled={isSubmitting} />
                                 </div>

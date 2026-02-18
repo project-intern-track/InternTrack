@@ -135,7 +135,7 @@ const Announcements = () => {
                 border: '1px solid #e5e5e5',
                 borderRadius: '8px',
                 padding: '0.75rem',
-                backgroundColor: 'white',
+                backgroundColor: '#F9F7F4',
                 gap: '1rem',
                 alignItems: 'center',
                 flexWrap: 'wrap'

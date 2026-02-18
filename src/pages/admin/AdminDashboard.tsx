@@ -1,4 +1,5 @@
 import { useAuth } from '../../context/AuthContext';
+import { UserPlus } from 'lucide-react';
 
 const AdminDashboard = () => {
     const { user } = useAuth();
@@ -61,7 +62,7 @@ const AdminDashboard = () => {
                 <div className="chart-card">
                     <div className="chart-header">
                         <div className="chart-title">
-                            <span className="chart-icon">👥</span>
+                            <UserPlus className="chart-icon" fill="black"/>
                             <span>New Registers</span>
                         </div>
                         <select className="chart-filter" aria-label="Filter time period">

@@ -260,25 +260,30 @@ const ManageInterns = () => {
             )}
 
             {/* Table */}
-            <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border))' }}>
-                <table className="table">
+            <div style={{
+                borderRadius: '8px',
+                border: '1px solid #e5e5e5',
+                overflow: 'hidden',
+                backgroundColor: 'white'
+            }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                     <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Role</th>
-                            <th>Email Address</th>
-                            <th>OJT ID</th>
-                            <th>Start Date</th>
-                            <th>Required Hours</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                        <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Name</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Role</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Email Address</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>OJT ID</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Start Date</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Required Hours</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Status</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
                             <tr>
                                 <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: '#64748b' }}>
                                         <Loader2 size={24} className="spinner" />
                                         <span>Loading interns...</span>
                                     </div>
@@ -286,23 +291,23 @@ const ManageInterns = () => {
                             </tr>
                         ) : interns.length === 0 ? (
                             <tr>
-                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'hsl(var(--muted-foreground))' }}>
+                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
                                     No interns found.
                                 </td>
                             </tr>
                         ) : (
                             interns.map((intern) => (
-                                <tr key={intern.id}>
-                                    <td>{intern.full_name}</td>
-                                    <td>{intern.ojt_role || '—'}</td>
-                                    <td>{intern.email}</td>
-                                    <td>{intern.ojt_id || '—'}</td>
-                                    <td>{formatDate(intern.start_date)}</td>
-                                    <td>{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
-                                    <td>
+                                <tr key={intern.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
+                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.full_name}</td>
+                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_role || '—'}</td>
+                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.email}</td>
+                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_id || '—'}</td>
+                                    <td style={{ padding: '1rem', color: '#334155' }}>{formatDate(intern.start_date)}</td>
+                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
+                                    <td style={{ padding: '1rem' }}>
                                         <span
                                             style={{
-                                                color: intern.status === 'active' ? 'hsl(var(--success))' : '#8b5cf6',
+                                                color: intern.status === 'active' ? '#22c55e' : '#8b5cf6',
                                                 fontWeight: 500,
                                                 textTransform: 'capitalize',
                                             }}
@@ -310,14 +315,28 @@ const ManageInterns = () => {
                                             {intern.status}
                                         </span>
                                     </td>
-                                    <td>
-                                        <div className="row row-sm">
-                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0.25rem' }} title="Edit">
+                                    <td style={{ padding: '1rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                                            <button
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    color: '#64748b',
+                                                    padding: '4px'
+                                                }}
+                                                title="Edit"
+                                            >
                                                 <Pencil size={18} />
                                             </button>
                                             <button
-                                                className="btn btn-ghost btn-sm"
-                                                style={{ padding: '0.25rem' }}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    color: '#64748b',
+                                                    padding: '4px'
+                                                }}
                                                 title={intern.status === 'active' ? 'Archive' : 'Restore'}
                                                 onClick={() => handleArchiveToggle(intern)}
                                             >

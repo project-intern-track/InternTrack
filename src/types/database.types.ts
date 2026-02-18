@@ -4,6 +4,7 @@ export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 export type OJTType = 'required' | 'voluntary';
+export type UserStatus = 'active' | 'archived';
 
 
 // ===============
@@ -17,9 +18,11 @@ export interface Users {
     avatar_url: string;
     role: UserRole;
     ojt_role?: string; // OJT role/position (e.g., "Frontend Developer")
+    ojt_id?: number; // Auto-generated OJT identifier (e.g., 1101)
     start_date?: string; // ISO Date String, start date of internship
     required_hours?: number; // Total required hours for the internship
     ojt_type?: OJTType; // Type of OJT (required or voluntary)
+    status: UserStatus; // active or archived
     created_at: string; // ISO Date String, Default to current timestamp on creation
 }
 

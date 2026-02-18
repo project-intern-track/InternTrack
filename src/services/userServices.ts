@@ -40,15 +40,102 @@ export const userService = {
     },
 
 
-    // Fetch Users (KAN 26 Functions)
-    async fetchInterns() {
-        const { data, error } = await supabase
+    // Fetch all interns with optional filters
+    async fetchInterns(filters?: {
+        search?: string;
+        role?: string;
+        status?: string;
+        sortDirection?: 'asc' | 'desc';
+    }) {
+        let query = supabase
             .from('users')
             .select('*')
-            .eq('role', 'intern'); // Filter User Roles
+            .eq('role', 'intern');
+
+        // Apply status filter
+        if (filters?.status && filters.status !== 'all') {
+            query = query.eq('status', filters.status);
+        }
+
+        // Apply role/ojt_role filter
+        if (filters?.role && filters.role !== 'all') {
+            query = query.eq('ojt_role', filters.role);
+        }
+
+        // Apply search filter
+        if (filters?.search) {
+            const term = `%${filters.search}%`;
+            query = query.or(
+                `full_name.ilike.${term},email.ilike.${term},ojt_role.ilike.${term},ojt_id.eq.${parseInt(filters.search) || 0}`
+            );
+        }
+
+        // Apply sort
+        const ascending = filters?.sortDirection !== 'desc';
+        query = query.order('full_name', { ascending });
+
+        const { data, error } = await query;
 
         if (error) throw new Error(`Error Fetching Interns: ${error.message}`);
         return data as Users[];
+    },
+
+    // Get stats for the Manage Interns page
+    async getInternStats() {
+        const { data, error } = await supabase
+            .from('users')
+            .select('ojt_role, status')
+            .eq('role', 'intern');
+
+        if (error) throw new Error(`Error Fetching Intern Stats: ${error.message}`);
+
+        const totalInterns = data?.length || 0;
+        const uniqueRoles = new Set(data?.map(u => u.ojt_role).filter(Boolean));
+        const totalRoles = uniqueRoles.size;
+        const archivedInterns = data?.filter(u => u.status === 'archived').length || 0;
+
+        return { totalInterns, totalRoles, archivedInterns };
+    },
+
+    // Update an intern's profile
+    async updateIntern(internId: string, updates: Partial<Users>) {
+        const { data, error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('id', internId)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Error Updating Intern: ${error.message}`);
+        return data as Users;
+    },
+
+    // Archive or restore an intern
+    async toggleArchiveIntern(internId: string, currentStatus: string) {
+        const newStatus = currentStatus === 'active' ? 'archived' : 'active';
+        const { data, error } = await supabase
+            .from('users')
+            .update({ status: newStatus })
+            .eq('id', internId)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Error Archiving Intern: ${error.message}`);
+        return data as Users;
+    },
+
+    // Get all unique OJT roles for filter dropdown
+    async getOjtRoles() {
+        const { data, error } = await supabase
+            .from('users')
+            .select('ojt_role')
+            .eq('role', 'intern')
+            .not('ojt_role', 'is', null);
+
+        if (error) throw new Error(`Error Fetching OJT Roles: ${error.message}`);
+
+        const uniqueRoles = [...new Set(data?.map(u => u.ojt_role).filter(Boolean))];
+        return uniqueRoles as string[];
     }
 
 }

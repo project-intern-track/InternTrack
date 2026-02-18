@@ -794,10 +794,6 @@
 }
 
 @media (max-width: 480px) {
-    .auth-hero {
-        height: 200px;
-    }
-
     .auth-form-panel {
         padding: 1.5rem 1.25rem;
     }

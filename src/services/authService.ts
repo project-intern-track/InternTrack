@@ -140,15 +140,16 @@ export const authService = {
      */
     async resetPassword(email: string): Promise<{ error: string | null }> {
         try {
-            // Check if use exists before sending email
-            // Note: This relies on "users" table being readable. If RLS blocks it, this might fail safe (return error).
-            const { data: existingUser } = await supabase
-                .from('users')
-                .select('email')
-                .eq('email', email)
-                .maybeSingle();
+            // Check if email exists using the database function
+            // This bypasses RLS while only exposing email existence (not full user data)
+            const { data: emailExists, error: checkError } = await supabase
+                .rpc('check_email_exists', { check_email: email });
 
-            if (!existingUser) {
+            if (checkError) {
+                return { error: 'Unable to verify email. Please try again.' };
+            }
+
+            if (!emailExists) {
                 return { error: 'This email is not registered.' };
             }
 

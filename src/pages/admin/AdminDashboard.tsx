@@ -151,7 +151,7 @@ const AdminDashboard = () => {
 
             {/* Stats Cards */}
             <div className="stats-grid">
-                <div className="stat-card" style={{ backgroundColor: '#F9F7F4' }}>
+                <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="stat-header">
                         <span className="stat-label">Total Interns</span>
                     </div>
@@ -161,7 +161,7 @@ const AdminDashboard = () => {
                         <span className="stat-description">vs last month</span>
                     </div>
                 </div>
-                <div className="stat-card" style={{ backgroundColor: '#F9F7F4' }}>
+                <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="stat-header">
                         <span className="stat-label">Active Interns</span>
                     </div>
@@ -170,7 +170,7 @@ const AdminDashboard = () => {
                         <span className="stat-description">Currently Active Interns</span>
                     </div>
                 </div>
-                <div className="stat-card" style={{ backgroundColor: '#F9F7F4' }}>
+                <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="stat-header">
                         <span className="stat-label">Pending Applications</span>
                     </div>
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
 
             {/* Charts Section */}
             <div className="dashboard-grid">
-                <div className="chart-card" style={{ backgroundColor: '#F9F7F4' }}>
+                <div className="chart-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="chart-header">
                         <div className="chart-title">
                             <UserPlus className="chart-icon" fill="black" />
@@ -200,7 +200,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="activity-card" style={{ backgroundColor: '#F9F7F4' }}>
+                <div className="activity-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="activity-header">
                         <h3>Recent Activity</h3>
                     </div>

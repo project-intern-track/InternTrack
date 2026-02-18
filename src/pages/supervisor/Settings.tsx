@@ -1,4 +1,4 @@
-
+import { User } from 'lucide-react';
 
 const Settings = () => {
   return (
@@ -19,14 +19,31 @@ const Settings = () => {
         backgroundColor:'#e8ddd08e',
         borderRadius: '0.5rem',
         padding: '1.5rem',
-        marginBottom: '2rem'
+        marginBottom: '2rem',
+        textAlign: 'center'
       }}>
         <h2 style={{ marginBottom: '1rem' }}>Profile Information</h2>
+
+{/* Profile Picture */}
+<div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+  <User
+    size={100} // Width & height
+    color="#000000be" // Border / icon color
+    strokeWidth={1.5} // Icon thickness
+    style={{
+      borderRadius: '50%',
+      padding: '10px',
+      backgroundColor: '#fff',
+      border: '3px solid #000000b4',
+    }}
+  />
+</div>
 
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: '1.5rem'
+          gap: '1.5rem',
+          textAlign: 'left' // Form fields align left
         }}>
           {/* LEFT */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

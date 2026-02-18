@@ -198,22 +198,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             });
         };
 
-        // Subscribe to auth changes
+        // 1. Check active session immediately (robust check for new tabs)
+        authService.getSession().then(({ session }) => {
+            if (initialLoadResolved) return;
+
+            if (session?.user) {
+                // Determine recovery: either we already detected it from the URL,
+                // or the hash type indicates recovery.
+                loadProfileAndSetState(session.user, recoveryFromUrl.current).then(() => {
+                    initialLoadResolved = true;
+                });
+            } else {
+                // If no session found via getSession, we still wait for onAuthStateChange
+                // in case it's an initial sign-in flow or token exchange.
+                // But if it's just a new tab, onAuthStateChange usually confirms "null" session too.
+            }
+        });
+
+        // 2. Subscribe to auth changes
         const unsubscribe = authService.onAuthStateChange(async (event, session) => {
             // Skip if signIn/signUp is actively handling this
             if (isHandlingAuth.current) return;
 
             if (event === 'INITIAL_SESSION') {
                 if (initialLoadResolved) return;
-                initialLoadResolved = true;
 
+                // If getSession already handled it, good. If not:
                 if (session?.user) {
-                    // Determine recovery: either we already detected it from the URL,
-                    // or the hash type indicates recovery.
+                    initialLoadResolved = true;
                     await loadProfileAndSetState(session.user, recoveryFromUrl.current);
                 } else {
-                    // No session yet — if this is a recovery flow (URL detection),
-                    // keep isPasswordRecovery true and wait for PASSWORD_RECOVERY event.
+                    // No session yet.
                     if (recoveryFromUrl.current) {
                         setState({
                             user: null,
@@ -222,6 +237,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             isPasswordRecovery: true,
                         });
                     } else {
+                        // Only resolve to unauthenticated if getSession also failed/finished
+                        // But strictly speaking, INITIAL_SESSION with null means "no session".
+                        initialLoadResolved = true;
                         setUnauthenticated();
                     }
                 }
@@ -233,20 +251,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             } else if (event === 'SIGNED_IN' && session?.user) {
                 if (!initialLoadResolved) {
                     initialLoadResolved = true;
-                    // If we detected recovery from URL but INITIAL_SESSION had no
-                    // session, this SIGNED_IN is likely the code-exchange result.
                     const isRecovery = recoveryFromUrl.current;
                     await loadProfileAndSetState(session.user, isRecovery);
                     return;
                 }
-                // Post-init SIGNED_IN (e.g. user logged in from another tab)
                 await loadProfileAndSetState(session.user, false);
 
             } else if (event === 'SIGNED_OUT') {
                 setUnauthenticated();
 
             } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-                // Preserve current recovery flag; always clear loading
                 try {
                     const user = await ensureUserProfile(
                         session.user.id,
@@ -261,7 +275,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             isLoading: false,
                         }));
                     } else {
-                        // Profile fetch failed but don't lock the UI
                         setState((prev) => ({ ...prev, isLoading: false }));
                     }
                 } catch {
@@ -270,28 +283,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
         });
 
-        // Safety-net: if nothing resolves within 5 seconds, clear the loading state.
-        // This prevents the app from being permanently stuck on the splash screen
-        // regardless of what goes wrong.
-        const safetyTimer = setTimeout(() => {
-            if (!initialLoadResolved) {
-                console.warn('Auth init timed out — clearing loading state');
-                initialLoadResolved = true;
-                // Try one last time with getSession
-                authService.getSession().then(({ session }) => {
-                    if (session?.user) {
-                        loadProfileAndSetState(session.user, recoveryFromUrl.current);
-                    } else {
-                        setUnauthenticated();
-                    }
-                }).catch(() => {
-                    setUnauthenticated();
-                });
-            }
-        }, 5000);
-
         return () => {
-            clearTimeout(safetyTimer);
             unsubscribe();
         };
     }, [ensureUserProfile, loadProfileAndSetState]);

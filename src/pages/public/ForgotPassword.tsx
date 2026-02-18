@@ -63,7 +63,10 @@ const ForgotPassword = () => {
             {/* Right half: forgot password form */}
             <div className="auth-form-panel">
                 <div className="auth-form-inner">
-                    <img src="/heroLogo.png" alt="InternTrack Logo" className="auth-mobile-logo" />
+                    <div className="auth-mobile-header">
+                        <img src="/heroIcon.png" alt="InternTrack" className="auth-mobile-icon" />
+                        <img src="/heroLogo.png" alt="InternTrack Logo" className="auth-hero-mobile-logo" />
+                    </div>
 
                     <div className="auth-compact-header" style={{ marginBottom: '2rem' }}>
                         <h2>Forgot your password?</h2>

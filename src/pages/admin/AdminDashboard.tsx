@@ -23,7 +23,7 @@ const AdminDashboard = () => {
 
             {/* Stats Cards */}
             <div className="stats-grid">
-                <div className="stat-card">
+                <div className="stat-card" style={{ backgroundColor: '#F9F7F4' }}>
                     <div className="stat-header">
                         <span className="stat-label">Total Interns</span>
                     </div>
@@ -36,7 +36,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="stat-card">
+                <div className="stat-card" style={{ backgroundColor: '#F9F7F4' }}>
                     <div className="stat-header">
                         <span className="stat-label">Active Interns</span>
                     </div>
@@ -46,7 +46,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="stat-card">
+                <div className="stat-card" style={{ backgroundColor: '#F9F7F4' }}>
                     <div className="stat-header">
                         <span className="stat-label">Pending Applications</span>
                     </div>
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
 
             {/* Charts Section */}
             <div className="dashboard-grid">
-                <div className="chart-card">
+                <div className="chart-card" style={{ backgroundColor: '#F9F7F4' }}>
                     <div className="chart-header">
                         <div className="chart-title">
                             <UserPlus className="chart-icon" fill="black"/>
@@ -92,7 +92,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="activity-card">
+                <div className="activity-card" style={{ backgroundColor: '#F9F7F4' }}>
                     <div className="activity-header">
                         <h3>Recent Activity</h3>
                     </div>

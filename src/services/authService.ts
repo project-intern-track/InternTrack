@@ -4,6 +4,7 @@
 import { supabase } from './supabaseClient';
 import type { User as SupabaseUser, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import type { UserRole } from '../types/database.types';
+import { announcementService } from './announcementService'; // Function Fo Creating New Announcement
 
 // ========================
 // Types
@@ -22,6 +23,11 @@ export interface AuthResult {
     user: SupabaseUser | null;
     session: Session | null;
     error: string | null;
+}
+
+export interface InternData extends SignUpMetadata {
+    email: string;
+    password: string;
 }
 
 // ========================
@@ -267,4 +273,61 @@ export const authService = {
             return { error: message };
         }
     },
+
+    /**
+     * Add an intern (admin-only)
+     * @param internData - The data for the new intern (full_name, email, role, etc.)
+     * @param adminUser - The admin context (must be verified server-side)
+     */
+        async addIntern(internData: InternData, adminUser: { id: string; role: UserRole } | null
+        ): Promise<AuthResult> {
+        // Authorization gate
+        if (!adminUser || adminUser.role !== "admin") {
+            return { user: null, session: null, error: "Unauthorized: Only admins can add interns" };
+        }
+
+        try {
+            const { email, password, ...metadata } = internData;
+
+            // Basic validation (optional but good)
+            if (!email || !password) {
+            return { user: null, session: null, error: "Email and password are required" };
+            }
+            if (!metadata.full_name) {
+            return { user: null, session: null, error: "full_name is required" };
+            }
+
+            // Supabase Auth already enforces unique email; just surface cleanly
+            const result = await this.signUp(email, password, metadata as SignUpMetadata);
+
+            if (result.error || !result.user) {
+            return {
+                user: null,
+                session: null,
+                error: result.error ?? "Signup failed (no user returned)",
+            };
+            }
+
+            // Create welcome announcement (non-blocking)
+            announcementService
+            .createAnnouncement({
+                title: `Welcome ${metadata.full_name}!`,
+                content: "We are excited to have you join us as an intern. Please check your email for login details and next steps.",
+                created_by: adminUser.id,
+                priority: "medium",
+                visibility: "intern",
+            })
+            .catch((announcementError) => {
+                console.error("Error creating welcome announcement:", announcementError);
+            });
+
+            return result;
+        } catch (err) {
+            return {
+            user: null,
+            session: null,
+            error: err instanceof Error ? err.message : "An unexpected error occurred",
+            };
+        }
+    }
 };

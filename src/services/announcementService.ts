@@ -33,7 +33,7 @@ export const announcementService = {
             visibility: 'all' | 'admin' | 'supervisor' | 'intern';
             // Possibility to add created_at time ISO string
 
-        }) {
+        }) : Promise<Announcement> {
 
         const validation = announcementSchema.safeParse(content);
 
@@ -48,7 +48,7 @@ export const announcementService = {
             .single();
 
         if (error) throw new Error(`Error Creating Announcement: ${error.message}`);
-        return data;
+        return data as Announcement;
     }
 
 }

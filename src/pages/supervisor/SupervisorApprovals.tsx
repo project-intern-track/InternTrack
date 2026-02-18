@@ -1,81 +1,31 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabase';
+import { useState } from 'react';
 
 type Task = {
   id: string;
   title: string;
   description: string;
+  due_date: string;
+  priority: 'Low' | 'Medium' | 'High'; // new field
   status: 'todo' | 'in-progress' | 'review' | 'done' | 'rejected';
 };
 
-const Approvals = () => {
-  const { user } = useAuth();
+// Sample static tasks
+const sampleTasks: Task[] = [
+  { id: '1', title: 'Design Login Page', description: 'Create UI for login', due_date: '2026-02-20', priority: 'High', status: 'review' },
+  { id: '2', title: 'Setup Database', description: 'Initialize Supabase DB', due_date: '2026-02-19', priority: 'Medium', status: 'done' },
+  { id: '3', title: 'Write Test Cases', description: 'Add unit tests', due_date: '2026-02-22', priority: 'Low', status: 'rejected' },
+  { id: '4', title: 'Dashboard Layout', description: 'Create dashboard grid layout', due_date: '2026-02-21', priority: 'High', status: 'review' },
+  { id: '5', title: 'Email Notifications', description: 'Integrate email alerts', due_date: '2026-02-18', priority: 'Medium', status: 'done' },
+];
 
-  const [toReview, setToReview] = useState<Task[]>([]);
-  const [approved, setApproved] = useState<Task[]>([]);
-  const [rejected, setRejected] = useState<Task[]>([]);
+const SupervisorApprovals = () => {
   const [activeTab, setActiveTab] = useState<'review' | 'approved' | 'rejected'>('review');
   const [search, setSearch] = useState('');
 
-  // Fetch tasks from Supabase
-  useEffect(() => {
-    if (!user) return;
+  const toReview = sampleTasks.filter(t => t.status === 'review');
+  const approved = sampleTasks.filter(t => t.status === 'done');
+  const rejected = sampleTasks.filter(t => t.status === 'rejected');
 
-    const fetchTasks = async () => {
-      const { data, error } = await supabase
-        .from('tasks') // no generic
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error || !data) return;
-
-      const tasks = data as Task[];
-
-      setToReview(tasks.filter(t => t.status === 'review'));
-      setApproved(tasks.filter(t => t.status === 'done'));
-      setRejected(tasks.filter(t => t.status === 'rejected'));
-    };
-
-    fetchTasks();
-  }, [user]);
-
-  // Approve task (optimistic update)
-  const handleApprove = async (task: Task) => {
-    setToReview(prev => prev.filter(t => t.id !== task.id));
-    setApproved(prev => [...prev, { ...task, status: 'done' }]);
-
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status: 'done' })
-      .eq('id', task.id);
-
-    if (error) {
-      console.error('Failed to update task status:', error);
-      // rollback if needed
-      setToReview(prev => [...prev, task]);
-      setApproved(prev => prev.filter(t => t.id !== task.id));
-    }
-  };
-
-  // Reject task (optimistic update)
-  const handleReject = async (task: Task) => {
-    setToReview(prev => prev.filter(t => t.id !== task.id));
-    setRejected(prev => [...prev, { ...task, status: 'rejected' }]);
-
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status: 'rejected' })
-      .eq('id', task.id);
-
-    if (error) {
-      console.error('Failed to update task status:', error);
-      setToReview(prev => [...prev, task]);
-      setRejected(prev => prev.filter(t => t.id !== task.id));
-    }
-  };
-
-  // Filter tasks by search
   const filteredTasks = (tasks: Task[]) =>
     tasks.filter(
       t =>
@@ -91,10 +41,18 @@ const Approvals = () => {
     }
   };
 
+  // Priority badge colors
+  const priorityColor = (priority: Task['priority']) => {
+    switch (priority) {
+      case 'High': return '#e74c3c';
+      case 'Medium': return '#f39c12';
+      case 'Low': return '#2ecc71';
+    }
+  };
+
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem' }}>
       <h1>Approve Tasks</h1>
-      {user && <p>Logged in as: <strong>{user.name || user.name}</strong></p>}
 
       {/* Search Bar */}
       <input
@@ -111,7 +69,7 @@ const Approvals = () => {
         }}
       />
 
-      {/* Tabs as card containers */}
+      {/* Tabs */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
         {[
           { key: 'review', label: 'To be Reviewed', count: toReview.length },
@@ -163,17 +121,38 @@ const Approvals = () => {
                 padding: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
+                justifyContent: 'space-between',
                 gap: '0.5rem',
+                position: 'relative',
               }}
             >
-              <h3>{task.title}</h3>
-              <p>{task.description}</p>
+              {/* Top-right priority badge */}
+              <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+                <span style={{
+                  backgroundColor: priorityColor(task.priority),
+                  color: 'white',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '0.25rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                }}>
+                  {task.priority}
+                </span>
+              </div>
+
+              <div>
+                <h3>{task.title}</h3>
+                <p>{task.description}</p>
+              </div>
+
+              {/* Approve/Reject buttons */}
               {activeTab === 'review' && (
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                   <button
-                    onClick={() => handleReject(task)}
                     style={{
-                      border: '1px solid #ccc',
+                      backgroundColor: '#e74c3c',
+                      color: 'white',
+                      border: 'none',
                       padding: '0.25rem 0.75rem',
                       borderRadius: '0.25rem',
                       cursor: 'pointer',
@@ -182,9 +161,10 @@ const Approvals = () => {
                     Reject
                   </button>
                   <button
-                    onClick={() => handleApprove(task)}
                     style={{
-                      border: '1px solid #ccc',
+                      backgroundColor: '#2ecc71',
+                      color: 'white',
+                      border: 'none',
                       padding: '0.25rem 0.75rem',
                       borderRadius: '0.25rem',
                       cursor: 'pointer',
@@ -194,6 +174,11 @@ const Approvals = () => {
                   </button>
                 </div>
               )}
+
+              {/* Bottom-left due date */}
+              <p style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '0.5rem' }}>
+                Due: {new Date(task.due_date).toLocaleDateString()}
+              </p>
             </div>
           ))
         )}
@@ -202,4 +187,4 @@ const Approvals = () => {
   );
 };
 
-export default Approvals;
+export default SupervisorApprovals;

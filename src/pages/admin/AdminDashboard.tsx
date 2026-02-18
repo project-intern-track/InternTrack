@@ -145,12 +145,18 @@ const AdminDashboard = () => {
                     }
                 }
             `}</style>
-            <h1 className="dashboard-welcome">
+            <h1 className="dashboard-welcome" style={{
+                animation: 'slideInFromTop 0.6s ease-out',
+                animationFillMode: 'both'
+            }}>
                 Welcome back, <span className="highlight">Admin {user?.name}</span>!
             </h1>
 
             {/* Stats Cards */}
-            <div className="stats-grid">
+            <div className="stats-grid" style={{
+                animation: 'slideInFromTop 0.8s ease-out 0.2s',
+                animationFillMode: 'both'
+            }}>
                 <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="stat-header">
                         <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Total Interns</span>
@@ -184,7 +190,10 @@ const AdminDashboard = () => {
             </div>
 
             {/* Charts Section */}
-            <div className="dashboard-grid">
+            <div className="dashboard-grid" style={{
+                animation: 'slideInFromBottom 0.8s ease-out 0.4s',
+                animationFillMode: 'both'
+            }}>
                 <div className="chart-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
                     <div className="chart-head-container" style={{ backgroundColor: '#f6f6f6', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', marginLeft: '0.5rem' }}>
                         <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0' }}>

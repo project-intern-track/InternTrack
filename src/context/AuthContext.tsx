@@ -19,6 +19,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /** Key used in localStorage to track pending password recovery. */
 const RECOVERY_FLAG_KEY = 'pending_password_recovery';
+const LAST_KNOWN_ROLE_KEY = 'last_known_user_role';
+
+function isUserRole(value: unknown): value is UserRole {
+    return value === 'admin' || value === 'supervisor' || value === 'intern';
+}
+
+function getRoleFromPath(pathname: string): UserRole | null {
+    if (pathname.startsWith('/admin')) return 'admin';
+    if (pathname.startsWith('/supervisor')) return 'supervisor';
+    if (pathname.startsWith('/intern')) return 'intern';
+    return null;
+}
+
+function getLastKnownRole(): UserRole | null {
+    try {
+        const value = localStorage.getItem(LAST_KNOWN_ROLE_KEY);
+        return isUserRole(value) ? value : null;
+    } catch {
+        return null;
+    }
+}
+
+function setLastKnownRole(role: UserRole): void {
+    try {
+        localStorage.setItem(LAST_KNOWN_ROLE_KEY, role);
+    } catch {
+        // ignore storage write errors
+    }
+}
+
+function clearLastKnownRole(): void {
+    try {
+        localStorage.removeItem(LAST_KNOWN_ROLE_KEY);
+    } catch {
+        // ignore storage remove errors
+    }
+}
 
 /**
  * Checks url hash, query params, and localStorage for Supabase recovery indicators.
@@ -58,12 +95,23 @@ function clearRecoveryFlag(): void {
     try { localStorage.removeItem(RECOVERY_FLAG_KEY); } catch { /* ignore */ }
 }
 
-function mapSessionToFallbackUser(sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }): User {
-    const metadataRole = sessionUser.user_metadata?.role;
+function mapSessionToFallbackUser(sessionUser: {
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+    app_metadata?: Record<string, unknown>;
+}): User {
+    const roleFromUserMetadata = sessionUser.user_metadata?.role;
+    const roleFromAppMetadata = sessionUser.app_metadata?.role;
+    const roleFromPath = getRoleFromPath(window.location.pathname);
+    const lastKnownRole = getLastKnownRole();
+
     const role: UserRole =
-        metadataRole === 'admin' || metadataRole === 'supervisor' || metadataRole === 'intern'
-            ? metadataRole
-            : 'intern';
+        (isUserRole(roleFromUserMetadata) && roleFromUserMetadata) ||
+        (isUserRole(roleFromAppMetadata) && roleFromAppMetadata) ||
+        roleFromPath ||
+        lastKnownRole ||
+        'intern';
 
     return {
         id: sessionUser.id,
@@ -74,7 +122,12 @@ function mapSessionToFallbackUser(sessionUser: { id: string; email?: string | nu
     };
 }
 
-function getCachedSessionUserFromStorage(): { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null {
+function getCachedSessionUserFromStorage(): {
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+    app_metadata?: Record<string, unknown>;
+} | null {
     try {
         const authTokenKey = Object.keys(localStorage).find((key) => /^sb-.*-auth-token$/.test(key));
         if (!authTokenKey) return null;
@@ -94,6 +147,7 @@ function getCachedSessionUserFromStorage(): { id: string; email?: string | null;
             id,
             email: typeof user?.email === 'string' ? user.email : null,
             user_metadata: (user?.user_metadata as Record<string, unknown>) || {},
+            app_metadata: (user?.app_metadata as Record<string, unknown>) || {},
         };
     } catch {
         return null;
@@ -199,10 +253,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
      * Always sets isLoading to false, even on failure.
      */
     const loadProfileAndSetState = useCallback(async (
-        sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown> },
+        sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown>; app_metadata?: Record<string, unknown> },
         passwordRecovery: boolean
     ) => {
         const fallbackUser = mapSessionToFallbackUser(sessionUser);
+        setLastKnownRole(fallbackUser.role);
 
         // Immediately authenticate from auth session so refresh/new-tab never blocks on profile query.
         setState({
@@ -223,6 +278,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             ]);
 
             if (profileResult) {
+                setLastKnownRole(profileResult.role);
                 setState((prev) => ({
                     ...prev,
                     user: profileResult,
@@ -365,6 +421,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         session.user.user_metadata
                     );
                     if (user && isMounted) {
+                        setLastKnownRole(user.role);
                         setState((prev) => ({
                             ...prev,
                             user,
@@ -429,6 +486,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 isLoading: false,
                 isPasswordRecovery: false,
             });
+            setLastKnownRole(user.role);
 
             return { error: null };
         } catch (err) {
@@ -468,6 +526,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 isLoading: false,
                 isPasswordRecovery: false,
             });
+            if (user) setLastKnownRole(user.role);
 
             return { error: null };
         } catch (err) {
@@ -482,6 +541,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Optimistic, instant logout.
         // We set state immediately so the UI transitions to Login screen without waiting on network.
         clearRecoveryFlag();
+        clearLastKnownRole();
         setState({
             user: null,
             isAuthenticated: false,

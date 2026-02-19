@@ -29,3 +29,14 @@ export const supabase: SupabaseClient<any> = window.__interntrack_supabase__ ?? 
 });
 window.__interntrack_supabase__ = supabase;
 
+// Admin Client (Optional - for privileged operations)
+const SERVICE_ROLE = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+export const supabaseAdmin = SERVICE_ROLE
+	? createClient(SUPABASE_URL, SERVICE_ROLE, {
+		auth: {
+			autoRefreshToken: false,
+			persistSession: false
+		}
+	})
+	: null;
+

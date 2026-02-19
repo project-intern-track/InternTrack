@@ -278,6 +278,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (profileResult) {
                 setLastKnownRole(profileResult.role);
+
+                // Sync JWT metadata if it's out of date with the DB role.
+                // This fixes the "intern turned admin" bug: the DB says 'admin'
+                // but the JWT still says 'intern', which causes stale fallbacks
+                // on TOKEN_REFRESHED events.
+                const jwtRole = sessionUser.user_metadata?.role;
+                if (jwtRole && jwtRole !== profileResult.role) {
+                    console.info(
+                        `[AuthContext] Role mismatch detected: JWT='${jwtRole}', DB='${profileResult.role}'. Syncing auth metadata...`
+                    );
+                    supabase.auth.updateUser({
+                        data: { role: profileResult.role },
+                    }).catch((err) => {
+                        console.warn('[AuthContext] Failed to sync auth metadata:', err);
+                    });
+                }
+
                 setState({
                     user: profileResult,
                     isAuthenticated: true,
@@ -442,10 +459,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             isLoading: false,
                         }));
                     } else if (isMounted) {
+                        // Profile fetch failed/timed out during token refresh.
+                        // IMPORTANT: Do NOT fall back to session metadata here —
+                        // the JWT may have stale role info (e.g. 'intern' for a
+                        // user who is now 'admin' in the DB). Just keep the
+                        // current state as-is; it was already set from a
+                        // successful DB fetch during signin/initial load.
+                        console.warn('[AuthContext] TOKEN_REFRESHED: profile fetch returned null, keeping current state');
                         setState((prev) => ({ ...prev, isLoading: false }));
                     }
                 } catch {
                     if (isMounted) {
+                        // Same reasoning: keep current role, don't downgrade
+                        console.warn('[AuthContext] TOKEN_REFRESHED: profile fetch failed, keeping current state');
                         setState((prev) => ({ ...prev, isLoading: false }));
                     }
                 }
@@ -489,6 +515,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (!user) {
                 return { error: 'Could not load your user profile. Please contact an administrator.' };
+            }
+
+            // Sync JWT metadata if the DB role differs from the JWT role.
+            // This permanently fixes the desync so future token refreshes
+            // carry the correct role in user_metadata.
+            const jwtRole = result.user.user_metadata?.role;
+            if (jwtRole && jwtRole !== user.role) {
+                console.info(
+                    `[AuthContext] signIn: JWT role='${jwtRole}' ≠ DB role='${user.role}'. Patching auth metadata...`
+                );
+                try {
+                    await supabase.auth.updateUser({
+                        data: { role: user.role },
+                    });
+                } catch (syncErr) {
+                    console.warn('[AuthContext] signIn: Failed to sync auth metadata:', syncErr);
+                }
             }
 
             // Only set global state on success — this triggers the

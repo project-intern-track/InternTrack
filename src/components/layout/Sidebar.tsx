@@ -48,7 +48,6 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                 return [
                     { to: '/supervisor/dashboard', label: 'Dashboard' },
                     { to: '/supervisor/SupervisorApprovals', label: 'Approve Tasks' },
-                    { to: '/supervisor/InternPerformance', label: 'Intern Performance' },
                     { to: '/supervisor/Evaluations', label: 'Evaluations' },
                     { to: '/supervisor/FeedbackDashboard', label: 'Feedback' },
                     { to: '/supervisor/settings', label: 'Settings' },

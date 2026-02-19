@@ -1,4 +1,4 @@
-import { ChevronDown, Menu, Plus, Search } from 'lucide-react';
+import { Archive, ChevronDown, Menu, Pencil, Plus, Search } from 'lucide-react';
 
 const ManageSupervisors = () => {
     return (
@@ -22,7 +22,7 @@ const ManageSupervisors = () => {
                     textAlign: 'center',
                     width: '350px'
                 }}>
-                   <div style={{ fontSize: '1.375rem', fontWeight: '600', color: '#000000', marginBottom: '0.5rem' }}>Total Supervisors</div>
+                    <div style={{ fontSize: '1.375rem', fontWeight: '600', color: '#000000', marginBottom: '0.5rem' }}>Total Supervisors</div>
                     <div style={{ fontSize: '2.5rem', fontWeight: '600', color: '#2b2a2a' }}>0</div>
                 </div>
                 <div style={{
@@ -50,12 +50,12 @@ const ManageSupervisors = () => {
             </div>
 
             {/* Search and Filter */}
-            <div style={{ 
-                marginBottom: '2rem', 
+            <div style={{
+                marginBottom: '2rem',
                 marginLeft: '0',
                 marginRight: '0',
-                display: 'flex', 
-                gap: '1rem', 
+                display: 'flex',
+                gap: '1rem',
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 background: '#F9F7F4',
@@ -65,28 +65,28 @@ const ManageSupervisors = () => {
             }}>
 
                 {/* Search Bar */}
-                <div style={{ 
-                    position: 'relative', 
-                    flex: '1', 
+                <div style={{
+                    position: 'relative',
+                    flex: '1',
                     minWidth: '200px',
                     border: '1px solid #777777',
                     borderRadius: '8px'
                 }}>
-                    <Search 
-                        size={20} 
-                        style={{ 
-                            position: 'absolute', 
-                            left: '1rem', 
-                            top: '50%', 
-                            transform: 'translateY(-50%)', 
-                            color: '#666' 
-                        }} 
+                    <Search
+                        size={20}
+                        style={{
+                            position: 'absolute',
+                            left: '1rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: '#666'
+                        }}
                     />
                     <input
                         type="text"
                         className="input"
                         placeholder="Search by name or email"
-                        style={{ 
+                        style={{
                             paddingLeft: '3rem',
                             width: '100%',
                             height: '40px',
@@ -94,7 +94,7 @@ const ManageSupervisors = () => {
                         }}
                     />
                 </div>
-                
+
                 {/* Filters Label */}
                 <div style={{
                     display: 'flex',
@@ -111,15 +111,15 @@ const ManageSupervisors = () => {
                 </div>
 
                 {/* Date Created Filter */}
-                <div style={{ 
-                    position: 'relative', 
+                <div style={{
+                    position: 'relative',
                     minWidth: '220px',
                     border: '1px solid #777777',
                     borderRadius: '8px'
                 }}>
                     <select
                         className="select"
-                        style={{ 
+                        style={{
                             paddingRight: '2.5rem',
                             height: '40px',
                             width: '100%',
@@ -132,28 +132,28 @@ const ManageSupervisors = () => {
                         <option value="month">This Month</option>
                         <option value="year">This Year</option>
                     </select>
-                    <ChevronDown 
-                        size={16} 
-                        style={{ 
-                            position: 'absolute', 
-                            right: '1rem', 
-                            top: '50%', 
-                            transform: 'translateY(-50%)', 
-                            pointerEvents: 'none' 
-                        }} 
+                    <ChevronDown
+                        size={16}
+                        style={{
+                            position: 'absolute',
+                            right: '1rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            pointerEvents: 'none'
+                        }}
                     />
                 </div>
 
                 {/* Status Filter */}
-                <div style={{ 
-                    position: 'relative', 
+                <div style={{
+                    position: 'relative',
                     minWidth: '180px',
                     border: '1px solid #777777',
                     borderRadius: '8px'
                 }}>
                     <select
                         className="select"
-                        style={{ 
+                        style={{
                             paddingRight: '2.5rem',
                             height: '40px',
                             width: '100%',
@@ -164,17 +164,76 @@ const ManageSupervisors = () => {
                         <option value="active">Active</option>
                         <option value="archived">Archived</option>
                     </select>
-                    <ChevronDown 
-                        size={16} 
-                        style={{ 
-                            position: 'absolute', 
-                            right: '1rem', 
-                            top: '50%', 
-                            transform: 'translateY(-50%)', 
-                            pointerEvents: 'none' 
-                        }} 
+                    <ChevronDown
+                        size={16}
+                        style={{
+                            position: 'absolute',
+                            right: '1rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            pointerEvents: 'none'
+                        }}
                     />
                 </div>
+            </div>
+
+            {/* Supervisor Table */}
+            <div style={{
+                marginLeft: '0',
+                marginRight: '0',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                backgroundColor: 'white'
+            }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                        <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
+                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'left' }}>Name</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'left' }}>Email Address</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'left' }}>Date Created</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'left' }}>Status</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'center' }}>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>Carl Lee</td>
+                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>carllee1998@gmail.com</td>
+                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>01/01/2016</td>
+                            <td style={{ padding: '1rem' }}>
+                                <span style={{ color: '#5D46E0', fontWeight: 500 }}>Archived</span>
+                            </td>
+                            <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2b2a2a', padding: '4px' }} title="Edit">
+                                        <Pencil size={18} />
+                                    </button>
+                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2b2a2a', padding: '4px' }} title="Archive">
+                                        <Archive size={18} />
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>Faye Ortega</td>
+                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>fayeortega@gmail.com</td>
+                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>01/03/2016</td>
+                            <td style={{ padding: '1rem' }}>
+                                <span style={{ color: '#16a34a', fontWeight: 500 }}>Active</span>
+                            </td>
+                            <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2b2a2a', padding: '4px' }} title="Edit">
+                                        <Pencil size={18} />
+                                    </button>
+                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2b2a2a', padding: '4px' }} title="Archive">
+                                        <Archive size={18} />
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     );

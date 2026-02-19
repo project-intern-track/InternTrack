@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../services/supabaseClient';
 
 const Evaluations = () => {
   const { user } = useAuth();

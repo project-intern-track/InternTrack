@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
@@ -18,7 +18,8 @@ const OJT_ROLES = [
 ];
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const isValidName = (name: string) => name.trim().length >= 2;
+// Name must contain only letters, spaces, dots, or hyphens (no numbers)
+const isValidName = (name: string) => /^[a-zA-Z\s.-]+$/.test(name) && name.trim().length >= 2;
 
 interface FieldErrors {
     fullName?: string;
@@ -46,6 +47,19 @@ const Signup = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+    // Re-validate required hours when OJT type changes
+    useEffect(() => {
+        if (touched.requiredHours) {
+            const err = validateField('requiredHours');
+            setFieldErrors((prev) => {
+                const next = { ...prev };
+                if (err) next.requiredHours = err;
+                else delete next.requiredHours;
+                return next;
+            });
+        }
+    }, [ojtType]);
+
     const validateField = (field: string): string | undefined => {
         switch (field) {
             case 'fullName':
@@ -61,14 +75,24 @@ const Signup = () => {
                 return undefined;
             case 'password':
                 if (!password) return 'Password is required.';
-                if (password.length < 6) return 'Password must be at least 6 characters.';
+                {
+                    const missing = [];
+                    if (password.length < 6) missing.push('be at least 6 characters');
+                    if (!/[A-Z]/.test(password)) missing.push('contain a capital letter');
+                    if (!/[0-9]/.test(password)) missing.push('contain a number');
+                    if (!/[^a-zA-Z0-9]/.test(password)) missing.push('contain a special symbol');
+
+                    if (missing.length > 0) return 'Password must: ' + missing.join(', ');
+                }
                 return undefined;
             case 'startDate':
                 if (!startDate) return 'Start date is required.';
                 return undefined;
             case 'requiredHours':
                 if (!requiredHours) return 'Required hours is needed.';
-                if (Number(requiredHours) <= 0) return 'Must be greater than 0.';
+                const h = Number(requiredHours);
+                if (isNaN(h) || h <= 0) return 'Must be greater than 0.';
+                if (ojtType === 'voluntary' && h < 500) return 'Voluntary OJT requires at least 500 hours.';
                 return undefined;
             default: return undefined;
         }
@@ -97,12 +121,21 @@ const Signup = () => {
 
     const handleChange = (field: string, value: string) => {
         switch (field) {
-            case 'fullName': setFullName(value); break;
+            case 'fullName':
+                // Only allow letters, spaces, dots, and hyphens. Block numbers/other symbols.
+                if (/^[a-zA-Z\s.-]*$/.test(value)) {
+                    setFullName(value);
+                }
+                break;
             case 'role': setRole(value); break;
             case 'email': setEmail(value); break;
             case 'password': setPassword(value); break;
             case 'startDate': setStartDate(value); break;
-            case 'requiredHours': setRequiredHours(value); break;
+            case 'requiredHours':
+                if (/^\d{0,4}$/.test(value)) {
+                    setRequiredHours(value);
+                }
+                break;
         }
         if (touched[field]) {
             setFieldErrors((prev) => { const n = { ...prev }; delete (n as Record<string, string | undefined>)[field]; return n; });
@@ -126,8 +159,14 @@ const Signup = () => {
         });
 
         if (result.error) {
-            let msg = result.error;
-            if (msg.toLowerCase().includes('already registered')) msg = 'An account with this email already exists. Please sign in instead.';
+            const msg = result.error;
+
+            // If this is a duplicate email error, highlight the email field too
+            if (msg.toLowerCase().includes('email already exists')) {
+                setFieldErrors((prev) => ({ ...prev, email: msg }));
+                setTouched((prev) => ({ ...prev, email: true }));
+            }
+
             setError(msg);
             setIsSubmitting(false);
         } else {
@@ -146,6 +185,14 @@ const Signup = () => {
             {/* Right half: signup form */}
             <div className="auth-form-panel">
                 <div className="auth-form-inner">
+                    <div className="auth-mobile-header">
+                        <img src="/heroIcon.png" alt="InternTrack" className="auth-mobile-icon" />
+                        <div className="auth-mobile-wordmark" aria-label="InternTrack">
+                            <span className="auth-mobile-wordmark-intern">Intern</span>
+                            <span className="auth-mobile-wordmark-track">Track</span>
+                        </div>
+                    </div>
+
                     {error && (
                         <div className="auth-error" id="signup-error">
                             <AlertCircle size={18} className="auth-error-alert-icon" />
@@ -226,8 +273,8 @@ const Signup = () => {
                             <div className="auth-field">
                                 <label htmlFor="signup-hours" className="auth-label">Required Hours</label>
                                 <div className={touched.requiredHours && fieldErrors.requiredHours ? 'auth-input-error' : ''}>
-                                    <input id="signup-hours" type="number" className="auth-input" placeholder="Enter hours"
-                                        min="1" value={requiredHours}
+                                    <input id="signup-hours" type="text" inputMode="numeric" className="auth-input" placeholder="Enter hours"
+                                        value={requiredHours}
                                         onChange={(e) => handleChange('requiredHours', e.target.value)}
                                         onBlur={() => handleBlur('requiredHours')} disabled={isSubmitting} />
                                 </div>

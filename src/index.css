@@ -563,11 +563,7 @@ textarea:disabled {
   font-size: 1rem;
 }
 
-/*sidebar component styles*/
-
-/* ========================
-   DASHBOARD LAYOUT
-   ======================== */
+/* dash board layout */
 
 .dashboard-container {
   display: flex;
@@ -604,9 +600,7 @@ textarea:disabled {
   color: #333;
 }
 
-/* ========================
-   SIDEBAR (BLACK THEME)
-   ======================== */
+/* sidebar black theme */
 
 .sidebar {
   width: 280px;
@@ -654,12 +648,12 @@ textarea:disabled {
 }
 
 .sidebar-logo-img {
-  width: 80px;
-  height: 80px;
-  min-width: 80px;
-  min-height: 80px;
-  max-width: 80px;
-  max-height: 80px;
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  max-width: 64px;
+  max-height: 64px;
   object-fit: contain;
 }
 
@@ -809,9 +803,7 @@ textarea:disabled {
   }
 }
 
-/* ========================
-   TOPBAR
-   ======================== */
+/*top bar */
 
 .topbar {
   background: #e8ddd0;
@@ -882,9 +874,7 @@ textarea:disabled {
   color: #ff8c42;
 }
 
-/* ========================
-   ADMIN DASHBOARD
-   ======================== */
+/* admin dashboard */
 
 .admin-dashboard {
   max-width: 1400px;
@@ -1183,6 +1173,18 @@ textarea:disabled {
     padding: 0.75rem 1rem;
   }
 
+  .topbar-user-info {
+    display: flex;
+  }
+
+  .topbar-user-name {
+    font-size: 1rem;
+  }
+
+  .topbar-user-role {
+    font-size: 0.8125rem;
+  }
+
   .dashboard-welcome {
     font-size: 1.5rem;
   }
@@ -1238,7 +1240,25 @@ textarea:disabled {
   }
 
   .topbar-user-info {
-    display: none;
+    display: flex;
+  }
+
+  .topbar-user-name {
+    font-size: 0.9375rem;
+  }
+
+  .topbar-user-role {
+    font-size: 0.75rem;
+  }
+
+  .topbar {
+    padding: 0.75rem 1rem;
+    margin: 1rem;
+  }
+
+  .topbar-avatar {
+    width: 40px;
+    height: 40px;
   }
 
   .dashboard-welcome {
@@ -1307,9 +1327,7 @@ textarea,
   }
 }
 
-/* ========================
-   PLACEHOLDER PAGES
-   ======================== */
+/* placeholder page */
 
 .placeholder-page {
   min-height: 60vh;

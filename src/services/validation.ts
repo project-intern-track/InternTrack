@@ -10,6 +10,12 @@ export const usersSchema = z.object({
     full_name: z.string().min(1, "Full name is required"),
     avatar_url: z.string().url("Invalid avatar URL").optional().or(z.literal('')),
     role: z.enum(["admin", "supervisor", "intern"]),
+    ojt_role: z.string().optional(),
+    ojt_id: z.number().optional(),
+    start_date: z.string().optional(),
+    required_hours: z.number().optional(),
+    ojt_type: z.enum(["required", "voluntary"]).optional(),
+    status: z.enum(["active", "archived"]).optional(),
 });
 
 // Tasks Schema (for creating new tasks — excludes id & created_at)
@@ -37,6 +43,7 @@ export const attendanceSchema = z.object({
 export const announcementSchema = z.object({
     title: z.string().min(1, "Announcement title is required"),
     content: z.string().min(1, "Announcement content is required"),
+    priority: z.enum(["low", "medium", "high"]),
     created_by: z.string().uuid("Invalid created_by user ID"),
     visibility: z.enum(["all", "admin", "supervisor", "intern"]),
 });

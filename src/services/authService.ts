@@ -4,6 +4,7 @@
 import { supabase } from './supabaseClient';
 import type { User as SupabaseUser, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import type { UserRole } from '../types/database.types';
+import { announcementService } from './announcementService'; // Function Fo Creating New Announcement
 
 // ========================
 // Types
@@ -22,6 +23,11 @@ export interface AuthResult {
     user: SupabaseUser | null;
     session: Session | null;
     error: string | null;
+}
+
+export interface InternData extends SignUpMetadata {
+    email: string;
+    password: string;
 }
 
 // ========================
@@ -57,6 +63,22 @@ export const authService = {
 
             if (error) {
                 return { user: null, session: null, error: error.message };
+            }
+
+            // When email confirmation is enabled, Supabase does NOT return an
+            // error for duplicate emails (to prevent email enumeration attacks).
+            // Instead, it returns a user with an empty `identities` array.
+            // We detect this and surface a user-friendly error.
+            if (
+                data.user &&
+                Array.isArray(data.user.identities) &&
+                data.user.identities.length === 0
+            ) {
+                return {
+                    user: null,
+                    session: null,
+                    error: 'Email already exists. Please use another email account.',
+                };
             }
 
             // The profile is created automatically by the database trigger
@@ -124,6 +146,25 @@ export const authService = {
      */
     async resetPassword(email: string): Promise<{ error: string | null }> {
         try {
+            // Check if email exists using the database function
+            // This bypasses RLS while only exposing email existence (not full user data)
+            const { data: emailExists, error: checkError } = await supabase
+                .rpc('check_email_exists', { check_email: email });
+
+            if (checkError) {
+                return { error: 'Unable to verify email. Please try again.' };
+            }
+
+            if (!emailExists) {
+                return { error: 'This email is not registered.' };
+            }
+
+            // Mark that a password recovery is pending. This flag is checked
+            // by detectRecoveryFromUrl() when the user clicks the email link
+            // and lands back on the app — even if Supabase redirects to "/"
+            // instead of "/reset-password".
+            try { localStorage.setItem('pending_password_recovery', 'true'); } catch { /* ignore */ }
+
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/reset-password`,
             });
@@ -232,4 +273,61 @@ export const authService = {
             return { error: message };
         }
     },
+
+    /**
+     * Add an intern (admin-only)
+     * @param internData - The data for the new intern (full_name, email, role, etc.)
+     * @param adminUser - The admin context (must be verified server-side)
+     */
+        async addIntern(internData: InternData, adminUser: { id: string; role: UserRole } | null
+        ): Promise<AuthResult> {
+        // Authorization gate
+        if (!adminUser || adminUser.role !== "admin") {
+            return { user: null, session: null, error: "Unauthorized: Only admins can add interns" };
+        }
+
+        try {
+            const { email, password, ...metadata } = internData;
+
+            // Basic validation (optional but good)
+            if (!email || !password) {
+            return { user: null, session: null, error: "Email and password are required" };
+            }
+            if (!metadata.full_name) {
+            return { user: null, session: null, error: "full_name is required" };
+            }
+
+            // Supabase Auth already enforces unique email; just surface cleanly
+            const result = await this.signUp(email, password, metadata as SignUpMetadata);
+
+            if (result.error || !result.user) {
+            return {
+                user: null,
+                session: null,
+                error: result.error ?? "Signup failed (no user returned)",
+            };
+            }
+
+            // Create welcome announcement (non-blocking)
+            announcementService
+            .createAnnouncement({
+                title: `Welcome ${metadata.full_name}!`,
+                content: "We are excited to have you join us as an intern. Please check your email for login details and next steps.",
+                created_by: adminUser.id,
+                priority: "medium",
+                visibility: "intern",
+            })
+            .catch((announcementError) => {
+                console.error("Error creating welcome announcement:", announcementError);
+            });
+
+            return result;
+        } catch (err) {
+            return {
+            user: null,
+            session: null,
+            error: err instanceof Error ? err.message : "An unexpected error occurred",
+            };
+        }
+    }
 };

@@ -12,15 +12,158 @@ interface AuthContextType extends AuthState {
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<{ error: string | null }>;
     updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
+    clearPasswordRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/** Key used in localStorage to track pending password recovery. */
+const RECOVERY_FLAG_KEY = 'pending_password_recovery';
+const LAST_KNOWN_ROLE_KEY = 'last_known_user_role';
+
+function isUserRole(value: unknown): value is UserRole {
+    return value === 'admin' || value === 'supervisor' || value === 'intern';
+}
+
+function getRoleFromPath(pathname: string): UserRole | null {
+    if (pathname.startsWith('/admin')) return 'admin';
+    if (pathname.startsWith('/supervisor')) return 'supervisor';
+    if (pathname.startsWith('/intern')) return 'intern';
+    return null;
+}
+
+function getLastKnownRole(): UserRole | null {
+    try {
+        const value = localStorage.getItem(LAST_KNOWN_ROLE_KEY);
+        return isUserRole(value) ? value : null;
+    } catch {
+        return null;
+    }
+}
+
+function setLastKnownRole(role: UserRole): void {
+    try {
+        localStorage.setItem(LAST_KNOWN_ROLE_KEY, role);
+    } catch {
+        // ignore storage write errors
+    }
+}
+
+function clearLastKnownRole(): void {
+    try {
+        localStorage.removeItem(LAST_KNOWN_ROLE_KEY);
+    } catch {
+        // ignore storage remove errors
+    }
+}
+
+/**
+ * Checks url hash, query params, and localStorage for Supabase recovery indicators.
+ * Works for both implicit (`#type=recovery`) and PKCE (`?code=...`) flows,
+ * and also handles the case where Supabase redirects to "/" instead of
+ * "/reset-password" (e.g. when the redirect URL isn't in the allow-list).
+ */
+function detectRecoveryFromUrl(): boolean {
+    try {
+        // 1. Implicit flow: hash contains type=recovery
+        const hash = window.location.hash.substring(1);
+        const hashParams = new URLSearchParams(hash);
+        if (hashParams.get('type') === 'recovery') return true;
+
+        // 2. PKCE flow: /reset-password?code=<code>
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.has('code') && window.location.pathname.includes('reset-password')) return true;
+
+        // 3. Fallback: the user requested a password reset from this browser.
+        //    When Supabase redirects to "/" (because redirect URL isn't allow-listed),
+        //    we detect the recovery via the localStorage flag + a code/token in the URL.
+        const hasPendingRecovery = localStorage.getItem(RECOVERY_FLAG_KEY) === 'true';
+        if (hasPendingRecovery) {
+            // Has a Supabase auth code or access token in the URL?
+            const hasCode = queryParams.has('code');
+            const hasAccessToken = hashParams.has('access_token');
+            if (hasCode || hasAccessToken) return true;
+        }
+    } catch {
+        // Ignore URL parsing / localStorage errors
+    }
+    return false;
+}
+
+/** Removes the localStorage recovery flag. */
+function clearRecoveryFlag(): void {
+    try { localStorage.removeItem(RECOVERY_FLAG_KEY); } catch { /* ignore */ }
+}
+
+function mapSessionToFallbackUser(sessionUser: {
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+    app_metadata?: Record<string, unknown>;
+}): User {
+    const roleFromUserMetadata = sessionUser.user_metadata?.role;
+    const roleFromAppMetadata = sessionUser.app_metadata?.role;
+    const roleFromPath = getRoleFromPath(window.location.pathname);
+    const lastKnownRole = getLastKnownRole();
+
+    const role: UserRole =
+        (isUserRole(roleFromUserMetadata) && roleFromUserMetadata) ||
+        (isUserRole(roleFromAppMetadata) && roleFromAppMetadata) ||
+        roleFromPath ||
+        lastKnownRole ||
+        'intern';
+
+    return {
+        id: sessionUser.id,
+        name: (sessionUser.user_metadata?.full_name as string) || (sessionUser.email?.split('@')[0] ?? 'User'),
+        email: sessionUser.email || '',
+        role,
+        avatarUrl: (sessionUser.user_metadata?.avatar_url as string) || undefined,
+    };
+}
+
+function getCachedSessionUserFromStorage(): {
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown>;
+    app_metadata?: Record<string, unknown>;
+} | null {
+    try {
+        const authTokenKey = Object.keys(localStorage).find((key) => /^sb-.*-auth-token$/.test(key));
+        if (!authTokenKey) return null;
+
+        const rawValue = localStorage.getItem(authTokenKey);
+        if (!rawValue) return null;
+
+        const parsedValue = JSON.parse(rawValue) as unknown;
+        const valueRecord = (parsedValue ?? {}) as Record<string, unknown>;
+        const currentSession = (valueRecord.currentSession ?? valueRecord.session) as Record<string, unknown> | undefined;
+        const user = (currentSession?.user ?? valueRecord.user) as Record<string, unknown> | undefined;
+
+        const id = typeof user?.id === 'string' ? user.id : null;
+        if (!id) return null;
+
+        return {
+            id,
+            email: typeof user?.email === 'string' ? user.email : null,
+            user_metadata: (user?.user_metadata as Record<string, unknown>) || {},
+            app_metadata: (user?.app_metadata as Record<string, unknown>) || {},
+        };
+    } catch {
+        return null;
+    }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    // Detect recovery from URL synchronously on first render —
+    // before any async auth events have a chance to redirect.
+    const recoveryFromUrl = useRef(detectRecoveryFromUrl());
+
     const [state, setState] = useState<AuthState>({
         user: null,
         isAuthenticated: false,
-        isLoading: true, // Start as true — we're checking the session
+        isLoading: true,
+        isPasswordRecovery: recoveryFromUrl.current,
     });
 
     // Track whether signIn/signUp is actively handling profile loading,
@@ -52,13 +195,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
      * Tries to ensure a profile exists. If the profile doesn't exist in the
      * `users` table (e.g. RLS blocked the INSERT during signup), attempt to
      * create it from the auth user's metadata.
+     *
+     * IMPORTANT: Uses INSERT (not UPSERT) so existing profiles are never
+     * overwritten — this prevents an admin's role being reset to 'intern'.
      */
     const ensureUserProfile = useCallback(async (userId: string, email: string, userMetadata?: Record<string, unknown>): Promise<User | null> => {
         // First try to load the existing profile
         let user = await fetchUserProfile(userId, email);
         if (user) return user;
 
-        // Profile doesn't exist — try to create it from auth metadata
+        // Small delay to handle race conditions with the trigger
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Retry once — the trigger may not have finished yet
+        user = await fetchUserProfile(userId, email);
+        if (user) return user;
+
+        // Profile truly doesn't exist — INSERT (never upsert) from auth metadata
         console.warn('User profile not found, attempting to create from auth metadata...');
         const fullName = (userMetadata?.full_name as string) || email.split('@')[0] || 'User';
         const role = (userMetadata?.role as UserRole) || 'intern';
@@ -67,15 +220,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             const { error: insertError } = await supabase
                 .from('users')
-                .upsert({
+                .insert({
                     id: userId,
                     email: email,
                     full_name: fullName,
                     role: role,
                     avatar_url: avatarUrl,
-                }, { onConflict: 'id' });
+                });
 
             if (insertError) {
+                // If it's a duplicate key error, the profile was created by the trigger
+                // between our check and the insert — just load it
+                if (insertError.code === '23505') {
+                    user = await fetchUserProfile(userId, email);
+                    return user;
+                }
                 console.error('Failed to create user profile:', insertError.message);
                 return null;
             }
@@ -90,101 +249,225 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [fetchUserProfile]);
 
     /**
-     * On mount: check for existing session + listen for auth state changes.
+     * Helper: loads a profile and sets authenticated state.
+     * Always sets isLoading to false, even on failure.
      */
+    const loadProfileAndSetState = useCallback(async (
+        sessionUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown>; app_metadata?: Record<string, unknown> },
+        passwordRecovery: boolean
+    ) => {
+        const fallbackUser = mapSessionToFallbackUser(sessionUser);
+        setLastKnownRole(fallbackUser.role);
+
+        // Immediately authenticate from auth session so refresh/new-tab never blocks on profile query.
+        setState({
+            user: fallbackUser,
+            isAuthenticated: true,
+            isLoading: false,
+            isPasswordRecovery: passwordRecovery,
+        });
+
+        try {
+            const profileResult = await Promise.race([
+                ensureUserProfile(
+                    sessionUser.id,
+                    sessionUser.email || '',
+                    sessionUser.user_metadata
+                ),
+                new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+            ]);
+
+            if (profileResult) {
+                setLastKnownRole(profileResult.role);
+                setState((prev) => ({
+                    ...prev,
+                    user: profileResult,
+                    isAuthenticated: true,
+                    isLoading: false,
+                    isPasswordRecovery: passwordRecovery,
+                }));
+            }
+        } catch (err) {
+            console.error('Failed to load user profile:', err);
+            // Keep the fallback user from auth metadata and avoid forcing logout.
+        }
+    }, [ensureUserProfile]);
+
+    // ========================
+    // Session Init + Auth Listener
+    // ========================
     useEffect(() => {
-        // 1. Check the current session
-        const initSession = async () => {
-            const { session } = await authService.getSession();
+        let initialLoadResolved = false;
+        let isMounted = true;
 
-            if (session?.user) {
-                const user = await ensureUserProfile(
-                    session.user.id,
-                    session.user.email || '',
-                    session.user.user_metadata
-                );
+        const resolveAsUnauthenticated = () => {
+            initialLoadResolved = true;
+            setUnauthenticated();
+        };
 
-                setState({
-                    user: user,
-                    isAuthenticated: !!user,
-                    isLoading: false,
-                });
-            } else {
-                setState({
-                    user: null,
-                    isAuthenticated: false,
-                    isLoading: false,
-                });
+        const setUnauthenticated = () => {
+            if (!isMounted) return;
+            setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                isPasswordRecovery: false,
+            });
+        };
+
+        const resolveInitialLoad = async () => {
+            if (initialLoadResolved) return;
+
+            try {
+                const sessionResult = await Promise.race([
+                    authService.getSession(),
+                    new Promise<{ session: null; error: string }>((resolve) => {
+                        setTimeout(() => resolve({ session: null, error: 'Session initialization timed out' }), 5000);
+                    }),
+                ]);
+                
+                if (!isMounted) return;
+
+                if (sessionResult.error) {
+                    console.warn('Session initialization failed:', sessionResult.error);
+                    const cachedSessionUser = getCachedSessionUserFromStorage();
+                    if (cachedSessionUser) {
+                        initialLoadResolved = true;
+                        await loadProfileAndSetState(cachedSessionUser, recoveryFromUrl.current);
+                        return;
+                    }
+                    resolveAsUnauthenticated();
+                    return;
+                }
+
+                if (sessionResult.session?.user) {
+                    initialLoadResolved = true;
+                    await loadProfileAndSetState(sessionResult.session.user, recoveryFromUrl.current);
+                } else {
+                    // No active session
+                    if (recoveryFromUrl.current) {
+                        // Wait for recovery token exchange
+                        initialLoadResolved = true;
+                        setState({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: true,
+                            isPasswordRecovery: true,
+                        });
+                    } else {
+                        resolveAsUnauthenticated();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading session:', error);
+                if (isMounted) {
+                    const cachedSessionUser = getCachedSessionUserFromStorage();
+                    if (cachedSessionUser) {
+                        initialLoadResolved = true;
+                        await loadProfileAndSetState(cachedSessionUser, recoveryFromUrl.current);
+                        return;
+                    }
+                    resolveAsUnauthenticated();
+                }
             }
         };
 
-        initSession();
+        // Start initial load immediately
+        resolveInitialLoad();
 
-        // 2. Subscribe to auth changes (login, logout, token refresh)
+        // Set a safety timeout to prevent infinite loading
+        const safetyTimeout = setTimeout(() => {
+            if (!initialLoadResolved && isMounted) {
+                console.warn('Session load timeout - setting unauthenticated');
+                resolveAsUnauthenticated();
+            }
+        }, 5000);
+
+        // Subscribe to auth changes
         const unsubscribe = authService.onAuthStateChange(async (event, session) => {
+            if (!isMounted) return;
+            
             // Skip if signIn/signUp is actively handling this
             if (isHandlingAuth.current) return;
 
-            if (event === 'SIGNED_IN' && session?.user) {
-                const user = await ensureUserProfile(
-                    session.user.id,
-                    session.user.email || '',
-                    session.user.user_metadata
-                );
-                setState({
-                    user: user,
-                    isAuthenticated: !!user,
-                    isLoading: false,
-                });
+            if (event === 'INITIAL_SESSION') {
+                if (initialLoadResolved) return;
+
+                if (session?.user) {
+                    await loadProfileAndSetState(session.user, recoveryFromUrl.current);
+                    initialLoadResolved = true;
+                } else {
+                    resolveAsUnauthenticated();
+                }
+
+            } else if (event === 'PASSWORD_RECOVERY' && session?.user) {
+                await loadProfileAndSetState(session.user, true);
+                initialLoadResolved = true;
+
+            } else if (event === 'SIGNED_IN' && session?.user) {
+                const isRecovery = recoveryFromUrl.current;
+                await loadProfileAndSetState(session.user, isRecovery);
+                initialLoadResolved = true;
+
             } else if (event === 'SIGNED_OUT') {
-                setState({
-                    user: null,
-                    isAuthenticated: false,
-                    isLoading: false,
-                });
+                initialLoadResolved = true;
+                setUnauthenticated();
+
             } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-                const user = await ensureUserProfile(
-                    session.user.id,
-                    session.user.email || '',
-                    session.user.user_metadata
-                );
-                if (user) {
-                    setState({
-                        user: user,
-                        isAuthenticated: true,
-                        isLoading: false,
-                    });
+                try {
+                    const user = await ensureUserProfile(
+                        session.user.id,
+                        session.user.email || '',
+                        session.user.user_metadata
+                    );
+                    if (user && isMounted) {
+                        setLastKnownRole(user.role);
+                        setState((prev) => ({
+                            ...prev,
+                            user,
+                            isAuthenticated: true,
+                            isLoading: false,
+                        }));
+                    } else if (isMounted) {
+                        setState((prev) => ({ ...prev, isLoading: false }));
+                    }
+                } catch {
+                    if (isMounted) {
+                        setState((prev) => ({ ...prev, isLoading: false }));
+                    }
                 }
             }
         });
 
         return () => {
+            isMounted = false;
+            clearTimeout(safetyTimeout);
             unsubscribe();
         };
-    }, [ensureUserProfile]);
+    }, [ensureUserProfile, loadProfileAndSetState]);
 
     // ========================
     // Auth Actions
     // ========================
 
     const signIn = async (email: string, password: string) => {
-        setState((prev) => ({ ...prev, isLoading: true }));
+        clearRecoveryFlag(); // Normal login — clear any stale recovery flag
+        // Note: we do NOT set isLoading here. The form component manages its
+        // own `isSubmitting` state. Setting global isLoading would unmount
+        // the form (PublicRoute swaps it for LoadingScreen), losing all state.
         isHandlingAuth.current = true;
 
         try {
             const result = await authService.signIn(email, password);
 
             if (result.error) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: result.error };
             }
 
             if (!result.user) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: 'Sign in succeeded but no user was returned.' };
             }
 
-            // Directly load the profile — don't rely on onAuthStateChange timing
             const user = await ensureUserProfile(
                 result.user.id,
                 result.user.email || email,
@@ -192,41 +475,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             );
 
             if (!user) {
-                setState((prev) => ({ ...prev, isLoading: false }));
                 return { error: 'Could not load your user profile. Please contact an administrator.' };
             }
 
+            // Only set global state on success — this triggers the
+            // PublicRoute redirect to the dashboard.
             setState({
                 user: user,
                 isAuthenticated: true,
                 isLoading: false,
+                isPasswordRecovery: false,
             });
+            setLastKnownRole(user.role);
 
             return { error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { error: message };
         } finally {
             isHandlingAuth.current = false;
         }
     };
 
     const signUp = async (email: string, password: string, metadata: SignUpMetadata) => {
-        setState((prev) => ({ ...prev, isLoading: true }));
+        // Note: we do NOT set isLoading here (same reason as signIn above).
         isHandlingAuth.current = true;
 
         try {
             const result = await authService.signUp(email, password, metadata);
 
             if (result.error) {
-                setState({ user: null, isAuthenticated: false, isLoading: false });
                 return { error: result.error };
             }
 
-            // If Supabase requires email confirmation, session will be null
             if (!result.session || !result.user) {
-                setState({ user: null, isAuthenticated: false, isLoading: false });
-                return { error: null }; // Success — but user needs to confirm email
+                // Email confirmation required — no session yet
+                return { error: null };
             }
 
-            // If auto-confirmed, load the profile directly
+            // Auto-confirmed: load profile and transition to dashboard
             const user = await ensureUserProfile(
                 result.user.id,
                 result.user.email || email,
@@ -237,22 +524,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 user: user,
                 isAuthenticated: !!user,
                 isLoading: false,
+                isPasswordRecovery: false,
             });
+            if (user) setLastKnownRole(user.role);
 
             return { error: null };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+            return { error: message };
         } finally {
             isHandlingAuth.current = false;
         }
     };
 
     const signOut = async () => {
-        setState((prev) => ({ ...prev, isLoading: true }));
-        await authService.signOut();
+        // Optimistic, instant logout.
+        // We set state immediately so the UI transitions to Login screen without waiting on network.
+        clearRecoveryFlag();
+        clearLastKnownRole();
         setState({
             user: null,
             isAuthenticated: false,
             isLoading: false,
+            isPasswordRecovery: false,
         });
+
+        // Fire-and-forget the backend sign-out
+        try {
+            await authService.signOut();
+        } catch (err) {
+            console.error('Sign out error (ignored, UI already logged out):', err);
+        }
     };
 
     const resetPassword = async (email: string) => {
@@ -263,6 +565,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return await authService.updatePassword(newPassword);
     };
 
+    // Wrapped in useCallback so the reference is stable and doesn't cause
+    // infinite re-renders when used as a useEffect dependency.
+    const clearPasswordRecovery = useCallback(() => {
+        recoveryFromUrl.current = false;
+        clearRecoveryFlag();
+        setState((prev) => {
+            if (!prev.isPasswordRecovery) return prev; // no-op, avoid re-render
+            return { ...prev, isPasswordRecovery: false };
+        });
+    }, []);
+
     return (
         <AuthContext.Provider
             value={{
@@ -272,6 +585,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 signOut,
                 resetPassword,
                 updatePassword,
+                clearPasswordRecovery,
             }}
         >
             {children}

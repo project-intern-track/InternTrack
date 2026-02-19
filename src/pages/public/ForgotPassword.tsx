@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { Briefcase, Mail, ArrowLeft, Loader2, AlertCircle, Info } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, AlertCircle, Info } from 'lucide-react';
 import '../../styles/auth.css';
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -54,41 +54,58 @@ const ForgotPassword = () => {
     }
 
     return (
-        <div className="auth-page" style={{ justifyContent: 'center', alignItems: 'center' }}>
-            <div className="auth-compact-container">
-                <div className="auth-compact-header">
-                    <div className="auth-compact-icon"><Briefcase size={28} /></div>
-                    <h2>Forgot your password?</h2>
-                    <p>Enter your email and we'll send you a reset link</p>
-                </div>
+        <div className="auth-page">
+            {/* Left half: hero image */}
+            <div className="auth-hero">
+                <img src="/heroimage.png" alt="Person typing on laptop" className="auth-hero-image" />
+            </div>
 
-                {error && (
-                    <div className="auth-error" id="forgot-error">
-                        <AlertCircle size={18} className="auth-error-alert-icon" />
-                        <div>{error}</div>
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="auth-form" id="forgot-password-form" noValidate>
-                    <div className="auth-field">
-                        <label htmlFor="forgot-email" className="auth-label">Email Address</label>
-                        <div className={touched && fieldError ? 'auth-input-error' : ''}>
-                            <input id="forgot-email" type="email" className="auth-input"
-                                placeholder="Enter your email address" value={email}
-                                onChange={(e) => { setEmail(e.target.value); if (touched) setFieldError(null); }}
-                                onBlur={handleBlur} disabled={isSubmitting} autoComplete="email" />
+            {/* Right half: forgot password form */}
+            <div className="auth-form-panel">
+                <div className="auth-form-inner">
+                    <div className="auth-mobile-header">
+                        <img src="/heroIcon.png" alt="InternTrack" className="auth-mobile-icon" />
+                        <div className="auth-mobile-wordmark" aria-label="InternTrack">
+                            <span className="auth-mobile-wordmark-intern">Intern</span>
+                            <span className="auth-mobile-wordmark-track">Track</span>
                         </div>
-                        {touched && fieldError && (
-                            <span className="auth-field-hint auth-field-hint-error">{fieldError}</span>
-                        )}
                     </div>
-                    <button type="submit" className="auth-submit-btn" disabled={isSubmitting} id="forgot-submit">
-                        {isSubmitting ? (<><Loader2 size={18} className="auth-spinner" /> Sending link...</>) : 'Send Reset Link'}
-                    </button>
-                </form>
 
-                <div className="auth-compact-footer">
-                    <Link to="/" id="back-to-login-link"><ArrowLeft size={14} /> Back to Login</Link>
+                    <div className="auth-compact-header" style={{ marginBottom: '2rem' }}>
+                        <h2>Forgot your password?</h2>
+                        <p>Enter your email and we'll send you a reset link</p>
+                    </div>
+
+                    {error && (
+                        <div className="auth-error" id="forgot-error">
+                            <AlertCircle size={18} className="auth-error-alert-icon" />
+                            <div>{error}</div>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="auth-form" id="forgot-password-form" noValidate>
+                        <div className="auth-field">
+                            <label htmlFor="forgot-email" className="auth-label">Email Address</label>
+                            <div className={touched && fieldError ? 'auth-input-error' : ''}>
+                                <input id="forgot-email" type="email" className="auth-input"
+                                    placeholder="Enter your email address" value={email}
+                                    onChange={(e) => { setEmail(e.target.value); if (touched) setFieldError(null); }}
+                                    onBlur={handleBlur} disabled={isSubmitting} autoComplete="email" />
+                            </div>
+                            {touched && fieldError && (
+                                <span className="auth-field-hint auth-field-hint-error">{fieldError}</span>
+                            )}
+                        </div>
+                        <button type="submit" className="auth-submit-btn" disabled={isSubmitting} id="forgot-submit">
+                            {isSubmitting ? (<><Loader2 size={18} className="auth-spinner" /> Sending link...</>) : 'Send Reset Link'}
+                        </button>
+                    </form>
+
+                    <div className="auth-footer">
+                        <Link to="/" className="auth-link" id="back-to-login-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <ArrowLeft size={16} /> Back to Login
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>

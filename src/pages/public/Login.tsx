@@ -138,6 +138,13 @@ const Login = () => {
             {/* Right half: login form */}
             <div className="auth-form-panel">
                 <div className="auth-form-inner">
+                    <div className="auth-mobile-header">
+                        <img src="/heroIcon.png" alt="InternTrack" className="auth-mobile-icon" />
+                        <div className="auth-mobile-wordmark" aria-label="InternTrack">
+                            <span className="auth-mobile-wordmark-intern">Intern</span>
+                            <span className="auth-mobile-wordmark-track">Track</span>
+                        </div>
+                    </div>
                     {error && (
                         <div className="auth-error" id="login-error">
                             <AlertCircle size={18} className="auth-error-alert-icon" />

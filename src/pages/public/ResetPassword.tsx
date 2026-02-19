@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import '../../styles/auth.css';
 
 interface FieldErrors { newPassword?: string; confirmPassword?: string; }
@@ -21,7 +21,15 @@ const ResetPassword = () => {
     const validateField = (field: string): string | undefined => {
         if (field === 'newPassword') {
             if (!newPassword) return 'New password is required.';
-            if (newPassword.length < 6) return 'Password must be at least 6 characters.';
+            {
+                const missing = [];
+                if (newPassword.length < 6) missing.push('be at least 6 characters');
+                if (!/[A-Z]/.test(newPassword)) missing.push('contain a capital letter');
+                if (!/[0-9]/.test(newPassword)) missing.push('contain a number');
+                if (!/[^a-zA-Z0-9]/.test(newPassword)) missing.push('contain a special symbol');
+
+                if (missing.length > 0) return 'Password must: ' + missing.join(', ');
+            }
         }
         if (field === 'confirmPassword') {
             if (!confirmPassword) return 'Please confirm your password.';
@@ -74,60 +82,75 @@ const ResetPassword = () => {
     }
 
     return (
-        <div className="auth-page" style={{ justifyContent: 'center', alignItems: 'center' }}>
-            <div className="auth-compact-container">
-                <div className="auth-compact-header">
-                    <div className="auth-compact-icon"><Briefcase size={28} /></div>
-                    <h2>Set new password</h2>
-                    <p>Choose a strong password for your account</p>
+        <div className="auth-page">
+            {/* Left half: hero image */}
+            <div className="auth-hero">
+                <img src="/heroimage.png" alt="Person typing on laptop" className="auth-hero-image" />
+            </div>
+
+            {/* Right half: reset password form */}
+            <div className="auth-form-panel">
+                <div className="auth-form-inner">
+                    <div className="auth-mobile-header">
+                        <img src="/heroIcon.png" alt="InternTrack" className="auth-mobile-icon" />
+                        <div className="auth-mobile-wordmark" aria-label="InternTrack">
+                            <span className="auth-mobile-wordmark-intern">Intern</span>
+                            <span className="auth-mobile-wordmark-track">Track</span>
+                        </div>
+                    </div>
+
+                    <div className="auth-compact-header" style={{ marginBottom: '2rem' }}>
+                        <h2>Set new password</h2>
+                        <p>Choose a strong password for your account</p>
+                    </div>
+
+                    {error && (
+                        <div className="auth-error" id="reset-error">
+                            <AlertCircle size={18} className="auth-error-alert-icon" />
+                            <div>{error}</div>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="auth-form" id="reset-password-form" noValidate>
+                        <div className="auth-field">
+                            <label htmlFor="reset-password" className="auth-label">New Password</label>
+                            <div className={`auth-input-wrapper ${touched.newPassword && fieldErrors.newPassword ? 'auth-input-error' : ''}`}>
+                                <input id="reset-password" type={showPassword ? 'text' : 'password'} className="auth-input"
+                                    placeholder="Min 6 characters" value={newPassword}
+                                    onChange={(e) => { setNewPassword(e.target.value); if (touched.newPassword) setFieldErrors((p) => { const n = { ...p }; delete n.newPassword; return n; }); }}
+                                    onBlur={() => handleBlur('newPassword')} disabled={isSubmitting} autoComplete="new-password" />
+                                <button type="button" className="auth-toggle-password"
+                                    onClick={() => setShowPassword(!showPassword)} tabIndex={-1}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                            {touched.newPassword && fieldErrors.newPassword && (
+                                <span className="auth-field-hint auth-field-hint-error">{fieldErrors.newPassword}</span>
+                            )}
+                        </div>
+
+                        <div className="auth-field">
+                            <label htmlFor="reset-confirm-password" className="auth-label">Confirm New Password</label>
+                            <div className={`auth-input-wrapper ${touched.confirmPassword && fieldErrors.confirmPassword ? 'auth-input-error' : ''}`}>
+                                <input id="reset-confirm-password" type={showPassword ? 'text' : 'password'} className="auth-input"
+                                    placeholder="Re-enter your new password" value={confirmPassword}
+                                    onChange={(e) => { setConfirmPassword(e.target.value); if (touched.confirmPassword) setFieldErrors((p) => { const n = { ...p }; delete n.confirmPassword; return n; }); }}
+                                    onBlur={() => handleBlur('confirmPassword')} disabled={isSubmitting} autoComplete="new-password" />
+                            </div>
+                            {touched.confirmPassword && fieldErrors.confirmPassword && (
+                                <span className="auth-field-hint auth-field-hint-error">{fieldErrors.confirmPassword}</span>
+                            )}
+                            {confirmPassword.length > 0 && !fieldErrors.confirmPassword && newPassword === confirmPassword && touched.confirmPassword && (
+                                <span className="auth-field-hint auth-field-hint-success"><CheckCircle size={12} /> Passwords match</span>
+                            )}
+                        </div>
+
+                        <button type="submit" className="auth-submit-btn" disabled={isSubmitting} id="reset-submit">
+                            {isSubmitting ? (<><Loader2 size={18} className="auth-spinner" /> Updating...</>) : 'Update Password'}
+                        </button>
+                    </form>
                 </div>
-
-                {error && (
-                    <div className="auth-error" id="reset-error">
-                        <AlertCircle size={18} className="auth-error-alert-icon" />
-                        <div>{error}</div>
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="auth-form" id="reset-password-form" noValidate>
-                    <div className="auth-field">
-                        <label htmlFor="reset-password" className="auth-label">New Password</label>
-                        <div className={`auth-input-wrapper ${touched.newPassword && fieldErrors.newPassword ? 'auth-input-error' : ''}`}>
-                            <input id="reset-password" type={showPassword ? 'text' : 'password'} className="auth-input"
-                                placeholder="Min 6 characters" value={newPassword}
-                                onChange={(e) => { setNewPassword(e.target.value); if (touched.newPassword) setFieldErrors((p) => { const n = { ...p }; delete n.newPassword; return n; }); }}
-                                onBlur={() => handleBlur('newPassword')} disabled={isSubmitting} autoComplete="new-password" />
-                            <button type="button" className="auth-toggle-password"
-                                onClick={() => setShowPassword(!showPassword)} tabIndex={-1}
-                                aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                        </div>
-                        {touched.newPassword && fieldErrors.newPassword && (
-                            <span className="auth-field-hint auth-field-hint-error">{fieldErrors.newPassword}</span>
-                        )}
-                    </div>
-
-                    <div className="auth-field">
-                        <label htmlFor="reset-confirm-password" className="auth-label">Confirm New Password</label>
-                        <div className={`auth-input-wrapper ${touched.confirmPassword && fieldErrors.confirmPassword ? 'auth-input-error' : ''}`}>
-                            <input id="reset-confirm-password" type={showPassword ? 'text' : 'password'} className="auth-input"
-                                placeholder="Re-enter your new password" value={confirmPassword}
-                                onChange={(e) => { setConfirmPassword(e.target.value); if (touched.confirmPassword) setFieldErrors((p) => { const n = { ...p }; delete n.confirmPassword; return n; }); }}
-                                onBlur={() => handleBlur('confirmPassword')} disabled={isSubmitting} autoComplete="new-password" />
-                        </div>
-                        {touched.confirmPassword && fieldErrors.confirmPassword && (
-                            <span className="auth-field-hint auth-field-hint-error">{fieldErrors.confirmPassword}</span>
-                        )}
-                        {confirmPassword.length > 0 && !fieldErrors.confirmPassword && newPassword === confirmPassword && touched.confirmPassword && (
-                            <span className="auth-field-hint auth-field-hint-success"><CheckCircle size={12} /> Passwords match</span>
-                        )}
-                    </div>
-
-                    <button type="submit" className="auth-submit-btn" disabled={isSubmitting} id="reset-submit">
-                        {isSubmitting ? (<><Loader2 size={18} className="auth-spinner" /> Updating...</>) : 'Update Password'}
-                    </button>
-                </form>
             </div>
         </div>
     );

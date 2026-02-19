@@ -160,6 +160,46 @@ export const userService = {
 
         if (error) throw new Error(`Error Fetching Profile: ${error.message}`);
         return data as Users;
+    },
+
+    // Get stats for the Admin Dashboard
+    async getDashboardStats() {
+        const { data: interns, error } = await supabase
+            .from('users')
+            .select('id, status, created_at, ojt_id, start_date')
+            .eq('role', 'intern');
+
+        if (error) throw new Error(`Error Fetching Dashboard Stats: ${error.message}`);
+
+        const totalInterns = interns?.length || 0;
+        const activeInterns = interns?.filter(u => u.status === 'active').length || 0;
+        // Assumption: Pending if active but missing critical info like ojt_id or start_date
+        const pendingApplications = interns?.filter(u => u.status === 'active' && (!u.ojt_id || !u.start_date)).length || 0;
+
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+        const recentRegisters = interns?.filter(u => new Date(u.created_at!) >= threeMonthsAgo).map(u => u.created_at!) || [];
+
+        return {
+            totalInterns,
+            activeInterns,
+            pendingApplications,
+            recentRegisters
+        };
+    },
+
+    // Get recent interns for activity feed
+    async getRecentInterns(limit: number = 5) {
+        const { data, error } = await supabase
+            .from('users')
+            .select('full_name, created_at, avatar_url')
+            .eq('role', 'intern')
+            .order('created_at', { ascending: false })
+            .limit(limit);
+
+        if (error) throw new Error(`Error Fetching Recent Interns: ${error.message}`);
+        return data;
     }
 
 }

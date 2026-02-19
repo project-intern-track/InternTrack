@@ -26,11 +26,15 @@ import StudentAnnouncements from "./pages/student/Announcements";
 // Supervisor Pages
 import SupervisorDashboard from "./pages/supervisor/SupervisorDashboard";
 import SupervisorManageInterns from "./pages/supervisor/ManageInterns";
+import SupervisorAnnouncements from "./pages/supervisor/SupervisorAnnouncements";
+import SupervisorApprovals from "./pages/supervisor/SupervisorApprovals";
+import InternPerformance from "./pages/supervisor/InternPerformance";
 import SupervisorManageTasks from "./pages/supervisor/ManageTasks";
 import SupervisorMonitorAttendance from "./pages/supervisor/MonitorAttendance";
 import SupervisorReports from "./pages/supervisor/Reports";
 import SupervisorSettings from "./pages/supervisor/Settings";
-import SupervisorAnnouncements from "./pages/supervisor/Announcements";
+import Evaluations from "./pages/supervisor/Evaluations";
+import FeedbackDashboard from "./pages/supervisor/FeedbackDashboard";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -204,13 +208,14 @@ function AppRoutes() {
         >
           <Route path="dashboard" element={<SupervisorDashboard />} />
           <Route path="interns" element={<SupervisorManageInterns />} />
+          <Route path="SupervisorAnnouncements" element={<SupervisorAnnouncements />} />
+          <Route path="SupervisorApprovals" element={<SupervisorApprovals />} />
+          <Route path="InternPerformance" element={<InternPerformance />} />
           <Route path="tasks" element={<SupervisorManageTasks />} />
-          <Route path="attendance" element={<SupervisorMonitorAttendance />} />
+          <Route path="MonitorAttendance" element={<SupervisorMonitorAttendance />} />
           <Route path="reports" element={<SupervisorReports />} />
-          <Route
-            path="announcements/:type"
-            element={<SupervisorAnnouncements />}
-          />
+          <Route path="Evaluations" element={<Evaluations />} />
+          <Route path="FeedbackDashboard" element={<FeedbackDashboard />} />
           <Route path="settings" element={<SupervisorSettings />} />
         </Route>
 

@@ -65,13 +65,13 @@ const SupervisorDashboard = () => {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
+      <div style={{
+        display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '50vh',
-        gap: '1rem' 
+        gap: '1rem'
       }}>
         <Loader2 className="animate-spin" size={40} color="#ff8c42" />
         <p style={{ color: '#64748b', fontWeight: 500 }}>Loading Dashboard Data...</p>
@@ -80,30 +80,32 @@ const SupervisorDashboard = () => {
   }
 
   return (
-      <div>
-        <h1>Welcome back, {user?.name}</h1>
-        <p style={{ color: 'hsl(var(--muted-foreground))' }}>Supervisor Dashboard</p>
+    <div>
+      <h1 style={{ color: '#ff8c42' }}>
+        Welcome back, {user?.name}
+      </h1>
+      <p style={{ color: 'hsl(var(--muted-foreground))' }}>Supervisor Dashboard</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
-          <div className="card">
-            <h3>Active Interns</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.activeInterns}</p>
-          </div>
-          <div className="card">
-            <h3>Logs to Review</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.logsToReview}</p>
-          </div>
-          <div className="card">
-            <h3>Pending Approvals</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.pendingApprovals}</p>
-          </div>
-          <div className="card">
-            <h3>Feedback Requests</h3>
-            <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.feedbackRequests}</p>
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
+        <div className="card">
+          <h3>Active Interns</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.activeInterns}</p>
+        </div>
+        <div className="card">
+          <h3>Logs to Review</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.logsToReview}</p>
+        </div>
+        <div className="card">
+          <h3>Pending Approvals</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.pendingApprovals}</p>
+        </div>
+        <div className="card">
+          <h3>Feedback Requests</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stats.feedbackRequests}</p>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default SupervisorDashboard;

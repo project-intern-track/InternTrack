@@ -271,7 +271,7 @@ const StudentDashboard: React.FC = () => {
           <BsHourglassSplit style={{ ...styles.icon, color: "#f97316" }} />
           <p style={styles.title}>Internship Days</p>
           <h1 style={styles.bigNumber}>{stats.daysRemaining}</h1>
-          <span style={styles.subText}>Est. Days Remaining</span>
+          <span style={styles.subText}>Days Remaining</span>
         </div>
       </div>
 

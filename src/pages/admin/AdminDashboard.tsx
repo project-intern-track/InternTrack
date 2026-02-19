@@ -16,6 +16,8 @@ import {
     type LegendItem
 } from 'chart.js';
 
+// import { number } from 'zod'; Remove Comment If import needed
+
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -27,19 +29,19 @@ ChartJS.register(
 
 const AdminDashboard = () => {
     const { user } = useAuth();
-    const [stats, setStats] = useState({
-        totalInterns: 0,
-        activeInterns: 0,
-        pendingApplications: 0,
-        recentRegisters: [] as string[]
-    });
+
+    // Let the system know the value being fetch can be null/0
+    const [stats, setStats] = useState<{
+        totalInterns: number,
+        activeInterns: number,
+        pendingApplications: number,
+        recentRegisters: string []
+    } | null>(null);
     const [activities, setActivities] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadDashboardData = async () => {
             try {
-                setLoading(true);
                 // 1. Fetch Stats
                 const statsData = await userService.getDashboardStats();
                 setStats(statsData);
@@ -72,8 +74,6 @@ const AdminDashboard = () => {
 
             } catch (error) {
                 console.error("Error loading dashboard data:", error);
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -84,6 +84,8 @@ const AdminDashboard = () => {
     const processChartData = () => {
         const labels: string[] = [];
         const values: number[] = [];
+
+        if (!stats) return { labels, values }
 
         // Create 5 buckets of 7 days backwards from today
         for (let i = 4; i >= 0; i--) {
@@ -198,6 +200,8 @@ const AdminDashboard = () => {
         return Math.floor(seconds) + " seconds ago";
     };
 
+    if (!stats) return null;
+
     return (
         <>
 
@@ -217,7 +221,7 @@ const AdminDashboard = () => {
                     <div className="stat-header">
                         <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Total Interns</span>
                     </div>
-                    <div className="stat-value">{loading ? '...' : stats.totalInterns}</div>
+                    <div className="stat-value">{stats.totalInterns}</div>
                     <div className="stat-footer">
                         <span className="stat-trend positive">
                             {/* ↑ +12% */}
@@ -229,7 +233,7 @@ const AdminDashboard = () => {
                     <div className="stat-header">
                         <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Active Interns</span>
                     </div>
-                    <div className="stat-value">{loading ? '...' : stats.activeInterns}</div>
+                    <div className="stat-value">{stats.activeInterns}</div>
                     <div className="stat-footer">
                         <span className="stat-description">Currently Active</span>
                     </div>
@@ -238,7 +242,7 @@ const AdminDashboard = () => {
                     <div className="stat-header">
                         <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Pending Applications</span>
                     </div>
-                    <div className="stat-value">{loading ? '...' : stats.pendingApplications}</div>
+                    <div className="stat-value">{stats.pendingApplications}</div>
                     <div className="stat-footer">
                         <span className="stat-description">Incomplete Profiles</span>
                     </div>
@@ -272,9 +276,7 @@ const AdminDashboard = () => {
                         <h3>Recent Activity</h3>
                     </div>
                     <div className="activity-content">
-                        {loading ? (
-                            <div style={{ padding: '1rem', color: '#666' }}>Loading activity...</div>
-                        ) : activities.length === 0 ? (
+                        {activities.length === 0 ? (
                             <div style={{ padding: '1rem', color: '#666' }}>No recent activity</div>
                         ) : (
                             activities.map((item, index) => (

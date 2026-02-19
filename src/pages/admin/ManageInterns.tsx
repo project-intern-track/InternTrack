@@ -281,9 +281,9 @@ const ManageInterns = () => {
     };
 
     return (
-        <div className="container" style={{ maxWidth: '100%', padding: '0' }}>
+        <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
             {/* Header Section */}
-            <div className="row row-between" style={{ marginBottom: '2rem' }}>
+            <div className="manage-interns-header">
                 <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Interns</h1>
                 <button className="btn btn-primary" onClick={handleExportCSV} style={{ gap: '0.5rem' }}>
                     <Download size={18} />
@@ -329,25 +329,16 @@ const ManageInterns = () => {
             </div>
 
             {/* Filter Section */}
-            <div className="row" style={{
-                marginBottom: '1.5rem',
-                gap: '1rem',
-                flexWrap: 'wrap',
-                border: '1px solid hsl(var(--border))',
-                padding: '0.75rem',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'hsl(var(--card))',
-                alignItems: 'center'
-            }}>
+            <div className="manage-interns-filters">
                 <div className="row" style={{ alignItems: 'center', gap: '0.5rem', minWidth: 'fit-content' }}>
                     <Filter size={20} />
                     <span style={{ fontWeight: 600 }}>Filters:</span>
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '150px' }}>
+                <div className="filter-dropdown">
                     <select
                         className="select"
-                        style={{ paddingRight: '2.5rem' }}
+                        style={{ paddingRight: '2.5rem', width: '100%' }}
                         value={sortDirection}
                         onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
                     >
@@ -357,9 +348,10 @@ const ManageInterns = () => {
                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '150px' }}>
+                <div className="filter-dropdown">
                     <select
                         className="select"
+                        style={{ width: '100%' }}
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
                     >
@@ -371,9 +363,10 @@ const ManageInterns = () => {
                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '150px' }}>
+                <div className="filter-dropdown">
                     <select
                         className="select"
+                        style={{ width: '100%' }}
                         value={startDateFilter}
                         onChange={(e) => setStartDateFilter(e.target.value)}
                     >
@@ -386,9 +379,10 @@ const ManageInterns = () => {
                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '170px' }}>
+                <div className="filter-dropdown-wide">
                     <select
                         className="select"
+                        style={{ width: '100%' }}
                         value={requiredHoursFilter}
                         onChange={(e) => setRequiredHoursFilter(e.target.value)}
                     >
@@ -402,9 +396,10 @@ const ManageInterns = () => {
                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '150px' }}>
+                <div className="filter-dropdown">
                     <select
                         className="select"
+                        style={{ width: '100%' }}
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
@@ -430,27 +425,28 @@ const ManageInterns = () => {
                 </div>
             )}
 
-            {/* Table */}
-            <div style={{
+            {/* Table Container - Scrollable */}
+            <div className="table-container" style={{
                 borderRadius: '8px',
                 border: '1px solid #e5e5e5',
-                overflow: 'auto', // Allow horizontal/vertical scrolls
+                overflow: 'auto',
                 backgroundColor: 'white',
-                width: '100%', // Locks Width
-                display: 'block' // Ensures Scroll behavior
+                width: '100%',
+                maxWidth: '100vw', // Ensure it doesn't exceed viewport width
+                position: 'relative'
             }}>
 
                 <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', textAlign: 'center' }}>
                     <thead>
                         <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Name</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Role</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Email Address</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>OJT ID</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Start Date</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Required Hours</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Status</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none' }}>Actions</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Name</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Role</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Email Address</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>OJT ID</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Start Date</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Required Hours</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Status</th>
+                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -541,14 +537,7 @@ const ManageInterns = () => {
                     zIndex: 1000,
                     backdropFilter: 'blur(2px)'
                 }} onClick={closeEditModal}>
-                    <div style={{
-                        backgroundColor: '#e6ded6',
-                        borderRadius: '12px',
-                        padding: '2rem',
-                        width: '100%',
-                        maxWidth: '500px',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
-                    }} onClick={(e) => e.stopPropagation()}>
+                    <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
                         {/* Heading */}
                         <div style={{ marginBottom: '2rem' }}>
                             <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Edit Intern Information</h2>
@@ -596,7 +585,7 @@ const ManageInterns = () => {
                         </div>
 
                         {/* OJT Role & OJT ID */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div className="modal-grid-2col">
                             <div>
                                 <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Role:</label>
                                 <div style={{ position: 'relative' }}>
@@ -630,7 +619,7 @@ const ManageInterns = () => {
                         </div>
 
                         {/* Start Date & Required Hours */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div className="modal-grid-2col">
                             <div>
                                 <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Start Date:</label>
                                 <input

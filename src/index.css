@@ -403,6 +403,14 @@ textarea:disabled {
   margin-top: 0.5rem;
 }
 
+/* Stats Grid Base */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
 /*layout utiliei - grid system*/
 
 .grid-2 {
@@ -577,11 +585,13 @@ textarea:disabled {
   flex-direction: column;
   margin-left: 280px;
   transition: margin-left 0.3s ease;
+  min-width: 0;
 }
 
 .dashboard-content {
   padding: 2rem;
   flex: 1;
+  min-width: 0;
 }
 
 /* Hamburger Menu */
@@ -1404,5 +1414,98 @@ textarea,
 
   .placeholder-description {
     font-size: 1rem;
+  }
+}
+
+/* ===== Manage Interns Page ===== */
+
+.manage-interns-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.manage-interns-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid hsl(var(--border));
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: hsl(var(--card));
+  align-items: center;
+}
+
+.manage-interns-filters .filter-dropdown {
+  position: relative;
+  min-width: 150px;
+  flex: 0 1 auto;
+}
+
+.manage-interns-filters .filter-dropdown-wide {
+  position: relative;
+  min-width: 170px;
+  flex: 0 1 auto;
+}
+
+.modal-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.edit-modal-panel {
+  background-color: #e6ded6;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Manage Interns responsive – Tablet (768px) */
+@media (max-width: 768px) {
+  .manage-interns-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .manage-interns-filters .filter-dropdown,
+  .manage-interns-filters .filter-dropdown-wide {
+    min-width: 0;
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+
+  .modal-grid-2col {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-modal-panel {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+/* Manage Interns responsive – Mobile (480px) */
+@media (max-width: 480px) {
+  .manage-interns-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .manage-interns-filters .filter-dropdown,
+  .manage-interns-filters .filter-dropdown-wide {
+    flex: 1 1 100%;
+  }
+
+  .edit-modal-panel {
+    margin: 0.5rem;
+    padding: 1.25rem;
   }
 }

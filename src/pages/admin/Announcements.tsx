@@ -12,8 +12,7 @@ import type { Announcement, AnnouncementPriority } from '../../types/database.ty
 
 const Announcements = () => {
     const { user } = useAuth();
-    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [announcements, setAnnouncements] = useState<Announcement[] | null>(null); // initializes null
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -30,7 +29,6 @@ const Announcements = () => {
     // Fetch Announcements
     const fetchAnnouncements = async () => {
         try {
-            setLoading(true);
             const data = await announcementService.getAnnouncements();
             // Sort by created_at desc
             const sorted = (data || []).sort((a, b) =>
@@ -39,8 +37,7 @@ const Announcements = () => {
             setAnnouncements(sorted);
         } catch (err) {
             console.error(err);
-        } finally {
-            setLoading(false);
+            setAnnouncements([])
         }
     };
 
@@ -79,6 +76,9 @@ const Announcements = () => {
     // Filter Logic
     const filteredAnnouncements = (() => {
         // Step 1: search + priority filter
+
+        if (!announcements) return [];
+
         let result = announcements.filter(a => {
             const cleanSearch = searchTerm.trim().toLowerCase();
 
@@ -141,6 +141,8 @@ const Announcements = () => {
     const getPriorityLabel = (p: string) => {
         return p.charAt(0).toUpperCase() + p.slice(1) + " Priority";
     };
+
+    if (!announcements) return null;
 
     return (
         <div className="container" style={{ maxWidth: '100%', padding: '0' }}>
@@ -219,11 +221,7 @@ const Announcements = () => {
 
             {/* Content Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-                {loading ? (
-                    <div style={{ padding: '2rem', display: 'flex', gap: '1rem', color: '#64748b' }}>
-                        <Loader2 className="spinner" /> Loading...
-                    </div>
-                ) : filteredAnnouncements.map((announcement) => (
+                {filteredAnnouncements.map((announcement) => (
                     <div key={announcement.id} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#F9F7F4' }}>
                         <div style={{ marginBottom: '1rem' }}>
                             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>

@@ -7,12 +7,10 @@ import { announcementService } from "../../services/announcementService";
 import type { Announcement } from "../../types/database.types";
 import { Loader2 } from "lucide-react";
 
-/* ---- Define User Type (adjust if your AuthContext differs) ---- */
 interface User {
   name?: string;
 }
 
-/* ---- If your AuthContext already has a type, you can remove this ---- */
 interface AuthContextType {
   user?: User;
 }
@@ -61,7 +59,9 @@ const StudentDashboard: React.FC = () => {
     return p.charAt(0).toUpperCase() + p.slice(1) + " Priority";
   };
 
-  /* --- Styles (Typed) --- */
+  /* Track which card is hovered */
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+
   const styles: Record<string, React.CSSProperties> = {
     container: {
       padding: "30px",
@@ -70,9 +70,6 @@ const StudentDashboard: React.FC = () => {
     },
 
     header: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
       marginBottom: "25px",
     },
 
@@ -88,13 +85,25 @@ const StudentDashboard: React.FC = () => {
       marginTop: "20px",
     },
 
+    /* Base card style */
     card: {
       background: "#e9e6e1",
       padding: "25px 25px 15px 25px",
       borderRadius: "14px",
-      boxShadow: "-2px 4px 8px -4px rgba(0,0,0,0.25)",
       position: "relative",
       minHeight: "140px",
+
+      /* Animation setup */
+      transition: "all 0.25s ease",
+      transform: "translateY(0px) scale(1)",
+      boxShadow: "-2px 4px 8px -4px rgba(0,0,0,0.25)",
+      cursor: "pointer",
+    },
+
+    /* Applied when hovered */
+    cardHover: {
+      transform: "translateY(-2px) scale(1)",
+      boxShadow: "0px 14px 28px -6px rgba(0,0,0,0.35)",
     },
 
     icon: {
@@ -153,7 +162,7 @@ const StudentDashboard: React.FC = () => {
 
     announcementBox: {
       background: "#e9e6e1",
-      height: "390px",
+      height: "80vh",
       borderRadius: "14px",
       padding: "20px",
       color: "#666",
@@ -176,25 +185,37 @@ const StudentDashboard: React.FC = () => {
     },
   };
 
+  /* Helper to merge hover style */
+  const getCardStyle = (index: number): React.CSSProperties => ({
+    ...styles.card,
+    ...(hoveredCard === index ? styles.cardHover : {}),
+  });
+
   return (
     <div style={styles.container}>
-      {/* Header */}
       <div style={styles.header}>
         <h2 style={styles.welcome}>Welcome back, Intern {user?.name}!</h2>
       </div>
 
-      {/* Stats Cards */}
       <div style={styles.statsGrid}>
-        {/* Tasks Completed */}
-        <div style={styles.card}>
+        {/* Card 1 */}
+        <div
+          style={getCardStyle(0)}
+          onMouseEnter={() => setHoveredCard(0)}
+          onMouseLeave={() => setHoveredCard(null)}
+        >
           <FaCheckCircle style={{ ...styles.icon, color: "#22c55e" }} />
           <p style={styles.title}>Tasks Completed</p>
           <h1 style={styles.bigNumber}>24</h1>
           <span style={styles.green}>+2 this week</span>
         </div>
 
-        {/* Hours Logged */}
-        <div style={styles.card}>
+        {/* Card 2 */}
+        <div
+          style={getCardStyle(1)}
+          onMouseEnter={() => setHoveredCard(1)}
+          onMouseLeave={() => setHoveredCard(null)}
+        >
           <FiClock style={{ ...styles.icon, color: "#3b82f6" }} />
           <p style={styles.title}>Hours Logged</p>
           <div style={styles.numberRow}>
@@ -204,8 +225,12 @@ const StudentDashboard: React.FC = () => {
           <span style={styles.subText}>Target: 400h</span>
         </div>
 
-        {/* Internship Days */}
-        <div style={styles.card}>
+        {/* Card 3 */}
+        <div
+          style={getCardStyle(2)}
+          onMouseEnter={() => setHoveredCard(2)}
+          onMouseLeave={() => setHoveredCard(null)}
+        >
           <BsHourglassSplit style={{ ...styles.icon, color: "#f97316" }} />
           <p style={styles.title}>Internship Days</p>
           <h1 style={styles.bigNumber}>45</h1>
@@ -213,7 +238,6 @@ const StudentDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Announcements */}
       <div style={styles.announcementSection}>
         <h3 style={styles.announcementTitle}>Announcements</h3>
 

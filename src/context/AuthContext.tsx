@@ -173,6 +173,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // so onAuthStateChange doesn't double-load
     const isHandlingAuth = useRef(false);
 
+    // Keep a ref of the latest state so the auth listener (which is set
+    // up once) can read the current user without stale closures.
+    const stateRef = useRef(state);
+    stateRef.current = state;
+
     /**
      * Fetches the user profile from the `users` table and builds the User object.
      * Returns the User or null (does NOT set state — callers handle that).
@@ -261,11 +266,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     ) => {
         const fallbackUser = mapSessionToFallbackUser(sessionUser);
 
-        // We used to optimistically set state here to prevent "Loading...", but that caused
-        // a flash of the "stale" role (intern) before the "new" role (admin) loaded.
-        // It also caused the app to sometimes "stick" on the old role if the profile fetch timed out.
-        // Now we WAIT for the profile source of truth.
-
         try {
             const profileResult = await Promise.race([
                 ensureUserProfile(
@@ -273,7 +273,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     sessionUser.email || '',
                     sessionUser.user_metadata
                 ),
-                new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)), // 8s timeout
+                new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)), // 15s timeout
             ]);
 
             if (profileResult) {
@@ -302,23 +302,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     isPasswordRecovery: passwordRecovery,
                 });
             } else {
-                console.warn('Profile load timed out - falling back to session metadata');
-                setLastKnownRole(fallbackUser.role);
-                setState({
+                // DB profile timed out. If we already have a loaded user in
+                // state (from a prior successful fetch), keep that user
+                // instead of downgrading to the JWT-based fallback.
+                console.warn('[AuthContext] Profile load timed out.');
+                setState((prev) => {
+                    if (prev.user && prev.isAuthenticated) {
+                        console.info('[AuthContext] Keeping existing user from state (already loaded).');
+                        return { ...prev, isLoading: false, isPasswordRecovery: passwordRecovery };
+                    }
+                    // First load — no choice but to use fallback
+                    console.warn('[AuthContext] No existing user in state, using session metadata fallback.');
+                    setLastKnownRole(fallbackUser.role);
+                    return {
+                        user: fallbackUser,
+                        isAuthenticated: true,
+                        isLoading: false,
+                        isPasswordRecovery: passwordRecovery,
+                    };
+                });
+            }
+        } catch (err) {
+            console.error('[AuthContext] Failed to load user profile:', err);
+            setState((prev) => {
+                if (prev.user && prev.isAuthenticated) {
+                    return { ...prev, isLoading: false };
+                }
+                return {
                     user: fallbackUser,
                     isAuthenticated: true,
                     isLoading: false,
                     isPasswordRecovery: passwordRecovery,
-                });
-            }
-        } catch (err) {
-            console.error('Failed to load user profile:', err);
-            // Fallback to session user
-            setState({
-                user: fallbackUser,
-                isAuthenticated: true,
-                isLoading: false,
-                isPasswordRecovery: passwordRecovery,
+                };
             });
         }
     }, [ensureUserProfile]);
@@ -435,6 +450,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 initialLoadResolved = true;
 
             } else if (event === 'SIGNED_IN' && session?.user) {
+                // Skip re-fetching if we already have a loaded user with the
+                // same ID. Supabase can fire duplicate SIGNED_IN events
+                // (during reconnects, token refreshes, etc.) and each one
+                // would trigger a full profile fetch + timeout race, causing
+                // the "Profile load timed out" warning.
+                const currentUser = stateRef.current;
+                if (
+                    initialLoadResolved &&
+                    currentUser.isAuthenticated &&
+                    currentUser.user?.id === session.user.id
+                ) {
+                    return; // Profile already loaded for this user — skip
+                }
+
                 const isRecovery = recoveryFromUrl.current;
                 await loadProfileAndSetState(session.user, isRecovery);
                 initialLoadResolved = true;

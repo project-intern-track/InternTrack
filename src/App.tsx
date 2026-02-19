@@ -22,6 +22,8 @@ import StudentSchedule from "./pages/student/Schedule";
 import StudentReports from "./pages/student/Reports";
 import StudentSettings from "./pages/student/Settings";
 import StudentAnnouncements from "./pages/student/Announcements";
+import StudentTaskList from "./pages/student/TaskList";
+import StudentPerformanceFeedback from "./pages/student/PerformanceFeedback";
 
 // Supervisor Pages
 import SupervisorDashboard from "./pages/supervisor/SupervisorDashboard";
@@ -192,7 +194,9 @@ function AppRoutes() {
           }
         >
           <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="tasks" element={<StudentTaskList />} />
           <Route path="logs" element={<StudentDailyLogs />} />
+          <Route path="feedback" element={<StudentPerformanceFeedback />} />
           <Route path="schedule" element={<StudentSchedule />} />
           <Route path="reports" element={<StudentReports />} />
           <Route path="announcements/:type" element={<StudentAnnouncements />} />

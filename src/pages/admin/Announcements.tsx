@@ -17,6 +17,7 @@ const Announcements = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
+    const [dateCreatedFilter, setDateCreatedFilter] = useState('all');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -76,24 +77,40 @@ const Announcements = () => {
     };
 
     // Filter Logic
-    const filteredAnnouncements = announcements.filter(a => {
+    const filteredAnnouncements = (() => {
+        // Step 1: search + priority filter
+        let result = announcements.filter(a => {
+            const cleanSearch = searchTerm.trim().toLowerCase();
 
-        // Added Trim to remove extra spaces
-        const cleanSearch = searchTerm.trim().toLocaleLowerCase();
+            const matchesPriority = priorityFilter === 'all' || a.priority === priorityFilter;
+            if (!cleanSearch) return matchesPriority;
 
-        // If term is empty, show every item
-        if (!cleanSearch) {
-            return priorityFilter === 'all' || a.priority === priorityFilter;
+            const matchesSearch =
+                a.title.toLowerCase().includes(cleanSearch) ||
+                a.content.toLowerCase().includes(cleanSearch);
+            return matchesSearch && matchesPriority;
+        });
 
+        // Step 2: date created filter / sort
+        if (dateCreatedFilter === 'this-month') {
+            const now = new Date();
+            result = result.filter(a => {
+                const d = new Date(a.created_at);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            });
+        } else if (dateCreatedFilter === 'this-year') {
+            const year = new Date().getFullYear();
+            result = result.filter(a => new Date(a.created_at).getFullYear() === year);
         }
 
-        const matchesSearch =
-            a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            a.content.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesPriority = priorityFilter === 'all' || a.priority === priorityFilter;
-        return matchesSearch && matchesPriority;
-        
-    });
+        if (dateCreatedFilter === 'newest') {
+            result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        } else if (dateCreatedFilter === 'oldest') {
+            result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        }
+
+        return result;
+    })();
 
     // Formatting
     const formatDate = (dateStr: string) => {
@@ -169,8 +186,17 @@ const Announcements = () => {
                 </div>
 
                 <div style={{ position: 'relative', minWidth: '180px' }}>
-                    <select className="select" style={{ width: '100%' }}>
-                        <option>All Date Created</option>
+                    <select
+                        className="select"
+                        style={{ width: '100%' }}
+                        value={dateCreatedFilter}
+                        onChange={(e) => setDateCreatedFilter(e.target.value)}
+                    >
+                        <option value="all">All Date Created</option>
+                        <option value="newest">Newest to Oldest</option>
+                        <option value="oldest">Oldest to Newest</option>
+                        <option value="this-month">This Month</option>
+                        <option value="this-year">This Year</option>
                     </select>
                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>

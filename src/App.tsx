@@ -22,6 +22,8 @@ import StudentSchedule from "./pages/student/Schedule";
 import StudentReports from "./pages/student/Reports";
 import StudentSettings from "./pages/student/Settings";
 import StudentAnnouncements from "./pages/student/Announcements";
+import StudentTaskList from "./pages/student/TaskList";
+import StudentPerformanceFeedback from "./pages/student/PerformanceFeedback";
 
 // Supervisor Pages
 import SupervisorDashboard from "./pages/supervisor/SupervisorDashboard";
@@ -44,6 +46,8 @@ import AdminMonitorAttendance from "./pages/admin/MonitorAttendance";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminAnnouncements from "./pages/admin/Announcements";
+import AdminManageAdmins from "./pages/admin/ManageAdmins";
+import AdminManageSupervisors from "./pages/admin/ManageSupervisors";
 
 import { Briefcase } from "lucide-react";
 import "./styles/auth.css";
@@ -190,7 +194,9 @@ function AppRoutes() {
           }
         >
           <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="tasks" element={<StudentTaskList />} />
           <Route path="logs" element={<StudentDailyLogs />} />
+          <Route path="feedback" element={<StudentPerformanceFeedback />} />
           <Route path="schedule" element={<StudentSchedule />} />
           <Route path="reports" element={<StudentReports />} />
           <Route path="announcements/:type" element={<StudentAnnouncements />} />
@@ -232,6 +238,8 @@ function AppRoutes() {
           <Route path="interns" element={<AdminManageInterns />} />
           <Route path="tasks" element={<AdminManageTasks />} />
           <Route path="attendance" element={<AdminMonitorAttendance />} />
+          <Route path="manage-admins" element={<AdminManageAdmins />} />
+          <Route path="manage-supervisors" element={<AdminManageSupervisors />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="announcements" element={<AdminAnnouncements />} />
           <Route path="settings" element={<AdminSettings />} />

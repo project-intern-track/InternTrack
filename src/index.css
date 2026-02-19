@@ -411,6 +411,34 @@ textarea:disabled {
   margin-bottom: 2rem;
 }
 
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Charts & Activity */
+.chart-card,
+.activity-card {
+  background-color: hsl(var(--card));
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  width: 100%;
+  min-width: 0;
+  /* Important for chart responsiveness */
+  overflow: hidden;
+  /* Prevents chart bleed */
+}
+
+.chart-content {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
 /*layout utiliei - grid system*/
 
 .grid-2 {

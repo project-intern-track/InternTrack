@@ -149,6 +149,17 @@ export const userService = {
 
         const uniqueRoles = [...new Set(data?.map(u => u.ojt_role).filter(Boolean))];
         return uniqueRoles as string[];
+    },
+
+    async getProfile(userId: string) {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error) throw new Error(`Error Fetching Profile: ${error.message}`);
+        return data as Users;
     }
 
 }

@@ -89,6 +89,14 @@ function clearRecoveryFlag(): void {
     try { localStorage.removeItem(RECOVERY_FLAG_KEY); } catch { /* ignore */ }
 }
 
+// Helper to safely infer role from path
+function getRoleFromPath(pathname: string): UserRole | null {
+    if (pathname.startsWith('/admin')) return 'admin';
+    if (pathname.startsWith('/supervisor')) return 'supervisor';
+    if (pathname.startsWith('/intern')) return 'intern';
+    return null;
+}
+
 function mapSessionToFallbackUser(sessionUser: {
     id: string;
     email?: string | null;
@@ -97,15 +105,16 @@ function mapSessionToFallbackUser(sessionUser: {
 }): User {
     const roleFromUserMetadata = sessionUser.user_metadata?.role;
     const roleFromAppMetadata = sessionUser.app_metadata?.role;
-    // Removing getRoleFromPath - we should not infer role from the URL, 
-    // as it can cause a "sticky" wrong role if the user is redirected incorrectly.
     const lastKnownRole = getLastKnownRole();
+
+    // Only use path role if we have absolutely no other info
+    const roleFromPath = getRoleFromPath(window.location.pathname);
 
     const role: UserRole =
         (isUserRole(roleFromUserMetadata) && roleFromUserMetadata) ||
         (isUserRole(roleFromAppMetadata) && roleFromAppMetadata) ||
         lastKnownRole ||
-        'intern';
+        (isUserRole(roleFromPath) ? roleFromPath : 'intern');
 
     return {
         id: sessionUser.id,

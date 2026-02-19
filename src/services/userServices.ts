@@ -1,7 +1,7 @@
 // ========
 // IMPORTS
 // ========
-import { supabase } from "./supabaseClient";
+import { supabase, supabaseAdmin } from "./supabaseClient";
 import { usersSchema } from "./validation";
 import type { Users } from "../types/database.types"; // User Interface From Database Types
 
@@ -283,6 +283,25 @@ export const userService = {
 
     // Upgrade an intern to admin
     async upgradeInternToAdmin(userId: string) {
+        // Option A: Call the secure Edge Function (Recommended for Production)
+        // This keeps the service_role key on the server side.
+        try {
+            const { data, error } = await supabase.functions.invoke('upgrade-user-role', {
+                body: { userId, newRole: 'admin' }
+            });
+
+            if (!error && data) {
+                return data; // Function returns the success message/object
+            }
+            console.warn('Edge function returned error, falling back to direct update:', error);
+        } catch (err) {
+            console.warn('Failed to invoke edge function, falling back to direct update:', err);
+        }
+
+        // Option B: Fallback to Direct Update (Dev/Legacy)
+        // Uses the locally configured service role key if available, or just updates DB profile.
+
+        // 1. Update the public profile in 'users' table
         const { data, error } = await supabase
             .from('users')
             .update({ role: 'admin' })
@@ -291,6 +310,18 @@ export const userService = {
             .single();
 
         if (error) throw new Error(`Error Upgrading Intern to Admin: ${error.message}`);
+
+        // 2. Attempt to update the Auth User Metadata (best effort)
+        if (supabaseAdmin) {
+            try {
+                await supabaseAdmin.auth.admin.updateUserById(userId, {
+                    user_metadata: { role: 'admin' }
+                });
+            } catch (authError) {
+                console.warn('Could not update Auth metadata via Service Role:', authError);
+            }
+        } 
+        
         return data as Users;
     }
 

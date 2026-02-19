@@ -257,15 +257,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         passwordRecovery: boolean
     ) => {
         const fallbackUser = mapSessionToFallbackUser(sessionUser);
-        setLastKnownRole(fallbackUser.role);
 
-        // Immediately authenticate from auth session so refresh/new-tab never blocks on profile query.
-        setState({
-            user: fallbackUser,
-            isAuthenticated: true,
-            isLoading: false,
-            isPasswordRecovery: passwordRecovery,
-        });
+        // We used to optimistically set state here to prevent "Loading...", but that caused
+        // a flash of the "stale" role (intern) before the "new" role (admin) loaded.
+        // It also caused the app to sometimes "stick" on the old role if the profile fetch timed out.
+        // Now we WAIT for the profile source of truth.
 
         try {
             const profileResult = await Promise.race([
@@ -274,22 +270,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     sessionUser.email || '',
                     sessionUser.user_metadata
                 ),
-                new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+                new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)), // 8s timeout
             ]);
 
             if (profileResult) {
                 setLastKnownRole(profileResult.role);
-                setState((prev) => ({
-                    ...prev,
+                setState({
                     user: profileResult,
                     isAuthenticated: true,
                     isLoading: false,
                     isPasswordRecovery: passwordRecovery,
-                }));
+                });
+            } else {
+                console.warn('Profile load timed out - falling back to session metadata');
+                setLastKnownRole(fallbackUser.role);
+                setState({
+                    user: fallbackUser,
+                    isAuthenticated: true,
+                    isLoading: false,
+                    isPasswordRecovery: passwordRecovery,
+                });
             }
         } catch (err) {
             console.error('Failed to load user profile:', err);
-            // Keep the fallback user from auth metadata and avoid forcing logout.
+            // Fallback to session user
+            setState({
+                user: fallbackUser,
+                isAuthenticated: true,
+                isLoading: false,
+                isPasswordRecovery: passwordRecovery,
+            });
         }
     }, [ensureUserProfile]);
 
@@ -325,7 +335,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         setTimeout(() => resolve({ session: null, error: 'Session initialization timed out' }), 5000);
                     }),
                 ]);
-                
+
                 if (!isMounted) return;
 
                 if (sessionResult.error) {
@@ -386,7 +396,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Subscribe to auth changes
         const unsubscribe = authService.onAuthStateChange(async (event, session) => {
             if (!isMounted) return;
-            
+
             // Skip if signIn/signUp is actively handling this
             if (isHandlingAuth.current) return;
 

@@ -266,6 +266,32 @@ export const userService = {
 
         if (error) throw new Error(`Error Archiving Admin: ${error.message}`);
         return data as Users;
+    },
+
+    // Fetch interns eligible for admin upgrade (active interns)
+    async fetchInternsForAdminUpgrade() {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('role', 'intern')
+            .eq('status', 'active')
+            .order('full_name', { ascending: true });
+
+        if (error) throw new Error(`Error Fetching Interns for Upgrade: ${error.message}`);
+        return data as Users[];
+    },
+
+    // Upgrade an intern to admin
+    async upgradeInternToAdmin(userId: string) {
+        const { data, error } = await supabase
+            .from('users')
+            .update({ role: 'admin' })
+            .eq('id', userId)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Error Upgrading Intern to Admin: ${error.message}`);
+        return data as Users;
     }
 
 }

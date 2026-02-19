@@ -25,6 +25,14 @@ const ManageAdmins = () => {
     // Stats state
     const [stats, setStats] = useState({ totalAdmins: 0, activeAdmins: 0, archivedAdmins: 0 });
 
+    // Add Admin Modal States
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [eligibleInterns, setEligibleInterns] = useState<Users[]>([]);
+    const [loadingInterns, setLoadingInterns] = useState(false);
+    const [selectedInternId, setSelectedInternId] = useState('');
+    const [confirmationStep, setConfirmationStep] = useState(false);
+    const [upgrading, setUpgrading] = useState(false);
+
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Debounce search input
@@ -66,6 +74,19 @@ const ManageAdmins = () => {
         }
     };
 
+    // Load eligible interns for the modal
+    const loadEligibleInterns = async () => {
+        try {
+            setLoadingInterns(true);
+            const data = await userService.fetchInternsForAdminUpgrade();
+            setEligibleInterns(data);
+        } catch (err) {
+            console.error('Error loading eligible interns:', err);
+        } finally {
+            setLoadingInterns(false);
+        }
+    };
+
     // Initial load and reload on filter change
     useEffect(() => {
         loadAdmins();
@@ -89,6 +110,45 @@ const ManageAdmins = () => {
         }
     };
 
+    // Handle Open Modal
+    const handleOpenAddModal = () => {
+        setIsAddModalOpen(true);
+        setConfirmationStep(false);
+        setSelectedInternId('');
+        loadEligibleInterns();
+    };
+
+    // Handle Close Modal
+    const handleCloseAddModal = () => {
+        setIsAddModalOpen(false);
+        setConfirmationStep(false);
+        setSelectedInternId('');
+    };
+
+    // Handle Continue to Confirmation
+    const handleContinue = () => {
+        if (!selectedInternId) return;
+        setConfirmationStep(true);
+    };
+
+    // Handle Confirm Upgrade
+    const handleConfirmUpgrade = async () => {
+        if (!selectedInternId) return;
+        try {
+            setUpgrading(true);
+            await userService.upgradeInternToAdmin(selectedInternId);
+            handleCloseAddModal();
+            // Refresh main list and stats
+            await loadAdmins();
+            await loadStats();
+        } catch (err) {
+            console.error('Error upgrading user:', err);
+            alert(err instanceof Error ? err.message : 'Failed to upgrade user');
+        } finally {
+            setUpgrading(false);
+        }
+    };
+
     const formatDate = (dateString?: string) => {
         if (!dateString) return '—';
         const date = new Date(dateString);
@@ -99,12 +159,19 @@ const ManageAdmins = () => {
         });
     };
 
+    // Get selected intern name for confirmation message
+    const selectedInternName = eligibleInterns.find(u => u.id === selectedInternId)?.full_name || 'Selected User';
+
     return (
         <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
             {/* Header Section */}
             <div className="manage-interns-header">
                 <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Admins</h1>
-                <button className="btn btn-primary" style={{ gap: '0.5rem' }}>
+                <button
+                    className="btn btn-primary"
+                    style={{ gap: '0.5rem' }}
+                    onClick={handleOpenAddModal}
+                >
                     <Plus size={18} />
                     Add Admin
                 </button>
@@ -284,6 +351,100 @@ const ManageAdmins = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Add Admin Modal */}
+            {isAddModalOpen && (
+                <div className="modal-overlay" onClick={handleCloseAddModal}>
+                    <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{
+                        backgroundColor: '#e6ded6',
+                        borderRadius: '12px',
+                        padding: '2rem',
+                        width: '100%',
+                        maxWidth: '500px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.5rem'
+                    }}>
+                        {/* Header */}
+                        <div>
+                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>
+                                {confirmationStep ? 'Confirm Admin Addition' : 'Add New Admin'}
+                            </h2>
+                            {!confirmationStep && (
+                                <p style={{ color: '#666', marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                                    Select an existing intern to upgrade to administrator status.
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Content */}
+                        {!confirmationStep ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <label style={{ fontWeight: 600 }}>Select Intern:</label>
+                                <div style={{ position: 'relative' }}>
+                                    <select
+                                        className="select"
+                                        style={{ width: '100%', backgroundColor: 'white' }}
+                                        value={selectedInternId}
+                                        onChange={(e) => setSelectedInternId(e.target.value)}
+                                        disabled={loadingInterns}
+                                    >
+                                        <option value="">-- Choose an intern --</option>
+                                        {eligibleInterns.map(intern => (
+                                            <option key={intern.id} value={intern.id}>
+                                                {intern.full_name} ({intern.email})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                </div>
+                                {loadingInterns && <span style={{ fontSize: '0.8rem', color: '#666' }}>Loading eligible users...</span>}
+                            </div>
+                        ) : (
+                            <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '8px', border: '1px solid #e5e5e5' }}>
+                                <p style={{ margin: 0, color: '#334155', lineHeight: '1.6' }}>
+                                    Are you sure you want to upgrade <strong>{selectedInternName}</strong> to an Admin?
+                                    <br /><br />
+                                    This user will gain full access to the admin dashboard and management features.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem', marginTop: '0.5rem' }}>
+                            <button
+                                className="btn"
+                                onClick={!confirmationStep ? handleCloseAddModal : () => setConfirmationStep(false)}
+                                disabled={upgrading}
+                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                {confirmationStep ? 'Back' : 'Cancel'}
+                            </button>
+
+                            {!confirmationStep ? (
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleContinue}
+                                    disabled={!selectedInternId || loadingInterns}
+                                    style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                                >
+                                    Next
+                                </button>
+                            ) : (
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleConfirmUpgrade}
+                                    disabled={upgrading}
+                                    style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                                >
+                                    {upgrading ? <Loader2 className="spinner" size={18} /> : 'Confirm Upgrade'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

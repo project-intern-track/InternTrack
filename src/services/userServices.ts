@@ -11,13 +11,12 @@ export const userService = {
 
 
     async getUsers() {
-
         const { data, error } = await supabase
             .from('users')
             .select('*');
 
         if (error) throw new Error(`Error Fetching Users: ${error.message}`);
-        return data;
+        return data as Users[];
     },
 
     async createUser(newUserData: Omit<Users, 'id' | 'created_at'>) {
@@ -200,6 +199,73 @@ export const userService = {
 
         if (error) throw new Error(`Error Fetching Recent Interns: ${error.message}`);
         return data;
+    },
+
+    // Fetch all admins with optional filters
+    async fetchAdmins(filters?: {
+        search?: string;
+        status?: string;
+        dateSort?: 'newest' | 'oldest';
+    }) {
+        let query = supabase
+            .from('users')
+            .select('*')
+            .eq('role', 'admin');
+
+        // Apply status filter
+        if (filters?.status && filters.status !== 'all') {
+            query = query.eq('status', filters.status);
+        }
+
+        // Apply search filter
+        if (filters?.search && filters.search.trim()) {
+            const searchTerm = filters.search.trim();
+            const wildcardTerm = `%${searchTerm}%`;
+            query = query.or(`full_name.ilike.${wildcardTerm},email.ilike.${wildcardTerm}`);
+        }
+
+        // Apply date sort
+        if (filters?.dateSort === 'oldest') {
+            query = query.order('created_at', { ascending: true });
+        } else {
+            // Default to newest
+            query = query.order('created_at', { ascending: false });
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw new Error(`Error Fetching Admins: ${error.message}`);
+        return data as Users[];
+    },
+
+    // Get stats for the Manage Admins page
+    async getAdminStats() {
+        const { data, error } = await supabase
+            .from('users')
+            .select('status')
+            .eq('role', 'admin');
+
+        if (error) throw new Error(`Error Fetching Admin Stats: ${error.message}`);
+
+        const totalAdmins = data?.length || 0;
+        const activeAdmins = data?.filter(u => u.status === 'active').length || 0;
+        const archivedAdmins = data?.filter(u => u.status === 'archived').length || 0;
+
+        return { totalAdmins, activeAdmins, archivedAdmins };
+    },
+
+    // Toggle archive status for an admin
+    async toggleArchiveAdmin(adminId: string, currentStatus: string) {
+        const newStatus = currentStatus === 'active' ? 'archived' : 'active';
+        const { data, error } = await supabase
+            .from('users')
+            .update({ status: newStatus })
+            .eq('id', adminId)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Error Archiving Admin: ${error.message}`);
+        return data as Users;
     }
 
 }

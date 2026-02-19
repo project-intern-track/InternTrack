@@ -1,35 +1,96 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Search,
     Filter,
     Pencil,
     Archive,
     ChevronDown,
-    Plus
+    Plus,
+    Loader2
 } from 'lucide-react';
-
-// Mock data based on the provided image
-const MOCK_ADMINS = [
-    { id: 1, name: 'Aaron Cruz', email: 'InternTrackAdmin01@gmail.com', dateCreated: '2026-01-09', status: 'Archived' },
-    { id: 2, name: 'Jane Doe', email: 'InternTrackAdmin02@gmail.com', dateCreated: '2026-01-09', status: 'Active' },
-    { id: 3, name: 'Mae Santos', email: 'InternTrackAdmin03@gmail.com', dateCreated: '2026-01-10', status: 'Active' },
-];
+import { userService } from '../../services/userServices';
+import type { Users } from '../../types/database.types';
 
 const ManageAdmins = () => {
+    const [admins, setAdmins] = useState<Users[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Filter states
     const [searchTerm, setSearchTerm] = useState('');
-    const [dateFilter, setDateFilter] = useState('all');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [dateSort, setDateSort] = useState<'newest' | 'oldest'>('newest');
     const [statusFilter, setStatusFilter] = useState('all');
 
-    // Filter logic (basic implementation for the mock data)
-    const filteredAdmins = MOCK_ADMINS.filter(admin => {
-        const matchesSearch = admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            admin.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || admin.status.toLowerCase() === statusFilter.toLowerCase();
-        // Date filter is a placeholder as per requirements
-        return matchesSearch && matchesStatus;
-    });
+    // Stats state
+    const [stats, setStats] = useState({ totalAdmins: 0, activeAdmins: 0, archivedAdmins: 0 });
 
-    const formatDate = (dateString: string) => {
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Debounce search input
+    useEffect(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 500);
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, [searchTerm]);
+
+    // Load admins
+    const loadAdmins = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await userService.fetchAdmins({
+                search: debouncedSearch,
+                status: statusFilter,
+                dateSort: dateSort
+            });
+            setAdmins(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to fetch admins');
+        } finally {
+            setLoading(false);
+        }
+    }, [debouncedSearch, statusFilter, dateSort]);
+
+    // Load stats
+    const loadStats = async () => {
+        try {
+            const statsData = await userService.getAdminStats();
+            setStats(statsData);
+        } catch (err) {
+            console.error('Error loading stats:', err);
+        }
+    };
+
+    // Initial load and reload on filter change
+    useEffect(() => {
+        loadAdmins();
+    }, [loadAdmins]);
+
+    // Initial stats load
+    useEffect(() => {
+        loadStats();
+    }, []);
+
+    // Handle archive toggle
+    const handleArchiveToggle = async (admin: Users) => {
+        try {
+            await userService.toggleArchiveAdmin(admin.id, admin.status);
+            // Refresh list and stats
+            await loadAdmins();
+            await loadStats();
+        } catch (err) {
+            console.error('Error toggling archive:', err);
+            alert(err instanceof Error ? err.message : 'Failed to update admin status');
+        }
+    };
+
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '—';
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
             month: '2-digit',
@@ -55,19 +116,19 @@ const ManageAdmins = () => {
                     <div className="stat-header">
                         <span className="stat-label">Total Admin</span>
                     </div>
-                    <div className="stat-value">3</div>
+                    <div className="stat-value">{stats.totalAdmins}</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-header">
                         <span className="stat-label">Active Admins</span>
                     </div>
-                    <div className="stat-value">2</div>
+                    <div className="stat-value">{stats.activeAdmins}</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-header">
                         <span className="stat-label">Archived Admins</span>
                     </div>
-                    <div className="stat-value">1</div>
+                    <div className="stat-value">{stats.archivedAdmins}</div>
                 </div>
             </div>
 
@@ -97,10 +158,9 @@ const ManageAdmins = () => {
                     <select
                         className="select"
                         style={{ width: '100%' }}
-                        value={dateFilter}
-                        onChange={(e) => setDateFilter(e.target.value)}
+                        value={dateSort}
+                        onChange={(e) => setDateSort(e.target.value as 'newest' | 'oldest')}
                     >
-                        <option value="all">All Date Created</option>
                         <option value="newest">Newest</option>
                         <option value="oldest">Oldest</option>
                     </select>
@@ -121,6 +181,20 @@ const ManageAdmins = () => {
                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
             </div>
+
+            {/* Error Banner */}
+            {error && (
+                <div style={{
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    backgroundColor: 'hsl(var(--danger) / 0.1)',
+                    color: 'hsl(var(--danger))',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid hsl(var(--danger) / 0.2)',
+                }}>
+                    {error}
+                </div>
+            )}
 
             {/* Table Container - Scrollable */}
             <div className="table-container" style={{
@@ -143,23 +217,33 @@ const ManageAdmins = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredAdmins.length === 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan={5} style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: '#64748b' }}>
+                                        <Loader2 size={24} className="spinner" />
+                                        <span>Loading admins...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : admins.length === 0 ? (
                             <tr>
                                 <td colSpan={5} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
                                     No admins found.
                                 </td>
                             </tr>
                         ) : (
-                            filteredAdmins.map((admin) => (
+                            admins.map((admin) => (
                                 <tr key={admin.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{admin.name}</td>
+                                    <td style={{ padding: '1rem', color: '#334155' }}>{admin.full_name}</td>
                                     <td style={{ padding: '1rem', color: '#334155' }}>{admin.email}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{formatDate(admin.dateCreated)}</td>
+                                    <td style={{ padding: '1rem', color: '#334155' }}>{formatDate(admin.created_at)}</td>
                                     <td style={{ padding: '1rem' }}>
                                         <span
                                             style={{
-                                                color: admin.status === 'Active' ? '#22c55e' : '#8b5cf6',
+                                                color: admin.status === 'active' ? '#22c55e' : '#8b5cf6',
                                                 fontWeight: 500,
+                                                textTransform: 'capitalize'
                                             }}
                                         >
                                             {admin.status}
@@ -187,7 +271,8 @@ const ManageAdmins = () => {
                                                     color: '#64748b',
                                                     padding: '4px'
                                                 }}
-                                                title="Archive"
+                                                title={admin.status === 'active' ? 'Archive' : 'Restore'}
+                                                onClick={() => handleArchiveToggle(admin)}
                                             >
                                                 <Archive size={18} />
                                             </button>

@@ -25,12 +25,6 @@ function isUserRole(value: unknown): value is UserRole {
     return value === 'admin' || value === 'supervisor' || value === 'intern';
 }
 
-function getRoleFromPath(pathname: string): UserRole | null {
-    if (pathname.startsWith('/admin')) return 'admin';
-    if (pathname.startsWith('/supervisor')) return 'supervisor';
-    if (pathname.startsWith('/intern')) return 'intern';
-    return null;
-}
 
 function getLastKnownRole(): UserRole | null {
     try {
@@ -103,13 +97,13 @@ function mapSessionToFallbackUser(sessionUser: {
 }): User {
     const roleFromUserMetadata = sessionUser.user_metadata?.role;
     const roleFromAppMetadata = sessionUser.app_metadata?.role;
-    const roleFromPath = getRoleFromPath(window.location.pathname);
+    // Removing getRoleFromPath - we should not infer role from the URL, 
+    // as it can cause a "sticky" wrong role if the user is redirected incorrectly.
     const lastKnownRole = getLastKnownRole();
 
     const role: UserRole =
         (isUserRole(roleFromUserMetadata) && roleFromUserMetadata) ||
         (isUserRole(roleFromAppMetadata) && roleFromAppMetadata) ||
-        roleFromPath ||
         lastKnownRole ||
         'intern';
 

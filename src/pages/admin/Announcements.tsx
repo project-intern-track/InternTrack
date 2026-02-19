@@ -77,11 +77,22 @@ const Announcements = () => {
 
     // Filter Logic
     const filteredAnnouncements = announcements.filter(a => {
+
+        // Added Trim to remove extra spaces
+        const cleanSearch = searchTerm.trim().toLocaleLowerCase();
+
+        // If term is empty, show every item
+        if (!cleanSearch) {
+            return priorityFilter === 'all' || a.priority === priorityFilter;
+
+        }
+
         const matchesSearch =
             a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             a.content.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesPriority = priorityFilter === 'all' || a.priority === priorityFilter;
         return matchesSearch && matchesPriority;
+        
     });
 
     // Formatting

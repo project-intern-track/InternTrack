@@ -22,15 +22,21 @@ import StudentSchedule from "./pages/student/Schedule";
 import StudentReports from "./pages/student/Reports";
 import StudentSettings from "./pages/student/Settings";
 import StudentAnnouncements from "./pages/student/Announcements";
+import StudentTaskList from "./pages/student/TaskList";
+import StudentPerformanceFeedback from "./pages/student/PerformanceFeedback";
 
 // Supervisor Pages
 import SupervisorDashboard from "./pages/supervisor/SupervisorDashboard";
 import SupervisorManageInterns from "./pages/supervisor/ManageInterns";
+import SupervisorAnnouncements from "./pages/supervisor/SupervisorAnnouncements";
+import SupervisorApprovals from "./pages/supervisor/SupervisorApprovals";
+import InternPerformance from "./pages/supervisor/InternPerformance";
 import SupervisorManageTasks from "./pages/supervisor/ManageTasks";
 import SupervisorMonitorAttendance from "./pages/supervisor/MonitorAttendance";
 import SupervisorReports from "./pages/supervisor/Reports";
 import SupervisorSettings from "./pages/supervisor/Settings";
-import SupervisorAnnouncements from "./pages/supervisor/Announcements";
+import Evaluations from "./pages/supervisor/Evaluations";
+import FeedbackDashboard from "./pages/supervisor/FeedbackDashboard";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -41,6 +47,8 @@ import AdminManageSupervisors from "./pages/admin/ManageSupervisors";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminAnnouncements from "./pages/admin/Announcements";
+import AdminManageAdmins from "./pages/admin/ManageAdmins";
+import AdminManageSupervisors from "./pages/admin/ManageSupervisors";
 
 import { Briefcase } from "lucide-react";
 import "./styles/auth.css";
@@ -187,7 +195,9 @@ function AppRoutes() {
           }
         >
           <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="tasks" element={<StudentTaskList />} />
           <Route path="logs" element={<StudentDailyLogs />} />
+          <Route path="feedback" element={<StudentPerformanceFeedback />} />
           <Route path="schedule" element={<StudentSchedule />} />
           <Route path="reports" element={<StudentReports />} />
           <Route path="announcements/:type" element={<StudentAnnouncements />} />
@@ -205,13 +215,14 @@ function AppRoutes() {
         >
           <Route path="dashboard" element={<SupervisorDashboard />} />
           <Route path="interns" element={<SupervisorManageInterns />} />
+          <Route path="SupervisorAnnouncements" element={<SupervisorAnnouncements />} />
+          <Route path="SupervisorApprovals" element={<SupervisorApprovals />} />
+          <Route path="InternPerformance" element={<InternPerformance />} />
           <Route path="tasks" element={<SupervisorManageTasks />} />
-          <Route path="attendance" element={<SupervisorMonitorAttendance />} />
+          <Route path="MonitorAttendance" element={<SupervisorMonitorAttendance />} />
           <Route path="reports" element={<SupervisorReports />} />
-          <Route
-            path="announcements/:type"
-            element={<SupervisorAnnouncements />}
-          />
+          <Route path="Evaluations" element={<Evaluations />} />
+          <Route path="FeedbackDashboard" element={<FeedbackDashboard />} />
           <Route path="settings" element={<SupervisorSettings />} />
         </Route>
 
@@ -228,6 +239,7 @@ function AppRoutes() {
           <Route path="interns" element={<AdminManageInterns />} />
           <Route path="tasks" element={<AdminManageTasks />} />
           <Route path="attendance" element={<AdminMonitorAttendance />} />
+          <Route path="manage-admins" element={<AdminManageAdmins />} />
           <Route path="manage-supervisors" element={<AdminManageSupervisors />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="announcements" element={<AdminAnnouncements />} />

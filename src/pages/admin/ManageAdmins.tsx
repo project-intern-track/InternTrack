@@ -279,7 +279,7 @@ const ManageAdmins = () => {
                                 <button className="btn btn-primary" onClick={handleContinue} disabled={!selectedInternId}>Next</button>
                             ) : (
                                 <button className="btn btn-primary" onClick={handleConfirmUpgrade} disabled={upgrading}>
-                                    {upgrading ? <Loader2 className="spinner" size={18} /> : 'Confirm Upgrade'}
+                                    {upgrading ? <Loader2 size={18} /> : 'Confirm Upgrade'}
                                 </button>
                             )}
                         </div>

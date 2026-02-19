@@ -44,6 +44,8 @@ import AdminMonitorAttendance from "./pages/admin/MonitorAttendance";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminAnnouncements from "./pages/admin/Announcements";
+import AdminManageAdmins from "./pages/admin/ManageAdmins";
+import AdminManageSupervisors from "./pages/admin/ManageSupervisors";
 
 import { Briefcase } from "lucide-react";
 import "./styles/auth.css";
@@ -232,6 +234,8 @@ function AppRoutes() {
           <Route path="interns" element={<AdminManageInterns />} />
           <Route path="tasks" element={<AdminManageTasks />} />
           <Route path="attendance" element={<AdminMonitorAttendance />} />
+          <Route path="manage-admins" element={<AdminManageAdmins />} />
+          <Route path="manage-supervisors" element={<AdminManageSupervisors />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="announcements" element={<AdminAnnouncements />} />
           <Route path="settings" element={<AdminSettings />} />

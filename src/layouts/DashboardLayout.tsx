@@ -10,10 +10,10 @@ const DashboardLayout = () => {
     return (
         <div className="dashboard-container">
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-            
+
             <div className="dashboard-main">
-                <button 
-                    className="hamburger-menu" 
+                <button
+                    className="hamburger-menu"
                     onClick={() => setSidebarOpen(true)}
                     aria-label="Open menu"
                 >

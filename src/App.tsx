@@ -48,7 +48,7 @@ import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminManageAdmins from "./pages/admin/ManageAdmins";
-import AdminManageSupervisors from "./pages/admin/ManageSupervisors";
+
 
 import { Briefcase } from "lucide-react";
 import "./styles/auth.css";

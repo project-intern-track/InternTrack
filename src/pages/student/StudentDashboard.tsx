@@ -4,39 +4,76 @@ import { FaCheckCircle } from "react-icons/fa";
 import { FiClock } from "react-icons/fi";
 import { BsHourglassSplit } from "react-icons/bs";
 import { announcementService } from "../../services/announcementService";
-import type { Announcement } from "../../types/database.types";
+import { userService } from "../../services/userServices";
+import { taskService } from "../../services/taskServices";
+import { attendanceService } from "../../services/attendanceServices";
+import type { Announcement, Tasks, Attendance, Users } from "../../types/database.types";
 import { Loader2 } from "lucide-react";
 
-interface User {
-  name?: string;
-}
-
-interface AuthContextType {
-  user?: User;
-}
-
 const StudentDashboard: React.FC = () => {
-  const { user } = useAuth() as AuthContextType;
+  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    tasksCompleted: 0,
+    hoursLogged: 0,
+    targetHours: 400,
+    daysRemaining: 0,
+  });
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
+    const fetchData = async () => {
+      if (!user?.id) return;
+
       try {
-        const data = await announcementService.getAnnouncements();
-        // Sort by created_at desc
-        const sorted = (data || []).sort((a, b) =>
+        setLoading(true);
+
+        // Parallel fetching
+        const [announcementsData, profileData, tasksData, attendanceData] = await Promise.all([
+          announcementService.getAnnouncements(),
+          userService.getProfile(user.id),
+          taskService.getTasks(),
+          attendanceService.getAttendance()
+        ]);
+
+        // Process Announcements
+        const sortedAnnouncements = (announcementsData || []).sort((a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-        setAnnouncements(sorted);
+        setAnnouncements(sortedAnnouncements);
+
+        // Process Stats
+        const profile = profileData as Users;
+        const targetHours = profile.required_hours || 400;
+
+        // Tasks Stats (RLS filters tasks for this user)
+        const myTasks = tasksData as Tasks[] || [];
+        const tasksCompleted = myTasks.filter(t => t.status === 'done').length;
+
+        // Attendance Stats (RLS filters attendance for this user)
+        const myAttendance = attendanceData as Attendance[] || [];
+        const hoursLogged = myAttendance.reduce((sum, record) => sum + (record.total_hours || 0), 0);
+
+        // Days Remaining (Assuming 8 hours per day)
+        const hoursRemaining = Math.max(0, targetHours - hoursLogged);
+        const daysRemaining = Math.ceil(hoursRemaining / 8);
+
+        setStats({
+          tasksCompleted,
+          hoursLogged: Math.round(hoursLogged * 10) / 10, // Round to 1 decimal
+          targetHours,
+          daysRemaining
+        });
+
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching dashboard data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchAnnouncements();
-  }, []);
+
+    fetchData();
+  }, [user?.id]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -206,8 +243,8 @@ const StudentDashboard: React.FC = () => {
         >
           <FaCheckCircle style={{ ...styles.icon, color: "#22c55e" }} />
           <p style={styles.title}>Tasks Completed</p>
-          <h1 style={styles.bigNumber}>24</h1>
-          <span style={styles.green}>+2 this week</span>
+          <h1 style={styles.bigNumber}>{stats.tasksCompleted}</h1>
+          <span style={styles.green}>Current Status</span>
         </div>
 
         {/* Card 2 */}
@@ -219,10 +256,10 @@ const StudentDashboard: React.FC = () => {
           <FiClock style={{ ...styles.icon, color: "#3b82f6" }} />
           <p style={styles.title}>Hours Logged</p>
           <div style={styles.numberRow}>
-            <h1 style={styles.bigNumber}>128</h1>
+            <h1 style={styles.bigNumber}>{stats.hoursLogged}</h1>
             <span style={styles.unit}>hrs</span>
           </div>
-          <span style={styles.subText}>Target: 400h</span>
+          <span style={styles.subText}>Target: {stats.targetHours}h</span>
         </div>
 
         {/* Card 3 */}
@@ -233,8 +270,8 @@ const StudentDashboard: React.FC = () => {
         >
           <BsHourglassSplit style={{ ...styles.icon, color: "#f97316" }} />
           <p style={styles.title}>Internship Days</p>
-          <h1 style={styles.bigNumber}>45</h1>
-          <span style={styles.subText}>Days remaining</span>
+          <h1 style={styles.bigNumber}>{stats.daysRemaining}</h1>
+          <span style={styles.subText}>Days Remaining</span>
         </div>
       </div>
 
@@ -244,7 +281,7 @@ const StudentDashboard: React.FC = () => {
         <div style={styles.announcementBox}>
           {loading ? (
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', color: '#64748b' }}>
-              <Loader2 className="spinner" /> Loading announcements...
+              <Loader2 className="spinner" /> Loading dashboard data...
             </div>
           ) : announcements.length === 0 ? (
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

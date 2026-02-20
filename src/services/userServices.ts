@@ -121,6 +121,19 @@ export const userService = {
         return data as Users;
     },
 
+    // Update any user's profile (generic — works for admin, supervisor, intern)
+    async updateUser(userId: string, updates: Partial<Users>) {
+        const { data, error } = await supabase
+            .from("users")
+            .update(updates)
+            .eq("id", userId)
+            .select()
+            .single();
+
+        if (error) throw new Error(`Error Updating User: ${error.message}`);
+        return data as Users;
+    },
+
     // Archive or restore an intern
     async toggleArchiveIntern(internId: string, currentStatus: string) {
         const newStatus = currentStatus === "active" ? "archived" : "active";

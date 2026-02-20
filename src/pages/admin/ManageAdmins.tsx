@@ -4,7 +4,6 @@ import {
     Filter,
     Pencil,
     Archive,
-    ChevronDown,
     Plus,
     Loader2
 } from 'lucide-react';
@@ -12,7 +11,7 @@ import { userService } from '../../services/userServices';
 import type { Users } from '../../types/database.types';
 
 const ManageAdmins = () => {
-    const [admins, setAdmins] = useState<Users[] | null>(null); 
+    const [admins, setAdmins] = useState<Users[] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     // Filter states
@@ -57,7 +56,7 @@ const ManageAdmins = () => {
             setAdmins(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch admins');
-        } 
+        }
     }, [debouncedSearch, statusFilter, dateSort]);
 
     // Load stats
@@ -212,6 +211,20 @@ const ManageAdmins = () => {
                 </div>
             </div>
 
+            {/* Error Banner */}
+            {error && (
+                <div style={{
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    backgroundColor: 'hsl(var(--danger) / 0.1)',
+                    color: 'hsl(var(--danger))',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid hsl(var(--danger) / 0.2)',
+                }}>
+                    {error}
+                </div>
+            )}
+
             {/* Table Container */}
             <div className="table-container" style={{ borderRadius: '8px', border: '1px solid #e5e5e5', overflow: 'auto', backgroundColor: 'white' }}>
                 <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'center' }}>
@@ -261,12 +274,13 @@ const ManageAdmins = () => {
                         {!confirmationStep ? (
                             <div>
                                 <label>Select Intern:</label>
-                                <select className="select" style={{ width: '100%' }} value={selectedInternId} onChange={(e) => setSelectedInternId(e.target.value)}>
+                                <select className="select" style={{ width: '100%' }} value={selectedInternId} onChange={(e) => setSelectedInternId(e.target.value)} disabled={loadingInterns}>
                                     <option value="">-- Choose an intern --</option>
                                     {eligibleInterns.map(intern => (
                                         <option key={intern.id} value={intern.id}>{intern.full_name} ({intern.email})</option>
                                     ))}
                                 </select>
+                                {loadingInterns && <span style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>Loading eligible users...</span>}
                             </div>
                         ) : (
                             <p>Are you sure you want to upgrade <strong>{selectedInternName}</strong>?</p>
@@ -276,7 +290,7 @@ const ManageAdmins = () => {
                                 {confirmationStep ? 'Back' : 'Cancel'}
                             </button>
                             {!confirmationStep ? (
-                                <button className="btn btn-primary" onClick={handleContinue} disabled={!selectedInternId}>Next</button>
+                                <button className="btn btn-primary" onClick={handleContinue} disabled={!selectedInternId || loadingInterns}>Next</button>
                             ) : (
                                 <button className="btn btn-primary" onClick={handleConfirmUpgrade} disabled={upgrading}>
                                     {upgrading ? <Loader2 size={18} /> : 'Confirm Upgrade'}

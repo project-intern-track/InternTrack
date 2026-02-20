@@ -5,8 +5,7 @@ import {
     Pencil,
     Archive,
     ChevronDown,
-    Download,
-    Loader2
+    Download
 } from 'lucide-react';
 import { userService } from '../../services/userServices';
 import type { Users, OJTType } from '../../types/database.types';
@@ -91,7 +90,7 @@ const ManageInterns = () => {
             setInterns(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch interns');
-        } 
+        }
 
     }, [debouncedSearch, sortDirection, roleFilter, statusFilter]);
 
@@ -115,9 +114,9 @@ const ManageInterns = () => {
 
     // Client-side filtering & sorting for Start Date and Required Hours
     const filteredInterns = useMemo(() => {
-        
+
         if (!interns) return [];
-        
+
         let result = [...interns];
 
         // --- Start Date filter ---
@@ -434,7 +433,7 @@ const ManageInterns = () => {
                 overflow: 'auto',
                 backgroundColor: 'white',
                 width: '100%',
-                maxWidth: '100vw', 
+                maxWidth: '100vw',
                 position: 'relative'
             }}>
 
@@ -662,6 +661,7 @@ const ManageInterns = () => {
                             <button
                                 className="btn"
                                 onClick={closeEditModal}
+                                disabled={saving}
                                 style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 Cancel
@@ -669,9 +669,10 @@ const ManageInterns = () => {
                             <button
                                 className="btn btn-primary"
                                 onClick={handleEditSave}
+                                disabled={saving}
                                 style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
-                                Save Changes
+                                {saving ? 'Saving...' : 'Save Changes'}
                             </button>
                         </div>
                     </div>

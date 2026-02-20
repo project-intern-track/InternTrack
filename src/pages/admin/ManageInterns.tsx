@@ -204,20 +204,64 @@ const ManageInterns = () => {
     };
 
     const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+
+        // Full Name: reject any numeric characters
+        if (name === 'full_name' && /\d/.test(value)) {
+            return;
+        }
+
+        // OJT ID: allow only digits, max 4 characters
+        if (name === 'ojt_id') {
+            if (value !== '' && (!/^\d*$/.test(value) || value.length > 4)) {
+                return;
+            }
+        }
+
+        // Required Hours: allow only digits, max 4 characters
+        if (name === 'required_hours') {
+            if (value !== '' && (!/^\d*$/.test(value) || value.length > 4)) {
+                return;
+            }
+        }
+
+        setEditForm((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleEditSave = async () => {
         if (!editingIntern) return;
 
-        // Basic validation
+        // ---- Validation ----
         if (!editForm.full_name.trim()) {
             setEditError('Full name is required.');
+            return;
+        }
+        // Full Name must not contain numbers
+        if (/\d/.test(editForm.full_name)) {
+            setEditError('Full name must not contain numeric characters.');
             return;
         }
         if (!editForm.email.trim()) {
             setEditError('Email is required.');
             return;
+        }
+        // OJT ID must be exactly 4 digits
+        if (editForm.ojt_id && !/^\d{4}$/.test(editForm.ojt_id)) {
+            setEditError('OJT ID must be exactly 4 digits.');
+            return;
+        }
+        // Required Hours must be at most 4 digits
+        if (editForm.required_hours && !/^\d{1,4}$/.test(editForm.required_hours)) {
+            setEditError('Required Hours must be at most 4 digits.');
+            return;
+        }
+        // Voluntary OJT type requires at least 500 hours
+        if (editForm.ojt_type === 'voluntary' && editForm.required_hours) {
+            const hours = parseInt(editForm.required_hours, 10);
+            if (hours < 500) {
+                setEditError('When OJT Type is Voluntary, Required Hours must be 500 or more.');
+                return;
+            }
         }
 
         try {
@@ -601,7 +645,9 @@ const ManageInterns = () => {
                                 <input
                                     className="input"
                                     name="ojt_id"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={4}
                                     value={editForm.ojt_id}
                                     onChange={handleEditChange}
                                     placeholder="e.g. 1101"
@@ -628,7 +674,9 @@ const ManageInterns = () => {
                                 <input
                                     className="input"
                                     name="required_hours"
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={4}
                                     value={editForm.required_hours}
                                     onChange={handleEditChange}
                                     placeholder="e.g. 600"

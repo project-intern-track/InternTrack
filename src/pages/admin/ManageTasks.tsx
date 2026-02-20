@@ -1,6 +1,12 @@
 import { Filter, Search, Calendar, X } from 'lucide-react';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { supabase } from '../../services/supabaseClient';
 import '../../index.css';
+
+// Added Import to get Tasks Data
+import { taskService } from '../../services/taskServices';
+import type { Tasks, TaskStatus, TaskPriority } from '../../types/database.types';
+import { useRealtime } from '../../hooks/useRealtime';
 
 
 // sample records
@@ -57,6 +63,10 @@ const ManageTasks = () => {
     const [dueDateFilter, setDueDateFilter] = useState('All Due Date');
     const [priorityFilter, setPriorityFilter] = useState('All Priority');
     const [statusFilter, setStatusFilter] = useState('All Status');
+
+    // Actual Data From Supabase
+    const [tasks, setTasks] = useState<Tasks[]>([]);
+    const [selectedTask, setSelectedTask] = useState<Tasks | null>(null);
     
     // modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,6 +80,33 @@ const ManageTasks = () => {
     const [internSearch, setInternSearch] = useState('');
     const [selectedInterns, setSelectedInterns] = useState<string[]>([]);
     const [isInternSearchFocused, setIsInternSearchFocused] = useState(false);
+
+    // Fetching Task
+    const fetchTask = async () => {
+
+        try {
+
+            //Get All Task Data from Supabase
+            const data = await taskService.getTasks();
+            console.log("Supabase Connection Successful! Data received:", data);
+
+
+            setTasks(data as Tasks[]);
+ 
+        } catch (err) {
+            console.log('Failed to Catch Task', err);
+            console.error("Supabase Connection Failed:", err);
+        }
+
+    };
+
+    // Updates Tasks Real Time
+    useRealtime('tasks', fetchTask);
+
+    // Run Function For Collecting Data
+    useEffect(() => {
+        fetchTask();
+    }, []);
     
     // ref for date input
     const dateInputRef = useRef<HTMLInputElement>(null);
@@ -122,26 +159,76 @@ const ManageTasks = () => {
         setSelectedInterns([]);
         setInternSearch('');
     }; 
+
+    // 
+    const handleViewDetail = (task: Tasks) => {
+        setSelectedTask(task);
+    }
+
+    const closeViewDetail = () => {
+        setSelectedTask(null);
+    }
+
     // Handle assign
-    const handleAssign = () => {
-        // TODO: Connect to API
-        console.log('Assign task:', {
-            title: taskTitle,
-            description: taskDescription,
-            dueDate,
-            dueTime,
-            priority,
-            assignedInterns: selectedInterns
-        });
-        setIsModalOpen(false);
-        handleClear();
-    };
+    const handleAssign = async () => {
+        // Updated Connected to API
+        try 
+            {
+                if (!taskTitle || !selectedInterns.length) {
+                    alert("Please provide a title and assign at least one intern.");
+                    return;
+                }
+
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (!user) {
+                alert("Session expired. Please log in again.");
+                return;
+                }
+
+                const taskData = {
+                    title: taskTitle,
+                    description: taskDescription,
+                    priority: priority as TaskPriority,
+                    status: 'todo' as TaskStatus,
+                    due_date: `${dueDate}T${dueTime || '23:59'}:00`, // Combines date and time
+                    assigned_to: selectedInterns[0], 
+                    created_by: user.id // Get current Admin ID 
+                }
+            
+                // Send to Supabase
+                await taskService.createTask(taskData);
+
+                // Fetched Data load
+                await fetchTask();
+
+                // Keep Console Log for debugging if something went wrong
+                console.log('Assign task successful:', {
+                title: taskTitle,
+                description: taskDescription,
+                dueDate,
+                dueTime,
+                priority,
+                assignedInterns: selectedInterns,
+                });
+
+                // UI clean Up
+                setIsModalOpen(false);
+                handleClear();
+                alert("Task Assigned Properly")
+            } catch (err) {
+                console.log("Database Error:", err)
+                alert('Failed to Connect')
+            }
+        };
     
     // Close modal
     const closeModal = () => {
         setIsModalOpen(false);
         handleClear();
     };
+
+    
 
     const getPriorityStyle = (priority: string) => {
         switch (priority) {
@@ -216,7 +303,7 @@ const ManageTasks = () => {
 
     // Filter tasks based on search and filters
     const filteredTasks = useMemo(() => {
-        return sampleTasks.filter(task => {
+        return tasks.filter(task => {
             const searchLower = search.toLowerCase();
             const matchesSearch = search === '' || 
                 task.title.toLowerCase().includes(searchLower) ||
@@ -230,20 +317,20 @@ const ManageTasks = () => {
 
             let matchesDueDate = true;
             if (dueDateFilter !== 'All Due Date') {
-                const taskDueDate = parseDueDate(task.dueDate);
+                const taskDueDate = parseDueDate(task.due_date);
                 if (!taskDueDate) {
                     matchesDueDate = false;
                 } else if (dueDateFilter === 'Today') {
                     matchesDueDate = isToday(taskDueDate);
                 } else {
-                    const taskDatePart = task.dueDate.split(' - ')[0];
+                    const taskDatePart = task.due_date.split(' - ')[0];
                     matchesDueDate = taskDatePart === dueDateFilter;
                 }
             }
 
             return matchesSearch && matchesPriority && matchesStatus && matchesDueDate;
         });
-    }, [search, priorityFilter, statusFilter, dueDateFilter]);
+    }, [tasks ,search, priorityFilter, statusFilter, dueDateFilter]);
 
     return (
         <div>
@@ -397,6 +484,8 @@ const ManageTasks = () => {
                     <div
                         key={task.id}
                         className="card"
+                        // TO DO - Check if this loads all task from supabase
+                        onClick={() => handleViewDetail(task)}
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
@@ -471,13 +560,13 @@ const ManageTasks = () => {
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span style={{ color: '#666' }}>Assigned to:</span>
                                 <span style={{ fontWeight: 600, color: '#000' }}>
-                                    {task.assignedTo} intern{task.assignedTo !== 1 ? 's' : ''}
+                                    {task.assigned_to} intern
                                 </span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span style={{ color: '#666' }}>Due:</span>
                                 <span style={{ fontWeight: 600, color: '#000' }}>
-                                    {task.dueDate}
+                                    {task.due_date}
                                 </span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -892,6 +981,99 @@ const ManageTasks = () => {
             </div>
         )}
 
+
+        {/* --- TASK DETAIL MODAL --- */}
+        {selectedTask && (
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 1000,
+                backdropFilter: 'blur(4px)'
+            }}>
+                <div style={{
+                    backgroundColor: '#fff',
+                    width: '90%',
+                    maxWidth: '500px',
+                    borderRadius: '16px',
+                    padding: '2rem',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                    position: 'relative'
+                }}>
+                    {/* Header */}
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111', margin: 0 }}>
+                                {selectedTask.title}
+                            </h2>
+                        </div>
+                        <span style={{ 
+                            display: 'inline-block', 
+                            marginTop: '0.5rem', 
+                            padding: '4px 12px', 
+                            borderRadius: '20px', 
+                            fontSize: '0.75rem', 
+                            fontWeight: 600,
+                            backgroundColor: '#e5e7eb',
+                            color: '#374151'
+                        }}>
+                            {selectedTask.status}
+                        </span>
+                    </div>
+
+                    {/* Description */}
+                    <p style={{ color: '#4b5563', lineHeight: 1.6, marginBottom: '2rem' }}>
+                        {selectedTask.description || "No description provided."}
+                    </p>
+
+                    {/* Information Box */}
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: '1fr 1fr', 
+                        gap: '1rem',
+                        padding: '1.5rem',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '12px',
+                        marginBottom: '2rem'
+                    }}>
+                        <div>
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', textTransform: 'uppercase' }}>Assigned To</span>
+                            <span style={{ fontWeight: 600, color: '#111' }}>{selectedTask.assigned_to}</span>
+                        </div>
+                        <div>
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', textTransform: 'uppercase' }}>Due Date</span>
+                            <span style={{ fontWeight: 600, color: '#111' }}>
+                                {new Date(selectedTask.due_date).toLocaleDateString()}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Buttons */}
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                        <button 
+                            onClick={closeViewDetail}
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                borderRadius: '8px',
+                                border: '1px solid #e5e7eb',
+                                backgroundColor: '#fff',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
        </div>
     );
 };

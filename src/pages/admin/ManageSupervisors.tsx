@@ -11,6 +11,12 @@ import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
 
+// Shape of the edit form data (supervisor only needs name + email)
+interface EditFormData {
+    full_name: string;
+    email: string;
+}
+
 const ManageSupervisors = () => {
     const [supervisors, setSupervisors] = useState<Users[] | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -31,6 +37,12 @@ const ManageSupervisors = () => {
     const [selectedInternId, setSelectedInternId] = useState('');
     const [confirmationStep, setConfirmationStep] = useState(false);
     const [upgrading, setUpgrading] = useState(false);
+
+    // Edit Supervisor Modal States
+    const [editingSupervisor, setEditingSupervisor] = useState<Users | null>(null);
+    const [editForm, setEditForm] = useState<EditFormData>({ full_name: '', email: '' });
+    const [saving, setSaving] = useState(false);
+    const [editError, setEditError] = useState<string | null>(null);
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -136,6 +148,71 @@ const ManageSupervisors = () => {
             alert(err instanceof Error ? err.message : 'Failed to upgrade user');
         } finally {
             setUpgrading(false);
+        }
+    };
+
+    // ---------- Edit modal helpers ----------
+    const openEditModal = (supervisor: Users) => {
+        setEditingSupervisor(supervisor);
+        setEditForm({
+            full_name: supervisor.full_name ?? '',
+            email: supervisor.email ?? '',
+        });
+        setEditError(null);
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeEditModal = () => {
+        setEditingSupervisor(null);
+        setEditError(null);
+        document.body.style.overflow = '';
+    };
+
+    const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+
+        // Full Name: reject any numeric characters
+        if (name === 'full_name' && /\d/.test(value)) {
+            return;
+        }
+
+        setEditForm((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleEditSave = async () => {
+        if (!editingSupervisor) return;
+
+        // ---- Validation ----
+        if (!editForm.full_name.trim()) {
+            setEditError('Full name is required.');
+            return;
+        }
+        if (/\d/.test(editForm.full_name)) {
+            setEditError('Full name must not contain numeric characters.');
+            return;
+        }
+        if (!editForm.email.trim()) {
+            setEditError('Email is required.');
+            return;
+        }
+
+        try {
+            setSaving(true);
+            setEditError(null);
+
+            const updates: Partial<Users> = {
+                full_name: editForm.full_name.trim(),
+                email: editForm.email.trim(),
+            };
+
+            await userService.updateUser(editingSupervisor.id, updates);
+            closeEditModal();
+            await loadSupervisors();
+            await loadStats();
+        } catch (err) {
+            setEditError(err instanceof Error ? err.message : 'Failed to update supervisor.');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -259,7 +336,7 @@ const ManageSupervisors = () => {
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }}><Pencil size={18} /></button>
+                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => openEditModal(supervisor)}><Pencil size={18} /></button>
                                             <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleArchiveToggle(supervisor)}><Archive size={18} /></button>
                                         </div>
                                     </td>
@@ -300,6 +377,91 @@ const ManageSupervisors = () => {
                                     {upgrading ? <Loader2 size={18} /> : 'Confirm Upgrade'}
                                 </button>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== Edit Supervisor Modal ===== */}
+            {editingSupervisor && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    backdropFilter: 'blur(2px)'
+                }} onClick={closeEditModal}>
+                    <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
+                        {/* Heading */}
+                        <div style={{ marginBottom: '2rem' }}>
+                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Edit Supervisor Information</h2>
+                        </div>
+
+                        {editError && (
+                            <div style={{
+                                padding: '0.75rem 1rem',
+                                marginBottom: '1.5rem',
+                                backgroundColor: 'hsl(var(--danger) / 0.1)',
+                                color: 'hsl(var(--danger))',
+                                borderRadius: '8px',
+                                border: '1px solid hsl(var(--danger) / 0.2)',
+                                fontSize: '0.875rem',
+                            }}>
+                                {editError}
+                            </div>
+                        )}
+
+                        {/* Full Name */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Full Name:</label>
+                            <input
+                                className="input"
+                                name="full_name"
+                                value={editForm.full_name}
+                                onChange={handleEditChange}
+                                placeholder="Enter full name"
+                                style={{ width: '100%', backgroundColor: 'white' }}
+                            />
+                        </div>
+
+                        {/* Email */}
+                        <div style={{ marginBottom: '3rem' }}>
+                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Email Address:</label>
+                            <input
+                                className="input"
+                                name="email"
+                                type="email"
+                                value={editForm.email}
+                                onChange={handleEditChange}
+                                placeholder="Enter email address"
+                                style={{ width: '100%', backgroundColor: 'white' }}
+                            />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button
+                                className="btn"
+                                onClick={closeEditModal}
+                                disabled={saving}
+                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleEditSave}
+                                disabled={saving}
+                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
                         </div>
                     </div>
                 </div>

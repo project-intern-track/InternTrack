@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, use } from 'react';
 import {
     Search,
     Filter,
@@ -55,6 +55,12 @@ const ManageInterns = () => {
 
     // Stats
     const [stats, setStats] = useState<{ totalInterns: number, totalRoles: number, archivedInterns: number } | null>(null);
+
+
+
+    // Current Page Logic
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     // Filters
     const [searchInput, setSearchInput] = useState('');       // what the user types (immediate)
@@ -166,6 +172,17 @@ const ManageInterns = () => {
 
         return result;
     }, [interns, startDateFilter, requiredHoursFilter]);
+
+    // Reset to Page 1 Whenever filter or search is changed
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch, roleFilter, statusFilter, startDateFilter, requiredHoursFilter]);
+
+    // Calculate the slice for the current page
+    const indexOfLastItem = currentPage * itemsPerPage
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage
+    const currentItems = filteredInterns.slice(indexOfFirstItem, indexOfLastItem)
+    const totalPages = Math.ceil(filteredInterns.length/itemsPerPage)
 
     // Handle archive toggle
     const handleArchiveToggle = async (intern: Users) => {
@@ -281,405 +298,447 @@ const ManageInterns = () => {
 
     if (!interns || !stats) return null;
 
-    return (
-        <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
-            {/* Header Section */}
-            <div className="manage-interns-header">
-                <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Interns</h1>
-                <button className="btn btn-primary" onClick={handleExportCSV} style={{ gap: '0.5rem' }}>
-                    <Download size={18} />
-                    Export to CSV
-                </button>
-            </div>
+        return (
+            <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
+                {/* Header Section */}
+                <div className="manage-interns-header">
+                    <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Interns</h1>
+                    <button className="btn btn-primary" onClick={handleExportCSV} style={{ gap: '0.5rem' }}>
+                        <Download size={18} />
+                        Export to CSV
+                    </button>
+                </div>
 
-            {/* Stats Cards */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-header">
-                        <span className="stat-label">Total Interns</span>
+                {/* Stats Cards */}
+                <div className="stats-grid">
+                    <div className="stat-card">
+                        <div className="stat-header">
+                            <span className="stat-label">Total Interns</span>
+                        </div>
+                        <div className="stat-value">{stats.totalInterns}</div>
                     </div>
-                    <div className="stat-value">{stats.totalInterns}</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-header">
-                        <span className="stat-label">Total Roles</span>
+                    <div className="stat-card">
+                        <div className="stat-header">
+                            <span className="stat-label">Total Roles</span>
+                        </div>
+                        <div className="stat-value">{stats.totalRoles}</div>
                     </div>
-                    <div className="stat-value">{stats.totalRoles}</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-header">
-                        <span className="stat-label">Archived Interns</span>
+                    <div className="stat-card">
+                        <div className="stat-header">
+                            <span className="stat-label">Archived Interns</span>
+                        </div>
+                        <div className="stat-value">{stats.archivedInterns}</div>
                     </div>
-                    <div className="stat-value">{stats.archivedInterns}</div>
-                </div>
-            </div>
-
-            {/* Search Bar */}
-            <div style={{ marginBottom: '1.5rem' }}>
-                <div className="input-group" style={{ position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
-                    <input
-                        type="text"
-                        className="input"
-                        placeholder="Search by name, role, email, or OJT ID"
-                        style={{ paddingLeft: '3rem' }}
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                    />
-                </div>
-            </div>
-
-            {/* Filter Section */}
-            <div className="manage-interns-filters">
-                <div className="row" style={{ alignItems: 'center', gap: '0.5rem', minWidth: 'fit-content' }}>
-                    <Filter size={20} />
-                    <span style={{ fontWeight: 600 }}>Filters:</span>
                 </div>
 
-                <div className="filter-dropdown">
-                    <select
-                        className="select"
-                        style={{ paddingRight: '2.5rem', width: '100%' }}
-                        value={sortDirection}
-                        onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
-                    >
-                        <option value="asc">Name: A → Z</option>
-                        <option value="desc">Name: Z → A</option>
-                    </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                {/* Search Bar */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <div className="input-group" style={{ position: 'relative' }}>
+                        <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
+                        <input
+                            type="text"
+                            className="input"
+                            placeholder="Search by name, role, email, or OJT ID"
+                            style={{ paddingLeft: '3rem' }}
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                        />
+                    </div>
                 </div>
 
-                <div className="filter-dropdown">
-                    <select
-                        className="select"
-                        style={{ width: '100%' }}
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                    >
-                        <option value="all">All Roles</option>
-                        {OJT_ROLES.map(role => (
-                            <option key={role} value={role}>{role}</option>
-                        ))}
-                    </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                {/* Filter Section */}
+                <div className="manage-interns-filters">
+                    <div className="row" style={{ alignItems: 'center', gap: '0.5rem', minWidth: 'fit-content' }}>
+                        <Filter size={20} />
+                        <span style={{ fontWeight: 600 }}>Filters:</span>
+                    </div>
+
+                    <div className="filter-dropdown">
+                        <select
+                            className="select"
+                            style={{ paddingRight: '2.5rem', width: '100%' }}
+                            value={sortDirection}
+                            onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
+                        >
+                            <option value="asc">Name: A → Z</option>
+                            <option value="desc">Name: Z → A</option>
+                        </select>
+                        <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    </div>
+
+                    <div className="filter-dropdown">
+                        <select
+                            className="select"
+                            style={{ width: '100%' }}
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                        >
+                            <option value="all">All Roles</option>
+                            {OJT_ROLES.map(role => (
+                                <option key={role} value={role}>{role}</option>
+                            ))}
+                        </select>
+                        <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    </div>
+
+                    <div className="filter-dropdown">
+                        <select
+                            className="select"
+                            style={{ width: '100%' }}
+                            value={startDateFilter}
+                            onChange={(e) => setStartDateFilter(e.target.value)}
+                        >
+                            <option value="all">All Start Date</option>
+                            <option value="newest">Newest to Oldest</option>
+                            <option value="oldest">Oldest to Newest</option>
+                            <option value="this-month">This Month</option>
+                            <option value="this-year">This Year</option>
+                        </select>
+                        <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    </div>
+
+                    <div className="filter-dropdown-wide">
+                        <select
+                            className="select"
+                            style={{ width: '100%' }}
+                            value={requiredHoursFilter}
+                            onChange={(e) => setRequiredHoursFilter(e.target.value)}
+                        >
+                            <option value="all">All Required Hours</option>
+                            <option value="100-200">100-200 hours</option>
+                            <option value="201-300">201-300 hours</option>
+                            <option value="301-400">301-400 hours</option>
+                            <option value="highest">Highest to Lowest</option>
+                            <option value="lowest">Lowest to Highest</option>
+                        </select>
+                        <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    </div>
+
+                    <div className="filter-dropdown">
+                        <select
+                            className="select"
+                            style={{ width: '100%' }}
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                        <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    </div>
                 </div>
 
-                <div className="filter-dropdown">
-                    <select
-                        className="select"
-                        style={{ width: '100%' }}
-                        value={startDateFilter}
-                        onChange={(e) => setStartDateFilter(e.target.value)}
-                    >
-                        <option value="all">All Start Date</option>
-                        <option value="newest">Newest to Oldest</option>
-                        <option value="oldest">Oldest to Newest</option>
-                        <option value="this-month">This Month</option>
-                        <option value="this-year">This Year</option>
-                    </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                </div>
+                {/* Error Banner */}
+                {error && (
+                    <div style={{
+                        padding: '1rem',
+                        marginBottom: '1rem',
+                        backgroundColor: 'hsl(var(--danger) / 0.1)',
+                        color: 'hsl(var(--danger))',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid hsl(var(--danger) / 0.2)',
+                    }}>
+                        {error}
+                    </div>
+                )}
 
-                <div className="filter-dropdown-wide">
-                    <select
-                        className="select"
-                        style={{ width: '100%' }}
-                        value={requiredHoursFilter}
-                        onChange={(e) => setRequiredHoursFilter(e.target.value)}
-                    >
-                        <option value="all">All Required Hours</option>
-                        <option value="100-200">100-200 hours</option>
-                        <option value="201-300">201-300 hours</option>
-                        <option value="301-400">301-400 hours</option>
-                        <option value="highest">Highest to Lowest</option>
-                        <option value="lowest">Lowest to Highest</option>
-                    </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                </div>
-
-                <div className="filter-dropdown">
-                    <select
-                        className="select"
-                        style={{ width: '100%' }}
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="archived">Archived</option>
-                    </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                </div>
-            </div>
-
-            {/* Error Banner */}
-            {error && (
-                <div style={{
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    backgroundColor: 'hsl(var(--danger) / 0.1)',
-                    color: 'hsl(var(--danger))',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid hsl(var(--danger) / 0.2)',
+                {/* Table Container - Scrollable */}
+                <div className="table-container" style={{
+                    borderRadius: '8px',
+                    border: '1px solid #e5e5e5',
+                    overflow: 'auto',
+                    backgroundColor: 'white',
+                    width: '100%',
+                    maxWidth: '100vw',
+                    position: 'relative'
                 }}>
-                    {error}
-                </div>
-            )}
 
-            {/* Table Container - Scrollable */}
-            <div className="table-container" style={{
-                borderRadius: '8px',
-                border: '1px solid #e5e5e5',
-                overflow: 'auto',
-                backgroundColor: 'white',
-                width: '100%',
-                maxWidth: '100vw',
-                position: 'relative'
-            }}>
-
-                <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', textAlign: 'center' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Name</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Role</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Email Address</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>OJT ID</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Start Date</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Required Hours</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Status</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredInterns.length === 0 ? (
-                            <tr>
-                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
-                                    No interns found.
-                                </td>
+                    <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', textAlign: 'center' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
+                                <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Name</th>
+                                <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Role</th>
+                                <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Email Address</th>
+                                <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>OJT ID</th>
+                                <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Start Date</th>
+                                <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Required Hours</th>
+                                <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Status</th>
+                                <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Actions</th>
                             </tr>
-                        ) : (
-                            filteredInterns.map((intern) => (
-                                <tr key={intern.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.full_name}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_role || '—'}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.email}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_id || '—'}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{formatDate(intern.start_date)}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <span
-                                            style={{
-                                                color: intern.status === 'active' ? '#22c55e' : '#8b5cf6',
-                                                fontWeight: 500,
-                                                textTransform: 'capitalize',
-                                            }}
-                                        >
-                                            {intern.status}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                                            <button
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    color: '#64748b',
-                                                    padding: '4px'
-                                                }}
-                                                title="Edit"
-                                                onClick={() => openEditModal(intern)}
-                                            >
-                                                <Pencil size={18} />
-                                            </button>
-                                            <button
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    color: '#64748b',
-                                                    padding: '4px'
-                                                }}
-                                                title={intern.status === 'active' ? 'Archive' : 'Restore'}
-                                                onClick={() => handleArchiveToggle(intern)}
-                                            >
-                                                <Archive size={18} />
-                                            </button>
-                                        </div>
+                        </thead>
+                        <tbody>
+                            {filteredInterns.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
+                                        No interns found.
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                            ) : (
+                                currentItems.map((intern) => (
+                                    <tr key={intern.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
+                                        <td style={{ padding: '1rem', color: '#334155' }}>{intern.full_name}</td>
+                                        <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_role || '—'}</td>
+                                        <td style={{ padding: '1rem', color: '#334155' }}>{intern.email}</td>
+                                        <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_id || '—'}</td>
+                                        <td style={{ padding: '1rem', color: '#334155' }}>{formatDate(intern.start_date)}</td>
+                                        <td style={{ padding: '1rem', color: '#334155' }}>{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
+                                        <td style={{ padding: '1rem' }}>
+                                            <span
+                                                style={{
+                                                    color: intern.status === 'active' ? '#22c55e' : '#8b5cf6',
+                                                    fontWeight: 500,
+                                                    textTransform: 'capitalize',
+                                                }}
+                                            >
+                                                {intern.status}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '1rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                                                <button
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        color: '#64748b',
+                                                        padding: '4px'
+                                                    }}
+                                                    title="Edit"
+                                                    onClick={() => openEditModal(intern)}
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                                <button
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        color: '#64748b',
+                                                        padding: '4px'
+                                                    }}
+                                                    title={intern.status === 'active' ? 'Archive' : 'Restore'}
+                                                    onClick={() => handleArchiveToggle(intern)}
+                                                >
+                                                    <Archive size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-            {/* ===== Edit Intern Modal ===== */}
-            {editingIntern && (
+                {/* ===== Pagination Controls ===== */}
                 <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
                     display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    backdropFilter: 'blur(2px)'
-                }} onClick={closeEditModal}>
-                    <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
-                        {/* Heading */}
-                        <div style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Edit Intern Information</h2>
-                        </div>
-
-                        {editError && (
-                            <div style={{
-                                padding: '0.75rem 1rem',
-                                marginBottom: '1.5rem',
-                                backgroundColor: 'hsl(var(--danger) / 0.1)',
-                                color: 'hsl(var(--danger))',
-                                borderRadius: '8px',
-                                border: '1px solid hsl(var(--danger) / 0.2)',
-                                fontSize: '0.875rem',
+                    padding: '1rem',
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e5e5',
+                    borderTop: 'none',
+                    borderRadius: '0 0 8px 8px'
+                }}>
+                    <span style={{fontSize: '0.875rem', color: '#64748b'}}>
+                        Showing {filteredInterns.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, filteredInterns.length)} of {filteredInterns.length} interns.
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.5rem'}}>
+                        <button 
+                            className='btn'
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(prev => prev - 1)}
+                            style={{ 
+                                padding: '0.5rem 1rem', 
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                opacity: currentPage === 1 ? 0.5 : 1 
                             }}>
-                                {editError}
+                            Previous
+                        </button>
+                        <button                        
+                            className='btn'
+                            // ✅ FIX: Disable 'Next' ONLY if you are on the last page
+                            disabled={currentPage >= totalPages} 
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            style={{ 
+                                padding: '0.5rem 1rem', 
+                                cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+                                opacity: currentPage >= totalPages ? 0.5 : 1
+                            }}>
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+
+                {/* ===== Edit Intern Modal ===== */}
+                {editingIntern && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        backdropFilter: 'blur(2px)'
+                    }} onClick={closeEditModal}>
+                        <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
+                            {/* Heading */}
+                            <div style={{ marginBottom: '2rem' }}>
+                                <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Edit Intern Information</h2>
                             </div>
-                        )}
 
-                        {/* Full Name */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Full Name:</label>
-                            <input
-                                className="input"
-                                name="full_name"
-                                value={editForm.full_name}
-                                onChange={handleEditChange}
-                                placeholder="Enter full name"
-                                style={{ width: '100%', backgroundColor: 'white' }}
-                            />
-                        </div>
+                            {editError && (
+                                <div style={{
+                                    padding: '0.75rem 1rem',
+                                    marginBottom: '1.5rem',
+                                    backgroundColor: 'hsl(var(--danger) / 0.1)',
+                                    color: 'hsl(var(--danger))',
+                                    borderRadius: '8px',
+                                    border: '1px solid hsl(var(--danger) / 0.2)',
+                                    fontSize: '0.875rem',
+                                }}>
+                                    {editError}
+                                </div>
+                            )}
 
-                        {/* Email */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Email Address:</label>
-                            <input
-                                className="input"
-                                name="email"
-                                type="email"
-                                value={editForm.email}
-                                onChange={handleEditChange}
-                                placeholder="Enter email address"
-                                style={{ width: '100%', backgroundColor: 'white' }}
-                            />
-                        </div>
+                            {/* Full Name */}
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Full Name:</label>
+                                <input
+                                    className="input"
+                                    name="full_name"
+                                    value={editForm.full_name}
+                                    onChange={handleEditChange}
+                                    placeholder="Enter full name"
+                                    style={{ width: '100%', backgroundColor: 'white' }}
+                                />
+                            </div>
 
-                        {/* OJT Role & OJT ID */}
-                        <div className="modal-grid-2col">
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Role:</label>
+                            {/* Email */}
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Email Address:</label>
+                                <input
+                                    className="input"
+                                    name="email"
+                                    type="email"
+                                    value={editForm.email}
+                                    onChange={handleEditChange}
+                                    placeholder="Enter email address"
+                                    style={{ width: '100%', backgroundColor: 'white' }}
+                                />
+                            </div>
+
+                            {/* OJT Role & OJT ID */}
+                            <div className="modal-grid-2col">
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Role:</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <select
+                                            className="select"
+                                            name="ojt_role"
+                                            value={editForm.ojt_role}
+                                            onChange={handleEditChange}
+                                            style={{ width: '100%', backgroundColor: 'white' }}
+                                        >
+                                            <option value="">Select Role</option>
+                                            {OJT_ROLES.map(role => (
+                                                <option key={role} value={role}>{role}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT ID:</label>
+                                    <input
+                                        className="input"
+                                        name="ojt_id"
+                                        type="number"
+                                        value={editForm.ojt_id}
+                                        onChange={handleEditChange}
+                                        placeholder="e.g. 1101"
+                                        style={{ width: '100%', backgroundColor: 'white' }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Start Date & Required Hours */}
+                            <div className="modal-grid-2col">
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Start Date:</label>
+                                    <input
+                                        className="input"
+                                        name="start_date"
+                                        type="date"
+                                        value={editForm.start_date}
+                                        onChange={handleEditChange}
+                                        style={{ width: '100%', backgroundColor: 'white' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Required Hours:</label>
+                                    <input
+                                        className="input"
+                                        name="required_hours"
+                                        type="number"
+                                        value={editForm.required_hours}
+                                        onChange={handleEditChange}
+                                        placeholder="e.g. 600"
+                                        style={{ width: '100%', backgroundColor: 'white' }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* OJT Type */}
+                            <div style={{ marginBottom: '3rem' }}>
+                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Type:</label>
                                 <div style={{ position: 'relative' }}>
                                     <select
                                         className="select"
-                                        name="ojt_role"
-                                        value={editForm.ojt_role}
+                                        name="ojt_type"
+                                        value={editForm.ojt_type}
                                         onChange={handleEditChange}
                                         style={{ width: '100%', backgroundColor: 'white' }}
                                     >
-                                        <option value="">Select Role</option>
-                                        {OJT_ROLES.map(role => (
-                                            <option key={role} value={role}>{role}</option>
-                                        ))}
+                                        <option value="">Select OJT Type</option>
+                                        <option value="required">Required</option>
+                                        <option value="voluntary">Voluntary</option>
                                     </select>
                                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                                 </div>
                             </div>
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT ID:</label>
-                                <input
-                                    className="input"
-                                    name="ojt_id"
-                                    type="number"
-                                    value={editForm.ojt_id}
-                                    onChange={handleEditChange}
-                                    placeholder="e.g. 1101"
-                                    style={{ width: '100%', backgroundColor: 'white' }}
-                                />
-                            </div>
-                        </div>
 
-                        {/* Start Date & Required Hours */}
-                        <div className="modal-grid-2col">
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Start Date:</label>
-                                <input
-                                    className="input"
-                                    name="start_date"
-                                    type="date"
-                                    value={editForm.start_date}
-                                    onChange={handleEditChange}
-                                    style={{ width: '100%', backgroundColor: 'white' }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Required Hours:</label>
-                                <input
-                                    className="input"
-                                    name="required_hours"
-                                    type="number"
-                                    value={editForm.required_hours}
-                                    onChange={handleEditChange}
-                                    placeholder="e.g. 600"
-                                    style={{ width: '100%', backgroundColor: 'white' }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* OJT Type */}
-                        <div style={{ marginBottom: '3rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Type:</label>
-                            <div style={{ position: 'relative' }}>
-                                <select
-                                    className="select"
-                                    name="ojt_type"
-                                    value={editForm.ojt_type}
-                                    onChange={handleEditChange}
-                                    style={{ width: '100%', backgroundColor: 'white' }}
+                            {/* Action Buttons */}
+                            <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
+                                <button
+                                    className="btn"
+                                    onClick={closeEditModal}
+                                    disabled={saving}
+                                    style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
                                 >
-                                    <option value="">Select OJT Type</option>
-                                    <option value="required">Required</option>
-                                    <option value="voluntary">Voluntary</option>
-                                </select>
-                                <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleEditSave}
+                                    disabled={saving}
+                                    style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                                >
+                                    {saving ? 'Saving...' : 'Save Changes'}
+                                </button>
                             </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button
-                                className="btn"
-                                onClick={closeEditModal}
-                                disabled={saving}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleEditSave}
-                                disabled={saving}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
-                            >
-                                {saving ? 'Saving...' : 'Save Changes'}
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
-    );
-};
+                )}
+            </div>
+        );
+    };
 
 export default ManageInterns;

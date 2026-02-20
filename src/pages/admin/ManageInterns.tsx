@@ -8,6 +8,7 @@ import {
     Download
 } from 'lucide-react';
 import { userService } from '../../services/userServices';
+import { useRealtime } from '../../hooks/useRealtime';
 import type { Users, OJTType } from '../../types/database.types';
 
 // Predefined OJT roles
@@ -94,23 +95,28 @@ const ManageInterns = () => {
 
     }, [debouncedSearch, sortDirection, roleFilter, statusFilter]);
 
+    // Load stats
+    const loadStats = useCallback(async () => {
+        try {
+            const statsData = await userService.getInternStats();
+            setStats(statsData);
+        } catch (err) {
+            console.error('Error loading stats:', err);
+        }
+    }, []);
+
     // Load stats on mount
     useEffect(() => {
-        const loadMeta = async () => {
-            try {
-                const statsData = await userService.getInternStats();
-                setStats(statsData);
-            } catch (err) {
-                console.error('Error loading stats:', err);
-            }
-        };
-        loadMeta();
-    }, []);
+        loadStats();
+    }, [loadStats]);
 
     // Reload interns when filters change
     useEffect(() => {
         loadInterns();
     }, [loadInterns]);
+
+    // Re-fetch both list and stats whenever users table changes in real-time
+    useRealtime('users', () => { loadInterns(); loadStats(); });
 
     // Client-side filtering & sorting for Start Date and Required Hours
     const filteredInterns = useMemo(() => {

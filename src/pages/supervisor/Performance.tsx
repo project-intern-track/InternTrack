@@ -1,40 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../services/supabaseClient';
+import { useRealtime } from '../../hooks/useRealtime';
 
 const InternPerformance = () => {
   const { user } = useAuth();
   const [interns, setInterns] = useState<any[]>([]);
 
-  useEffect(() => {
+  const fetchInterns = useCallback(async () => {
     if (!user) return;
 
-    const fetchInterns = async () => {
-      // Get all interns
-      const { data: users, error } = await supabase
-        .from('users')
-        .select('id, name, role')
-        .eq('role', 'intern');
+    // Get all interns
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, name, role')
+      .eq('role', 'intern');
 
-      if (error) return;
+    if (error) return;
 
-      // For each intern, count completed tasks
-      const results = await Promise.all(
-        (users || []).map(async intern => {
-          const { count } = await supabase
-            .from('tasks')
-            .select('*', { count: 'exact' })
-            .eq('assigned_to', intern.id)
-            .eq('status', 'done');
-          return { ...intern, completedTasks: count || 0 };
-        })
-      );
+    // For each intern, count completed tasks
+    const results = await Promise.all(
+      (users || []).map(async intern => {
+        const { count } = await supabase
+          .from('tasks')
+          .select('*', { count: 'exact' })
+          .eq('assigned_to', intern.id)
+          .eq('status', 'done');
+        return { ...intern, completedTasks: count || 0 };
+      })
+    );
 
-      setInterns(results);
-    };
-
-    fetchInterns();
+    setInterns(results);
   }, [user]);
+
+  useEffect(() => {
+    fetchInterns();
+  }, [fetchInterns]);
+
+  // Re-fetch whenever users or tasks change in real-time
+  useRealtime(['users', 'tasks'], fetchInterns);
 
   return (
     <div>

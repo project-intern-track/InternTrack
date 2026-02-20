@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { announcementService } from '../../services/announcementService';
 import { useAuth } from '../../context/AuthContext';
+import { useRealtime } from '../../hooks/useRealtime';
 import type { Announcement, AnnouncementPriority } from '../../types/database.types';
 
 const Announcements = () => {
@@ -44,6 +45,9 @@ const Announcements = () => {
     useEffect(() => {
         fetchAnnouncements();
     }, []);
+
+    // Re-fetch whenever announcements table changes in real-time
+    useRealtime('announcements', fetchAnnouncements);
 
     // Handle Create
     const handleCreate = async () => {

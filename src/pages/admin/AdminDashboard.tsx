@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { UserPlus } from 'lucide-react';
+import { useRealtime } from '../../hooks/useRealtime';
 import { Bar } from 'react-chartjs-2';
 import { userService } from '../../services/userServices';
 import { announcementService } from '../../services/announcementService';
@@ -39,46 +40,49 @@ const AdminDashboard = () => {
     } | null>(null);
     const [activities, setActivities] = useState<any[]>([]);
 
-    useEffect(() => {
-        const loadDashboardData = async () => {
-            try {
-                // 1. Fetch Stats
-                const statsData = await userService.getDashboardStats();
-                setStats(statsData);
+    const loadDashboardData = useCallback(async () => {
+        try {
+            // 1. Fetch Stats
+            const statsData = await userService.getDashboardStats();
+            setStats(statsData);
 
-                // 2. Fetch Recent Activities (Interns + Announcements)
-                const recentInterns = await userService.getRecentInterns(5);
-                const announcements = await announcementService.getAnnouncements();
+            // 2. Fetch Recent Activities (Interns + Announcements)
+            const recentInterns = await userService.getRecentInterns(5);
+            const announcements = await announcementService.getAnnouncements();
 
-                // Merge and sort activities
-                const activityFeed = [
-                    ...(recentInterns?.map(i => ({
-                        type: 'application',
-                        user: i.full_name,
-                        avatar: i.avatar_url,
-                        time: i.created_at,
-                        message: `submitted an application.`, // removed name dupe
-                        color: '#2EC0E5' // Blue for applications
-                    })) || []),
-                    ...(announcements?.map(a => ({
-                        type: 'announcement',
-                        user: 'System',
-                        time: a.created_at,
-                        message: `New Announcement: ${a.title}`,
-                        color: '#ff8800' // Orange for announcements
-                    })) || [])
-                ].sort((a, b) => new Date(b.time!).getTime() - new Date(a.time!).getTime())
-                    .slice(0, 5); // Take top 5
+            // Merge and sort activities
+            const activityFeed = [
+                ...(recentInterns?.map(i => ({
+                    type: 'application',
+                    user: i.full_name,
+                    avatar: i.avatar_url,
+                    time: i.created_at,
+                    message: `submitted an application.`, // removed name dupe
+                    color: '#2EC0E5' // Blue for applications
+                })) || []),
+                ...(announcements?.map(a => ({
+                    type: 'announcement',
+                    user: 'System',
+                    time: a.created_at,
+                    message: `New Announcement: ${a.title}`,
+                    color: '#ff8800' // Orange for announcements
+                })) || [])
+            ].sort((a, b) => new Date(b.time!).getTime() - new Date(a.time!).getTime())
+                .slice(0, 5); // Take top 5
 
-                setActivities(activityFeed);
+            setActivities(activityFeed);
 
-            } catch (error) {
-                console.error("Error loading dashboard data:", error);
-            }
-        };
-
-        loadDashboardData();
+        } catch (error) {
+            console.error("Error loading dashboard data:", error);
+        }
     }, []);
+
+    useEffect(() => {
+        loadDashboardData();
+    }, [loadDashboardData]);
+
+    // Re-fetch whenever users or announcements change in real-time
+    useRealtime(['users', 'announcements'], loadDashboardData);
 
     // Process chart data from stats.recentRegisters
     const processChartData = () => {

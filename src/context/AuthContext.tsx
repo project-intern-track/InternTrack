@@ -190,6 +190,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return null;
         }
 
+        // Block archived / deactivated users
+        if (profile.status === 'archived') {
+            console.warn('[AuthContext] User account is archived. Denying access.');
+            return null;
+        }
+
         return {
             id: profile.id,
             name: profile.full_name,
@@ -515,6 +521,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [ensureUserProfile, loadProfileAndSetState]);
 
     // ========================
+    // Periodic archived-status check
+    // ========================
+    // Polls the DB every 30s to detect if the currently logged-in user
+    // was archived by an admin while they were using the app.
+    useEffect(() => {
+        if (!state.isAuthenticated || !state.user) return;
+
+        const userId = state.user.id;
+
+        const checkArchivedStatus = async () => {
+            try {
+                const { profile } = await authService.getUserProfile(userId);
+                if (profile?.status === 'archived') {
+                    console.warn('[AuthContext] User was archived while logged in. Forcing sign-out.');
+                    // Clear local state immediately
+                    clearRecoveryFlag();
+                    clearLastKnownRole();
+                    setState({
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                        isPasswordRecovery: false,
+                    });
+                    // Sign out from Supabase
+                    await authService.signOut();
+                }
+            } catch (err) {
+                console.warn('[AuthContext] Archived-status check failed:', err);
+            }
+        };
+
+        const intervalId = setInterval(checkArchivedStatus, 30_000); // every 30 seconds
+
+        return () => clearInterval(intervalId);
+    }, [state.isAuthenticated, state.user]);
+
+    // ========================
     // Auth Actions
     // ========================
 
@@ -534,6 +577,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (!result.user) {
                 return { error: 'Sign in succeeded but no user was returned.' };
+            }
+
+            // Check the DB status directly to distinguish "archived" from "profile not found"
+            const { profile: dbProfile } = await authService.getUserProfile(result.user.id);
+            if (dbProfile?.status === 'archived') {
+                // Sign out the Supabase session so it doesn't linger
+                await authService.signOut();
+                return { error: 'Your account has been deactivated. Please contact an administrator.' };
             }
 
             const user = await ensureUserProfile(

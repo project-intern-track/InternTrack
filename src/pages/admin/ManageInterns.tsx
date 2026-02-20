@@ -5,8 +5,7 @@ import {
     Pencil,
     Archive,
     ChevronDown,
-    Download,
-    Loader2
+    Download
 } from 'lucide-react';
 import { userService } from '../../services/userServices';
 import type { Users, OJTType } from '../../types/database.types';
@@ -37,8 +36,7 @@ interface EditFormData {
 }
 
 const ManageInterns = () => {
-    const [interns, setInterns] = useState<Users[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [interns, setInterns] = useState<Users[] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     // Edit modal
@@ -56,7 +54,7 @@ const ManageInterns = () => {
     const [editError, setEditError] = useState<string | null>(null);
 
     // Stats
-    const [stats, setStats] = useState({ totalInterns: 0, totalRoles: 0, archivedInterns: 0 });
+    const [stats, setStats] = useState<{ totalInterns: number, totalRoles: number, archivedInterns: number } | null>(null);
 
     // Filters
     const [searchInput, setSearchInput] = useState('');       // what the user types (immediate)
@@ -82,7 +80,6 @@ const ManageInterns = () => {
     // Load interns with current filters
     const loadInterns = useCallback(async () => {
         try {
-            setLoading(true);
             setError(null);
             const data = await userService.fetchInterns({
                 search: debouncedSearch || undefined,
@@ -93,9 +90,8 @@ const ManageInterns = () => {
             setInterns(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch interns');
-        } finally {
-            setLoading(false);
         }
+
     }, [debouncedSearch, sortDirection, roleFilter, statusFilter]);
 
     // Load stats on mount
@@ -118,6 +114,9 @@ const ManageInterns = () => {
 
     // Client-side filtering & sorting for Start Date and Required Hours
     const filteredInterns = useMemo(() => {
+
+        if (!interns) return [];
+
         let result = [...interns];
 
         // --- Start Date filter ---
@@ -280,6 +279,8 @@ const ManageInterns = () => {
         return d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 
+    if (!interns || !stats) return null;
+
     return (
         <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
             {/* Header Section */}
@@ -432,7 +433,7 @@ const ManageInterns = () => {
                 overflow: 'auto',
                 backgroundColor: 'white',
                 width: '100%',
-                maxWidth: '100vw', // Ensure it doesn't exceed viewport width
+                maxWidth: '100vw',
                 position: 'relative'
             }}>
 
@@ -450,16 +451,7 @@ const ManageInterns = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
-                            <tr>
-                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: '#64748b' }}>
-                                        <Loader2 size={24} className="spinner" />
-                                        <span>Loading interns...</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        ) : filteredInterns.length === 0 ? (
+                        {filteredInterns.length === 0 ? (
                             <tr>
                                 <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
                                     No interns found.
@@ -680,7 +672,7 @@ const ManageInterns = () => {
                                 disabled={saving}
                                 style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
-                                {saving ? <Loader2 className="spinner" size={18} /> : 'Save Changes'}
+                                {saving ? 'Saving...' : 'Save Changes'}
                             </button>
                         </div>
                     </div>

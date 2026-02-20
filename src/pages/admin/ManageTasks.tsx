@@ -2,6 +2,7 @@ import { Filter, Search, Calendar, X } from 'lucide-react';
 import { useState, useMemo, useRef } from 'react';
 import '../../index.css';
 
+
 // sample records
 const sampleTasks = [
     {

@@ -27,6 +27,10 @@ const ManageSupervisors = () => {
     const [dateSort, setDateSort] = useState<'newest' | 'oldest'>('newest');
     const [statusFilter, setStatusFilter] = useState('all');
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
+
     // Stats state
     const [stats, setStats] = useState<{ totalSupervisors: number, activeSupervisors: number, archivedSupervisors: number } | null>(null);
 
@@ -56,6 +60,11 @@ const ManageSupervisors = () => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
         };
     }, [searchTerm]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch, statusFilter, dateSort]);
 
     // Load supervisors
     const loadSupervisors = useCallback(async () => {
@@ -231,6 +240,13 @@ const ManageSupervisors = () => {
     // Guard Check
     if (!supervisors || !stats) return null;
 
+    // Pagination Derived State
+    const totalPages = Math.ceil(supervisors.length / ITEMS_PER_PAGE);
+    const paginatedSupervisors = supervisors.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
     return (
         <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
             {/* Header Section */}
@@ -319,12 +335,12 @@ const ManageSupervisors = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {supervisors.length === 0 ? (
+                        {paginatedSupervisors.length === 0 ? (
                             <tr>
                                 <td colSpan={5} style={{ padding: '3rem 1rem', color: '#64748b' }}>No supervisors found.</td>
                             </tr>
                         ) : (
-                            supervisors.map((supervisor) => (
+                            paginatedSupervisors.map((supervisor) => (
                                 <tr key={supervisor.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
                                     <td style={{ padding: '1rem' }}>{supervisor.full_name}</td>
                                     <td style={{ padding: '1rem' }}>{supervisor.email}</td>
@@ -346,6 +362,55 @@ const ManageSupervisors = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="pagination-controls">
+                    <div className="pagination-summary">
+                        Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, supervisors.length)} of {supervisors.length} supervisors
+                    </div>
+                    <div className="pagination-buttons">
+                        <button
+                            className="pagination-btn pagination-arrow"
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Prev
+                        </button>
+                        {[...Array(totalPages)].map((_, i) => {
+                            const page = i + 1;
+                            if (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 && page <= currentPage + 1)
+                            ) {
+                                return (
+                                    <button
+                                        key={page}
+                                        className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                                        onClick={() => setCurrentPage(page)}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            } else if (
+                                page === currentPage - 2 ||
+                                page === currentPage + 2
+                            ) {
+                                return <span key={page} className="pagination-ellipsis">...</span>;
+                            }
+                            return null;
+                        })}
+                        <button
+                            className="pagination-btn pagination-arrow"
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Add Supervisor Modal */}
             {isAddModalOpen && (

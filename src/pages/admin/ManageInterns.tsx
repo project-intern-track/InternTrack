@@ -67,6 +67,10 @@ const ManageInterns = () => {
     const [requiredHoursFilter, setRequiredHoursFilter] = useState('all');
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
+
     // Debounce search input → debouncedSearch (300ms)
     useEffect(() => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -77,6 +81,11 @@ const ManageInterns = () => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
         };
     }, [searchInput]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearch, sortDirection, roleFilter, statusFilter, startDateFilter, requiredHoursFilter]);
 
     // Load interns with current filters
     const loadInterns = useCallback(async () => {
@@ -172,6 +181,13 @@ const ManageInterns = () => {
 
         return result;
     }, [interns, startDateFilter, requiredHoursFilter]);
+
+    // Pagination Derived State
+    const totalPages = Math.ceil(filteredInterns.length / ITEMS_PER_PAGE);
+    const paginatedInterns = filteredInterns.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
 
     // Handle archive toggle
     const handleArchiveToggle = async (intern: Users) => {
@@ -501,14 +517,14 @@ const ManageInterns = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredInterns.length === 0 ? (
+                        {paginatedInterns.length === 0 ? (
                             <tr>
                                 <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
                                     No interns found.
                                 </td>
                             </tr>
                         ) : (
-                            filteredInterns.map((intern) => (
+                            paginatedInterns.map((intern) => (
                                 <tr key={intern.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
                                     <td style={{ padding: '1rem', color: '#334155' }}>{intern.full_name}</td>
                                     <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_role || '—'}</td>
@@ -563,6 +579,55 @@ const ManageInterns = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="pagination-controls">
+                    <div className="pagination-summary">
+                        Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredInterns.length)} of {filteredInterns.length} interns
+                    </div>
+                    <div className="pagination-buttons">
+                        <button
+                            className="pagination-btn pagination-arrow"
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Prev
+                        </button>
+                        {[...Array(totalPages)].map((_, i) => {
+                            const page = i + 1;
+                            if (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 && page <= currentPage + 1)
+                            ) {
+                                return (
+                                    <button
+                                        key={page}
+                                        className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                                        onClick={() => setCurrentPage(page)}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            } else if (
+                                page === currentPage - 2 ||
+                                page === currentPage + 2
+                            ) {
+                                return <span key={page} className="pagination-ellipsis">...</span>;
+                            }
+                            return null;
+                        })}
+                        <button
+                            className="pagination-btn pagination-arrow"
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* ===== Edit Intern Modal ===== */}
             {editingIntern && (

@@ -8,6 +8,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { userService } from '../../services/userServices';
+import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
 
 const ManageAdmins = () => {
@@ -90,6 +91,9 @@ const ManageAdmins = () => {
     useEffect(() => {
         loadStats();
     }, []);
+
+    // Re-fetch whenever users table changes in real-time
+    useRealtime('users', () => { loadAdmins(); loadStats(); });
 
     // Handle archive toggle
     const handleArchiveToggle = async (admin: Users) => {

@@ -163,28 +163,36 @@ export const userService = {
 
     // Get stats for the Admin Dashboard
     async getDashboardStats() {
+        // 1. Use RPC to get email-verification-aware counts (joins auth.users)
+        const { data: verificationStats, error: rpcError } = await supabase
+            .rpc('get_intern_verification_stats')
+            .single();
+
+        if (rpcError) throw new Error(`Error Fetching Verification Stats: ${rpcError.message}`);
+
+        // 2. Fetch recent registration timestamps for the chart
         const { data: interns, error } = await supabase
             .from('users')
-            .select('id, status, created_at, ojt_id, start_date')
+            .select('created_at')
             .eq('role', 'intern');
 
         if (error) throw new Error(`Error Fetching Dashboard Stats: ${error.message}`);
 
-        const totalInterns = interns?.length || 0;
-        const activeInterns = interns?.filter(u => u.status === 'active').length || 0;
-        // Assumption: Pending if active but missing critical info like ojt_id or start_date
-        const pendingApplications = interns?.filter(u => u.status === 'active' && (!u.ojt_id || !u.start_date)).length || 0;
-
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-        const recentRegisters = interns?.filter(u => new Date(u.created_at!) >= threeMonthsAgo).map(u => u.created_at!) || [];
+        const recentRegisters = interns
+            ?.filter(u => new Date(u.created_at!) >= threeMonthsAgo)
+            .map(u => u.created_at!) || [];
 
         return {
-            totalInterns,
-            activeInterns,
-            pendingApplications,
-            recentRegisters
+            // totalInterns = all interns regardless of email verification
+            totalInterns: Number(verificationStats?.total_interns ?? 0),
+            // activeInterns = email-verified interns only
+            activeInterns: Number(verificationStats?.verified_interns ?? 0),
+            // pendingApplications = interns with unverified emails
+            pendingApplications: Number(verificationStats?.unverified_interns ?? 0),
+            recentRegisters,
         };
     },
 

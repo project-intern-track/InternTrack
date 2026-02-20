@@ -166,7 +166,7 @@ export const userService = {
         // 1. Use RPC to get email-verification-aware counts (joins auth.users)
         const { data: verificationStats, error: rpcError } = await supabase
             .rpc('get_intern_verification_stats')
-            .single();
+            .single() as { data: { total_interns: number; verified_interns: number; unverified_interns: number } | null; error: any };
 
         if (rpcError) throw new Error(`Error Fetching Verification Stats: ${rpcError.message}`);
 

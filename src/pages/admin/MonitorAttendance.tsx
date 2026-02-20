@@ -31,10 +31,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
 
-  // Sample data - replace with actual API call
+  // sample
   useEffect(() => {
     setLoading(true);
-    // Simulate API call
+    // simulate
     setTimeout(() => {
       const sampleData: AttendanceRecord[] = [
         {
@@ -183,11 +183,11 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     }, 500);
   }, []);
 
-  // Get unique dates from records for filter dropdown
+ 
   const uniqueDates = Array.from(new Set(attendanceRecords.map((r) => r.date)))
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime()); // Sort descending (newest first)
 
-  // Filter records - deduplicate by id+date combination first, then apply filters
+  //filter record
   const seenKeys = new Set<string>();
   const uniqueRecords = attendanceRecords.filter((record) => {
     const key = `${record.id}-${record.date}`;
@@ -199,21 +199,20 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   });
 
   const filteredRecords = uniqueRecords.filter((record) => {
-    // Search filter - matches if search is empty or name contains the search term
+
     const searchTermLower = searchTerm.trim().toLowerCase();
     const matchesSearch = searchTermLower === '' || record.user.full_name.toLowerCase().includes(searchTermLower);
     
-    // Status filter - exact match (case-insensitive)
     const matchesStatus = statusFilter === 'all' || record.status.toLowerCase() === statusFilter.toLowerCase();
     
-    // Date filter - exact match
+    // Date filter
     const matchesDate = dateFilter === 'all' || record.date.trim() === dateFilter.trim();
 
-    // All filters must match (AND logic)
+    // All filters must match
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  // Save scroll position continuously as user scrolls
+  // Save scroll position
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -230,9 +229,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   useLayoutEffect(() => {
     const container = scrollContainerRef.current;
     if (container && scrollPositionRef.current > 0 && filteredRecords.length > 0) {
-      // useLayoutEffect runs synchronously after DOM mutations, before paint
-      // This ensures scroll position is restored before the browser paints
-      container.scrollTop = scrollPositionRef.current;
+       container.scrollTop = scrollPositionRef.current;
     }
   }, [filteredRecords]);
 

@@ -89,6 +89,18 @@ function clearRecoveryFlag(): void {
     try { localStorage.removeItem(RECOVERY_FLAG_KEY); } catch { /* ignore */ }
 }
 
+/**
+ * Thrown when a DB profile is found but the account is archived.
+ * Distinct from `null` (profile not found / timed out) so callers can
+ * immediately sign the user out rather than falling back to JWT metadata.
+ */
+class ArchivedUserError extends Error {
+    constructor() {
+        super('User account has been archived');
+        this.name = 'ArchivedUserError';
+    }
+}
+
 // Helper to safely infer role from path
 function getRoleFromPath(pathname: string): UserRole | null {
     if (pathname.startsWith('/admin')) return 'admin';
@@ -193,7 +205,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Block archived / deactivated users
         if (profile.status === 'archived') {
             console.warn('[AuthContext] User account is archived. Denying access.');
-            return null;
+            throw new ArchivedUserError();
         }
 
         return {
@@ -257,6 +269,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             user = await fetchUserProfile(userId, email);
             return user;
         } catch (err) {
+            // Let archived errors bubble up so callers can force a sign-out
+            // instead of falling back to JWT / cached state.
+            if (err instanceof ArchivedUserError) throw err;
             console.error('Error creating user profile:', err);
             return null;
         }
@@ -329,6 +344,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 });
             }
         } catch (err) {
+            if (err instanceof ArchivedUserError) {
+                console.warn('[AuthContext] Archived user blocked on load. Forcing sign-out.');
+                clearRecoveryFlag();
+                clearLastKnownRole();
+                setState({
+                    user: null,
+                    isAuthenticated: false,
+                    isLoading: false,
+                    isPasswordRecovery: false,
+                });
+                await authService.signOut();
+                return;
+            }
             console.error('[AuthContext] Failed to load user profile:', err);
             setState((prev) => {
                 if (prev.user && prev.isAuthenticated) {
@@ -503,7 +531,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         console.warn('[AuthContext] TOKEN_REFRESHED: profile fetch returned null, keeping current state');
                         setState((prev) => ({ ...prev, isLoading: false }));
                     }
-                } catch {
+                } catch (err) {
+                    if (err instanceof ArchivedUserError) {
+                        if (isMounted) {
+                            console.warn('[AuthContext] TOKEN_REFRESHED: user is archived. Forcing sign-out.');
+                            clearRecoveryFlag();
+                            clearLastKnownRole();
+                            setState({
+                                user: null,
+                                isAuthenticated: false,
+                                isLoading: false,
+                                isPasswordRecovery: false,
+                            });
+                        }
+                        await authService.signOut();
+                        return;
+                    }
                     if (isMounted) {
                         // Same reasoning: keep current role, don't downgrade
                         console.warn('[AuthContext] TOKEN_REFRESHED: profile fetch failed, keeping current state');
@@ -521,41 +564,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [ensureUserProfile, loadProfileAndSetState]);
 
     // ========================
-    // Periodic archived-status check
+    // Realtime archived-status watch + polling fallback
     // ========================
-    // Polls the DB every 30s to detect if the currently logged-in user
-    // was archived by an admin while they were using the app.
+    // The Supabase Realtime subscription fires the instant an admin updates
+    // this user's row (e.g. sets status = 'archived'), signing them out
+    // immediately regardless of which page they're on or whether they reload.
+    // The 5-minute polling loop is a safety net for cases where the realtime
+    // connection is unavailable.
     useEffect(() => {
         if (!state.isAuthenticated || !state.user) return;
 
         const userId = state.user.id;
 
+        const forceSignOut = async () => {
+            console.warn('[AuthContext] User was archived. Forcing sign-out.');
+            clearRecoveryFlag();
+            clearLastKnownRole();
+            setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                isPasswordRecovery: false,
+            });
+            await authService.signOut();
+        };
+
+        // Real-time: listen for UPDATE events on this user's row
+        const channel = supabase
+            .channel(`user-archived-watch:${userId}`)
+            .on(
+                // @ts-ignore – postgres_changes is valid
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${userId}` },
+                (payload: { new: Record<string, unknown> }) => {
+                    if (payload.new?.status === 'archived') {
+                        forceSignOut();
+                    }
+                }
+            )
+            .subscribe();
+
+        // Polling fallback (every 5 minutes) in case realtime is unavailable
         const checkArchivedStatus = async () => {
             try {
                 const { profile } = await authService.getUserProfile(userId);
                 if (profile?.status === 'archived') {
-                    console.warn('[AuthContext] User was archived while logged in. Forcing sign-out.');
-                    // Clear local state immediately
-                    clearRecoveryFlag();
-                    clearLastKnownRole();
-                    setState({
-                        user: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                        isPasswordRecovery: false,
-                    });
-                    // Sign out from Supabase
-                    await authService.signOut();
+                    forceSignOut();
                 }
             } catch (err) {
                 console.warn('[AuthContext] Archived-status check failed:', err);
             }
         };
 
-        const intervalId = setInterval(checkArchivedStatus, 30_000); // every 30 seconds
+        const intervalId = setInterval(checkArchivedStatus, 300_000); // every 5 minutes
 
-        return () => clearInterval(intervalId);
-    }, [state.isAuthenticated, state.user]);
+        return () => {
+            supabase.removeChannel(channel);
+            clearInterval(intervalId);
+        };
+    }, [state.isAuthenticated, state.user?.id]);
 
     // ========================
     // Auth Actions

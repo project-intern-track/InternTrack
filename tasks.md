@@ -1,7 +1,7 @@
 # InternTrack Task List
 
 > **Legend:** ✅ Done · 🔶 Static UI Only · ❌ Not Started
-> **Updated:** February 19, 2026
+> **Updated:** February 20, 2026
 
 ---
 
@@ -9,15 +9,15 @@
 
 | Task | Status | Assigned |
 |---|---|---|
-| **1. Dashboard** | 🔶 Partial (stat boxes hardcoded) | Judito + Clement Backend |
-| **2. Task List** | ❌ Not Started | Judito + Victor Backend |
-| &nbsp;&nbsp;&nbsp;&nbsp;a. All Tasks Section | ❌ Not Started | Judito + Victor Backend |
-| &nbsp;&nbsp;&nbsp;&nbsp;b. In Progress Section | ❌ Not Started | Judito + Victor Backend |
-| &nbsp;&nbsp;&nbsp;&nbsp;c. Completed Section | ❌ Not Started | Judito + Victor Backend |
-| &nbsp;&nbsp;&nbsp;&nbsp;d. Overdue Section | ❌ Not Started | Judito + Victor Backend |
-| **3. Time Log** | ❌ Not Started | Judito + Clement Backend |
-| **4. Performance Feedback** | ❌ Not Started | Judito + Clement Backend |
-| **5. Settings** | ❌ Not Started | Judito + Clement |
+| **1. Dashboard** | ✅ Done (stat boxes + announcements live) | Judito + Clement + Victor Backend |
+| **2. Task List** | 🔶 Static UI Only (tabbed view, hardcoded data) | Judito + Victor Backend |
+| &nbsp;&nbsp;&nbsp;&nbsp;a. All Tasks Section | 🔶 Static UI Only | Judito + Victor Backend |
+| &nbsp;&nbsp;&nbsp;&nbsp;b. In Progress Section | 🔶 Static UI Only | Judito + Victor Backend |
+| &nbsp;&nbsp;&nbsp;&nbsp;c. Completed Section | 🔶 Static UI Only | Judito + Victor Backend |
+| &nbsp;&nbsp;&nbsp;&nbsp;d. Overdue Section | 🔶 Static UI Only | Judito + Victor Backend |
+| **3. Time Log** | ❌ Not Started | Yuan + Clement Backend |
+| **4. Performance Feedback** | ❌ Not Started | Kevin + Clement Backend |
+| **5. Settings** | ❌ Not Started | Kevin + Victor Backend |
 
 ---
 
@@ -25,23 +25,23 @@
 
 | Task | Status | Assigned |
 |---|---|---|
-| **1. Admin Dashboard** | 🔶 Static UI Only | Angelito + Clement Backend |
-| **2. Manage Interns** | ✅ Done | Clement |
+| **1. Admin Dashboard** | ✅ Done (live stats, chart, activity feed) | Angelito + Clement Backend |
+| **2. Manage Interns** | ✅ Done | Clement + Victor |
 | &nbsp;&nbsp;&nbsp;&nbsp;a. Edit Modal | ✅ Done | Clement |
 | **3. Monitor Attendance** | ❌ Not Started | Yuan + Clement Backend |
-| **4. Manage Tasks** | 🔶 Static UI Only | Yuan + Victor Backend |
-| &nbsp;&nbsp;&nbsp;&nbsp;a. Create Task Modal | ❌ Not Started | Yuan + Victor Backend |
-| **5. Manage Admins** | ❌ Not Started | Clement |
-| &nbsp;&nbsp;&nbsp;&nbsp;a. Add Admin Modal | ❌ Not Started | Clement |
-| **6. Manage Supervisors** | 🔶 Static UI Only | Angelito + Clement Backend |
-| &nbsp;&nbsp;&nbsp;&nbsp;a. Add Supervisor Modal | 🔶 Static UI Only | Angelito + Clement Backend |
+| **4. Manage Tasks** | 🔶 Static UI Only (hardcoded data) | Yuan + Victor Backend |
+| &nbsp;&nbsp;&nbsp;&nbsp;a. Create Task Modal | 🔶 Static UI Only (no backend) | Yuan + Victor Backend |
+| **5. Manage Admins** | ✅ Done (CRUD, upgrade modal, realtime) | Clement + Victor |
+| &nbsp;&nbsp;&nbsp;&nbsp;a. Add Admin Modal | ✅ Done | Clement |
+| **6. Manage Supervisors** | 🔶 Static UI Only (hardcoded table) | Angelito + Clement Backend |
+| &nbsp;&nbsp;&nbsp;&nbsp;a. Add Supervisor Modal | 🔶 Static UI Only (no backend) | Angelito + Clement Backend |
 | **7. Reports** | ❌ Not Started | Angelito + Victor Backend |
 | &nbsp;&nbsp;&nbsp;&nbsp;a. Weekly Summary | ❌ Not Started | Angelito + Victor Backend |
 | &nbsp;&nbsp;&nbsp;&nbsp;b. Monthly Summary | ❌ Not Started | Angelito + Victor Backend |
 | &nbsp;&nbsp;&nbsp;&nbsp;c. Full Report | ❌ Not Started | Angelito + Victor Backend |
 | **8. Announcements** | ✅ Done | Clement + Victor |
 | &nbsp;&nbsp;&nbsp;&nbsp;a. Create Announcements Modal | ✅ Done | Clement + Victor |
-| **9. Settings** | ❌ Not Started | Kevin + Clement |
+| **9. Settings** | ❌ Not Started | Kevin + Victor Backend |
 
 ---
 
@@ -58,6 +58,6 @@
 | **4. Feedback** | 🔶 Static UI Only | Jay + Clement Backend |
 | &nbsp;&nbsp;&nbsp;&nbsp;a. View Modal | 🔶 Static UI Only | Jay + Clement Backend |
 | &nbsp;&nbsp;&nbsp;&nbsp;b. Edit Modal | 🔶 Static UI Only | Jay + Clement Backend |
-| **5. Settings** | 🔶 Static UI Only | Jay + Clement |
+| **5. Settings** | 🔶 Static UI Only | Kevin + Victor Backend |
 
 ---

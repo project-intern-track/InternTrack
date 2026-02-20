@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { Search, Filter, Eye, Edit, X, Pencil, Star } from 'lucide-react';
 
 const defaultCompetencies = [
-  'Communication',
-  'Problem Solving',
-  'Teamwork',
   'Technical Skills',
-  'Creativity'
+  'Communication',
+  'Teamwork',
+  ' Timeliness',
 ];
 
 type Intern = {
@@ -280,10 +279,10 @@ const FeedbackDashboard = () => {
           <div style={{ backgroundColor: '#e8ddd0', borderRadius: '0.75rem', padding: '2rem', width: '600px', maxHeight: '90%', overflowY: 'auto', position: 'relative' }}>
             <button onClick={() => setCompetencyModal(null)} style={{ position: 'absolute', top: '1rem', right: '1rem', border: 'none', background: 'none', cursor: 'pointer' }}><X size={22} /></button>
 
-            <h3>Intern: {competencyModal.internName}</h3>
-            <p>Role: {competencyModal.internRole}</p>
+            <h2>Intern: {competencyModal.internName}</h2>
+            <h3>Role: {competencyModal.internRole}</h3>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+            <table style={{ width: '100%', backgroundColor: 'white', marginTop: '1rem' }}>
               <thead style={{ backgroundColor: '#ff8a42' }}>
                 <tr>
                   <th style={{ padding: '0.5rem', textAlign: 'left' }}>Competency</th>

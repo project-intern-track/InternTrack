@@ -8,26 +8,27 @@ import { userService } from "../../services/userServices";
 import { taskService } from "../../services/taskServices";
 import { attendanceService } from "../../services/attendanceServices";
 import type { Announcement, Tasks, Attendance, Users } from "../../types/database.types";
-import { Loader2 } from "lucide-react";
+// import { Loader2 } from "lucide-react";
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    tasksCompleted: 0,
-    hoursLogged: 0,
-    targetHours: 400,
-    daysRemaining: 0,
-  });
+  
+  // REMOVED: const [loading, setLoading] = useState(true);
+
+  // Set Value can be number or null
+  const [stats, setStats] = useState<{
+    tasksCompleted: number,
+    hoursLogged: number,
+    targetHours: number,
+    daysRemaining: number,
+    } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) return;
 
       try {
-        setLoading(true);
-
         // Parallel fetching
         const [announcementsData, profileData, tasksData, attendanceData] = await Promise.all([
           announcementService.getAnnouncements(),
@@ -59,7 +60,7 @@ const StudentDashboard: React.FC = () => {
         const daysRemaining = Math.ceil(hoursRemaining / 8);
 
         setStats({
-          tasksCompleted,
+          tasksCompleted : tasksCompleted || 0,
           hoursLogged: Math.round(hoursLogged * 10) / 10, // Round to 1 decimal
           targetHours,
           daysRemaining
@@ -67,9 +68,8 @@ const StudentDashboard: React.FC = () => {
 
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
-      } finally {
-        setLoading(false);
       }
+      // REMOVED: finally { setLoading(false); }
     };
 
     fetchData();
@@ -228,6 +228,9 @@ const StudentDashboard: React.FC = () => {
     ...(hoveredCard === index ? styles.cardHover : {}),
   });
 
+  // This guard removes zero flash while data are being fetched when restarting the website
+  if (!stats) return null;
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -279,11 +282,7 @@ const StudentDashboard: React.FC = () => {
         <h3 style={styles.announcementTitle}>Announcements</h3>
 
         <div style={styles.announcementBox}>
-          {loading ? (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', color: '#64748b' }}>
-              <Loader2 className="spinner" /> Loading dashboard data...
-            </div>
-          ) : announcements.length === 0 ? (
+          {announcements.length === 0 ? (
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               No new announcements.
             </div>

@@ -1,381 +1,306 @@
-import { Archive, ChevronDown, Menu, Pencil, Plus, Search, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+    Search,
+    Filter,
+    Pencil,
+    Archive,
+    Plus,
+    Loader2
+} from 'lucide-react';
+import { userService } from '../../services/userServices';
+import { useRealtime } from '../../hooks/useRealtime';
+import type { Users } from '../../types/database.types';
 
 const ManageSupervisors = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // TODO: Handle form submission logic here
-        console.log('Form submitted');
-        setIsModalOpen(false);
+    const [supervisors, setSupervisors] = useState<Users[] | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    // Filter states
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [dateSort, setDateSort] = useState<'newest' | 'oldest'>('newest');
+    const [statusFilter, setStatusFilter] = useState('all');
+
+    // Stats state
+    const [stats, setStats] = useState<{ totalSupervisors: number, activeSupervisors: number, archivedSupervisors: number } | null>(null);
+
+    // Add Supervisor Modal States
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [eligibleInterns, setEligibleInterns] = useState<Users[]>([]);
+    const [loadingInterns, setLoadingInterns] = useState(false);
+    const [selectedInternId, setSelectedInternId] = useState('');
+    const [confirmationStep, setConfirmationStep] = useState(false);
+    const [upgrading, setUpgrading] = useState(false);
+
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Debounce search input
+    useEffect(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 500);
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, [searchTerm]);
+
+    // Load supervisors
+    const loadSupervisors = useCallback(async () => {
+        try {
+            setError(null);
+            const data = await userService.fetchSupervisors({
+                search: debouncedSearch,
+                status: statusFilter,
+                dateSort: dateSort
+            });
+            setSupervisors(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to fetch supervisors');
+        }
+    }, [debouncedSearch, statusFilter, dateSort]);
+
+    // Load stats
+    const loadStats = async () => {
+        try {
+            const statsData = await userService.getSupervisorStats();
+            setStats(statsData);
+        } catch (err) {
+            console.error('Error loading stats:', err);
+        }
     };
+
+    // Load eligible interns for the modal
+    const loadEligibleInterns = async () => {
+        try {
+            setLoadingInterns(true);
+            const data = await userService.fetchInternsForSupervisorUpgrade();
+            setEligibleInterns(data);
+        } catch (err) {
+            console.error('Error loading eligible interns:', err);
+        } finally {
+            setLoadingInterns(false);
+        }
+    };
+
+    // Initial load
+    useEffect(() => {
+        loadSupervisors();
+    }, [loadSupervisors]);
+
+    useEffect(() => {
+        loadStats();
+    }, []);
+
+    // Re-fetch whenever users table changes in real-time
+    useRealtime('users', () => { loadSupervisors(); loadStats(); });
+
+    // Handle archive toggle
+    const handleArchiveToggle = async (supervisor: Users) => {
+        try {
+            await userService.toggleArchiveSupervisor(supervisor.id, supervisor.status);
+            await loadSupervisors();
+            await loadStats();
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Failed to update supervisor status');
+        }
+    };
+
+    const handleOpenAddModal = () => {
+        setIsAddModalOpen(true);
+        setConfirmationStep(false);
+        setSelectedInternId('');
+        loadEligibleInterns();
+    };
+
+    const handleCloseAddModal = () => {
+        setIsAddModalOpen(false);
+        setConfirmationStep(false);
+        setSelectedInternId('');
+    };
+
+    const handleContinue = () => {
+        if (!selectedInternId) return;
+        setConfirmationStep(true);
+    };
+
+    const handleConfirmUpgrade = async () => {
+        if (!selectedInternId) return;
+        try {
+            setUpgrading(true);
+            await userService.upgradeInternToSupervisor(selectedInternId);
+            handleCloseAddModal();
+            await loadSupervisors();
+            await loadStats();
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Failed to upgrade user');
+        } finally {
+            setUpgrading(false);
+        }
+    };
+
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '—';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric'
+        });
+    };
+
+    const selectedInternName = eligibleInterns.find(u => u.id === selectedInternId)?.full_name || 'Selected User';
+
+    // Guard Check
+    if (!supervisors || !stats) return null;
+
     return (
-        <div className="container" style={{ maxWidth: '100%', padding: '0' }}>
+        <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
             {/* Header Section */}
-            <div className="row row-between" style={{ marginBottom: '2rem' }}>
+            <div className="manage-interns-header">
                 <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Supervisors</h1>
-                <button className="btn btn-primary" style={{ gap: '0.5rem' }} onClick={() => setIsModalOpen(true)}>
-                    <Plus size={18} />
-                    Add Supervisor
+                <button className="btn btn-primary" style={{ gap: '0.5rem' }} onClick={handleOpenAddModal}>
+                    <Plus size={18} /> Add Supervisor
                 </button>
             </div>
 
             {/* Stats Cards */}
-            <div className="stats-grid" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center', gap: '5rem' }}>
-                <div style={{
-                    background: '#F9F7F4',
-                    borderRadius: '20px',
-                    boxShadow: '0px 4px 4px 0px #00000040',
-                    padding: '1.5rem',
-                    textAlign: 'center',
-                    width: '350px'
-                }}>
-                    <div style={{ fontSize: '1.375rem', fontWeight: '600', color: '#000000', marginBottom: '0.5rem' }}>Total Supervisors</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: '600', color: '#2b2a2a' }}>0</div>
+            <div className="stats-grid">
+                <div className="stat-card">
+                    <div className="stat-label">Total Supervisors</div>
+                    <div className="stat-value">{stats.totalSupervisors}</div>
                 </div>
-                <div style={{
-                    background: '#F9F7F4',
-                    borderRadius: '20px',
-                    boxShadow: '0px 4px 4px 0px #00000040',
-                    padding: '1.5rem',
-                    textAlign: 'center',
-                    width: '350px'
-                }}>
-                    <div style={{ fontSize: '1.375rem', fontWeight: '600', color: '#000000', marginBottom: '0.5rem' }}>Active Supervisors</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: '600', color: '#2b2a2a' }}>0</div>
+                <div className="stat-card">
+                    <div className="stat-label">Active Supervisors</div>
+                    <div className="stat-value">{stats.activeSupervisors}</div>
                 </div>
-                <div style={{
-                    background: '#F9F7F4',
-                    borderRadius: '20px',
-                    boxShadow: '0px 4px 4px 0px #00000040',
-                    padding: '1.5rem',
-                    textAlign: 'center',
-                    width: '350px'
-                }}>
-                    <div style={{ fontSize: '1.375rem', fontWeight: '600', color: '#000000', marginBottom: '0.5rem' }}>Archived Supervisors</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: '600', color: '#2b2a2a' }}>0</div>
+                <div className="stat-card">
+                    <div className="stat-label">Archived Supervisors</div>
+                    <div className="stat-value">{stats.archivedSupervisors}</div>
                 </div>
             </div>
 
-            {/* Search and Filter */}
-            <div style={{
-                marginBottom: '2rem',
-                marginLeft: '0',
-                marginRight: '0',
-                display: 'flex',
-                gap: '1rem',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                background: '#F9F7F4',
-                padding: '1rem',
-                borderRadius: '12px',
-                border: '1px solid #777777',
-            }}>
-
-                {/* Search Bar */}
-                <div style={{
-                    position: 'relative',
-                    flex: '1',
-                    minWidth: '200px',
-                    border: '1px solid #777777',
-                    borderRadius: '8px'
-                }}>
-                    <Search
-                        size={20}
-                        style={{
-                            position: 'absolute',
-                            left: '1rem',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            color: '#666'
-                        }}
-                    />
+            {/* Search Bar */}
+            <div style={{ marginBottom: '1.5rem' }}>
+                <div className="input-group" style={{ position: 'relative' }}>
+                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
                     <input
                         type="text"
                         className="input"
                         placeholder="Search by name or email"
-                        style={{
-                            paddingLeft: '3rem',
-                            width: '100%',
-                            height: '40px',
-                            outline: 'none'
-                        }}
-                    />
-                </div>
-
-                {/* Filters Label */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginRight: '1rem'
-                }}>
-                    <Menu size={16} style={{ color: '#666' }} />
-                    <span style={{
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        color: '#000000'
-                    }}>Filters:</span>
-                </div>
-
-                {/* Date Created Filter */}
-                <div style={{
-                    position: 'relative',
-                    minWidth: '220px',
-                    border: '1px solid #777777',
-                    borderRadius: '8px'
-                }}>
-                    <select
-                        className="select"
-                        style={{
-                            paddingRight: '2.5rem',
-                            height: '40px',
-                            width: '100%',
-                            outline: 'none'
-                        }}
-                    >
-                        <option value="all">All Date Created</option>
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                        <option value="year">This Year</option>
-                    </select>
-                    <ChevronDown
-                        size={16}
-                        style={{
-                            position: 'absolute',
-                            right: '1rem',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            pointerEvents: 'none'
-                        }}
-                    />
-                </div>
-
-                {/* Status Filter */}
-                <div style={{
-                    position: 'relative',
-                    minWidth: '180px',
-                    border: '1px solid #777777',
-                    borderRadius: '8px'
-                }}>
-                    <select
-                        className="select"
-                        style={{
-                            paddingRight: '2.5rem',
-                            height: '40px',
-                            width: '100%',
-                            outline: 'none'
-                        }}
-                    >
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="archived">Archived</option>
-                    </select>
-                    <ChevronDown
-                        size={16}
-                        style={{
-                            position: 'absolute',
-                            right: '1rem',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            pointerEvents: 'none'
-                        }}
+                        style={{ paddingLeft: '3rem' }}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
             </div>
 
-            {/* Supervisor Table */}
-            <div style={{
-                marginLeft: '0',
-                marginRight: '0',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                backgroundColor: 'white'
-            }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            {/* Filter Section */}
+            <div className="manage-interns-filters">
+                <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                    <Filter size={20} /> <span style={{ fontWeight: 600 }}>Filters:</span>
+                </div>
+                <div className="filter-dropdown">
+                    <select className="select" value={dateSort} onChange={(e) => setDateSort(e.target.value as 'newest' | 'oldest')}>
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                    </select>
+                </div>
+                <div className="filter-dropdown">
+                    <select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Error Banner */}
+            {error && (
+                <div style={{
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    backgroundColor: 'hsl(var(--danger) / 0.1)',
+                    color: 'hsl(var(--danger))',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid hsl(var(--danger) / 0.2)',
+                }}>
+                    {error}
+                </div>
+            )}
+
+            {/* Table Container */}
+            <div className="table-container" style={{ borderRadius: '8px', border: '1px solid #e5e5e5', overflow: 'auto', backgroundColor: 'white' }}>
+                <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'center' }}>
                     <thead>
                         <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
-                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'left' }}>Name</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'left' }}>Email Address</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'left' }}>Date Created</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'left' }}>Status</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, textAlign: 'center' }}>Actions</th>
+                            <th style={{ padding: '1rem' }}>Name</th>
+                            <th style={{ padding: '1rem' }}>Email Address</th>
+                            <th style={{ padding: '1rem' }}>Date Created</th>
+                            <th style={{ padding: '1rem' }}>Status</th>
+                            <th style={{ padding: '1rem' }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
-                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>Carl Lee</td>
-                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>carllee1998@gmail.com</td>
-                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>01/01/2016</td>
-                            <td style={{ padding: '1rem' }}>
-                                <span style={{ color: '#5D46E0', fontWeight: 500 }}>Archived</span>
-                            </td>
-                            <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2b2a2a', padding: '4px' }} title="Edit">
-                                        <Pencil size={18} />
-                                    </button>
-                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2b2a2a', padding: '4px' }} title="Archive">
-                                        <Archive size={18} />
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
-                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>Faye Ortega</td>
-                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>fayeortega@gmail.com</td>
-                            <td style={{ padding: '1rem', color: '#2b2a2a' }}>01/03/2016</td>
-                            <td style={{ padding: '1rem' }}>
-                                <span style={{ color: '#16a34a', fontWeight: 500 }}>Active</span>
-                            </td>
-                            <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2b2a2a', padding: '4px' }} title="Edit">
-                                        <Pencil size={18} />
-                                    </button>
-                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2b2a2a', padding: '4px' }} title="Archive">
-                                        <Archive size={18} />
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        {supervisors.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} style={{ padding: '3rem 1rem', color: '#64748b' }}>No supervisors found.</td>
+                            </tr>
+                        ) : (
+                            supervisors.map((supervisor) => (
+                                <tr key={supervisor.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
+                                    <td style={{ padding: '1rem' }}>{supervisor.full_name}</td>
+                                    <td style={{ padding: '1rem' }}>{supervisor.email}</td>
+                                    <td style={{ padding: '1rem' }}>{formatDate(supervisor.created_at)}</td>
+                                    <td style={{ padding: '1rem' }}>
+                                        <span style={{ color: supervisor.status === 'active' ? '#22c55e' : '#8b5cf6', fontWeight: 500 }}>
+                                            {supervisor.status}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '1rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }}><Pencil size={18} /></button>
+                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleArchiveToggle(supervisor)}><Archive size={18} /></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
 
             {/* Add Supervisor Modal */}
-            {isModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        backgroundColor: 'white',
-                        borderRadius: '12px',
-                        padding: '2rem',
-                        width: '90%',
-                        maxWidth: '500px',
-                        maxHeight: '90vh',
-                        overflow: 'auto'
-                    }}>
-                        {/* Modal Header */}
-                        <div style={{
-                            position: 'relative',
-                            textAlign: 'center',
-                            marginBottom: '1.5rem'
-                        }}>
-                            <h2 style={{ margin: 0, fontSize: '1.5rem', color: '#2b2a2a' }}>Add New Supervisor</h2>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    right: '0',
-                                    transform: 'translateY(-50%)',
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    color: '#666',
-                                    padding: '4px'
-                                }}
-                            >
-                                <X size={20} />
+            {isAddModalOpen && (
+                <div className="modal-overlay" onClick={handleCloseAddModal}>
+                    <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '500px' }}>
+                        <h2 style={{ color: '#ea580c' }}>{confirmationStep ? 'Confirm Supervisor Addition' : 'Add New Supervisor'}</h2>
+                        {!confirmationStep ? (
+                            <div>
+                                <label>Select Intern:</label>
+                                <select className="select" style={{ width: '100%' }} value={selectedInternId} onChange={(e) => setSelectedInternId(e.target.value)} disabled={loadingInterns}>
+                                    <option value="">-- Choose an intern --</option>
+                                    {eligibleInterns.map(intern => (
+                                        <option key={intern.id} value={intern.id}>{intern.full_name} ({intern.email})</option>
+                                    ))}
+                                </select>
+                                {loadingInterns && <span style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>Loading eligible users...</span>}
+                            </div>
+                        ) : (
+                            <p>Are you sure you want to upgrade <strong>{selectedInternName}</strong> to Supervisor?</p>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                            <button className="btn" onClick={!confirmationStep ? handleCloseAddModal : () => setConfirmationStep(false)}>
+                                {confirmationStep ? 'Back' : 'Cancel'}
                             </button>
+                            {!confirmationStep ? (
+                                <button className="btn btn-primary" onClick={handleContinue} disabled={!selectedInternId || loadingInterns}>Next</button>
+                            ) : (
+                                <button className="btn btn-primary" onClick={handleConfirmUpgrade} disabled={upgrading}>
+                                    {upgrading ? <Loader2 size={18} /> : 'Confirm Upgrade'}
+                                </button>
+                            )}
                         </div>
-
-                        {/* Modal Form */}
-                        <form onSubmit={handleSubmit}>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#2b2a2a'
-                                }}>
-                                    Full Name:
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input"
-                                    placeholder="Enter supervisor's full name"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #e5e5e5',
-                                        borderRadius: '8px',
-                                        fontSize: '1rem'
-                                    }}
-                                    required
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontWeight: '600',
-                                    color: '#2b2a2a'
-                                }}>
-                                    Email Address:
-                                </label>
-                                <input
-                                    type="email"
-                                    className="input"
-                                    placeholder="Enter email address"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #e5e5e5',
-                                        borderRadius: '8px',
-                                        fontSize: '1rem'
-                                    }}
-                                    required
-                                />
-                            </div>
-
-
-                            {/* Modal Actions */}
-                            <div style={{
-                                display: 'flex',
-                                gap: '1rem',
-                                justifyContent: 'center'
-                            }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    style={{
-                                        padding: '0.75rem 1.5rem',
-                                        border: '1px solid #e5e5e5',
-                                        borderRadius: '8px',
-                                        backgroundColor: 'white',
-                                        color: '#666',
-                                        cursor: 'pointer',
-                                        fontSize: '1rem'
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    style={{
-                                        padding: '0.75rem 1.5rem',
-                                        fontSize: '1rem'
-                                    }}
-                                >
-                                    Add Supervisor
-                                </button>
-                            </div>
-                        </form>
                     </div>
                 </div>
             )}

@@ -133,7 +133,7 @@ const Reports = () => {
             lastUpdate: '1 week ago'
         }
     ];
-    
+
     const processedInterns = interns.map(intern => ({
         ...intern,
         status: intern.attendance === '100%' ? 'Completed' : intern.status
@@ -151,5 +151,106 @@ const Reports = () => {
         return matchesStatus && matchesSearch;
     });
 
+    return (
+        <div>
+            <h1 style={{ color: '#ff8800', fontSize: '2rem', margin: 0 }}>Reports Section</h1>
+            <h2 style={{ fontSize: '1.2rem', margin: '0.5rem 0', color: '#2b2a2a' }}>Weekly/Monthly Summaries</h2>
+
+            {/* Filter and Search Container */}
+            <div style={{
+                display: 'flex',
+                gap: '1rem',
+                alignItems: 'center',
+                marginTop: '2rem',
+                padding: '1rem',
+                backgroundColor: '#F9F7F4',
+                borderRadius: '12px',
+                border: '1px solid #777777'
+            }}>
+                {/* Search Bar */}
+                <div style={{
+                    position: 'relative',
+                    flex: '1',
+                    minWidth: '200px'
+                }}>
+                    <Search
+                        size={20}
+                        style={{
+                            position: 'absolute',
+                            left: '1rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: '#666'
+                        }}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Search by name or email"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            paddingLeft: '3rem',
+                            width: '100%',
+                            height: '40px',
+                            border: '1px solid #777777',
+                            borderRadius: '8px',
+                            outline: 'none',
+                            fontSize: '1rem'
+                        }}
+                    />
+                </div>
+
+                {/* Dropdown Filter */}
+                <select 
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    style={{
+                        height: '40px',
+                        padding: '0 1rem',
+                        border: '1px solid #777777',
+                        borderRadius: '8px',
+                        outline: 'none',
+                        fontSize: '1rem',
+                        minWidth: '180px',
+                        backgroundColor: 'white'
+                    }}>
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                </select>
+
+                {/* Export Button */}
+                <button className="btn btn-primary" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    height: '40px',
+                    padding: '0 1.5rem',
+                    border: 'none',
+                    borderRadius: '8px',
+                    backgroundColor: '#ff8800',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '1rem'
+                }}>
+                    <Download size={16} />
+                    Export All
+                </button>
+            </div>
+
+            {/* Cards Section */}
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '1.5rem',
+                marginTop: '2rem'
+            }}>
+                {filteredInterns.map((intern, index) => (
+                    <InternCard key={index} {...intern} />
+                ))}
+            </div>
+        </div>
+    );
 };
+
 export default Reports;

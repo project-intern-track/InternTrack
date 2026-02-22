@@ -133,5 +133,23 @@ const Reports = () => {
             lastUpdate: '1 week ago'
         }
     ];
+    
+    const processedInterns = interns.map(intern => ({
+        ...intern,
+        status: intern.attendance === '100%' ? 'Completed' : intern.status
+    }));
+
+    const filteredInterns = processedInterns.filter(intern => {
+        const matchesStatus = filterStatus === 'all' || 
+            (filterStatus === 'active' && intern.status === 'Active') ||
+            (filterStatus === 'completed' && intern.status === 'Completed');
+        
+        const matchesSearch = searchTerm === '' || 
+            intern.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            intern.email.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        return matchesStatus && matchesSearch;
+    });
+
 };
 export default Reports;

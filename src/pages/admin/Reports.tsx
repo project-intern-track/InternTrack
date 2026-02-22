@@ -74,17 +74,64 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
     );
 };
 const Reports = () => {
-    return (
-        <div className="placeholder-page">
-            <div className="placeholder-icon">
-            </div>
-            <h1 className="placeholder-title">Reports Section</h1>
-            <p className="placeholder-description">
-                Generate comprehensive reports and analytics for the entire program.
-            </p>
-            <div className="placeholder-badge">Coming Soon</div>
-        </div>
-    );
-};
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
 
+    const interns = [
+        {
+            name: 'Kevin Lim',
+            email: 'kevinlim@gmail.com',
+            role: 'Fullstack Developer',
+            hours: '400h',
+            attendance: '75%',
+            status: 'Active',
+            lastUpdate: '2 hours ago'
+        },
+        {
+            name: 'Alex John Ramirez',
+            email: 'alexjohnramirez@email.com',
+            role: 'Frontend Developer',
+            hours: '300h',
+            attendance: '45%',
+            status: 'Active',
+            lastUpdate: '5 hours ago'
+        },
+        {
+            name: 'Bianca Louise Santos',
+            email: 'bianca.santos@email.com',
+            role: 'UI/UX Designer',
+            hours: '450h',
+            attendance: '65%',
+            status: 'Active',
+            lastUpdate: '1 hour ago'
+        },
+        {
+            name: 'Jewel Gonzales',
+            email: 'jewelgonzales@email.com',
+            role: 'Data Analyst',
+            hours: '486h',
+            attendance: '96%',
+            status: 'Active',
+            lastUpdate: '7 hours ago'
+        },
+        {
+            name: 'Alex Wilson',
+            email: 'alex.w@email.com',
+            role: 'Mobile Dev',
+            hours: '450h',
+            attendance: '94%',
+            status: 'Active',
+            lastUpdate: '6 hours ago'
+        },
+        {
+            name: 'Lisa Brown',
+            email: 'lisabrown@email.com',
+            role: 'QA Tester',
+            hours: '300h',
+            attendance: '100%',
+            status: 'Completed',
+            lastUpdate: '1 week ago'
+        }
+    ];
+};
 export default Reports;

@@ -236,8 +236,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   // Calculate stats from records
   const completedRecords = attendanceRecords.filter((r) => r.status === 'completed');
   const totalCreditedHours = completedRecords.reduce((sum, r) => sum + (r.credited_hours || 0), 0);
-  const uniqueDatesCount = uniqueDates.length;
-  const avgHoursPerDay = uniqueDatesCount > 0 ? totalCreditedHours / uniqueDatesCount : 0;
+  const completedRecordsCount = completedRecords.length;
+  // Average hours per day = total credited hours ÷ number of completed records (each record = one person-day)
+  const avgHoursPerDay = completedRecordsCount > 0 ? totalCreditedHours / completedRecordsCount : 0;
 
   const calculatedStats: AttendanceStats = {
     completed: stats?.completed ?? completedRecords.length,

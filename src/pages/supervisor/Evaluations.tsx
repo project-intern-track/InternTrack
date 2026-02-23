@@ -2,21 +2,42 @@ import { useState } from 'react';
 
 export type Evaluation = {
   id: string;
-  title: string;
-  description: string;
-  due_date: string;
-  priority: 'Low' | 'Medium' | 'High';
-  status: 'Pending' | 'In Progress' | 'Completed';
+  name: string;
+  role: string;
+  taskCompletion: number; 
+  competencyScore: string; 
+  overall: number;
+  remarks: string;
 };
 
-const Evaluations = () => {
-  const [evaluations] = useState<Evaluation[]>([]);
+const sampleEvaluations: Evaluation[] = [
+  { id: '1', name: 'John Doe', role: 'Intern', taskCompletion: 8, competencyScore: '4.5/5 (95%)', overall: 95, remarks: 'Good work' },
+  { id: '2', name: 'Jane Smith', role: 'Intern', taskCompletion: 6, competencyScore: '4.0/5 (90%)', overall: 90, remarks: 'Needs improvement on deadlines' },
+  { id: '3', name: 'Mark Lee', role: 'Assistant', taskCompletion: 7, competencyScore: '4.2/5 (92%)', overall: 92, remarks: 'Well done' },
+];
 
+const Evaluations = () => {
+  const [evaluations] = useState<Evaluation[]>(sampleEvaluations);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [remarksFilter, setRemarksFilter] = useState('');
+
+  const uniqueRemarks = Array.from(new Set(evaluations.map(e => e.remarks)));
+
+  const filteredEvaluations = evaluations.filter(e => {
+    return (
+      e.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (roleFilter ? e.role === roleFilter : true) &&
+      (remarksFilter ? e.remarks === remarksFilter : true)
+    );
+  });
 
   // Calculations
-  const totalEvaluated = evaluations.filter(e => e.status === 'Completed').length;
-  const averageCompletion = evaluations.length > 0 ? (totalEvaluated / evaluations.length) * 100 : 0;
-  const improvementTrend = totalEvaluated; // Number of completed tasks (numeric trend)
+  const totalEvaluated = evaluations.length;
+  const averageCompletion = evaluations.length > 0
+    ? Math.round(evaluations.reduce((sum, e) => sum + e.taskCompletion, 0) / evaluations.length)
+    : 0;
+  const improvementTrend = totalEvaluated; // number of evaluated tasks
 
   return (
     <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
@@ -27,7 +48,7 @@ const Evaluations = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
         {[
           { label: 'Total Interns Evaluated', value: totalEvaluated },
-          { label: 'Average Task Completion', value: `${averageCompletion.toFixed(0)}%` },
+          { label: 'Average Task Completion', value: averageCompletion },
           { label: 'Improvement Trend', value: improvementTrend },
         ].map((item, idx) => (
           <div
@@ -52,54 +73,74 @@ const Evaluations = () => {
         ))}
       </div>
 
-      {/* Evaluation Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
-        {evaluations.length === 0 && (
-          <p style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '1rem' }}>No evaluations available</p>
+      {/* Search & Filters Container */}
+      <div style={{
+        marginTop: '2rem',
+        padding: '1rem',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '0.5rem',
+        display: 'flex',
+        gap: '1rem',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+      }}>
+        <input
+          type="text"
+          placeholder="Search by name"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          style={{ flex: 2, padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #ccc' }}
+        />
+
+        <select
+          value={roleFilter}
+          onChange={e => setRoleFilter(e.target.value)}
+          style={{ flex: 1, padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #ccc' }}
+        >
+          <option value="">All Roles</option>
+          <option value="Intern">Intern</option>
+          <option value="Assistant">Assistant</option>
+        </select>
+
+        <select
+          value={remarksFilter}
+          onChange={e => setRemarksFilter(e.target.value)}
+          style={{ flex: 2, padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #ccc' }}
+        >
+          <option value="">All Remarks</option>
+          {uniqueRemarks.map((r, idx) => (
+            <option key={idx} value={r}>{r}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Evaluation Table */}
+      <div style={{ marginTop: '2rem', border: '1px solid #ccc', borderRadius: '0.5rem', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ backgroundColor: '#fb8c42', color: '#fff', display: 'flex', padding: '0.75rem', fontWeight: 'bold' }}>
+          <div style={{ flex: 2 }}>Name</div>
+          <div style={{ flex: 1 }}>Role</div>
+          <div style={{ flex: 1 }}>Task Completion</div>
+          <div style={{ flex: 1 }}>Competency Score</div>
+          <div style={{ flex: 1 }}>Overall (%)</div>
+          <div style={{ flex: 2 }}>Remarks</div>
+        </div>
+
+        {/* Rows */}
+        {filteredEvaluations.length === 0 ? (
+          <div style={{ padding: '1rem', textAlign: 'center' }}>No evaluations found</div>
+        ) : (
+          filteredEvaluations.map(e => (
+            <div key={e.id} style={{ display: 'flex', padding: '0.75rem', borderBottom: '1px solid #eee', alignItems: 'center' }}>
+              <div style={{ flex: 2 }}>{e.name}</div>
+              <div style={{ flex: 1 }}>{e.role}</div>
+              <div style={{ flex: 1 }}>{e.taskCompletion}</div>
+              <div style={{ flex: 1 }}>{e.competencyScore}</div>
+              <div style={{ flex: 1 }}>{e.overall}%</div>
+              <div style={{ flex: 2 }}>{e.remarks}</div>
+            </div>
+          ))
         )}
-        {evaluations.map(task => (
-          <div key={task.id} style={{
-            border: '1px solid #ccc',
-            borderRadius: '0.5rem',
-            padding: '1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: '0.5rem',
-            position: 'relative',
-          }}>
-            {/* Top-right priority badge */}
-            <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
-              <span style={{
-                backgroundColor: task.priority === 'High' ? '#e74c3c' : task.priority === 'Medium' ? '#f39c12' : '#2ecc71',
-                color: 'white',
-                padding: '0.25rem 0.5rem',
-                borderRadius: '0.25rem',
-                fontSize: '0.75rem',
-                fontWeight: 'bold',
-              }}>
-                {task.priority}
-              </span>
-            </div>
-
-            <div>
-              <h3>{task.title}</h3>
-              <p>{task.description}</p>
-            </div>
-
-            {/* Bottom section */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Due: {new Date(task.due_date).toLocaleDateString()}</p>
-              <span style={{
-                fontSize: '0.85rem',
-                fontWeight: 'bold',
-                color: task.status === 'Completed' ? '#2ecc71' : task.status === 'In Progress' ? '#f39c12' : '#e74c3c',
-              }}>
-                {task.status}
-              </span>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );

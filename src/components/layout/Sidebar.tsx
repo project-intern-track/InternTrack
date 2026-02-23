@@ -71,30 +71,40 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
 
     return (
         <>
-            <div className={`sidebar-overlay ${isOpen ? 'active' : ''}`} onClick={onClose}></div>
-            <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-                <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
+            {/* Mobile Overlay */}
+            <div 
+                className={`fixed inset-0 bg-black/50 z-[999] transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`} 
+                onClick={onClose}
+            ></div>
+
+            <aside 
+                className={`fixed top-0 left-0 h-screen w-72 bg-[#0a0a0a] flex flex-col z-[1000] transition-transform duration-300 ease-in-out rounded-r-[25px] overflow-y-auto shadow-2xl md:shadow-none ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            >
+                <button 
+                    className="md:hidden absolute top-4 right-4 text-white p-1 hover:bg-white/10 rounded-lg transition-colors cursor-pointer border-none bg-transparent" 
+                    onClick={onClose} 
+                    aria-label="Close menu"
+                >
                     <X size={24} />
                 </button>
 
-                <div className="sidebar-header">
-                    <img src="/heroIcon.png" alt="InternTrack" className="sidebar-logo-img" />
-                    <div className="sidebar-brand">
-                        <span className="sidebar-brand-intern">Intern</span>
-                        <span className="sidebar-brand-track">Track</span>
+                <div className="p-6 flex items-center gap-2 border-b border-white/10 mt-2 md:mt-0">
+                    <div className="text-2xl font-bold flex gap-[0.15rem]">
+                        <span className="text-white">Intern</span>
+                        <span className="text-[#ff8c42]">Track</span>
                     </div>
                 </div>
 
-                <nav className="sidebar-nav">
-                    <ul>
+                <nav className="flex-1 py-6 px-4 overflow-y-auto">
+                    <ul className="flex flex-col gap-2 list-none p-0 m-0">
                         {getLinks().map((link) => (
-                            <li key={link.to}>
+                            <li key={link.to} className="relative">
                                 <NavLink
                                     to={link.to}
                                     className={({ isActive }) =>
-                                        isActive ? 'sidebar-link active' : 'sidebar-link'
+                                        `flex items-center justify-between py-3.5 px-5 text-white no-underline text-[0.9375rem] font-normal rounded-xl transition-all duration-200 ${isActive ? 'bg-[#ff8c42] text-white font-medium shadow-md' : 'hover:bg-white/5'}`
                                     }
-                                    onClick={onClose}
+                                    onClick={() => { if (window.innerWidth < 768 && onClose) onClose(); }}
                                 >
                                     {link.label}
                                 </NavLink>
@@ -103,15 +113,15 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                     </ul>
                 </nav>
 
-                <div className="sidebar-footer">
+                <div className="p-4 border-t border-white/10 mt-auto">
                     <button
-                        className="sidebar-logout-btn"
+                        className="w-full flex items-center gap-3 py-3.5 px-5 bg-transparent border-none text-white/90 text-[0.9375rem] font-normal rounded-xl cursor-pointer transition-all duration-200 hover:bg-red-500/15 hover:text-red-500 disabled:opacity-60 disabled:cursor-not-allowed"
                         onClick={handleLogout}
                         disabled={isLoggingOut}
                     >
                         {isLoggingOut ? (
                             <>
-                                <Loader2 size={20} className="spinner" />
+                                <Loader2 size={20} className="animate-spin" />
                                 <span>Logging out...</span>
                             </>
                         ) : (

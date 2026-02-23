@@ -1,5 +1,6 @@
 import { Search, Download } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface InternCardProps {
     name: string;
@@ -12,6 +13,8 @@ interface InternCardProps {
 }
 
 const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }: InternCardProps) => {
+    const navigate = useNavigate();
+
     const getStatusStyle = (status: string) => {
         if (status === 'Active') {
             return {
@@ -26,7 +29,10 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
         }
         return {};
     };
-
+    const handleClick = () => {
+        const internId = name.toLowerCase().replace(/\s+/g, '-');
+        navigate(`/admin/reports/${internId}`);
+    };
     return (
         <div style={{
             background: '#F9F7F4',
@@ -37,6 +43,7 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
             transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
             cursor: 'pointer'
         }}
+            onClick={handleClick}
             onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.15)';

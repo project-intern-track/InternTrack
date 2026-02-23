@@ -129,8 +129,6 @@ const DailyLogs = () => {
                 .timelog-entry-date { color: hsl(var(--foreground)); font-weight: 500; }
                 .timelog-entry-time { color: hsl(var(--muted-foreground)); }
                 .timelog-entry-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.625rem; background: hsl(var(--orange) / 0.15); color: hsl(var(--orange)); border-radius: var(--radius-sm); font-size: 0.8125rem; font-weight: 600; margin-top: 0.5rem; }
-                .timelog-date-input-wrapper { position: relative; }
-                .timelog-date-input-wrapper .timelog-cal-icon { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: hsl(var(--muted-foreground)); }
                 @media (max-width: 768px) {
                     .timelog-main-grid { grid-template-columns: 1fr; }
                     .timelog-header h1 { font-size: 1.5rem; }
@@ -174,19 +172,15 @@ const DailyLogs = () => {
                         <form onSubmit={handleSubmit} className="stack">
                             <div className="stack stack-sm">
                                 <label className="label" htmlFor="timelog-date">Date</label>
-                                <div className="timelog-date-input-wrapper">
-                                    <input
-                                        id="timelog-date"
-                                        name="date"
-                                        type="date"
-                                        className="input"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
-                                        required
-                                        style={{ paddingRight: '2.5rem' }}
-                                    />
-                                    <Calendar size={18} className="timelog-cal-icon" />
-                                </div>
+                                <input
+                                    id="timelog-date"
+                                    name="date"
+                                    type="date"
+                                    className="input"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    required
+                                />
                             </div>
                             <div className="timelog-form-row">
                                 <div className="stack stack-sm">

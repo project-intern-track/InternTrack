@@ -125,7 +125,7 @@ const hexToRgba = (hex: string, alpha: number) => {
 // Main Component
 // ============================
 const SupervisorDashboard = () => {
-  const supervisorName = 'Supervisor Maria';
+  const supervisorName = 'Test Supervisor';
 
   const pendingTasks = dummyTasks;
   const summary = computeSummary(dummyTasks);

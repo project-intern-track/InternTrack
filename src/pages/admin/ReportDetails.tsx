@@ -1,5 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { Calendar, FileText, BarChart } from 'lucide-react';
+import { useState } from 'react';
 
 interface ReportDetailsProps {
     name: string;
@@ -89,6 +91,7 @@ const mockReportData: { [key: string]: ReportDetailsProps & { ojtId: string; dep
 const ReportDetails = () => {
     const { internId } = useParams<{ internId: string }>();
     const navigate = useNavigate();
+    const [selectedTab, setSelectedTab] = useState('weekly');
 
     const reportData = mockReportData[internId || ''];
 
@@ -227,7 +230,121 @@ const ReportDetails = () => {
                     </div>
                 </div>
             </div>
+            {/* Report Tabs Container */}
+            <div style={{
+                background: '#F9F7F4',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                border: '1px solid #e5e5e5',
+                marginBottom: '2rem'
+            }}>
+                {/* Tab Buttons */}
+                <div style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    marginBottom: '1.5rem'
+                }}>
+                    <button
+                        onClick={() => setSelectedTab('weekly')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            backgroundColor: selectedTab === 'weekly' ? '#ff8800' : '#f3f4f6',
+                            color: selectedTab === 'weekly' ? 'white' : '#2b2a2a',
+                            border: selectedTab === 'weekly' ? '1px solid #ff8800' : '1px solid #d1d5db',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            fontWeight: '500'
+                        }}
+                    >
+                        <Calendar size={16} />
+                        Weekly Summary
+                    </button>
+                    <button
+                        onClick={() => setSelectedTab('monthly')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            backgroundColor: selectedTab === 'monthly' ? '#ff8800' : '#f3f4f6',
+                            color: selectedTab === 'monthly' ? 'white' : '#2b2a2a',
+                            border: selectedTab === 'monthly' ? '1px solid #ff8800' : '1px solid #d1d5db',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            fontWeight: '500'
+                        }}
+                    >
+                        <FileText size={16} />
+                        Monthly Summary
+                    </button>
+                    <button
+                        onClick={() => setSelectedTab('full')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            backgroundColor: selectedTab === 'full' ? '#ff8800' : '#f3f4f6',
+                            color: selectedTab === 'full' ? 'white' : '#2b2a2a',
+                            border: selectedTab === 'full' ? '1px solid #ff8800' : '1px solid #d1d5db',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            fontWeight: '500'
+                        }}
+                    >
+                        <BarChart size={16} />
+                        Full Report
+                    </button>
+                </div>
 
+                {/* Tab Content */}
+                <div style={{
+                    background: 'white',
+                    borderRadius: '8px',
+                    padding: '1.5rem',
+                    border: '1px solid #e5e5e5'
+                }}>
+                    {selectedTab === 'weekly' && (
+                        <div>
+                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
+                                Weekly Summary
+                            </h3>
+                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                This week's performance overview shows consistent progress in {reportData.role} responsibilities.
+                                Attendance rate of {reportData.attendance} with {reportData.hours} total hours logged.
+                            </p>
+                        </div>
+                    )}
+                    {selectedTab === 'monthly' && (
+                        <div>
+                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
+                                Monthly Summary
+                            </h3>
+                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                Monthly performance metrics indicate steady improvement in key areas.
+                                Current status: {reportData.status} with ongoing development in {reportData.department}.
+                            </p>
+                        </div>
+                    )}
+                    {selectedTab === 'full' && (
+                        <div>
+                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
+                                Full Report
+                            </h3>
+                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                Comprehensive report covering all aspects of {reportData.name}'s OJT experience.
+                                Including detailed metrics, achievements, and areas for improvement under the supervision of {reportData.supervisor}.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 };

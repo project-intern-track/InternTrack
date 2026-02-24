@@ -521,8 +521,208 @@ const ReportDetails = () => {
                                     Completed major project milestones including authentication system implementation and database optimization. Strong progress in full-stack development skills.
                                 </p>
                             </div>
+
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Skills Developed
+                                </h4>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '1.5rem'
+                                }}>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>React and Typescript</span>
+                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>85%</span>
+                                        </div>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '8px',
+                                            backgroundColor: '#e5e5e5',
+                                            borderRadius: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: '85%',
+                                                height: '100%',
+                                                backgroundColor: '#ff8800',
+                                                borderRadius: '4px'
+                                            }} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Node.js</span>
+                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>70%</span>
+                                        </div>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '8px',
+                                            backgroundColor: '#e5e5e5',
+                                            borderRadius: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: '70%',
+                                                height: '100%',
+                                                backgroundColor: '#ff8800',
+                                                borderRadius: '4px'
+                                            }} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Database Management</span>
+                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>85%</span>
+                                        </div>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '8px',
+                                            backgroundColor: '#e5e5e5',
+                                            borderRadius: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: '85%',
+                                                height: '100%',
+                                                backgroundColor: '#ff8800',
+                                                borderRadius: '4px'
+                                            }} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>API Integration</span>
+                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>65%</span>
+                                        </div>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '8px',
+                                            backgroundColor: '#e5e5e5',
+                                            borderRadius: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: '65%',
+                                                height: '100%',
+                                                backgroundColor: '#ff8800',
+                                                borderRadius: '4px'
+                                            }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Projects
+                                </h4>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '1rem'
+                                }}>
+                                    <div style={{
+                                        background: '#64AACA12',
+                                        borderRadius: '8px',
+                                        padding: '1rem',
+                                        border: '1px solid #e5e5e5',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div>
+                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                                User Authentication System
+                                            </h5>
+                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
+                                                Designed and implemented secure authentication with JWT tokens
+                                            </p>
+                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
+                                                Role: Lead Developer
+                                            </div>
+                                        </div>
+                                        <span style={{
+                                            backgroundColor: '#dcfce7',
+                                            color: '#166534',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '500',
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            display: 'inline-block'
+                                        }}>
+                                            Completed
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        background: '#64AACA12',
+                                        borderRadius: '8px',
+                                        padding: '1rem',
+                                        border: '1px solid #e5e5e5',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div>
+                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                                Dashboard Analytics
+                                            </h5>
+                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
+                                                Building interactive data visualization components
+                                            </p>
+                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
+                                                Role: Frontend Developer
+                                            </div>
+                                        </div>
+                                        <span style={{
+                                            backgroundColor: '#dcfce7',
+                                            color: '#166534',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '500',
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            display: 'inline-block'
+                                        }}>
+                                            Completed
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        background: '#64AACA12',
+                                        borderRadius: '8px',
+                                        padding: '1rem',
+                                        border: '1px solid #e5e5e5',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div>
+                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                                API Optimization
+                                            </h5>
+                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
+                                                Improved API response time by 40%
+                                            </p>
+                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
+                                                Role: Backend Developer
+                                            </div>
+                                        </div>
+                                        <span style={{
+                                            backgroundColor: '#dcfce7',
+                                            color: '#166534',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '500',
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            display: 'inline-block'
+                                        }}>
+                                            Completed
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
+
                     {selectedTab === 'full' && (
                         <div>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>

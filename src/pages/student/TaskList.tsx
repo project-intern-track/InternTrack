@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type TabKey = "all" | "in_progress" | "completed" | "overdue";
 
@@ -67,14 +67,14 @@ const DATA: Record<TabKey, TaskSkeleton[]> = {
   ],
 };
 
-function getPillStyle(status: string): React.CSSProperties {
+function getPillStyleClass(status: string): string {
   if (status === "In Progress")
-    return { background: "#f5f0a6", color: "#333" };
+    return "bg-[#f5f0a6] text-[#333]";
 
   if (status === "Completed")
-    return { background: "#bcd8ff", color: "#333" };
+    return "bg-[#bcd8ff] text-[#333]";
 
-  return { background: "#ffc2c2", color: "#333" };
+  return "bg-[#ffc2c2] text-[#333]";
 }
 
 export default function TaskList() {
@@ -92,49 +92,37 @@ export default function TaskList() {
   const list = DATA[tab];
 
   return (
-    <div style={styles.page}>
+    <div className="p-[20px]">
       {/* TITLE */}
-      <h1 style={styles.title}>Task List</h1>
+      <h1 className="text-[#ff7a00] text-[26px] font-extrabold mb-[14px]">Task List</h1>
 
       {/* PANEL */}
-      <div style={styles.panel}>
+      <div className="bg-[#efeae4] rounded-[16px] p-[16px] h-[75vh]">
         {/* TABS */}
-        <div style={styles.tabs}>
+        <div className="flex gap-[10px] mb-[12px]">
           <button
-            style={{
-              ...styles.tab,
-              ...(tab === "all" ? styles.activeTab : {}),
-            }}
+            className={`border-none py-[8px] px-[12px] rounded-[12px] cursor-pointer font-semibold ${tab === "all" ? "bg-[#ffcf96]" : "bg-transparent"}`}
             onClick={() => setTab("all")}
           >
             All Tasks ({counts.all})
           </button>
 
           <button
-            style={{
-              ...styles.tab,
-              ...(tab === "in_progress" ? styles.activeTab : {}),
-            }}
+            className={`border-none py-[8px] px-[12px] rounded-[12px] cursor-pointer font-semibold ${tab === "in_progress" ? "bg-[#ffcf96]" : "bg-transparent"}`}
             onClick={() => setTab("in_progress")}
           >
             In Progress ({counts.in_progress})
           </button>
 
           <button
-            style={{
-              ...styles.tab,
-              ...(tab === "completed" ? styles.activeTab : {}),
-            }}
+            className={`border-none py-[8px] px-[12px] rounded-[12px] cursor-pointer font-semibold ${tab === "completed" ? "bg-[#ffcf96]" : "bg-transparent"}`}
             onClick={() => setTab("completed")}
           >
             Completed ({counts.completed})
           </button>
 
           <button
-            style={{
-              ...styles.tab,
-              ...(tab === "overdue" ? styles.activeTab : {}),
-            }}
+            className={`border-none py-[8px] px-[12px] rounded-[12px] cursor-pointer font-semibold ${tab === "overdue" ? "bg-[#ffcf96]" : "bg-transparent"}`}
             onClick={() => setTab("overdue")}
           >
             Overdue ({counts.overdue})
@@ -142,36 +130,33 @@ export default function TaskList() {
         </div>
 
         {/* TASK LIST */}
-        <div style={styles.list}>
+        <div className="flex flex-col gap-[12px]">
           {list.map((task) => (
-            <div key={task.id} style={styles.card}>
-              <div style={styles.cardTop}>
-                <h2 style={styles.cardTitle}>{task.title}</h2>
+            <div key={task.id} className="bg-white rounded-[14px] border-2 border-[#ff8a00] p-[14px]">
+              <div className="flex justify-between">
+                <h2 className="m-0 text-[18px] font-black">{task.title}</h2>
 
-                <div style={styles.priority}>
+                <div className="text-[12px] font-bold">
                   {task.priority} Priority
                 </div>
               </div>
 
-              <p style={styles.description}>{task.description}</p>
+              <p className="mt-[25px] mb-[30px]">{task.description}</p>
 
-              <div style={styles.cardBottom}>
+              <div className="flex justify-between items-center">
                 <div>
-                  <span style={styles.muted}>Due:</span>{" "}
+                  <span className="opacity-70 font-bold">Due:</span>{" "}
                   {task.dueDate}
                 </div>
 
-                <div style={styles.actions}>
+                <div className="flex gap-[10px] items-center">
                   <span
-                    style={{
-                      ...styles.pill,
-                      ...getPillStyle(task.status),
-                    }}
+                    className={`px-[10px] py-[6px] rounded-full font-bold text-[12px] ${getPillStyleClass(task.status)}`}
                   >
                     {task.status}
                   </span>
 
-                  <button style={styles.completeButton}>
+                  <button className="py-[6px] px-[12px] rounded-full border-none bg-[#bcd8ff] font-bold cursor-pointer">
                     Completed
                   </button>
                 </div>
@@ -180,7 +165,7 @@ export default function TaskList() {
           ))}
 
           {list.length === 0 && (
-            <div style={styles.empty}>
+            <div className="p-[20px] text-center opacity-70">
               No tasks available yet.
             </div>
           )}
@@ -189,117 +174,3 @@ export default function TaskList() {
     </div>
   );
 }
-
-
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    padding: "20px",
-  },
-
-  title: {
-    color: "#ff7a00",
-    fontSize: "26px",
-    fontWeight: 800,
-    marginBottom: "14px",
-  },
-
-  panel: {
-    background: "#efeae4",
-    borderRadius: "16px",
-    padding: "16px",
-    height: "75vh",
-  },
-
-  tabs: {
-    display: "flex",
-    gap: "10px",
-    marginBottom: "12px",
-  },
-
-  tab: {
-    border: "none",
-    background: "transparent",
-    padding: "8px 12px",
-    borderRadius: "12px",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-
-  activeTab: {
-    background: "#ffcf96",
-  },
-
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-
-  card: {
-    background: "#fff",
-    borderRadius: "14px",
-    border: "2px solid #ff8a00",
-    padding: "14px",
-  },
-
-  cardTop: {
-    display: "flex",
-    justifyContent: "space-between",
-  },
-
-  cardTitle: {
-    margin: 0,
-    fontSize: "18px",
-    fontWeight: 900,
-  },
-
-  priority: {
-    fontSize: "12px",
-    fontWeight: 700,
-  },
-
-  description: {
-    marginTop: "25px",
-    marginBottom: "30px",
-  },
-
-  cardBottom: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  muted: {
-    opacity: 0.7,
-    fontWeight: 700,
-  },
-
-  actions: {
-    display: "flex",
-    gap: "10px",
-    alignItems: "center",
-  },
-
-  pill: {
-    padding: "6px 10px",
-    borderRadius: "999px",
-    fontWeight: 700,
-    fontSize: "12px",
-  },
-
-  completeButton: {
-    padding: "6px 12px",
-    borderRadius: "999px",
-    border: "none",
-    background: "#bcd8ff",
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-
-  empty: {
-    padding: "20px",
-    textAlign: "center",
-    opacity: 0.7,
-  },
-};

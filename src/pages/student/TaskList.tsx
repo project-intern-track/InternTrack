@@ -69,12 +69,24 @@ const DATA: Record<TabKey, TaskSkeleton[]> = {
 
 function getPillStyleClass(status: string): string {
   if (status === "In Progress")
-    return "bg-[#f5f0a6] text-[#333]";
+    return "bg-amber-50 text-amber-700 border border-amber-200";
 
   if (status === "Completed")
-    return "bg-[#bcd8ff] text-[#333]";
+    return "bg-green-50 text-green-700 border border-green-200";
 
-  return "bg-[#ffc2c2] text-[#333]";
+  if (status === "Overdue")
+    return "bg-red-50 text-red-700 border border-red-200";
+
+  return "bg-gray-50 text-gray-700 border border-gray-200";
+}
+
+function getPriorityColorClass(priority: string): string {
+  switch (priority.toLowerCase()) {
+    case 'high': return 'bg-red-50 text-red-700 border-red-200';
+    case 'medium': return 'bg-orange-50 text-orange-700 border-orange-200';
+    case 'low': return 'bg-blue-50 text-blue-700 border-blue-200';
+    default: return 'bg-gray-50 text-gray-700 border-gray-200';
+  }
 }
 
 export default function TaskList() {
@@ -92,72 +104,80 @@ export default function TaskList() {
   const list = DATA[tab];
 
   return (
-    <div className="p-[20px]">
+    <div className="p-6 md:p-8 bg-gray-50 min-h-screen font-sans">
       {/* TITLE */}
-      <h1 className="text-[#ff7a00] text-[26px] font-extrabold mb-[14px]">Task List</h1>
+      <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-8">Task List</h1>
 
       {/* PANEL */}
-      <div className="bg-[#efeae4] rounded-[16px] p-[16px] h-[75vh]">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 min-h-[75vh]">
         {/* TABS */}
-        <div className="flex gap-[10px] mb-[12px]">
+        <div className="flex flex-wrap gap-2 mb-8 border-b border-gray-100 pb-5">
           <button
-            className={`border-none py-[8px] px-[12px] rounded-[12px] cursor-pointer font-semibold ${tab === "all" ? "bg-[#ffcf96]" : "bg-transparent"}`}
+            className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
+              tab === "all" ? "bg-gray-900 text-white shadow-sm" : "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            }`}
             onClick={() => setTab("all")}
           >
-            All Tasks ({counts.all})
+            All Tasks <span className={`ml-1.5 px-2 py-0.5 rounded-md text-xs ${tab === "all" ? "bg-gray-700 text-gray-100" : "bg-gray-200 text-gray-600"}`}>{counts.all}</span>
           </button>
 
           <button
-            className={`border-none py-[8px] px-[12px] rounded-[12px] cursor-pointer font-semibold ${tab === "in_progress" ? "bg-[#ffcf96]" : "bg-transparent"}`}
+            className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
+              tab === "in_progress" ? "bg-gray-900 text-white shadow-sm" : "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            }`}
             onClick={() => setTab("in_progress")}
           >
-            In Progress ({counts.in_progress})
+            In Progress <span className={`ml-1.5 px-2 py-0.5 rounded-md text-xs ${tab === "in_progress" ? "bg-gray-700 text-gray-100" : "bg-gray-200 text-gray-600"}`}>{counts.in_progress}</span>
           </button>
 
           <button
-            className={`border-none py-[8px] px-[12px] rounded-[12px] cursor-pointer font-semibold ${tab === "completed" ? "bg-[#ffcf96]" : "bg-transparent"}`}
+            className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
+              tab === "completed" ? "bg-gray-900 text-white shadow-sm" : "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            }`}
             onClick={() => setTab("completed")}
           >
-            Completed ({counts.completed})
+            Completed <span className={`ml-1.5 px-2 py-0.5 rounded-md text-xs ${tab === "completed" ? "bg-gray-700 text-gray-100" : "bg-gray-200 text-gray-600"}`}>{counts.completed}</span>
           </button>
 
           <button
-            className={`border-none py-[8px] px-[12px] rounded-[12px] cursor-pointer font-semibold ${tab === "overdue" ? "bg-[#ffcf96]" : "bg-transparent"}`}
+            className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
+              tab === "overdue" ? "bg-gray-900 text-white shadow-sm" : "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            }`}
             onClick={() => setTab("overdue")}
           >
-            Overdue ({counts.overdue})
+            Overdue <span className={`ml-1.5 px-2 py-0.5 rounded-md text-xs ${tab === "overdue" ? "bg-gray-700 text-gray-100" : "bg-gray-200 text-gray-600"}`}>{counts.overdue}</span>
           </button>
         </div>
 
         {/* TASK LIST */}
-        <div className="flex flex-col gap-[12px]">
+        <div className="flex flex-col gap-4">
           {list.map((task) => (
-            <div key={task.id} className="bg-white rounded-[14px] border-2 border-[#ff8a00] p-[14px]">
-              <div className="flex justify-between">
-                <h2 className="m-0 text-[18px] font-black">{task.title}</h2>
+            <div key={task.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-gray-300 hover:shadow-md transition-all duration-300 group flex flex-col">
+              <div className="flex justify-between items-start mb-2">
+                <h2 className="m-0 text-lg font-extrabold text-gray-900 leading-tight group-hover:text-[#ff7a00] transition-colors">{task.title}</h2>
 
-                <div className="text-[12px] font-bold">
+                <div className={`px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider shrink-0 ml-4 ${getPriorityColorClass(task.priority)}`}>
                   {task.priority} Priority
                 </div>
               </div>
 
-              <p className="mt-[25px] mb-[30px]">{task.description}</p>
+              <p className="text-gray-500 text-sm mt-1 mb-5 leading-relaxed">{task.description}</p>
 
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="opacity-70 font-bold">Due:</span>{" "}
-                  {task.dueDate}
+              <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
+                <div className="flex items-center text-xs font-bold text-gray-400 tracking-wide uppercase">
+                  <span className="mr-1.5 opacity-70">Due:</span>
+                  <span className="text-gray-600">{task.dueDate}</span>
                 </div>
 
-                <div className="flex gap-[10px] items-center">
+                <div className="flex gap-3 items-center">
                   <span
-                    className={`px-[10px] py-[6px] rounded-full font-bold text-[12px] ${getPillStyleClass(task.status)}`}
+                    className={`px-3 py-1.5 rounded-md font-bold text-[10px] uppercase tracking-wider ${getPillStyleClass(task.status)}`}
                   >
                     {task.status}
                   </span>
 
-                  <button className="py-[6px] px-[12px] rounded-full border-none bg-[#bcd8ff] font-bold cursor-pointer">
-                    Completed
+                  <button className="py-1.5 px-4 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-bold text-xs transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-1">
+                    Mark Complete
                   </button>
                 </div>
               </div>
@@ -165,8 +185,12 @@ export default function TaskList() {
           ))}
 
           {list.length === 0 && (
-            <div className="p-[20px] text-center opacity-70">
-              No tasks available yet.
+            <div className="py-16 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <span className="text-gray-400 text-3xl">📭</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">No tasks found</h3>
+              <p className="text-gray-500 font-medium">There are no tasks matching this filter.</p>
             </div>
           )}
         </div>

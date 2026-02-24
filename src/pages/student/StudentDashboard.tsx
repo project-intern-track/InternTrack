@@ -84,15 +84,25 @@ const StudentDashboard: React.FC = () => {
   };
 
   const getPriorityColorClass = (p: string) => {
-    switch (p) {
-      case 'high': return 'bg-red-500'; // Red
-      case 'medium': return 'bg-yellow-500'; // Yellow
-      case 'low': return 'bg-blue-500'; // Blue
-      default: return 'bg-gray-400';
+    switch (p?.toLowerCase()) {
+      case 'high': return 'bg-red-50 text-red-600 border border-red-100';
+      case 'medium': return 'bg-orange-50 text-orange-600 border border-orange-100';
+      case 'low': return 'bg-blue-50 text-blue-600 border border-blue-100';
+      default: return 'bg-gray-50 text-gray-600 border border-gray-100';
+    }
+  };
+
+  const getPriorityDotClass = (p: string) => {
+    switch (p?.toLowerCase()) {
+      case 'high': return 'bg-red-500';
+      case 'medium': return 'bg-orange-500';
+      case 'low': return 'bg-blue-500';
+      default: return 'bg-gray-500';
     }
   };
 
   const getPriorityLabel = (p: string) => {
+    if (!p) return 'Unknown Priority';
     return p.charAt(0).toUpperCase() + p.slice(1) + " Priority";
   };
 
@@ -100,77 +110,95 @@ const StudentDashboard: React.FC = () => {
   if (!stats) return null;
 
   return (
-    <div className="p-[30px] bg-[#f5f6f8] min-h-screen">
-      <div className="mb-[25px]">
-        <h2 className="text-[#ff7a00] font-bold text-2xl">Welcome back, Intern {user?.name}!</h2>
+    <div className="p-6 md:p-8 bg-gray-50 min-h-screen font-sans">
+      <div className="mb-8">
+        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+          Welcome back, <span className="text-[#ff7a00]">Intern {user?.name}</span>!
+        </h2>
+        <p className="text-gray-500 mt-2 font-medium">Here's what's happening with your internship today.</p>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[20px] mt-[20px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card 1 */}
-        <div className="bg-[#e9e6e1] px-[25px] pt-[25px] pb-[15px] rounded-[14px] relative min-h-[140px] transition-all duration-[250ms] ease-in-out shadow-[-2px_4px_8px_-4px_rgba(0,0,0,0.25)] cursor-pointer hover:-translate-y-[2px] hover:shadow-[0px_14px_28px_-6px_rgba(0,0,0,0.35)]">
-          <FaCheckCircle className="absolute top-[20px] right-[20px] text-[20px] opacity-90 text-green-500" />
-          <p className="text-[#444] font-medium mb-[10px]">Tasks Completed</p>
-          <h1 className="text-[56px] font-bold m-0 leading-none">{stats.tasksCompleted}</h1>
-          <span className="text-[#22c55e] text-[18px] block mt-2.5">Current Status</span>
+        <div className="bg-white p-6 rounded-2xl relative min-h-[160px] transition-all duration-300 shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 hover:shadow-md group">
+          <div className="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center absolute top-6 right-6 group-hover:scale-110 transition-transform duration-300">
+             <FaCheckCircle className="text-2xl" />
+          </div>
+          <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Tasks Completed</p>
+          <div className="flex items-end gap-2">
+            <h1 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.tasksCompleted}</h1>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-green-600 font-bold text-xs mt-5 bg-green-50 px-2.5 py-1.5 rounded-md border border-green-100">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            CURRENT STATUS
+          </span>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-[#e9e6e1] px-[25px] pt-[25px] pb-[15px] rounded-[14px] relative min-h-[140px] transition-all duration-[250ms] ease-in-out shadow-[-2px_4px_8px_-4px_rgba(0,0,0,0.25)] cursor-pointer hover:-translate-y-[2px] hover:shadow-[0px_14px_28px_-6px_rgba(0,0,0,0.35)]">
-          <FiClock className="absolute top-[20px] right-[20px] text-[20px] opacity-90 text-blue-500" />
-          <p className="text-[#444] font-medium mb-[10px]">Hours Logged</p>
-          <div className="flex items-baseline gap-[6px]">
-            <h1 className="text-[56px] font-bold m-0 leading-none">{stats.hoursLogged}</h1>
-            <span className="text-[20px] font-semibold">hrs</span>
+        <div className="bg-white p-6 rounded-2xl relative min-h-[160px] transition-all duration-300 shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 hover:shadow-md group">
+          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center absolute top-6 right-6 group-hover:scale-110 transition-transform duration-300">
+            <FiClock className="text-2xl" />
           </div>
-          <span className="text-[18px] text-[#888] block mt-[10px]">Target: {stats.targetHours}h</span>
+          <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Hours Logged</p>
+          <div className="flex items-baseline gap-1.5">
+            <h1 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.hoursLogged}</h1>
+            <span className="text-xl font-bold text-gray-400">/ {stats.targetHours}h</span>
+          </div>
+          {/* Progress bar */}
+          <div className="w-full bg-gray-100 rounded-full h-1.5 mt-6 overflow-hidden">
+            <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(100, (stats.hoursLogged / stats.targetHours) * 100)}%` }}></div>
+          </div>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-[#e9e6e1] px-[25px] pt-[25px] pb-[15px] rounded-[14px] relative min-h-[140px] transition-all duration-[250ms] ease-in-out shadow-[-2px_4px_8px_-4px_rgba(0,0,0,0.25)] cursor-pointer hover:-translate-y-[2px] hover:shadow-[0px_14px_28px_-6px_rgba(0,0,0,0.35)]">
-          <BsHourglassSplit className="absolute top-[20px] right-[20px] text-[20px] opacity-90 text-orange-500" />
-          <p className="text-[#444] font-medium mb-[10px]">Internship Days</p>
-          <h1 className="text-[56px] font-bold m-0 leading-none">{stats.daysRemaining}</h1>
-          <span className="text-[18px] text-[#888] block mt-[10px]">Days Remaining</span>
+        <div className="bg-white p-6 rounded-2xl relative min-h-[160px] transition-all duration-300 shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 hover:shadow-md group">
+          <div className="w-12 h-12 rounded-full bg-orange-50 text-[#ff7a00] flex items-center justify-center absolute top-6 right-6 group-hover:scale-110 transition-transform duration-300">
+            <BsHourglassSplit className="text-2xl" />
+          </div>
+          <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Internship Days</p>
+          <div className="flex items-baseline gap-2 mt-1">
+            <h1 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.daysRemaining}</h1>
+            <span className="text-xl font-bold text-gray-400">Days</span>
+          </div>
+          <span className="text-gray-500 font-medium text-sm block mt-5">Remaining in term</span>
         </div>
       </div>
 
-      <div className="mt-[40px]">
-        <h3 className="text-[#ff7a00] mb-[20px] text-[1.5rem] font-bold">Announcements</h3>
+      <div className="mt-10">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-xl font-bold text-gray-900 tracking-tight">Recent Announcements</h3>
+        </div>
 
-        <div className="bg-[#e9e6e1] h-[80vh] rounded-[14px] p-[20px] text-[#666] shadow-[-2px_4px_8px_-4px_rgba(0,0,0,0.25)] overflow-y-auto flex flex-col gap-[1rem]">
+        <div className="bg-white max-h-[60vh] rounded-2xl p-6 shadow-sm border border-gray-100 overflow-y-auto flex flex-col gap-4">
           {announcements.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              No new announcements.
+            <div className="py-16 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <span className="text-gray-400 text-3xl">📭</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">No announcements yet</h3>
+              <p className="text-gray-500 font-medium">There are currently no new announcements to display.</p>
             </div>
           ) : (
             announcements.map((announcement) => (
-              <div key={announcement.id} className="p-[1.5rem] flex flex-col bg-[#F9F7F4] rounded-[8px] shadow-[0_2px_4px_rgba(0,0,0,0.1)] border border-[#e5e5e5] shrink-0">
-                <div className="mb-[1rem]">
-                  <h3 className="m-0 text-[1.1rem] font-bold text-[#1f2937]">
+              <div key={announcement.id} className="p-5 flex flex-col bg-gray-50 hover:bg-gray-100/60 transition-colors rounded-xl border border-gray-100 shrink-0">
+                <div className="mb-3 flex justify-between items-start gap-4">
+                  <h3 className="m-0 text-lg font-extrabold text-gray-900 leading-tight">
                     {announcement.title}
                   </h3>
+                  <div className={`px-2.5 py-1 rounded-md flex items-center gap-1.5 text-xs font-bold shadow-sm ${getPriorityColorClass(announcement.priority)}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${getPriorityDotClass(announcement.priority)}`} />
+                    <span>{getPriorityLabel(announcement.priority)}</span>
+                  </div>
                 </div>
-                <div className="mb-[1rem]">
-                  <p className="m-0 text-[#4b5563] leading-[1.5] whitespace-pre-wrap">
+                <div className="mb-4">
+                  <p className="m-0 text-gray-600 leading-relaxed text-sm whitespace-pre-wrap">
                     {announcement.content}
                   </p>
                 </div>
-                <div className="flex justify-between items-center text-[0.875rem] text-[#6b7280] mt-auto">
-                  <div className="flex gap-[0.5rem] items-center">
-                    <span>Priority:</span>
-                    <div className="flex items-center gap-[0.25rem]">
-                      <div className={`w-[10px] h-[10px] rounded-full ${getPriorityColorClass(announcement.priority)}`} />
-                      <span className="font-semibold text-[#111827]">
-                        {getPriorityLabel(announcement.priority)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-[0.5rem]">
-                    <span>Date Created:</span>
-                    <span className="font-semibold text-[#111827]">
-                      {formatDate(announcement.created_at)}
-                    </span>
-                  </div>
+                <div className="flex justify-between items-center text-xs mt-auto pt-4 border-t border-gray-200/60">
+                  <span className="font-bold text-gray-400 uppercase tracking-wide">
+                    Posted on {formatDate(announcement.created_at)}
+                  </span>
                 </div>
               </div>
             ))

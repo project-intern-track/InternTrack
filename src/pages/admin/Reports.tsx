@@ -1,5 +1,6 @@
 import { Search, Download } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface InternCardProps {
     name: string;
@@ -12,6 +13,8 @@ interface InternCardProps {
 }
 
 const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }: InternCardProps) => {
+    const navigate = useNavigate();
+
     const getStatusStyle = (status: string) => {
         if (status === 'Active') {
             return {
@@ -26,15 +29,29 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
         }
         return {};
     };
-
+    const handleClick = () => {
+        const internId = name.toLowerCase().replace(/\s+/g, '-');
+        navigate(`/admin/reports/${internId}`);
+    };
     return (
         <div style={{
             background: '#F9F7F4',
             borderRadius: '12px',
             padding: '1.5rem',
             border: '1px solid #e5e5e5',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+            cursor: 'pointer'
+        }}
+            onClick={handleClick}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            }}>
             {/* Header */}
             <div style={{ marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e5e5' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -140,14 +157,14 @@ const Reports = () => {
     }));
 
     const filteredInterns = processedInterns.filter(intern => {
-        const matchesStatus = filterStatus === 'all' || 
+        const matchesStatus = filterStatus === 'all' ||
             (filterStatus === 'active' && intern.status === 'Active') ||
             (filterStatus === 'completed' && intern.status === 'Completed');
-        
-        const matchesSearch = searchTerm === '' || 
+
+        const matchesSearch = searchTerm === '' ||
             intern.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             intern.email.toLowerCase().includes(searchTerm.toLowerCase());
-        
+
         return matchesStatus && matchesSearch;
     });
 
@@ -201,7 +218,7 @@ const Reports = () => {
                 </div>
 
                 {/* Dropdown Filter */}
-                <select 
+                <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
                     style={{

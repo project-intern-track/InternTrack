@@ -45,6 +45,7 @@ import AdminManageTasks from "./pages/admin/ManageTasks";
 import AdminMonitorAttendance from "./pages/admin/MonitorAttendance";
 import AdminManageSupervisors from "./pages/admin/ManageSupervisors";
 import AdminReports from "./pages/admin/Reports";
+import ReportDetails from "./pages/admin/ReportDetails";
 import AdminSettings from "./pages/admin/Settings";
 import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminManageAdmins from "./pages/admin/ManageAdmins";
@@ -242,6 +243,7 @@ function AppRoutes() {
           <Route path="manage-admins" element={<AdminManageAdmins />} />
           <Route path="manage-supervisors" element={<AdminManageSupervisors />} />
           <Route path="reports" element={<AdminReports />} />
+          <Route path="reports/:internId" element={<ReportDetails />} />
           <Route path="announcements" element={<AdminAnnouncements />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

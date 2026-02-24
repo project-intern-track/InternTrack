@@ -334,6 +334,92 @@ const ReportDetails = () => {
                                     </div>
                                 </div>
                             </div>
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Daily Activities
+                                </h4>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.75rem'
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Monday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            Code review and bug fixes for user dashboard
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>7h</div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Tuesday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            Feature development for mobile app
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Wednesday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            Database optimization and testing
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>7h</div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Thursday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            UI/UX improvements and documentation
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Friday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            Team meeting and project planning
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
+                                    </div>
+                                </div>
+                            </div>
                             <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
                                 This week's performance overview shows consistent progress in {reportData.role} responsibilities.
                                 Attendance rate of {reportData.attendance} with {reportData.hours} total hours logged.

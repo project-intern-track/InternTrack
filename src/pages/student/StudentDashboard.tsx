@@ -83,12 +83,12 @@ const StudentDashboard: React.FC = () => {
     });
   };
 
-  const getPriorityColor = (p: string) => {
+  const getPriorityColorClass = (p: string) => {
     switch (p) {
-      case 'high': return '#ef4444'; // Red
-      case 'medium': return '#eab308'; // Yellow
-      case 'low': return '#3b82f6'; // Blue
-      default: return '#9ca3af';
+      case 'high': return 'bg-red-500'; // Red
+      case 'medium': return 'bg-yellow-500'; // Yellow
+      case 'low': return 'bg-blue-500'; // Blue
+      default: return 'bg-gray-400';
     }
   };
 
@@ -96,234 +96,78 @@ const StudentDashboard: React.FC = () => {
     return p.charAt(0).toUpperCase() + p.slice(1) + " Priority";
   };
 
-  /* Track which card is hovered */
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-
-  const styles: Record<string, React.CSSProperties> = {
-    container: {
-      padding: "30px",
-      background: "#f5f6f8",
-      minHeight: "100vh",
-    },
-
-    header: {
-      marginBottom: "25px",
-    },
-
-    welcome: {
-      color: "#ff7a00",
-      fontWeight: 700,
-    },
-
-    statsGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-      gap: "20px",
-      marginTop: "20px",
-    },
-
-    /* Base card style */
-    card: {
-      background: "#e9e6e1",
-      padding: "25px 25px 15px 25px",
-      borderRadius: "14px",
-      position: "relative",
-      minHeight: "140px",
-
-      /* Animation setup */
-      transition: "all 0.25s ease",
-      transform: "translateY(0px) scale(1)",
-      boxShadow: "-2px 4px 8px -4px rgba(0,0,0,0.25)",
-      cursor: "pointer",
-    },
-
-    /* Applied when hovered */
-    cardHover: {
-      transform: "translateY(-2px) scale(1)",
-      boxShadow: "0px 14px 28px -6px rgba(0,0,0,0.35)",
-    },
-
-    icon: {
-      position: "absolute",
-      top: "20px",
-      right: "20px",
-      fontSize: "20px",
-      opacity: 0.9,
-    },
-
-    title: {
-      color: "#444",
-      fontWeight: 500,
-      marginBottom: "10px",
-    },
-
-    numberRow: {
-      display: "flex",
-      alignItems: "baseline",
-      gap: "6px",
-    },
-
-    bigNumber: {
-      fontSize: "56px",
-      fontWeight: 700,
-      margin: 0,
-    },
-
-    unit: {
-      fontSize: "20px",
-      fontWeight: 600,
-    },
-
-    subText: {
-      fontSize: "18px",
-      color: "#888",
-      marginTop: "10px",
-    },
-
-    green: {
-      color: "#22c55e",
-      fontSize: "18px",
-      display: "block",
-    },
-
-    announcementSection: {
-      marginTop: "40px",
-    },
-
-    announcementTitle: {
-      color: "#ff7a00",
-      marginBottom: "20px",
-      fontSize: "1.5rem",
-      fontWeight: 700,
-    },
-
-    announcementBox: {
-      background: "#e9e6e1",
-      height: "80vh",
-      borderRadius: "14px",
-      padding: "20px",
-      color: "#666",
-      boxShadow: "-2px 4px 8px -4px rgba(0,0,0,0.25)",
-      overflowY: 'auto',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1rem',
-    },
-
-    announcementCard: {
-      padding: '1.5rem',
-      display: 'flex',
-      flexDirection: 'column',
-      backgroundColor: '#F9F7F4', // Admin style match
-      borderRadius: '8px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      border: '1px solid #e5e5e5',
-      flexShrink: 0
-    },
-  };
-
-  /* Helper to merge hover style */
-  const getCardStyle = (index: number): React.CSSProperties => ({
-    ...styles.card,
-    ...(hoveredCard === index ? styles.cardHover : {}),
-  });
-
   // This guard removes zero flash while data are being fetched when restarting the website
   if (!stats) return null;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h2 style={styles.welcome}>Welcome back, Intern {user?.name}!</h2>
+    <div className="p-[30px] bg-[#f5f6f8] min-h-screen">
+      <div className="mb-[25px]">
+        <h2 className="text-[#ff7a00] font-bold text-2xl">Welcome back, Intern {user?.name}!</h2>
       </div>
 
-      <div style={styles.statsGrid}>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[20px] mt-[20px]">
         {/* Card 1 */}
-        <div
-          style={getCardStyle(0)}
-          onMouseEnter={() => setHoveredCard(0)}
-          onMouseLeave={() => setHoveredCard(null)}
-        >
-          <FaCheckCircle style={{ ...styles.icon, color: "#22c55e" }} />
-          <p style={styles.title}>Tasks Completed</p>
-          <h1 style={styles.bigNumber}>{stats.tasksCompleted}</h1>
-          <span style={styles.green}>Current Status</span>
+        <div className="bg-[#e9e6e1] px-[25px] pt-[25px] pb-[15px] rounded-[14px] relative min-h-[140px] transition-all duration-[250ms] ease-in-out shadow-[-2px_4px_8px_-4px_rgba(0,0,0,0.25)] cursor-pointer hover:-translate-y-[2px] hover:shadow-[0px_14px_28px_-6px_rgba(0,0,0,0.35)]">
+          <FaCheckCircle className="absolute top-[20px] right-[20px] text-[20px] opacity-90 text-green-500" />
+          <p className="text-[#444] font-medium mb-[10px]">Tasks Completed</p>
+          <h1 className="text-[56px] font-bold m-0 leading-none">{stats.tasksCompleted}</h1>
+          <span className="text-[#22c55e] text-[18px] block mt-2.5">Current Status</span>
         </div>
 
         {/* Card 2 */}
-        <div
-          style={getCardStyle(1)}
-          onMouseEnter={() => setHoveredCard(1)}
-          onMouseLeave={() => setHoveredCard(null)}
-        >
-          <FiClock style={{ ...styles.icon, color: "#3b82f6" }} />
-          <p style={styles.title}>Hours Logged</p>
-          <div style={styles.numberRow}>
-            <h1 style={styles.bigNumber}>{stats.hoursLogged}</h1>
-            <span style={styles.unit}>hrs</span>
+        <div className="bg-[#e9e6e1] px-[25px] pt-[25px] pb-[15px] rounded-[14px] relative min-h-[140px] transition-all duration-[250ms] ease-in-out shadow-[-2px_4px_8px_-4px_rgba(0,0,0,0.25)] cursor-pointer hover:-translate-y-[2px] hover:shadow-[0px_14px_28px_-6px_rgba(0,0,0,0.35)]">
+          <FiClock className="absolute top-[20px] right-[20px] text-[20px] opacity-90 text-blue-500" />
+          <p className="text-[#444] font-medium mb-[10px]">Hours Logged</p>
+          <div className="flex items-baseline gap-[6px]">
+            <h1 className="text-[56px] font-bold m-0 leading-none">{stats.hoursLogged}</h1>
+            <span className="text-[20px] font-semibold">hrs</span>
           </div>
-          <span style={styles.subText}>Target: {stats.targetHours}h</span>
+          <span className="text-[18px] text-[#888] block mt-[10px]">Target: {stats.targetHours}h</span>
         </div>
 
         {/* Card 3 */}
-        <div
-          style={getCardStyle(2)}
-          onMouseEnter={() => setHoveredCard(2)}
-          onMouseLeave={() => setHoveredCard(null)}
-        >
-          <BsHourglassSplit style={{ ...styles.icon, color: "#f97316" }} />
-          <p style={styles.title}>Internship Days</p>
-          <h1 style={styles.bigNumber}>{stats.daysRemaining}</h1>
-          <span style={styles.subText}>Days Remaining</span>
+        <div className="bg-[#e9e6e1] px-[25px] pt-[25px] pb-[15px] rounded-[14px] relative min-h-[140px] transition-all duration-[250ms] ease-in-out shadow-[-2px_4px_8px_-4px_rgba(0,0,0,0.25)] cursor-pointer hover:-translate-y-[2px] hover:shadow-[0px_14px_28px_-6px_rgba(0,0,0,0.35)]">
+          <BsHourglassSplit className="absolute top-[20px] right-[20px] text-[20px] opacity-90 text-orange-500" />
+          <p className="text-[#444] font-medium mb-[10px]">Internship Days</p>
+          <h1 className="text-[56px] font-bold m-0 leading-none">{stats.daysRemaining}</h1>
+          <span className="text-[18px] text-[#888] block mt-[10px]">Days Remaining</span>
         </div>
       </div>
 
-      <div style={styles.announcementSection}>
-        <h3 style={styles.announcementTitle}>Announcements</h3>
+      <div className="mt-[40px]">
+        <h3 className="text-[#ff7a00] mb-[20px] text-[1.5rem] font-bold">Announcements</h3>
 
-        <div style={styles.announcementBox}>
+        <div className="bg-[#e9e6e1] h-[80vh] rounded-[14px] p-[20px] text-[#666] shadow-[-2px_4px_8px_-4px_rgba(0,0,0,0.25)] overflow-y-auto flex flex-col gap-[1rem]">
           {announcements.length === 0 ? (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="h-full flex items-center justify-center">
               No new announcements.
             </div>
           ) : (
             announcements.map((announcement) => (
-              <div key={announcement.id} style={styles.announcementCard}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1f2937' }}>
+              <div key={announcement.id} className="p-[1.5rem] flex flex-col bg-[#F9F7F4] rounded-[8px] shadow-[0_2px_4px_rgba(0,0,0,0.1)] border border-[#e5e5e5] shrink-0">
+                <div className="mb-[1rem]">
+                  <h3 className="m-0 text-[1.1rem] font-bold text-[#1f2937]">
                     {announcement.title}
                   </h3>
                 </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <p style={{ margin: 0, color: '#4b5563', lineHeight: '1.5' }}>
+                <div className="mb-[1rem]">
+                  <p className="m-0 text-[#4b5563] leading-[1.5] whitespace-pre-wrap">
                     {announcement.content}
                   </p>
                 </div>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginTop: 'auto'
-                }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div className="flex justify-between items-center text-[0.875rem] text-[#6b7280] mt-auto">
+                  <div className="flex gap-[0.5rem] items-center">
                     <span>Priority:</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <div style={{
-                        width: '10px',
-                        height: '10px',
-                        borderRadius: '50%',
-                        backgroundColor: getPriorityColor(announcement.priority)
-                      }} />
-                      <span style={{ fontWeight: 600, color: '#111827' }}>
+                    <div className="flex items-center gap-[0.25rem]">
+                      <div className={`w-[10px] h-[10px] rounded-full ${getPriorityColorClass(announcement.priority)}`} />
+                      <span className="font-semibold text-[#111827]">
                         {getPriorityLabel(announcement.priority)}
                       </span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div className="flex gap-[0.5rem]">
                     <span>Date Created:</span>
-                    <span style={{ fontWeight: 600, color: '#111827' }}>
+                    <span className="font-semibold text-[#111827]">
                       {formatDate(announcement.created_at)}
                     </span>
                   </div>

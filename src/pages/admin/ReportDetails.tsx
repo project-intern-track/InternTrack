@@ -420,10 +420,24 @@ const ReportDetails = () => {
                                     </div>
                                 </div>
                             </div>
-                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                This week's performance overview shows consistent progress in {reportData.role} responsibilities.
-                                Attendance rate of {reportData.attendance} with {reportData.hours} total hours logged.
-                            </p>
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Key Achievements
+                                </h4>
+                                <ul style={{ margin: '0', paddingLeft: '1.5rem', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    <li style={{ marginBottom: '0.5rem' }}>Successfully deployed authentication system</li>
+                                    <li style={{ marginBottom: '0.5rem' }}>Improved database query performance by 40%</li>
+                                    <li style={{ marginBottom: '0.5rem' }}>Completed unit tests for new features</li>
+                                </ul>
+                            </div>
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Challenges
+                                </h4>
+                                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    Learning to optimize complex database queries
+                                </p>
+                            </div>
                         </div>
                     )}
                     {selectedTab === 'monthly' && (

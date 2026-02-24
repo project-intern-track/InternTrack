@@ -5,7 +5,6 @@ import type {
     User as SupabaseUser,
 } from "@supabase/supabase-js";
 import type { UserRole } from "../types/database.types";
-import { supabase } from "./supabaseClient"; // Keep for check_email_exists rpc if needed, or replace
 
 // ========================
 // Types
@@ -41,7 +40,7 @@ export const authService = {
         metadata: SignUpMetadata,
     ): Promise<AuthResult> {
         try {
-            const response = await apiClient.post("/auth/register", {
+            await apiClient.post("/auth/register", {
                 email,
                 password,
                 ...metadata,
@@ -108,7 +107,7 @@ export const authService = {
 
     async resetPassword(email: string): Promise<{ error: string | null }> {
         try {
-            const response = await apiClient.post("/auth/forgot-password", {
+            await apiClient.post("/auth/forgot-password", {
                 email,
             });
             return { error: null };
@@ -119,10 +118,20 @@ export const authService = {
 
     async updatePassword(
         newPassword: string,
+        token: string,
+        email: string,
     ): Promise<{ error: string | null }> {
-        // Note: Laravel requires token and email for this, which needs UI update.
-        // We leave it here as a placeholder for UI adjustment.
-        return { error: "Not fully implemented for Laravel yet" };
+        try {
+            await apiClient.post("/auth/reset-password", {
+                email,
+                password: newPassword,
+                password_confirmation: newPassword,
+                token,
+            });
+            return { error: null };
+        } catch (err: any) {
+            return { error: err.response?.data?.error || err.message };
+        }
     },
 
     async getSession(): Promise<
@@ -157,7 +166,7 @@ export const authService = {
         }
     },
 
-    async getUserProfile(userId: string) {
+    async getUserProfile(_userId: string) {
         try {
             const response = await apiClient.get("/auth/user");
             // In the short term, just return the authenticated user's profile from /auth/user
@@ -173,7 +182,7 @@ export const authService = {
     },
 
     onAuthStateChange(
-        callback: (event: AuthChangeEvent, session: Session | null) => void,
+        _callback: (event: AuthChangeEvent, session: Session | null) => void,
     ) {
         // Return a dummy unsubscribe function
         return () => {};

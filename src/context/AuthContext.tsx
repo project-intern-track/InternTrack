@@ -11,7 +11,7 @@ interface AuthContextType extends AuthState {
     signUp: (email: string, password: string, metadata: SignUpMetadata) => Promise<{ error: string | null }>;
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<{ error: string | null }>;
-    updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
+    updatePassword: (newPassword: string, token: string, email: string) => Promise<{ error: string | null }>;
     clearPasswordRecovery: () => void;
 }
 
@@ -764,8 +764,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return await authService.resetPassword(email);
     };
 
-    const updatePassword = async (newPassword: string) => {
-        return await authService.updatePassword(newPassword);
+    const updatePassword = async (newPassword: string, token: string, email: string) => {
+        return await authService.updatePassword(newPassword, token, email);
     };
 
     // Wrapped in useCallback so the reference is stable and doesn't cause

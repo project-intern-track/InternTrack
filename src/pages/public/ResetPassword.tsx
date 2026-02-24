@@ -63,7 +63,18 @@ const ResetPassword = () => {
         setTouched({ newPassword: true, confirmPassword: true });
         if (!validateAll()) return;
         setIsSubmitting(true);
-        const result = await updatePassword(newPassword);
+
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const email = params.get('email');
+
+        if (!token || !email) {
+            setError("Invalid or missing password reset token.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        const result = await updatePassword(newPassword, token, email);
         if (result.error) { setError(result.error); setIsSubmitting(false); }
         else { setSuccess(true); setIsSubmitting(false); }
     };

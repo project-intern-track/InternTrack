@@ -1,19 +1,22 @@
-// ========
-// IMPORTS
-// ========
-import { supabase, supabaseAdmin } from "./supabaseClient";
+import { apiClient } from "./apiClient";
 import { usersSchema } from "./validation";
-import type { Users } from "../types/database.types"; // User Interface From Database Types
+import type { Users } from "../types/database.types";
 
-// User Services Functions
+// ========================
+// User Services Functions (Laravel API)
+// ========================
 export const userService = {
     async getUsers() {
-        const { data, error } = await supabase
-            .from("users")
-            .select("*");
-
-        if (error) throw new Error(`Error Fetching Users: ${error.message}`);
-        return data as Users[];
+        try {
+            const response = await apiClient.get("/users");
+            return response.data as Users[];
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Users: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
     },
 
     async createUser(newUserData: Omit<Users, "id" | "created_at">) {
@@ -23,14 +26,16 @@ export const userService = {
             throw new Error(`Invalid User Data: ${validation.error.message}`);
         }
 
-        const { data, error } = await supabase
-            .from("users")
-            .insert(newUserData)
-            .select()
-            .single();
-
-        if (error) throw new Error(`Error Creating User: ${error.message}`);
-        return data as Users;
+        try {
+            const response = await apiClient.post("/users", newUserData);
+            return response.data as Users;
+        } catch (error: any) {
+            throw new Error(
+                `Error Creating User: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
     },
 
     // Fetch all interns with optional filters
@@ -40,206 +45,149 @@ export const userService = {
         status?: string;
         sortDirection?: "asc" | "desc";
     }) {
-        let query = supabase
-            .from("users")
-            .select("*")
-            .eq("role", "intern");
+        try {
+            const params = new URLSearchParams();
+            params.append("role", "intern");
 
-        // Apply status filter
-        if (filters?.status && filters.status !== "all") {
-            query = query.eq("status", filters.status);
-        }
-
-        // Apply role/ojt_role filter
-        if (filters?.role && filters.role !== "all") {
-            query = query.eq("ojt_role", filters.role);
-        }
-
-        // Apply search filter — use individual ilike filters combined with .or()
-        if (filters?.search && filters.search.trim()) {
-            const searchTerm = filters.search.trim();
-            const wildcardTerm = `%${searchTerm}%`;
-
-            // Build the OR conditions for text search
-            const orConditions: string[] = [
-                `full_name.ilike.${wildcardTerm}`,
-                `email.ilike.${wildcardTerm}`,
-                `ojt_role.ilike.${wildcardTerm}`,
-            ];
-
-            // Only include ojt_id match if the search term is a valid number
-            const numericSearch = parseInt(searchTerm, 10);
-            if (!isNaN(numericSearch)) {
-                orConditions.push(`ojt_id.eq.${numericSearch}`);
+            if (filters?.search) params.append("search", filters.search);
+            // Map frontend concept "role" back to "ojt_role" endpoint parameter
+            if (filters?.role && filters.role !== "all") {
+                params.append("ojt_role", filters.role);
+            }
+            if (filters?.status && filters.status !== "all") {
+                params.append("status", filters.status);
+            }
+            if (filters?.sortDirection) {
+                params.append("sortDirection", filters.sortDirection);
             }
 
-            query = query.or(orConditions.join(","));
+            const response = await apiClient.get(`/users?${params.toString()}`);
+            return response.data as Users[];
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Interns: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
         }
-
-        // Apply sort
-        const ascending = filters?.sortDirection !== "desc";
-        query = query.order("full_name", { ascending });
-
-        const { data, error } = await query;
-
-        if (error) throw new Error(`Error Fetching Interns: ${error.message}`);
-        return data as Users[];
     },
 
     // Get stats for the Manage Interns page
     async getInternStats() {
-        const { data, error } = await supabase
-            .from("users")
-            .select("ojt_role, status")
-            .eq("role", "intern");
-
-        if (error) {
-            throw new Error(`Error Fetching Intern Stats: ${error.message}`);
+        try {
+            const response = await apiClient.get("/users/stats?role=intern");
+            return response.data;
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Intern Stats: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
         }
-
-        const totalInterns = data?.length || 0;
-        const uniqueRoles = new Set(
-            data?.map((u) => u.ojt_role).filter(Boolean),
-        );
-        const totalRoles = uniqueRoles.size;
-        const archivedInterns =
-            data?.filter((u) => u.status === "archived").length || 0;
-
-        return { totalInterns, totalRoles, archivedInterns };
     },
 
     // Update an intern's profile
     async updateIntern(internId: string, updates: Partial<Users>) {
-        const { data, error } = await supabase
-            .from("users")
-            .update(updates)
-            .eq("id", internId)
-            .select()
-            .single();
-
-        if (error) throw new Error(`Error Updating Intern: ${error.message}`);
-        return data as Users;
+        try {
+            const response = await apiClient.put(`/users/${internId}`, updates);
+            return response.data as Users;
+        } catch (error: any) {
+            throw new Error(
+                `Error Updating Intern: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
     },
 
-    // Update any user's profile (generic — works for admin, supervisor, intern)
+    // Update any user's profile
     async updateUser(userId: string, updates: Partial<Users>) {
-        const { data, error } = await supabase
-            .from("users")
-            .update(updates)
-            .eq("id", userId)
-            .select()
-            .single();
-
-        if (error) throw new Error(`Error Updating User: ${error.message}`);
-        return data as Users;
+        try {
+            const response = await apiClient.put(`/users/${userId}`, updates);
+            return response.data as Users;
+        } catch (error: any) {
+            throw new Error(
+                `Error Updating User: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
     },
 
     // Archive or restore an intern
     async toggleArchiveIntern(internId: string, currentStatus: string) {
-        const newStatus = currentStatus === "active" ? "archived" : "active";
-        const { data, error } = await supabase
-            .from("users")
-            .update({ status: newStatus })
-            .eq("id", internId)
-            .select()
-            .single();
-
-        if (error) throw new Error(`Error Archiving Intern: ${error.message}`);
-        return data as Users;
+        try {
+            const newStatus = currentStatus === "active"
+                ? "archived"
+                : "active";
+            const response = await apiClient.put(`/users/${internId}`, {
+                status: newStatus,
+            });
+            return response.data as Users;
+        } catch (error: any) {
+            throw new Error(
+                `Error Archiving Intern: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
     },
 
     // Get all unique OJT roles for filter dropdown
     async getOjtRoles() {
-        const { data, error } = await supabase
-            .from("users")
-            .select("ojt_role")
-            .eq("role", "intern")
-            .not("ojt_role", "is", null);
-
-        if (error) {
-            throw new Error(`Error Fetching OJT Roles: ${error.message}`);
+        try {
+            const response = await apiClient.get("/users/ojt-roles");
+            return response.data as string[];
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching OJT Roles: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
         }
-
-        const uniqueRoles = [
-            ...new Set(data?.map((u) => u.ojt_role).filter(Boolean)),
-        ];
-        return uniqueRoles as string[];
     },
 
     async getProfile(userId: string) {
-        const { data, error } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", userId)
-            .single();
-
-        if (error) throw new Error(`Error Fetching Profile: ${error.message}`);
-        return data as Users;
+        try {
+            const response = await apiClient.get(`/users/${userId}`);
+            return response.data as Users;
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Profile: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
     },
 
     // Get stats for the Admin Dashboard
     async getDashboardStats() {
-        // 1. Use RPC to get email-verification-aware counts (joins auth.users)
-        const { data: verificationStats, error: rpcError } = await supabase
-            .rpc("get_intern_verification_stats")
-            .single() as {
-                data: {
-                    total_interns: number;
-                    verified_interns: number;
-                    unverified_interns: number;
-                } | null;
-                error: any;
-            };
-
-        if (rpcError) {
+        try {
+            const response = await apiClient.get("/users/dashboard-stats");
+            return response.data;
+        } catch (error: any) {
             throw new Error(
-                `Error Fetching Verification Stats: ${rpcError.message}`,
+                `Error Fetching Dashboard Stats: ${
+                    error.response?.data?.error || error.message
+                }`,
             );
         }
-
-        // 2. Fetch recent registration timestamps for the chart
-        const { data: interns, error } = await supabase
-            .from("users")
-            .select("created_at")
-            .eq("role", "intern");
-
-        if (error) {
-            throw new Error(`Error Fetching Dashboard Stats: ${error.message}`);
-        }
-
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-        const recentRegisters = interns
-            ?.filter((u) => new Date(u.created_at!) >= threeMonthsAgo)
-            .map((u) => u.created_at!) || [];
-
-        return {
-            // totalInterns = all interns regardless of email verification
-            totalInterns: Number(verificationStats?.total_interns ?? 0),
-            // activeInterns = email-verified interns only
-            activeInterns: Number(verificationStats?.verified_interns ?? 0),
-            // pendingApplications = interns with unverified emails
-            pendingApplications: Number(
-                verificationStats?.unverified_interns ?? 0,
-            ),
-            recentRegisters,
-        };
     },
 
     // Get recent interns for activity feed
     async getRecentInterns(limit: number = 5) {
-        const { data, error } = await supabase
-            .from("users")
-            .select("full_name, created_at, avatar_url")
-            .eq("role", "intern")
-            .order("created_at", { ascending: false })
-            .limit(limit);
-
-        if (error) {
-            throw new Error(`Error Fetching Recent Interns: ${error.message}`);
+        try {
+            const response = await apiClient.get(
+                `/users/interns/recent?limit=${limit}`,
+            );
+            return response.data as Users[];
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Recent Interns: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
         }
-        return data;
     },
 
     // Fetch all admins with optional filters
@@ -248,302 +196,180 @@ export const userService = {
         status?: string;
         dateSort?: "newest" | "oldest";
     }) {
-        let query = supabase
-            .from("users")
-            .select("*")
-            .eq("role", "admin");
+        try {
+            const params = new URLSearchParams();
+            params.append("role", "admin");
+            if (filters?.search) params.append("search", filters.search);
+            if (filters?.status && filters.status !== "all") {
+                params.append("status", filters.status);
+            }
+            if (filters?.dateSort) params.append("dateSort", filters.dateSort);
 
-        // Apply status filter
-        if (filters?.status && filters.status !== "all") {
-            query = query.eq("status", filters.status);
-        }
-
-        // Apply search filter
-        if (filters?.search && filters.search.trim()) {
-            const searchTerm = filters.search.trim();
-            const wildcardTerm = `%${searchTerm}%`;
-            query = query.or(
-                `full_name.ilike.${wildcardTerm},email.ilike.${wildcardTerm}`,
+            const response = await apiClient.get(`/users?${params.toString()}`);
+            return response.data as Users[];
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Admins: ${
+                    error.response?.data?.error || error.message
+                }`,
             );
         }
-
-        // Apply date sort
-        if (filters?.dateSort === "oldest") {
-            query = query.order("created_at", { ascending: true });
-        } else {
-            // Default to newest
-            query = query.order("created_at", { ascending: false });
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw new Error(`Error Fetching Admins: ${error.message}`);
-        return data as Users[];
     },
 
     // Get stats for the Manage Admins page
     async getAdminStats() {
-        const { data, error } = await supabase
-            .from("users")
-            .select("status")
-            .eq("role", "admin");
-
-        if (error) {
-            throw new Error(`Error Fetching Admin Stats: ${error.message}`);
+        try {
+            const response = await apiClient.get("/users/stats?role=admin");
+            return response.data;
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Admin Stats: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
         }
-
-        const totalAdmins = data?.length || 0;
-        const activeAdmins =
-            data?.filter((u) => u.status === "active").length || 0;
-        const archivedAdmins =
-            data?.filter((u) => u.status === "archived").length || 0;
-
-        return { totalAdmins, activeAdmins, archivedAdmins };
     },
 
     // Toggle archive status for an admin
     async toggleArchiveAdmin(adminId: string, currentStatus: string) {
-        const newStatus = currentStatus === "active" ? "archived" : "active";
-        const { data, error } = await supabase
-            .from("users")
-            .update({ status: newStatus })
-            .eq("id", adminId)
-            .select()
-            .single();
-
-        if (error) throw new Error(`Error Archiving Admin: ${error.message}`);
-        return data as Users;
-    },
-
-    // Fetch interns eligible for admin upgrade (active interns)
-    async fetchInternsForAdminUpgrade() {
-        const { data, error } = await supabase
-            .from("users")
-            .select("*")
-            .eq("role", "intern")
-            .eq("status", "active")
-            .order("full_name", { ascending: true });
-
-        if (error) {
+        try {
+            const newStatus = currentStatus === "active"
+                ? "archived"
+                : "active";
+            const response = await apiClient.put(`/users/${adminId}`, {
+                status: newStatus,
+            });
+            return response.data as Users;
+        } catch (error: any) {
             throw new Error(
-                `Error Fetching Interns for Upgrade: ${error.message}`,
+                `Error Archiving Admin: ${
+                    error.response?.data?.error || error.message
+                }`,
             );
         }
-        return data as Users[];
+    },
+
+    // Fetch interns eligible for admin upgrade
+    async fetchInternsForAdminUpgrade() {
+        try {
+            const response = await apiClient.get(
+                "/users?role=intern&status=active",
+            );
+            return response.data as Users[];
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Interns for Upgrade: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
     },
 
     // Upgrade an intern to admin
     async upgradeInternToAdmin(userId: string) {
-        // Option A: Call the secure Edge Function (Recommended for Production)
-        // This keeps the service_role key on the server side.
         try {
-            const { data, error } = await supabase.functions.invoke(
-                "upgrade-user-role",
-                {
-                    body: { userId, newRole: "admin" },
-                },
-            );
-
-            if (!error && data) {
-                return data; // Function returns the success message/object
-            }
-            console.warn(
-                "Edge function returned error, falling back to direct update:",
-                error,
-            );
-        } catch (err) {
-            console.warn(
-                "Failed to invoke edge function, falling back to direct update:",
-                err,
-            );
-        }
-
-        // Option B: Fallback to Direct Update (Dev/Legacy)
-        // Uses the locally configured service role key if available, or just updates DB profile.
-
-        // 1. Update the public profile in 'users' table
-        const { data, error } = await supabase
-            .from("users")
-            .update({ role: "admin" })
-            .eq("id", userId)
-            .select()
-            .single();
-
-        if (error) {
+            const response = await apiClient.put(`/users/${userId}`, {
+                role: "admin",
+            });
+            return response.data as Users;
+        } catch (error: any) {
             throw new Error(
-                `Error Upgrading Intern to Admin: ${error.message}`,
+                `Error Upgrading Intern: ${
+                    error.response?.data?.error || error.message
+                }`,
             );
         }
-
-        // 2. Attempt to update the Auth User Metadata (best effort)
-        if (supabaseAdmin) {
-            try {
-                await supabaseAdmin.auth.admin.updateUserById(userId, {
-                    user_metadata: { role: "admin" },
-                });
-            } catch (authError) {
-                console.warn(
-                    "Could not update Auth metadata via Service Role:",
-                    authError,
-                );
-            }
-        }
-
-        return data as Users;
     },
 
     // ========================
     // Supervisor Functions
     // ========================
 
-    // Fetch all supervisors with optional filters
     async fetchSupervisors(filters?: {
         search?: string;
         status?: string;
         dateSort?: "newest" | "oldest";
     }) {
-        let query = supabase
-            .from("users")
-            .select("*")
-            .eq("role", "supervisor");
-
-        // Apply status filter
-        if (filters?.status && filters.status !== "all") {
-            query = query.eq("status", filters.status);
-        }
-
-        // Apply search filter
-        if (filters?.search && filters.search.trim()) {
-            const searchTerm = filters.search.trim();
-            const wildcardTerm = `%${searchTerm}%`;
-            query = query.or(
-                `full_name.ilike.${wildcardTerm},email.ilike.${wildcardTerm}`,
-            );
-        }
-
-        // Apply date sort
-        if (filters?.dateSort === "oldest") {
-            query = query.order("created_at", { ascending: true });
-        } else {
-            query = query.order("created_at", { ascending: false });
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-            throw new Error(`Error Fetching Supervisors: ${error.message}`);
-        }
-        return data as Users[];
-    },
-
-    // Get stats for the Manage Supervisors page
-    async getSupervisorStats() {
-        const { data, error } = await supabase
-            .from("users")
-            .select("status")
-            .eq("role", "supervisor");
-
-        if (error) {
-            throw new Error(
-                `Error Fetching Supervisor Stats: ${error.message}`,
-            );
-        }
-
-        const totalSupervisors = data?.length || 0;
-        const activeSupervisors =
-            data?.filter((u) => u.status === "active").length || 0;
-        const archivedSupervisors =
-            data?.filter((u) => u.status === "archived").length || 0;
-
-        return { totalSupervisors, activeSupervisors, archivedSupervisors };
-    },
-
-    // Toggle archive status for a supervisor
-    async toggleArchiveSupervisor(supervisorId: string, currentStatus: string) {
-        const newStatus = currentStatus === "active" ? "archived" : "active";
-        const { data, error } = await supabase
-            .from("users")
-            .update({ status: newStatus })
-            .eq("id", supervisorId)
-            .select()
-            .single();
-
-        if (error) {
-            throw new Error(`Error Archiving Supervisor: ${error.message}`);
-        }
-        return data as Users;
-    },
-
-    // Fetch interns eligible for supervisor upgrade (active interns)
-    async fetchInternsForSupervisorUpgrade() {
-        const { data, error } = await supabase
-            .from("users")
-            .select("*")
-            .eq("role", "intern")
-            .eq("status", "active")
-            .order("full_name", { ascending: true });
-
-        if (error) {
-            throw new Error(
-                `Error Fetching Interns for Supervisor Upgrade: ${error.message}`,
-            );
-        }
-        return data as Users[];
-    },
-
-    // Upgrade an intern to supervisor
-    async upgradeInternToSupervisor(userId: string) {
-        // Option A: Call the secure Edge Function (Recommended for Production)
         try {
-            const { data, error } = await supabase.functions.invoke(
-                "upgrade-user-role",
-                {
-                    body: { userId, newRole: "supervisor" },
-                },
-            );
-
-            if (!error && data) {
-                return data;
+            const params = new URLSearchParams();
+            params.append("role", "supervisor");
+            if (filters?.search) params.append("search", filters.search);
+            if (filters?.status && filters.status !== "all") {
+                params.append("status", filters.status);
             }
-            console.warn(
-                "Edge function returned error, falling back to direct update:",
-                error,
-            );
-        } catch (err) {
-            console.warn(
-                "Failed to invoke edge function, falling back to direct update:",
-                err,
-            );
-        }
+            if (filters?.dateSort) params.append("dateSort", filters.dateSort);
 
-        // Option B: Fallback to Direct Update (Dev/Legacy)
-        const { data, error } = await supabase
-            .from("users")
-            .update({ role: "supervisor" })
-            .eq("id", userId)
-            .select()
-            .single();
-
-        if (error) {
+            const response = await apiClient.get(`/users?${params.toString()}`);
+            return response.data as Users[];
+        } catch (error: any) {
             throw new Error(
-                `Error Upgrading Intern to Supervisor: ${error.message}`,
+                `Error Fetching Supervisors: ${
+                    error.response?.data?.error || error.message
+                }`,
             );
         }
+    },
 
-        // Attempt to update the Auth User Metadata (best effort)
-        if (supabaseAdmin) {
-            try {
-                await supabaseAdmin.auth.admin.updateUserById(userId, {
-                    user_metadata: { role: "supervisor" },
-                });
-            } catch (authError) {
-                console.warn(
-                    "Could not update Auth metadata via Service Role:",
-                    authError,
-                );
-            }
+    async getSupervisorStats() {
+        try {
+            const response = await apiClient.get(
+                "/users/stats?role=supervisor",
+            );
+            return response.data;
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Supervisor Stats: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
         }
+    },
 
-        return data as Users;
+    async toggleArchiveSupervisor(supervisorId: string, currentStatus: string) {
+        try {
+            const newStatus = currentStatus === "active"
+                ? "archived"
+                : "active";
+            const response = await apiClient.put(`/users/${supervisorId}`, {
+                status: newStatus,
+            });
+            return response.data as Users;
+        } catch (error: any) {
+            throw new Error(
+                `Error Archiving Supervisor: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
+    },
+
+    async fetchInternsForSupervisorUpgrade() {
+        try {
+            const response = await apiClient.get(
+                "/users?role=intern&status=active",
+            );
+            return response.data as Users[];
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Interns for Upgrade: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
+    },
+
+    async upgradeInternToSupervisor(userId: string) {
+        try {
+            const response = await apiClient.put(`/users/${userId}`, {
+                role: "supervisor",
+            });
+            return response.data as Users;
+        } catch (error: any) {
+            throw new Error(
+                `Error Upgrading Intern: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
     },
 };

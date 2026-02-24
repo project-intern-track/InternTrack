@@ -1,7 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, UserCheck } from 'lucide-react';
 import { Calendar, FileText, BarChart } from 'lucide-react';
 import { useState } from 'react';
+import { BookOpen } from 'lucide-react';
 
 interface ReportDetailsProps {
     name: string;
@@ -443,12 +444,83 @@ const ReportDetails = () => {
                     {selectedTab === 'monthly' && (
                         <div>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
-                                Monthly Summary
+                                January 2026
                             </h3>
-                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                Monthly performance metrics indicate steady improvement in key areas.
-                                Current status: {reportData.status} with ongoing development in {reportData.department}.
-                            </p>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '1rem',
+                                marginBottom: '1rem'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    background: '#9DB8F133',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #9DB8F133'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <Clock size={24} color="#1C2DE9" style={{ marginRight: '0.5rem' }} />
+                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Total Hours</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>160</div>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    background: '#C0E8BC33',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #C0E8BC33'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <CheckCircle size={24} color="#4ACE1E" style={{ marginRight: '0.5rem' }} />
+                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Task Completed</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>48</div>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    background: '#D6A7EA33',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #D6A7EA33'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <UserCheck size={24} color="#BF27D0" style={{ marginRight: '0.5rem' }} />
+                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Attendance</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>92%</div>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    background: '#FF880033',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #FF880033'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <BookOpen size={24} color="#ff8800" style={{ marginRight: '0.5rem' }} />
+                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Projects</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>3</div>
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Monthly Overview
+                                </h4>
+                                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    Completed major project milestones including authentication system implementation and database optimization. Strong progress in full-stack development skills.
+                                </p>
+                            </div>
                         </div>
                     )}
                     {selectedTab === 'full' && (

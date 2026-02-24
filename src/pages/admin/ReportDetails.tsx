@@ -230,6 +230,7 @@ const ReportDetails = () => {
                     </div>
                 </div>
             </div>
+            
             {/* Report Tabs Container */}
             <div style={{
                 background: '#F9F7F4',
@@ -313,8 +314,26 @@ const ReportDetails = () => {
                     {selectedTab === 'weekly' && (
                         <div>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
-                                Weekly Summary
+                                Week 5: February 2 - 6, 2026
                             </h3>
+                            <div style={{
+                                display: 'flex',
+                                gap: '2rem',
+                                marginBottom: '1rem'
+                            }}>
+                                <div>
+                                    <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Hours</div>
+                                    <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                        38 hours
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Tasks</div>
+                                    <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                        15 tasks
+                                    </div>
+                                </div>
+                            </div>
                             <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
                                 This week's performance overview shows consistent progress in {reportData.role} responsibilities.
                                 Attendance rate of {reportData.attendance} with {reportData.hours} total hours logged.

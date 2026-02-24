@@ -8,7 +8,7 @@ import { userService } from "../../services/userServices";
 import { taskService } from "../../services/taskServices";
 import { attendanceService } from "../../services/attendanceServices";
 import type { Announcement, Tasks, Attendance, Users } from "../../types/database.types";
-// import { Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -120,8 +120,14 @@ const StudentDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card 1 */}
-        <div className="bg-white p-6 rounded-2xl relative min-h-[160px] transition-all duration-300 shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 hover:shadow-md group">
-          <div className="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center absolute top-6 right-6 group-hover:scale-110 transition-transform duration-300">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          className="bg-white p-6 rounded-2xl relative min-h-[160px] shadow-sm border border-gray-100 cursor-pointer"
+        >
+          <div className="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center absolute top-6 right-6">
              <FaCheckCircle className="text-2xl" />
           </div>
           <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Tasks Completed</p>
@@ -132,11 +138,17 @@ const StudentDashboard: React.FC = () => {
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             CURRENT STATUS
           </span>
-        </div>
+        </motion.div>
 
         {/* Card 2 */}
-        <div className="bg-white p-6 rounded-2xl relative min-h-[160px] transition-all duration-300 shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 hover:shadow-md group">
-          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center absolute top-6 right-6 group-hover:scale-110 transition-transform duration-300">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          className="bg-white p-6 rounded-2xl relative min-h-[160px] shadow-sm border border-gray-100 cursor-pointer"
+        >
+          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center absolute top-6 right-6">
             <FiClock className="text-2xl" />
           </div>
           <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Hours Logged</p>
@@ -146,13 +158,24 @@ const StudentDashboard: React.FC = () => {
           </div>
           {/* Progress bar */}
           <div className="w-full bg-gray-100 rounded-full h-1.5 mt-6 overflow-hidden">
-            <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(100, (stats.hoursLogged / stats.targetHours) * 100)}%` }}></div>
+            <motion.div 
+               initial={{ width: 0 }}
+               animate={{ width: `${Math.min(100, (stats.hoursLogged / stats.targetHours) * 100)}%` }}
+               transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+               className="bg-blue-500 h-1.5 rounded-full" 
+            />
           </div>
-        </div>
+        </motion.div>
 
         {/* Card 3 */}
-        <div className="bg-white p-6 rounded-2xl relative min-h-[160px] transition-all duration-300 shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 hover:shadow-md group">
-          <div className="w-12 h-12 rounded-full bg-orange-50 text-[#ff7a00] flex items-center justify-center absolute top-6 right-6 group-hover:scale-110 transition-transform duration-300">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          className="bg-white p-6 rounded-2xl relative min-h-[160px] shadow-sm border border-gray-100 cursor-pointer"
+        >
+          <div className="w-12 h-12 rounded-full bg-orange-50 text-[#ff7a00] flex items-center justify-center absolute top-6 right-6">
             <BsHourglassSplit className="text-2xl" />
           </div>
           <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Internship Days</p>
@@ -161,7 +184,7 @@ const StudentDashboard: React.FC = () => {
             <span className="text-xl font-bold text-gray-400">Days</span>
           </div>
           <span className="text-gray-500 font-medium text-sm block mt-5">Remaining in term</span>
-        </div>
+        </motion.div>
       </div>
 
       <div className="mt-10">
@@ -179,8 +202,14 @@ const StudentDashboard: React.FC = () => {
               <p className="text-gray-500 font-medium">There are currently no new announcements to display.</p>
             </div>
           ) : (
-            announcements.map((announcement) => (
-              <div key={announcement.id} className="p-5 flex flex-col bg-gray-50 hover:bg-gray-100/60 transition-colors rounded-xl border border-gray-100 shrink-0">
+            announcements.map((announcement, index) => (
+              <motion.div 
+                key={announcement.id} 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1, ease: "easeOut" }}
+                className="p-5 flex flex-col bg-gray-50 hover:bg-gray-100/60 transition-colors rounded-xl border border-gray-100 shrink-0"
+              >
                 <div className="mb-3 flex justify-between items-start gap-4">
                   <h3 className="m-0 text-lg font-extrabold text-gray-900 leading-tight">
                     {announcement.title}
@@ -200,7 +229,7 @@ const StudentDashboard: React.FC = () => {
                     Posted on {formatDate(announcement.created_at)}
                   </span>
                 </div>
-              </div>
+              </motion.div>
             ))
           )}
         </div>

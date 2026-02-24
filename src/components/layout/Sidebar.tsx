@@ -6,13 +6,15 @@ import {
     Loader2
 } from 'lucide-react';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SidebarProps {
     isOpen?: boolean;
     onClose?: () => void;
+    isMobile?: boolean;
 }
 
-const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
+const Sidebar = ({ isOpen = true, onClose, isMobile = false }: SidebarProps) => {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -72,13 +74,26 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     return (
         <>
             {/* Mobile Overlay */}
-            <div 
-                className={`fixed inset-0 bg-black/50 z-[999] transition-opacity duration-300 md:hidden ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`} 
-                onClick={onClose}
-            ></div>
+            <AnimatePresence>
+                {isMobile && isOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="fixed inset-0 bg-black/50 z-[999] md:hidden" 
+                        onClick={onClose}
+                    />
+                )}
+            </AnimatePresence>
 
-            <aside 
-                className={`fixed top-0 left-0 h-screen w-72 bg-[#0a0a0a] flex flex-col z-[1000] transition-transform duration-300 ease-in-out rounded-r-[25px] overflow-y-auto shadow-2xl md:shadow-none ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            <motion.aside 
+                initial={false}
+                animate={{ 
+                    x: isOpen ? 0 : -288 // 288px = 72 tailwind spacing
+                }}
+                transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                className="fixed top-0 left-0 h-screen w-72 bg-[#0a0a0a] flex flex-col z-[1000] rounded-r-[25px] overflow-y-auto shadow-2xl md:shadow-none"
             >
                 <button 
                     className="md:hidden absolute top-4 right-4 text-white p-1 hover:bg-white/10 rounded-lg transition-colors cursor-pointer border-none bg-transparent" 
@@ -104,7 +119,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                                     className={({ isActive }) =>
                                         `flex items-center justify-between py-3.5 px-5 text-white no-underline text-[0.9375rem] font-normal rounded-xl transition-all duration-200 ${isActive ? 'bg-[#ff8c42] text-white font-medium shadow-md' : 'hover:bg-white/5'}`
                                     }
-                                    onClick={() => { if (window.innerWidth < 768 && onClose) onClose(); }}
+                                    onClick={() => { if (isMobile && onClose) onClose(); }}
                                 >
                                     {link.label}
                                 </NavLink>
@@ -132,7 +147,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                         )}
                     </button>
                 </div>
-            </aside>
+            </motion.aside>
         </>
     );
 };

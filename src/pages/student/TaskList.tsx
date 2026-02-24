@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type TabKey = "all" | "in_progress" | "completed" | "overdue";
 
@@ -151,47 +152,60 @@ export default function TaskList() {
 
         {/* TASK LIST */}
         <div className="flex flex-col gap-4">
-          {list.map((task) => (
-            <div key={task.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-gray-300 hover:shadow-md transition-all duration-300 group flex flex-col">
-              <div className="flex justify-between items-start mb-2">
-                <h2 className="m-0 text-lg font-extrabold text-gray-900 leading-tight group-hover:text-[#ff7a00] transition-colors">{task.title}</h2>
+          <AnimatePresence>
+            {list.map((task, index) => (
+              <motion.div 
+                key={task.id} 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, delay: index * 0.05, ease: "easeOut" }}
+                whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm transition-colors duration-300 group flex flex-col hover:border-orange-200"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h2 className="m-0 text-lg font-extrabold text-gray-900 leading-tight group-hover:text-[#ff7a00] transition-colors">{task.title}</h2>
 
-                <div className={`px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider shrink-0 ml-4 ${getPriorityColorClass(task.priority)}`}>
-                  {task.priority} Priority
+                  <div className={`px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider shrink-0 ml-4 ${getPriorityColorClass(task.priority)}`}>
+                    {task.priority} Priority
+                  </div>
                 </div>
-              </div>
 
-              <p className="text-gray-500 text-sm mt-1 mb-5 leading-relaxed">{task.description}</p>
+                <p className="text-gray-500 text-sm mt-1 mb-5 leading-relaxed">{task.description}</p>
 
-              <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
-                <div className="flex items-center text-xs font-bold text-gray-400 tracking-wide uppercase">
-                  <span className="mr-1.5 opacity-70">Due:</span>
-                  <span className="text-gray-600">{task.dueDate}</span>
+                <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
+                  <div className="flex items-center text-xs font-bold text-gray-400 tracking-wide uppercase">
+                    <span className="mr-1.5 opacity-70">Due:</span>
+                    <span className="text-gray-600">{task.dueDate}</span>
+                  </div>
+
+                  <div className="flex gap-3 items-center">
+                    <span
+                      className={`px-3 py-1.5 rounded-md font-bold text-[10px] uppercase tracking-wider ${getPillStyleClass(task.status)}`}
+                    >
+                      {task.status}
+                    </span>
+
+                    <button className="py-1.5 px-4 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-bold text-xs transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-1">
+                      Mark Complete
+                    </button>
+                  </div>
                 </div>
-
-                <div className="flex gap-3 items-center">
-                  <span
-                    className={`px-3 py-1.5 rounded-md font-bold text-[10px] uppercase tracking-wider ${getPillStyleClass(task.status)}`}
-                  >
-                    {task.status}
-                  </span>
-
-                  <button className="py-1.5 px-4 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-bold text-xs transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-1">
-                    Mark Complete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {list.length === 0 && (
-            <div className="py-16 flex flex-col items-center justify-center text-center">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="py-16 flex flex-col items-center justify-center text-center"
+            >
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                 <span className="text-gray-400 text-3xl">📭</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">No tasks found</h3>
               <p className="text-gray-500 font-medium">There are no tasks matching this filter.</p>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

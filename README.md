@@ -1,14 +1,22 @@
 # InternTrack
 
-A comprehensive internship management and tracking system built with React, TypeScript, and Vite.
+A comprehensive internship management and tracking system built with a split
+**React + TypeScript + Vite** frontend and **Laravel 11** backend API.
 
 ## Overview
 
-InternTrack is a role-based web application designed to streamline internship program management. It provides separate dashboards and features for students, supervisors, and administrators to track progress, manage tasks, monitor attendance, and evaluate performance.
+InternTrack is a role-based web application designed to streamline internship
+program management. It provides separate dashboards and features for students,
+supervisors, and administrators to track progress, manage tasks, monitor
+attendance, and evaluate performance.
+
+_Note: InternTrack recently migrated its core architecture from Supabase to a
+custom, robust Laravel 11 backend for better extensibility._
 
 ## Features
 
-### Student Features
+### Intern (Student) Features
+
 - **Dashboard**: Overview of internship progress and announcements
 - **Daily Logs**: Record daily activities and reflections
 - **Schedule**: View assigned tasks and timeline
@@ -17,6 +25,7 @@ InternTrack is a role-based web application designed to streamline internship pr
 - **Settings**: Manage personal profile and preferences
 
 ### Supervisor Features
+
 - **Dashboard**: Manage assigned interns and monitor progress
 - **Manage Interns**: View and organize intern information
 - **Manage Tasks**: Assign and track task completion
@@ -29,6 +38,7 @@ InternTrack is a role-based web application designed to streamline internship pr
 - **Announcements**: Communicate with interns
 
 ### Admin Features
+
 - **Dashboard**: System overview and management
 - **Manage Interns**: Administer all interns in the system
 - **Manage Tasks**: Create and manage global tasks
@@ -41,153 +51,74 @@ InternTrack is a role-based web application designed to streamline internship pr
 
 - **Frontend**: React 18+ with TypeScript
 - **Build Tool**: Vite
-- **Styling**: CSS
-- **Backend/Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Linting**: ESLint
+- **HTTP Client**: Axios
+- **Backend/API**: Laravel 11 (PHP 8.2+)
+- **Database**: MySQL (via XAMPP, Valet, or similar)
+- **Authentication**: Laravel Sanctum Token Authentication
+- **Styling**: Tailwind CSS
 
 ## Project Structure
 
 ```
-src/
-├── components/          # Reusable UI components
-│   └── layout/         # Layout components (Sidebar, TopBar)
-├── context/            # React Context (Authentication)
-├── layouts/            # Page layouts
-├── lib/                # Utility libraries (Supabase config)
-├── pages/              # Page components
-│   ├── admin/          # Admin dashboard pages
-│   ├── public/         # Authentication pages
-│   ├── student/        # Student dashboard pages
-│   └── supervisor/     # Supervisor dashboard pages
-├── services/           # API service modules
-├── styles/             # Global and scoped styles
-└── types/              # TypeScript type definitions
+InternTrack/
+├── backend/            # Laravel 11 Application (API & Database)
+│   ├── app/            # Controllers, Models, Middleware
+│   ├── config/         # Sanctum and CORS configuration
+│   ├── database/       # Migrations and Seeders
+│   └── routes/         # API Routes (api.php)
+├── src/                # React Frontend Source Code
+│   ├── components/     # Reusable UI components
+│   ├── context/        # React Context (AuthContext)
+│   ├── pages/          # Page views (Admin, Public, Student, Supervisor)
+│   ├── services/       # API Services (Axios wrappers for Laravel endpoints)
+│   ├── styles/         # Scoped and global styling
+│   └── types/          # TypeScript interface definitions
+└── Laravel Backend Setup.md  # Detailed setup guide!
 ```
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 16+ and npm/yarn
-- Supabase account and project
 
-### Installation
+- PHP >= 8.2
+- Composer
+- Node.js >= 16 and npm
+- XAMPP/MySQL running locally
 
-1. Clone the repository:
+### Detailed Setup Instructions
+
+For a comprehensive step-by-step guide on setting up the Database, the Laravel
+Backend, and connecting the React Frontend, please read the included
+**[Laravel Backend Setup.md](./Laravel%20Backend%20Setup.md)** file.
+
+---
+
+### Quick Start Summary
+
+_Assuming database is created and ready..._
+
+**1. Start the Backend:**
+
 ```bash
-git clone <repository-url>
-cd InternTrack
+cd backend
+composer install
+cp .env.example .env
+php artisan key:generate
+# Check your .env for MySQL connection, then:
+php artisan migrate:fresh --seed
+php artisan serve
 ```
 
-2. Install dependencies:
+**2. Start the Frontend:** Open a new terminal:
+
 ```bash
 npm install
-```
-
-3. Create a `.env.local` file and add Supabase credentials:
-```
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-4. Run the development server:
-```bash
+# Ensure root .env has VITE_API_URL=http://localhost:8000/api
 npm run dev
 ```
 
-5. Open [http://localhost:5173](http://localhost:5173) in your browser
+**3. Test Accounts (Password: `password123`):**
 
-### Build for Production
-
-```bash
-npm run build
-```
-
-### Preview Production Build
-
-```bash
-npm run preview
-```
-
-## Database Setup
-
-Database migrations are stored in `supabase/migrations/`. The schema includes:
-- User management with role-based access
-- Task management and tracking
-- Attendance records
-- Evaluations and feedback
-- Announcements system
-
-## Authentication
-
-InternTrack uses Supabase Authentication with role-based access control (RBAC). Users are assigned roles (student, supervisor, admin) which determine their dashboard and available features.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `admin@interntrack.com`
+- `supervisor@interntrack.com`
+- `intern@interntrack.com`

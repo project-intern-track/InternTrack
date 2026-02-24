@@ -441,9 +441,10 @@ const ReportDetails = () => {
                             </div>
                         </div>
                     )}
+                    
                     {selectedTab === 'monthly' && (
                         <div>
-                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
+                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.5rem' }}>
                                 January 2026
                             </h3>
                             <div style={{
@@ -514,7 +515,7 @@ const ReportDetails = () => {
                                 </div>
                             </div>
                             <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem', fontWeight: '600' }}>
                                     Monthly Overview
                                 </h4>
                                 <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
@@ -522,8 +523,14 @@ const ReportDetails = () => {
                                 </p>
                             </div>
 
+                            <hr style={{
+                                border: 'none',
+                                borderTop: '2px solid #e5e5e5',
+                                margin: '2rem 0'
+                            }} />
+
                             <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
                                     Skills Developed
                                 </h4>
                                 <div style={{
@@ -613,8 +620,15 @@ const ReportDetails = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            <hr style={{
+                                border: 'none',
+                                borderTop: '2px solid #e5e5e5',
+                                margin: '2rem 0'
+                            }} />
+
                             <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
                                     Projects
                                 </h4>
                                 <div style={{
@@ -718,6 +732,50 @@ const ReportDetails = () => {
                                             Completed
                                         </span>
                                     </div>
+                                </div>
+                            </div>
+                            <hr style={{
+                                border: 'none',
+                                borderTop: '2px solid #e5e5e5',
+                                margin: '2rem 0'
+                            }} />
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
+                                    Supervisor Feedback
+                                </h4>
+                                <div style={{
+                                    background: '#64AACA12',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #e5e5e5'
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '1rem'
+                                    }}>
+                                        <div style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>
+                                            Supervisor: Mae Santos
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>☆</span>
+                                        </div>
+                                    </div>
+                                    <p style={{
+                                        margin: '0',
+                                        color: '#2b2a2a',
+                                        fontSize: '0.9rem',
+                                        lineHeight: '1.5',
+                                        fontStyle: 'italic',
+                                        textAlign: 'center'
+                                    }}>
+                                        "Excellent progress and strong technical skills. Shows great initiative in problem-solving and team collaboration. Keep up the outstanding work."
+                                    </p>
                                 </div>
                             </div>
                         </div>

@@ -1,7 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, UserCheck } from 'lucide-react';
 import { Calendar, FileText, BarChart } from 'lucide-react';
 import { useState } from 'react';
+import { BookOpen } from 'lucide-react';
 
 interface ReportDetailsProps {
     name: string;
@@ -230,6 +231,7 @@ const ReportDetails = () => {
                     </div>
                 </div>
             </div>
+            
             {/* Report Tabs Container */}
             <div style={{
                 background: '#F9F7F4',
@@ -313,25 +315,472 @@ const ReportDetails = () => {
                     {selectedTab === 'weekly' && (
                         <div>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
-                                Weekly Summary
+                                Week 5: February 2 - 6, 2026
                             </h3>
-                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                This week's performance overview shows consistent progress in {reportData.role} responsibilities.
-                                Attendance rate of {reportData.attendance} with {reportData.hours} total hours logged.
-                            </p>
+                            <div style={{
+                                display: 'flex',
+                                gap: '2rem',
+                                marginBottom: '1rem'
+                            }}>
+                                <div>
+                                    <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Hours</div>
+                                    <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                        38 hours
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Tasks</div>
+                                    <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                        15 tasks
+                                    </div>
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Daily Activities
+                                </h4>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.75rem'
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Monday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            Code review and bug fixes for user dashboard
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>7h</div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Tuesday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            Feature development for mobile app
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Wednesday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            Database optimization and testing
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>7h</div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Thursday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            UI/UX improvements and documentation
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        background: '#f9f7f4',
+                                        borderRadius: '6px',
+                                        border: '1px solid #e5e5e5'
+                                    }}>
+                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Friday</div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            Team meeting and project planning
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Key Achievements
+                                </h4>
+                                <ul style={{ margin: '0', paddingLeft: '1.5rem', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    <li style={{ marginBottom: '0.5rem' }}>Successfully deployed authentication system</li>
+                                    <li style={{ marginBottom: '0.5rem' }}>Improved database query performance by 40%</li>
+                                    <li style={{ marginBottom: '0.5rem' }}>Completed unit tests for new features</li>
+                                </ul>
+                            </div>
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                    Challenges
+                                </h4>
+                                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    Learning to optimize complex database queries
+                                </p>
+                            </div>
                         </div>
                     )}
+                    
                     {selectedTab === 'monthly' && (
                         <div>
-                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
-                                Monthly Summary
+                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.5rem' }}>
+                                January 2026
                             </h3>
-                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                Monthly performance metrics indicate steady improvement in key areas.
-                                Current status: {reportData.status} with ongoing development in {reportData.department}.
-                            </p>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '1rem',
+                                marginBottom: '1rem'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    background: '#9DB8F133',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #9DB8F133'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <Clock size={24} color="#1C2DE9" style={{ marginRight: '0.5rem' }} />
+                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Total Hours</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>160</div>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    background: '#C0E8BC33',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #C0E8BC33'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <CheckCircle size={24} color="#4ACE1E" style={{ marginRight: '0.5rem' }} />
+                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Task Completed</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>48</div>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    background: '#D6A7EA33',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #D6A7EA33'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <UserCheck size={24} color="#BF27D0" style={{ marginRight: '0.5rem' }} />
+                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Attendance</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>92%</div>
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    background: '#FF880033',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #FF880033'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <BookOpen size={24} color="#ff8800" style={{ marginRight: '0.5rem' }} />
+                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Projects</span>
+                                    </div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>3</div>
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem', fontWeight: '600' }}>
+                                    Monthly Overview
+                                </h4>
+                                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    Completed major project milestones including authentication system implementation and database optimization. Strong progress in full-stack development skills.
+                                </p>
+                            </div>
+
+                            <hr style={{
+                                border: 'none',
+                                borderTop: '2px solid #e5e5e5',
+                                margin: '2rem 0'
+                            }} />
+
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
+                                    Skills Developed
+                                </h4>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '1.5rem'
+                                }}>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>React and Typescript</span>
+                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>85%</span>
+                                        </div>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '8px',
+                                            backgroundColor: '#e5e5e5',
+                                            borderRadius: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: '85%',
+                                                height: '100%',
+                                                backgroundColor: '#ff8800',
+                                                borderRadius: '4px'
+                                            }} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Node.js</span>
+                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>70%</span>
+                                        </div>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '8px',
+                                            backgroundColor: '#e5e5e5',
+                                            borderRadius: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: '70%',
+                                                height: '100%',
+                                                backgroundColor: '#ff8800',
+                                                borderRadius: '4px'
+                                            }} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Database Management</span>
+                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>85%</span>
+                                        </div>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '8px',
+                                            backgroundColor: '#e5e5e5',
+                                            borderRadius: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: '85%',
+                                                height: '100%',
+                                                backgroundColor: '#ff8800',
+                                                borderRadius: '4px'
+                                            }} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>API Integration</span>
+                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>65%</span>
+                                        </div>
+                                        <div style={{
+                                            width: '100%',
+                                            height: '8px',
+                                            backgroundColor: '#e5e5e5',
+                                            borderRadius: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: '65%',
+                                                height: '100%',
+                                                backgroundColor: '#ff8800',
+                                                borderRadius: '4px'
+                                            }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr style={{
+                                border: 'none',
+                                borderTop: '2px solid #e5e5e5',
+                                margin: '2rem 0'
+                            }} />
+
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
+                                    Projects
+                                </h4>
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '1rem'
+                                }}>
+                                    <div style={{
+                                        background: '#64AACA12',
+                                        borderRadius: '8px',
+                                        padding: '1rem',
+                                        border: '1px solid #e5e5e5',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div>
+                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                                User Authentication System
+                                            </h5>
+                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
+                                                Designed and implemented secure authentication with JWT tokens
+                                            </p>
+                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
+                                                Role: Lead Developer
+                                            </div>
+                                        </div>
+                                        <span style={{
+                                            backgroundColor: '#dcfce7',
+                                            color: '#166534',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '500',
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            display: 'inline-block'
+                                        }}>
+                                            Completed
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        background: '#64AACA12',
+                                        borderRadius: '8px',
+                                        padding: '1rem',
+                                        border: '1px solid #e5e5e5',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div>
+                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                                Dashboard Analytics
+                                            </h5>
+                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
+                                                Building interactive data visualization components
+                                            </p>
+                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
+                                                Role: Frontend Developer
+                                            </div>
+                                        </div>
+                                        <span style={{
+                                            backgroundColor: '#dcfce7',
+                                            color: '#166534',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '500',
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            display: 'inline-block'
+                                        }}>
+                                            Completed
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        background: '#64AACA12',
+                                        borderRadius: '8px',
+                                        padding: '1rem',
+                                        border: '1px solid #e5e5e5',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div>
+                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+                                                API Optimization
+                                            </h5>
+                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
+                                                Improved API response time by 40%
+                                            </p>
+                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
+                                                Role: Backend Developer
+                                            </div>
+                                        </div>
+                                        <span style={{
+                                            backgroundColor: '#dcfce7',
+                                            color: '#166534',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '500',
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            display: 'inline-block'
+                                        }}>
+                                            Completed
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr style={{
+                                border: 'none',
+                                borderTop: '2px solid #e5e5e5',
+                                margin: '2rem 0'
+                            }} />
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
+                                    Supervisor Feedback
+                                </h4>
+                                <div style={{
+                                    background: '#64AACA12',
+                                    borderRadius: '8px',
+                                    padding: '1.5rem',
+                                    border: '1px solid #e5e5e5'
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '1rem'
+                                    }}>
+                                        <div style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>
+                                            Supervisor: Mae Santos
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
+                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>☆</span>
+                                        </div>
+                                    </div>
+                                    <p style={{
+                                        margin: '0',
+                                        color: '#2b2a2a',
+                                        fontSize: '0.9rem',
+                                        lineHeight: '1.5',
+                                        fontStyle: 'italic',
+                                        textAlign: 'center'
+                                    }}>
+                                        "Excellent progress and strong technical skills. Shows great initiative in problem-solving and team collaboration. Keep up the outstanding work."
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     )}
+
                     {selectedTab === 'full' && (
                         <div>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>

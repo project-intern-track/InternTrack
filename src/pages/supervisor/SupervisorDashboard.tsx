@@ -258,7 +258,7 @@ const SupervisorDashboard = () => {
               needsImprovement: 'needs improvement',
               poor: 'poor',
             };
-            const color = hexToRgba(statusColors[summaryKeyToStatus[key]], 0.3); // transparent
+            const color = hexToRgba(statusColors[summaryKeyToStatus[key]], 0.3); 
             const percent = ((value / total) * 100).toFixed(0);
             const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
             return (
@@ -266,7 +266,7 @@ const SupervisorDashboard = () => {
                 key={key}
                 style={{
                   background: color,
-                  color: '#000', // black text
+                  color: '#000', 
                   padding: '0.5rem',
                   borderRadius: '0.25rem',
                   fontWeight: 'bold',

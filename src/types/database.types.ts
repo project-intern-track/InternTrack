@@ -1,6 +1,6 @@
 // Aliases for database types
 export type UserRole = 'admin' | 'supervisor' | 'intern';
-export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
+export type TaskStatus = 'not_started' | 'in_progress' | 'pending' | 'completed' | 'rejected' | 'overdue';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 export type OJTType = 'required' | 'voluntary';
@@ -27,18 +27,25 @@ export interface Users {
     created_at: string; // ISO Date String, Default to current timestamp on creation
 }
 
-export interface Tasks {
+export interface TaskIntern {
+    id: number;
+    full_name: string;
+    avatar_url: string | null;
+}
 
-    id: string; // UUID, PK
+export interface Tasks {
+    id: number;
     title: string;
     description: string;
-    assigned_to: string; // UUID, Foreign Key referencing `users.id`
-    status: TaskStatus;
+    due_date: string;
     priority: TaskPriority;
-    due_date: string; // ISO Date String
-    created_by: string; // UUID, Foreign Key referencing `users.id`
-    created_at: string; // ISO Date String, Default to current timestamp on creation
-
+    status: TaskStatus;
+    rejection_reason: string | null;
+    created_by: number;
+    created_at: string;
+    assigned_interns: TaskIntern[];
+    assigned_interns_count: number;
+    creator: { id: number; full_name: string } | null;
 }
 
 export interface Attendance {

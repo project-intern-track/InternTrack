@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -36,7 +37,7 @@ Route::get('/auth/verify-email/{id}/{hash}', function (Request $request) {
     return redirect(env('FRONTEND_URL', 'http://localhost:5173') . '/?verified=1');
 })->middleware('signed')->name('verification.verify');
 
-// ── Protected Routes (Sanctum token auth) ─────────────────────────────────
+// ── Protected Routes (Sanctum token auth) ───
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/user',    [AuthController::class, 'user']);
@@ -51,4 +52,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users',                 [UserController::class, 'store']);
     Route::get('/users/{id}',             [UserController::class, 'show']);
     Route::put('/users/{id}',             [UserController::class, 'update']);
+
+    // Task Routes
+    Route::get('/tasks/my-tasks',         [TaskController::class, 'myTasks']);
+    Route::get('/tasks',                  [TaskController::class, 'index']);
+    Route::post('/tasks',                 [TaskController::class, 'store']);
+    Route::get('/tasks/{id}',             [TaskController::class, 'show']);
+    Route::put('/tasks/{id}',             [TaskController::class, 'update']);
+    Route::put('/tasks/{id}/status',      [TaskController::class, 'updateStatus']);
+    Route::put('/tasks/{id}/reject',      [TaskController::class, 'reject']);
 });

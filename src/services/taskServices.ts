@@ -1,49 +1,47 @@
-// ========
-// IMPORTS
-// ========
-import { supabase } from "./supabaseClient";
-import { taskSchema } from "./validation";
-import type { Tasks } from "../types/database.types"; // Tasks Interface From Database Types
+import { apiClient } from './apiClient';
+import type { Tasks } from '../types/database.types';
 
-
-// Task Services Functions
 export const taskService = {
-
-    // Gets All Task and Returns an Array
-    async getTasks () {
-
-        const { data, error } = await supabase
-            .from('tasks')
-            .select('*');
-
-        // Catch and Log Errors
-        if (error) throw new Error(`Error Fetching Tasks: ${error.message}`);
-        return data;
-
+    async getTasks(): Promise<Tasks[]> {
+        const response = await apiClient.get<{ data: Tasks[] }>('/tasks');
+        return response.data.data;
     },
 
-    // Creates a New Task and Returns the Created Task Object yet ignore auto generated fields (id and create_at)
-    // Create Task (KAN 26 Functions)
-    async createTask (newTaskData: Omit<Tasks, 'id' | 'created_at'>) { 
+    async getMyTasks(): Promise<Tasks[]> {
+        const response = await apiClient.get<{ data: Tasks[] }>('/tasks/my-tasks');
+        return response.data.data;
+    },
 
-        const validation = taskSchema.safeParse(newTaskData);
+    async createTask(payload: {
+        title: string;
+        description?: string;
+        due_date: string;
+        priority: string;
+        intern_ids: number[];
+    }): Promise<Tasks> {
+        const response = await apiClient.post<{ data: Tasks }>('/tasks', payload);
+        return response.data.data;
+    },
 
-        if (!validation.success) {
-            throw new Error(`Invalid Task Data: ${validation.error.message}`);
-        }
+    async updateTask(id: number, updates: Partial<{
+        title: string;
+        description: string;
+        due_date: string;
+        priority: string;
+        status: string;
+        intern_ids: number[];
+    }>): Promise<Tasks> {
+        const response = await apiClient.put<{ data: Tasks }>(`/tasks/${id}`, updates);
+        return response.data.data;
+    },
 
-        const { data, error } = await supabase
-            .from('tasks')
-            .insert(newTaskData)
-            .select()
-            .single();
+    async updateStatus(id: number, status: string): Promise<Tasks> {
+        const response = await apiClient.put<{ data: Tasks }>(`/tasks/${id}/status`, { status });
+        return response.data.data;
+    },
 
-        // Catch and Log Errors
-        if (error) throw new Error(`Error Creating Task: ${error.message}`);
-        return data as Tasks;
-   
-
-    }
-
-
-}
+    async rejectTask(id: number, rejection_reason: string): Promise<Tasks> {
+        const response = await apiClient.put<{ data: Tasks }>(`/tasks/${id}/reject`, { rejection_reason });
+        return response.data.data;
+    },
+};

@@ -15,6 +15,7 @@ const ManageTasks = () => {
     const [tasks, setTasks] = useState<Tasks[]>([]);
     const [interns, setInterns] = useState<Users[]>([]);
     const [selectedTask, setSelectedTask] = useState<Tasks | null>(null);
+    const [isLoadingTasks, setIsLoadingTasks] = useState(true);
 
     // Reject modal state
     const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -28,6 +29,7 @@ const ManageTasks = () => {
     const [dueDate, setDueDate] = useState('');
     const [dueTime, setDueTime] = useState('');
     const [priority, setPriority] = useState('');
+    const [dueDateError, setDueDateError] = useState('');
     const [internSearch, setInternSearch] = useState('');
     const [selectedInterns, setSelectedInterns] = useState<Users[]>([]);
     const [isInternSearchFocused, setIsInternSearchFocused] = useState(false);
@@ -35,12 +37,15 @@ const ManageTasks = () => {
     const dateInputRef = useRef<HTMLInputElement>(null);
     const internSearchInputRef = useRef<HTMLInputElement>(null);
 
-    const fetchTasks = async () => {
+    const fetchTasks = async (showLoading = true) => {
+        if (showLoading) setIsLoadingTasks(true);
         try {
             const data = await taskService.getTasks();
             setTasks(data);
         } catch (err) {
             console.error('Failed to fetch tasks:', err);
+        } finally {
+            if (showLoading) setIsLoadingTasks(false);
         }
     };
 
@@ -54,6 +59,8 @@ const ManageTasks = () => {
     };
 
     useEffect(() => {
+        // Fetch both in parallel - each updates its own state immediately when ready
+        // Tasks will display as soon as they're fetched, without waiting for interns
         fetchTasks();
         fetchInterns();
     }, []);
@@ -86,6 +93,7 @@ const ManageTasks = () => {
         setPriority('');
         setSelectedInterns([]);
         setInternSearch('');
+        setDueDateError('');
     };
 
     const handleViewDetail = (task: Tasks) => setSelectedTask(task);
@@ -117,14 +125,30 @@ const ManageTasks = () => {
         }
     };
 
+    const isFormValid = useMemo(() => {
+        return taskTitle.trim() !== '' &&
+               taskDescription.trim() !== '' &&
+               dueDate !== '' &&
+               priority !== '' &&
+               selectedInterns.length > 0;
+    }, [taskTitle, taskDescription, dueDate, priority, selectedInterns]);
+
     const handleAssign = async () => {
         try {
-            if (!taskTitle || !selectedInterns.length) {
-                alert('Please provide a title and assign at least one intern.');
+            if (!taskTitle.trim()) {
+                alert('Please provide a task title.');
+                return;
+            }
+            if (!taskDescription.trim()) {
+                alert('Please provide a task description.');
+                return;
+            }
+            if (!selectedInterns.length) {
+                alert('Please assign at least one intern.');
                 return;
             }
             if (!dueDate) {
-                alert('Please select a due date.');
+                setDueDateError('Please select a due date.');
                 return;
             }
             if (!priority) {
@@ -132,15 +156,30 @@ const ManageTasks = () => {
                 return;
             }
 
+            // Prevent assigning tasks with a due date/time in the past
+            const dueDateTimeString = `${dueDate}T${dueTime || '23:59'}:00`;
+            const selectedDueDateTime = new Date(dueDateTimeString);
+            const now = new Date();
+            if (isNaN(selectedDueDateTime.getTime())) {
+                setDueDateError('The selected due date and time is invalid.');
+                return;
+            }
+            if (selectedDueDateTime.getTime() <= now.getTime()) {
+                setDueDateError('Due date and time must be in the future.');
+                return;
+            }
+            setDueDateError('');
+
             await taskService.createTask({
                 title: taskTitle,
                 description: taskDescription,
-                due_date: `${dueDate}T${dueTime || '23:59'}:00`,
+                due_date: dueDateTimeString,
                 priority: priority as TaskPriority,
                 intern_ids: selectedInterns.map(i => Number(i.id)),
             });
 
-            await fetchTasks();
+            // Refresh tasks without showing loading spinner (silent refresh)
+            await fetchTasks(false);
             setIsModalOpen(false);
             handleClear();
         } catch (err) {
@@ -178,6 +217,26 @@ const ManageTasks = () => {
         return map[status] ?? status;
     };
 
+    const getStatusStyle = (status: TaskStatus) => {
+        switch (status) {
+            case 'completed':
+                return { backgroundColor: '#dcfce7', color: '#166534', borderColor: '#bbf7d0' };
+            case 'in_progress':
+                return { backgroundColor: '#dbeafe', color: '#1d4ed8', borderColor: '#bfdbfe' };
+            case 'not_started':
+                return { backgroundColor: '#e5e7eb', color: '#4b5563', borderColor: '#d1d5db' };
+            case 'pending':
+                return { backgroundColor: '#fef3c7', color: '#b45309', borderColor: '#fde68a' };
+            case 'overdue':
+                return { backgroundColor: '#fee2e2', color: '#b91c1c', borderColor: '#fecaca' };
+            case 'rejected':
+                // Needs Revision
+                return { backgroundColor: '#ffedd5', color: '#c2410c', borderColor: '#fed7aa' };
+            default:
+                return { backgroundColor: '#e5e7eb', color: '#374151', borderColor: '#d1d5db' };
+        }
+    };
+
     const parseDueDate = (dueDateString: string): Date | null => {
         try { return new Date(dueDateString); } catch { return null; }
     };
@@ -199,7 +258,7 @@ const ManageTasks = () => {
     }, [tasks]);
 
     const filteredTasks = useMemo(() => {
-        return tasks.filter(task => {
+        const filtered = tasks.filter(task => {
             const searchLower = search.toLowerCase();
             const matchesSearch = search === '' ||
                 task.title.toLowerCase().includes(searchLower) ||
@@ -225,23 +284,134 @@ const ManageTasks = () => {
 
             return matchesSearch && matchesPriority && matchesStatus && matchesDueDate;
         });
+
+        // Sort by upcoming due date (earliest first)
+        return filtered.slice().sort((a, b) => {
+            const aDate = parseDueDate(a.due_date);
+            const bDate = parseDueDate(b.due_date);
+
+            if (!aDate && !bDate) return 0;
+            if (!aDate) return 1;
+            if (!bDate) return -1;
+
+            return aDate.getTime() - bDate.getTime();
+        });
     }, [tasks, search, priorityFilter, statusFilter, dueDateFilter]);
 
     return (
         <div>
             <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
                 input[type="datetime-local"]::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
                 input[type="datetime-local"]::-webkit-inner-spin-button,
                 input[type="datetime-local"]::-webkit-clear-button { display: none; -webkit-appearance: none; }
+                
+                /* Task Detail Modal Styles */
+                .task-detail-modal {
+                    width: 90%;
+                    max-width: 600px;
+                    padding: 2rem;
+                    position: relative;
+                }
+                
+                .task-detail-header {
+                    margin-bottom: 1.5rem;
+                }
+                
+                .task-detail-title {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: hsl(var(--foreground));
+                    margin: 0 0 0.5rem 0;
+                }
+                
+                .task-detail-description {
+                    color: hsl(var(--muted-foreground));
+                    line-height: 1.6;
+                    margin-bottom: 2rem;
+                }
+                
+                .task-detail-info-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 1rem;
+                    padding: 1.5rem;
+                    background-color: hsl(var(--muted));
+                    border-radius: var(--radius-lg);
+                    margin-bottom: 1.5rem;
+                    border: 1px solid hsl(var(--border));
+                }
+                
+                .task-detail-info-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+                }
+                
+                .task-detail-info-label {
+                    font-size: 0.75rem;
+                    color: hsl(var(--muted-foreground));
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    font-weight: 600;
+                }
+                
+                .task-detail-info-value {
+                    font-weight: 600;
+                    color: hsl(var(--foreground));
+                    font-size: 0.875rem;
+                }
+                
+                .task-detail-rejection-box {
+                    padding: 1rem;
+                    background-color: hsl(var(--danger) / 0.1);
+                    border: 1px solid hsl(var(--danger) / 0.3);
+                    border-radius: var(--radius-md);
+                    margin-bottom: 1.5rem;
+                }
+                
+                .task-detail-rejection-label {
+                    font-size: 0.75rem;
+                    color: hsl(var(--danger));
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    letter-spacing: 0.05em;
+                }
+                
+                .task-detail-rejection-text {
+                    margin: 0;
+                    color: hsl(var(--danger));
+                    font-size: 0.875rem;
+                    line-height: 1.5;
+                }
+                
+                .task-detail-actions {
+                    display: flex;
+                    gap: 1rem;
+                    justify-content: flex-end;
+                    margin-top: 1.5rem;
+                }
+                
+                
                 @media (max-width: 768px) {
                     .manage-tasks-filter-row { flex-direction: column !important; align-items: stretch !important; }
                     .create-task-modal-content { grid-template-columns: 1fr !important; }
                     .create-task-modal-bottom { grid-template-columns: 1fr !important; }
+                    .task-detail-info-grid { grid-template-columns: 1fr; }
+                    .task-detail-modal { padding: 1.5rem; }
                 }
                 @media (max-width: 480px) {
                     .create-task-modal { padding: 1.5rem !important; margin: 0.5rem !important; }
                     .create-task-modal-actions { flex-direction: column !important; }
                     .create-task-modal-actions button { width: 100% !important; }
+                    .task-detail-actions { flex-direction: column; }
+                    .task-detail-actions button { width: 100%; }
+                    .task-detail-modal { padding: 1.25rem; max-width: 95vw; }
                 }
             `}</style>
 
@@ -293,48 +463,71 @@ const ManageTasks = () => {
             </div>
 
             <div className="grid-3" style={{ marginTop: '2rem' }}>
-                {filteredTasks.map((task) => {
-                    const priorityStyle = getPriorityStyle(task.priority);
-                    return (
-                        <div key={task.id} className="card"
-                            onClick={() => handleViewDetail(task)}
-                            style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'pointer' }}
-                            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; }}
-                        >
-                            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-                                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#000', margin: 0, flex: 1 }}>{task.title}</h3>
-                                <div style={{ display: 'inline-block', padding: '0.375rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: `1px solid ${priorityStyle.borderColor}`, whiteSpace: 'nowrap', ...priorityStyle }}>
-                                    {getPriorityLabel(task.priority)}
+                {isLoadingTasks && tasks.length === 0 ? (
+                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', paddingTop: '3rem', paddingBottom: '3rem' }}>
+                        <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid hsl(var(--orange))', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                        <p style={{ color: '#666', marginTop: '1rem', fontSize: '0.875rem' }}>Loading tasks...</p>
+                    </div>
+                ) : (
+                    <>
+                        {filteredTasks.map((task) => {
+                            const priorityStyle = getPriorityStyle(task.priority);
+                            const statusStyle = getStatusStyle(task.status);
+                            return (
+                                <div key={task.id} className="card"
+                                    onClick={() => handleViewDetail(task)}
+                                    style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'pointer' }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; }}
+                                >
+                                    <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#000', margin: 0, flex: 1 }}>{task.title}</h3>
+                                        <div style={{ display: 'inline-block', padding: '0.375rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: `1px solid ${priorityStyle.borderColor}`, whiteSpace: 'nowrap', ...priorityStyle }}>
+                                            {getPriorityLabel(task.priority)}
+                                        </div>
+                                    </div>
+                                    <p style={{ fontSize: '0.875rem', color: '#666', lineHeight: '1.5', marginBottom: '1.5rem', flex: 1 }}>
+                                        {task.description}
+                                    </p>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#666' }}>Assigned to:</span>
+                                            <span style={{ fontWeight: 600, color: '#000' }}>{task.assigned_interns_count} intern{task.assigned_interns_count !== 1 ? 's' : ''}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#666' }}>Date Created:</span>
+                                            <span style={{ fontWeight: 600, color: '#000' }}>{new Date(task.created_at).toLocaleDateString('en-US')}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#666' }}>Due:</span>
+                                            <span style={{ fontWeight: 600, color: '#000' }}>{new Date(task.due_date).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ color: '#666' }}>Status:</span>
+                                            <span
+                                                style={{
+                                                    display: 'inline-block',
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '999px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 600,
+                                                    backgroundColor: statusStyle.backgroundColor,
+                                                    color: statusStyle.color,
+                                                    border: `1px solid ${statusStyle.borderColor}`,
+                                                }}
+                                            >
+                                                {getStatusLabel(task.status)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button className="btn btn-primary" style={{ marginTop: 'auto', fontSize: '0.875rem' }}>View Details</button>
                                 </div>
-                            </div>
-                            <p style={{ fontSize: '0.875rem', color: '#666', lineHeight: '1.5', marginBottom: '1.5rem', flex: 1 }}>
-                                {task.description}
-                            </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#666' }}>Assigned to:</span>
-                                    <span style={{ fontWeight: 600, color: '#000' }}>{task.assigned_interns_count} intern{task.assigned_interns_count !== 1 ? 's' : ''}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#666' }}>Date Created:</span>
-                                    <span style={{ fontWeight: 600, color: '#000' }}>{new Date(task.created_at).toLocaleDateString('en-US')}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#666' }}>Due:</span>
-                                    <span style={{ fontWeight: 600, color: '#000' }}>{new Date(task.due_date).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#666' }}>Status:</span>
-                                    <span style={{ fontWeight: 600, color: '#000' }}>{getStatusLabel(task.status)}</span>
-                                </div>
-                            </div>
-                            <button className="btn btn-primary" style={{ marginTop: 'auto', fontSize: '0.875rem' }}>View Details</button>
-                        </div>
-                    );
-                })}
-                {filteredTasks.length === 0 && (
-                    <p style={{ color: '#888', gridColumn: '1 / -1', textAlign: 'center', paddingTop: '2rem' }}>No tasks found.</p>
+                            );
+                        })}
+                        {filteredTasks.length === 0 && !isLoadingTasks && (
+                            <p style={{ color: '#888', gridColumn: '1 / -1', textAlign: 'center', paddingTop: '2rem' }}>No tasks found.</p>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -420,14 +613,32 @@ const ManageTasks = () => {
 
                         <div className="create-task-modal-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
                             <div>
+                                {dueDateError && (
+                                    <p style={{ marginBottom: '0.35rem', fontSize: '0.8rem', color: 'hsl(var(--danger))', fontWeight: 500 }}>
+                                        {dueDateError}
+                                    </p>
+                                )}
                                 <label className="label" style={{ marginBottom: '0.5rem' }}><b>Due Date:</b></label>
                                 <div style={{ position: 'relative' }}>
-                                    <input ref={dateInputRef} type="datetime-local" className="input"
+                                    <input
+                                        ref={dateInputRef}
+                                        type="datetime-local"
+                                        className="input"
                                         value={dueDate && dueTime ? `${dueDate}T${dueTime}` : dueDate ? `${dueDate}T00:00` : ''}
+                                        min={new Date().toISOString().slice(0, 16)}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            if (value) { const [d, t] = value.split('T'); setDueDate(d || ''); setDueTime(t || '00:00'); }
-                                            else { setDueDate(''); setDueTime(''); }
+                                            if (value) {
+                                                const [d, t] = value.split('T');
+                                                setDueDate(d || '');
+                                                setDueTime(t || '00:00');
+                                            } else {
+                                                setDueDate('');
+                                                setDueTime('');
+                                            }
+                                            if (dueDateError) {
+                                                setDueDateError('');
+                                            }
                                         }}
                                         style={{ backgroundColor: '#fff', paddingRight: '2.5rem', colorScheme: 'light' }}
                                     />
@@ -453,7 +664,16 @@ const ManageTasks = () => {
                                 style={{ padding: '0.625rem 1.5rem', backgroundColor: '#fff', color: 'hsl(var(--orange))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: 500, fontSize: '0.875rem' }}>
                                 Clear
                             </button>
-                            <button onClick={handleAssign} className="btn btn-primary" style={{ padding: '0.625rem 1.5rem', fontSize: '0.875rem' }}>
+                            <button 
+                                onClick={handleAssign} 
+                                className="btn btn-primary" 
+                                disabled={!isFormValid}
+                                style={{ 
+                                    padding: '0.625rem 1.5rem', 
+                                    fontSize: '0.875rem',
+                                    opacity: isFormValid ? 1 : 0.5,
+                                    cursor: isFormValid ? 'pointer' : 'not-allowed'
+                                }}>
                                 Assign
                             </button>
                         </div>
@@ -463,56 +683,53 @@ const ManageTasks = () => {
 
             {/* Task Detail Modal */}
             {selectedTask && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
-                    <div style={{ backgroundColor: '#fff', width: '90%', maxWidth: '500px', borderRadius: '16px', padding: '2rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', position: 'relative' }}>
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111', margin: 0 }}>{selectedTask.title}</h2>
-                            </div>
-                            <span style={{ display: 'inline-block', marginTop: '0.5rem', padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#e5e7eb', color: '#374151' }}>
+                <div className="modal-overlay" onClick={closeViewDetail}>
+                    <div className="modal task-detail-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="task-detail-header">
+                            <h2 className="task-detail-title">{selectedTask.title}</h2>
+                            <span
+                                className="badge"
+                                style={{
+                                    backgroundColor: getStatusStyle(selectedTask.status).backgroundColor,
+                                    color: getStatusStyle(selectedTask.status).color,
+                                    border: `1px solid ${getStatusStyle(selectedTask.status).borderColor}`,
+                                }}
+                            >
                                 {getStatusLabel(selectedTask.status)}
                             </span>
                         </div>
-                        <p style={{ color: '#4b5563', lineHeight: 1.6, marginBottom: '2rem' }}>{selectedTask.description || 'No description provided.'}</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', padding: '1.5rem', backgroundColor: '#f9fafb', borderRadius: '12px', marginBottom: '1.5rem' }}>
-                            <div>
-                                <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', textTransform: 'uppercase' }}>Assigned To</span>
-                                <span style={{ fontWeight: 600, color: '#111' }}>
+                        <p className="task-detail-description">{selectedTask.description || 'No description provided.'}</p>
+                        <div className="task-detail-info-grid">
+                            <div className="task-detail-info-item">
+                                <span className="task-detail-info-label">Assigned To</span>
+                                <span className="task-detail-info-value">
                                     {selectedTask.assigned_interns?.map(i => i.full_name).join(', ') || `${selectedTask.assigned_interns_count} intern(s)`}
                                 </span>
                             </div>
-                            <div>
-                                <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', textTransform: 'uppercase' }}>Due Date</span>
-                                <span style={{ fontWeight: 600, color: '#111' }}>{new Date(selectedTask.due_date).toLocaleDateString()}</span>
+                            <div className="task-detail-info-item">
+                                <span className="task-detail-info-label">Due Date</span>
+                                <span className="task-detail-info-value">{new Date(selectedTask.due_date).toLocaleDateString()}</span>
                             </div>
-                            <div>
-                                <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', textTransform: 'uppercase' }}>Priority</span>
-                                <span style={{ fontWeight: 600, color: '#111' }}>{getPriorityLabel(selectedTask.priority)}</span>
+                            <div className="task-detail-info-item">
+                                <span className="task-detail-info-label">Priority</span>
+                                <span className="task-detail-info-value">{getPriorityLabel(selectedTask.priority)}</span>
                             </div>
-                            <div>
-                                <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', textTransform: 'uppercase' }}>Created By</span>
-                                <span style={{ fontWeight: 600, color: '#111' }}>{selectedTask.creator?.full_name ?? '—'}</span>
+                            <div className="task-detail-info-item">
+                                <span className="task-detail-info-label">Created By</span>
+                                <span className="task-detail-info-value">{selectedTask.creator?.full_name ?? '—'}</span>
                             </div>
                         </div>
 
                         {/* Show existing rejection reason if already rejected */}
                         {selectedTask.status === 'rejected' && selectedTask.rejection_reason && (
-                            <div style={{ padding: '1rem', backgroundColor: '#fff5f5', border: '1px solid #fca5a5', borderRadius: '10px', marginBottom: '1.5rem' }}>
-                                <span style={{ fontSize: '0.75rem', color: '#991b1b', fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Rejection Reason</span>
-                                <p style={{ margin: 0, color: '#7f1d1d', fontSize: '0.875rem' }}>{selectedTask.rejection_reason}</p>
+                            <div className="task-detail-rejection-box">
+                                <span className="task-detail-rejection-label">Rejection Reason</span>
+                                <p className="task-detail-rejection-text">{selectedTask.rejection_reason}</p>
                             </div>
                         )}
 
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                            {selectedTask.status === 'completed' && (
-                                <button
-                                    onClick={openRejectModal}
-                                    style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', backgroundColor: '#dc2626', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
-                                >
-                                    Reject Task
-                                </button>
-                            )}
-                            <button onClick={closeViewDetail} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #e5e7eb', backgroundColor: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+                        <div className="task-detail-actions">
+                            <button onClick={closeViewDetail} className="btn btn-primary">
                                 Close
                             </button>
                         </div>

@@ -1,19 +1,24 @@
 import { useState } from 'react';
 
-type Status = 'review' | 'done' | 'Needs Revision';
+type Status = 'review' | 'done' | 'Needs Revision' | 'Rejected';
 
 type Task = {
   id: string;
   title: string;
   description: string;
+  assignedIntern: string;
   due_date: string;
   priority: 'Low Priority' | 'Medium Priority' | 'High Priority';
   status: Status;
+  revisionReason?: string;
+  revisionCategory?: string;
 };
 
-const statusColors: Record<'done' | 'Needs Revision', string> = {
+const statusColors: Record<Status, string> = {
+  review: '#098d40', // not used directly
   done: '#098d40',
   'Needs Revision': '#eba72a',
+  Rejected: '#d32f2f',
 };
 
 const priorityColors: Record<string, string> = {
@@ -23,14 +28,14 @@ const priorityColors: Record<string, string> = {
 };
 
 const SupervisorApprovals = () => {
-  const [activeTab, setActiveTab] = useState<'review' | 'approved' | 'Needs Revision'>('review');
+  const [activeTab, setActiveTab] = useState<'review' | 'approved' | 'Needs Revision' | 'Rejected'>('review');
 
   const [tasks, setTasks] = useState<Task[]>([
-    { id: '1', title: 'Design Login Page', description: 'Create UI for login', due_date: '2026-02-20', priority: 'High Priority', status: 'review' },
-    { id: '2', title: 'Setup Database', description: 'Initialize Supabase DB', due_date: '2026-02-19', priority: 'Medium Priority', status: 'done' },
-    { id: '3', title: 'Write Test Cases', description: 'Add unit tests', due_date: '2026-02-22', priority: 'Low Priority', status: 'Needs Revision' },
-    { id: '4', title: 'Dashboard Layout', description: 'Create dashboard grid layout', due_date: '2026-02-21', priority: 'High Priority', status: 'review' },
-    { id: '5', title: 'Email Notifications', description: 'Integrate email alerts', due_date: '2026-02-18', priority: 'Medium Priority', status: 'done' },
+    { id: '1', title: 'Design Login Page', description: 'Create UI for login', assignedIntern: 'Juan Dela Cruz', due_date: '2026-02-20', priority: 'High Priority', status: 'review' },
+    { id: '2', title: 'Setup Database', description: 'Initialize Supabase DB', assignedIntern: 'Maria Santos', due_date: '2026-02-19', priority: 'Medium Priority', status: 'done' },
+    { id: '3', title: 'Write Test Cases', description: 'Add unit tests', assignedIntern: 'Carlo Reyes', due_date: '2026-02-22', priority: 'Low Priority', status: 'Needs Revision', revisionReason: 'Incomplete test cases', revisionCategory: 'Incomplete task details' },
+    { id: '4', title: 'Dashboard Layout', description: 'Create dashboard grid layout', assignedIntern: 'Angela Lim', due_date: '2026-02-21', priority: 'High Priority', status: 'review' },
+    { id: '5', title: 'Email Notifications', description: 'Integrate email alerts', assignedIntern: 'Juan Dela Cruz', due_date: '2026-02-18', priority: 'Medium Priority', status: 'Rejected' },
   ]);
 
   // Modal state
@@ -47,17 +52,18 @@ const SupervisorApprovals = () => {
     setShowModal(false);
   };
 
-  // Filtered tasks based on tab
   const filteredTasks =
     activeTab === 'review'
       ? tasks.filter(t => t.status === 'review')
       : activeTab === 'approved'
       ? tasks.filter(t => t.status === 'done')
-      : tasks.filter(t => t.status === 'Needs Revision');
+      : activeTab === 'Needs Revision'
+      ? tasks.filter(t => t.status === 'Needs Revision')
+      : tasks.filter(t => t.status === 'Rejected');
 
   return (
-    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
-      <h1 style={{ color: '#ff8c42' }}>Approve Tasks</h1>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem' }}>
+      <h1 style={{ color: '#ff8c42' }}>Supervisor Panel</h1>
 
       <div
         style={{
@@ -73,6 +79,7 @@ const SupervisorApprovals = () => {
             { key: 'review', label: 'To be Reviewed', count: tasks.filter(t => t.status === 'review').length },
             { key: 'approved', label: 'Approved', count: tasks.filter(t => t.status === 'done').length },
             { key: 'Needs Revision', label: 'Needs Revision', count: tasks.filter(t => t.status === 'Needs Revision').length },
+            { key: 'Rejected', label: 'Rejected', count: tasks.filter(t => t.status === 'Rejected').length },
           ].map(tab => (
             <button
               key={tab.key}
@@ -137,6 +144,7 @@ const SupervisorApprovals = () => {
 
                 <h3>{task.title}</h3>
                 <p>{task.description}</p>
+                <p><strong>Assigned to:</strong> {task.assignedIntern}</p>
 
                 {/* Review Tab = Buttons */}
                 {activeTab === 'review' ? (
@@ -154,7 +162,7 @@ const SupervisorApprovals = () => {
                         marginRight: '0.5rem',
                       }}
                     >
-                      Needs Revision
+                      Request Revision
                     </button>
                     <button
                       onClick={() =>
@@ -170,17 +178,36 @@ const SupervisorApprovals = () => {
                         borderRadius: '1rem',
                         fontWeight: 'bold',
                         cursor: 'pointer',
+                        marginRight: '0.5rem',
                       }}
                     >
                       Approve
                     </button>
+                    <button
+                      onClick={() =>
+                        setTasks(prev =>
+                          prev.map(t => (t.id === task.id ? { ...t, status: 'Rejected' } : t))
+                        )
+                      }
+                      style={{
+                        backgroundColor: '#d32f2f',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '1rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Reject
+                    </button>
                   </div>
                 ) : (
-                  /* Approved / Needs Revision Tab = Badge */
-                  <div style={{ marginTop: '1rem', textAlign: 'right' }}>
+                  /* Other Tabs = Status Badge & Revision Info */
+                  <div style={{ marginTop: '1rem', textAlign: 'left' }}>
                     <span
                       style={{
-                        backgroundColor: statusColors[task.status as 'done' | 'Needs Revision'],
+                        backgroundColor: statusColors[task.status],
                         color: '#fff',
                         fontWeight: 'bold',
                         padding: '0.4rem 0.9rem',
@@ -189,8 +216,24 @@ const SupervisorApprovals = () => {
                         opacity: 0.9,
                       }}
                     >
-                      {task.status === 'done' ? 'Approved' : 'Needs Revision'}
+                      {task.status === 'done' ? 'Approved' : task.status}
                     </span>
+
+                    {/* Show revision details if present */}
+                    {task.revisionReason && (
+                      <div
+                        style={{
+                          marginTop: '0.5rem',
+                          padding: '0.5rem',
+                          border: '1px solid #ccc',
+                          borderRadius: '0.5rem',
+                          backgroundColor: '#fff3e0',
+                        }}
+                      >
+                        <p><strong>Revision Reason:</strong> {task.revisionReason}</p>
+                        <p><strong>Revision Category:</strong> {task.revisionCategory}</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -249,16 +292,26 @@ const SupervisorApprovals = () => {
             <textarea
               placeholder="Enter the reason for revision here"
               style={{ width: '100%', height: '100px', marginBottom: '1rem', padding: '0.5rem' }}
+              onChange={e =>
+                setSelectedTask(prev => prev && { ...prev, revisionReason: e.target.value })
+              }
+              value={selectedTask.revisionReason || ''}
             />
 
             <h4>Revision Category:</h4>
-            <select style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem' }}>
+            <select
+              style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem' }}
+              onChange={e =>
+                setSelectedTask(prev => prev && { ...prev, revisionCategory: e.target.value })
+              }
+              value={selectedTask.revisionCategory || 'Other'}
+            >
               <option>Other</option>
-               <option>Incomplete task details</option>
+              <option>Incomplete task details</option>
               <option>Incorrect intern assignment</option>
               <option>Deadline needs adjustment</option>
               <option>Not aligned with objectives</option>
-              <option>Duplicate tasks</option>
+              <option>Duplicate task</option>
             </select>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
@@ -275,6 +328,18 @@ const SupervisorApprovals = () => {
                 Cancel
               </button>
               <button
+                onClick={() => {
+                  if (selectedTask) {
+                    setTasks(prev =>
+                      prev.map(t =>
+                        t.id === selectedTask.id
+                          ? { ...t, status: 'Needs Revision', revisionReason: selectedTask.revisionReason, revisionCategory: selectedTask.revisionCategory }
+                          : t
+                      )
+                    );
+                  }
+                  closeModal();
+                }}
                 style={{
                   background: '#FB8C00',
                   color: '#fff',

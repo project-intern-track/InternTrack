@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { authService } from '../../services/authService';
 import '../../styles/auth.css';
 
 interface FieldErrors { newPassword?: string; confirmPassword?: string; }
 
 const ResetPassword = () => {
-    const { updatePassword } = useAuth();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get('token') ?? '';
+    const email = searchParams.get('email') ?? '';
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -62,8 +64,13 @@ const ResetPassword = () => {
         setError(null);
         setTouched({ newPassword: true, confirmPassword: true });
         if (!validateAll()) return;
+        if (!token || !email) {
+            setError('Invalid or expired reset link. Please request a new one.');
+            setIsSubmitting(false);
+            return;
+        }
         setIsSubmitting(true);
-        const result = await updatePassword(newPassword);
+        const result = await authService.resetPasswordWithToken(token, email, newPassword);
         if (result.error) { setError(result.error); setIsSubmitting(false); }
         else { setSuccess(true); setIsSubmitting(false); }
     };

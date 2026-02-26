@@ -63,5 +63,8 @@ class DatabaseSeeder extends Seeder
                 'start_date' => Carbon::now()->subDays(10),
             ]
         );
+
+        // 4. Seed report data for the intern
+        $this->call(ReportSeeder::class);
     }
 }

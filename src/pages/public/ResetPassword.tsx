@@ -70,7 +70,22 @@ const ResetPassword = () => {
             return;
         }
         setIsSubmitting(true);
+<<<<<<< HEAD
         const result = await authService.resetPasswordWithToken(token, email, newPassword);
+=======
+
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const email = params.get('email');
+
+        if (!token || !email) {
+            setError("Invalid or missing password reset token.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        const result = await updatePassword(newPassword, token, email);
+>>>>>>> ade7d1a2ea6afacc0a7e769410d7f8c704d95600
         if (result.error) { setError(result.error); setIsSubmitting(false); }
         else { setSuccess(true); setIsSubmitting(false); }
     };

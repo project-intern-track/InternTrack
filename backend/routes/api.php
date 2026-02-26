@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -39,4 +40,15 @@ Route::get('/auth/verify-email/{id}/{hash}', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/user',    [AuthController::class, 'user']);
+
+    // User Data Endpoints
+    Route::get('/users/stats',            [UserController::class, 'stats']);
+    Route::get('/users/ojt-roles',        [UserController::class, 'ojtRoles']);
+    Route::get('/users/dashboard-stats',  [UserController::class, 'dashboardStats']);
+    Route::get('/users/interns/recent',   [UserController::class, 'recentInterns']);
+    
+    Route::get('/users',                  [UserController::class, 'index']);
+    Route::post('/users',                 [UserController::class, 'store']);
+    Route::get('/users/{id}',             [UserController::class, 'show']);
+    Route::put('/users/{id}',             [UserController::class, 'update']);
 });

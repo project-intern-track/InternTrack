@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCircle, Clock, UserCheck } from 'lucide-react';
 import { Calendar, FileText, BarChart } from 'lucide-react';
 import { useState } from 'react';
 import { BookOpen } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 interface ReportDetailsProps {
     name: string;
@@ -783,13 +784,365 @@ const ReportDetails = () => {
 
                     {selectedTab === 'full' && (
                         <div>
-                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
-                                Full Report
-                            </h3>
-                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                Comprehensive report covering all aspects of {reportData.name}'s OJT experience.
-                                Including detailed metrics, achievements, and areas for improvement under the supervision of {reportData.supervisor}.
-                            </p>
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '1rem'
+                            }}>
+                                <div>
+                                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
+                                        Internship Report
+                                    </h3>
+                                    <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                        Complete report ready for printing or download
+                                    </p>
+                                </div>
+                                <button style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.75rem 1.5rem',
+                                    backgroundColor: '#ff8800',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '500'
+                                }}>
+                                    <Download size={16} />
+                                    Download Report
+                                </button>
+                            </div>
+                            <div style={{
+                                backgroundColor: '#ffffff',
+                                padding: '2rem',
+                                borderRadius: '12px',
+                                marginTop: '1rem'
+                            }}>
+                                <div style={{
+                                    textAlign: 'center',
+                                    marginBottom: '2rem'
+                                }}>
+                                    <h2 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '2rem', fontWeight: '700' }}>
+                                        INTERNSHIP REPORT
+                                    </h2>
+                                    <p style={{ margin: '0', color: '#666', fontSize: '1rem' }}>
+                                        February 12, 2026
+                                    </p>
+                                </div>
+                                <hr style={{
+                                    border: 'none',
+                                    borderTop: '1px solid #e0e0e0',
+                                    margin: '0 0 2rem 0'
+                                }} />
+                                
+                                <div style={{ marginBottom: '2rem' }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.3rem', fontWeight: '600' }}>
+                                        INTERN INFORMATION
+                                    </h3>
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '2rem',
+                                        paddingLeft: '1rem'
+                                    }}>
+                                        <div>
+                                            <div style={{ marginBottom: '1rem' }}>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                                                    Name
+                                                </p>
+                                                <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '500' }}>
+                                                    Kevin Lim
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                                                    Program
+                                                </p>
+                                                <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '500' }}>
+                                                    BS Information Technology
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style={{ marginBottom: '1rem' }}>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                                                    Student ID
+                                                </p>
+                                                <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '500' }}>
+                                                    2026-12345
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                                                    University
+                                                </p>
+                                                <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '500' }}>
+                                                    University of the Philippines Manila
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr style={{
+                                    border: 'none',
+                                    borderTop: '1px solid #e0e0e0',
+                                    margin: '2rem 0'
+                                }} />
+
+                                <div style={{ marginBottom: '2rem' }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.3rem', fontWeight: '600' }}>
+                                        INTERNSHIP DETAILS
+                                    </h3>
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '2rem',
+                                        paddingLeft: '1rem'
+                                    }}>
+                                        <div>
+                                            <div style={{ marginBottom: '1rem' }}>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                                                    Company
+                                                </p>
+                                                <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '500' }}>
+                                                    CertiCode
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                                                    Position
+                                                </p>
+                                                <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '500' }}>
+                                                    Fullstack Developer
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style={{ marginBottom: '1rem' }}>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                                                    Department
+                                                </p>
+                                                <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '500' }}>
+                                                    Software Department
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>
+                                                    Internship Duration
+                                                </p>
+                                                <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '500' }}>
+                                                    Nov 28, 2025 to Feb 28, 2026
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr style={{
+                                    border: 'none',
+                                    borderTop: '1px solid #e0e0e0',
+                                    margin: '2rem 0'
+                                }} />
+
+                                <div style={{ marginBottom: '2rem' }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.3rem', fontWeight: '600' }}>
+                                        SUPERVISOR EVALUATION
+                                    </h3>
+                                    <div style={{ paddingLeft: '1rem' }}>
+                                        <p style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', lineHeight: '1.6' }}>
+                                            John has demonstrated exceptional performance during his internship. He quickly adapted to our development environment and began contributing to projects within the first week. His technical skills in React, TypeScript, and Node.js are impressive for someone at his experience level.
+                                        </p>
+                                        <p style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', lineHeight: '1.6' }}>
+                                            He shows great initiative in problem-solving and is always willing to help team members. His attention to detail and commitment to code quality have been consistently outstanding.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <hr style={{
+                                    border: 'none',
+                                    borderTop: '1px solid #e0e0e0',
+                                    margin: '2rem 0'
+                                }} />
+
+                                <div style={{ marginBottom: '2rem' }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.3rem', fontWeight: '600' }}>
+                                        SUMMARY
+                                    </h3>
+                                    <div style={{ paddingLeft: '1rem' }}>
+                                        <p style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', lineHeight: '1.6' }}>
+                                            The internship has been highly successful, with John exceeding expectations in all areas. He has successfully completed 5 major projects and contributed to 3 ongoing initiatives. His growth from a junior developer to a competent full-stack developer has been remarkable.
+                                        </p>
+                                        <p style={{ margin: '0', color: '#2b2a2a', fontSize: '1rem', lineHeight: '1.6' }}>
+                                            We recommend John for future employment opportunities and believe he has a bright future in software development.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <hr style={{
+                                    border: 'none',
+                                    borderTop: '1px solid #e0e0e0',
+                                    margin: '2rem 0'
+                                }} />
+
+                                <div style={{ marginBottom: '2rem' }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.3rem', fontWeight: '600' }}>
+                                        SKILLS DEVELOPED
+                                    </h3>
+                                    <div style={{ paddingLeft: '1rem' }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            flexWrap: 'wrap',
+                                            gap: '0.75rem'
+                                        }}>
+                                            <div style={{
+                                                backgroundColor: '#e3f2fd',
+                                                color: '#1976d2',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #bbdefb'
+                                            }}>
+                                                HTML
+                                            </div>
+                                            <div style={{
+                                                backgroundColor: '#f3e5f5',
+                                                color: '#7b1fa2',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #e1bee7'
+                                            }}>
+                                                CSS
+                                            </div>
+                                            <div style={{
+                                                backgroundColor: '#fff3e0',
+                                                color: '#f57c00',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #ffe0b2'
+                                            }}>
+                                                JavaScript
+                                            </div>
+                                            <div style={{
+                                                backgroundColor: '#e8f5e8',
+                                                color: '#388e3c',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #c8e6c9'
+                                            }}>
+                                                React
+                                            </div>
+                                            <div style={{
+                                                backgroundColor: '#fce4ec',
+                                                color: '#c2185b',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #f8bbd9'
+                                            }}>
+                                                Nodejs
+                                            </div>
+                                            <div style={{
+                                                backgroundColor: '#e0f2f1',
+                                                color: '#00796b',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #b2dfdb'
+                                            }}>
+                                                Teamwork
+                                            </div>
+                                            <div style={{
+                                                backgroundColor: '#f1f8e9',
+                                                color: '#689f38',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #dcedc8'
+                                            }}>
+                                                Communication
+                                            </div>
+                                            <div style={{
+                                                backgroundColor: '#fff8e1',
+                                                color: '#f9a825',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '20px',
+                                                fontSize: '0.9rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #ffecb3'
+                                            }}>
+                                                Problem Solving
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr style={{
+                                    border: 'none',
+                                    borderTop: '1px solid #e0e0e0',
+                                    margin: '3rem 0 2rem 0'
+                                }} />
+
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                    gap: '2rem',
+                                    marginTop: '3rem'
+                                }}>
+                                    <div>
+                                        <div style={{
+                                            borderBottom: '1px solid #ccc',
+                                            height: '40px',
+                                            marginBottom: '0.5rem'
+                                        }}></div>
+                                        <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>
+                                            Intern Signature
+                                        </p>
+                                        <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>
+                                            Date: _______________
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div style={{
+                                            borderBottom: '1px solid #ccc',
+                                            height: '40px',
+                                            marginBottom: '0.5rem'
+                                        }}></div>
+                                        <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>
+                                            CEO/Founder
+                                        </p>
+                                        <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>
+                                            Date: _______________
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div style={{
+                                            borderBottom: '1px solid #ccc',
+                                            height: '40px',
+                                            marginBottom: '0.5rem'
+                                        }}></div>
+                                        <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>
+                                            Supervisor
+                                        </p>
+                                        <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>
+                                            Date: _______________
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -75,7 +75,15 @@ const ResetPassword = () => {
         }
 
         const result = await updatePassword(newPassword, token, email);
-        if (result.error) { setError(result.error); setIsSubmitting(false); }
+        if (result.error) {
+            if (result.error === 'You cannot use a password that has been used before.') {
+                setFieldErrors((prev) => ({ ...prev, newPassword: result.error as string }));
+                setTouched((prev) => ({ ...prev, newPassword: true }));
+            } else {
+                setError(result.error);
+            }
+            setIsSubmitting(false);
+        }
         else { setSuccess(true); setIsSubmitting(false); }
     };
 

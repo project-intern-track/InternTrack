@@ -5,8 +5,10 @@ import {
     Pencil,
     Archive,
     ChevronDown,
-    Download
+    Download,
+    Users as UsersIcon
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users, OJTType } from '../../types/database.types';
@@ -348,77 +350,88 @@ const ManageInterns = () => {
     if (!interns || !stats) return null;
 
     return (
-        <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
+        <div className="p-6 md:p-8 bg-gray-50 min-h-screen">
             {/* Header Section */}
-            <div className="manage-interns-header">
-                <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Interns</h1>
-                <button className="btn btn-primary" onClick={handleExportCSV} style={{ gap: '0.5rem' }}>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <h1 className="text-3xl font-extrabold text-[#ff7a00]">Manage Interns</h1>
+                <button 
+                    onClick={handleExportCSV}
+                    className="flex items-center gap-2 bg-[#ff7a00] text-white px-4 py-2 rounded-lg hover:bg-[#e55a00] transition font-medium"
+                >
                     <Download size={18} />
                     Export to CSV
                 </button>
             </div>
 
             {/* Stats Cards */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-header">
-                        <span className="stat-label">Total Interns</span>
-                    </div>
-                    <div className="stat-value">{stats.totalInterns}</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-header">
-                        <span className="stat-label">Total Roles</span>
-                    </div>
-                    <div className="stat-value">{stats.totalRoles}</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-header">
-                        <span className="stat-label">Archived Interns</span>
-                    </div>
-                    <div className="stat-value">{stats.archivedInterns}</div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+                >
+                    <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Total Interns</p>
+                    <h3 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.totalInterns}</h3>
+                </motion.div>
+
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+                >
+                    <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Total Roles</p>
+                    <h3 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.totalRoles}</h3>
+                </motion.div>
+
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+                >
+                    <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Archived Interns</p>
+                    <h3 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.archivedInterns}</h3>
+                </motion.div>
             </div>
 
             {/* Search Bar */}
-            <div style={{ marginBottom: '1.5rem' }}>
-                <div className="input-group" style={{ position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
-                    <input
-                        type="text"
-                        className="input"
-                        placeholder="Search by name, role, email, or OJT ID"
-                        style={{ paddingLeft: '3rem' }}
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                    />
-                </div>
+            <div className="relative mb-6">
+                <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                    type="text"
+                    className="w-full pl-12 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00] bg-white"
+                    placeholder="Search by name, role, email, or OJT ID"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                />
             </div>
 
             {/* Filter Section */}
-            <div className="manage-interns-filters">
-                <div className="row" style={{ alignItems: 'center', gap: '0.5rem', minWidth: 'fit-content' }}>
+            <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-gray-200">
+                <div className="flex items-center gap-2 font-semibold text-gray-700">
                     <Filter size={20} />
-                    <span style={{ fontWeight: 600 }}>Filters:</span>
+                    <span>Filters:</span>
                 </div>
 
-                <div className="filter-dropdown">
+                {/* Sort */}
+                <div className="relative">
                     <select
-                        className="select"
-                        style={{ paddingRight: '2.5rem', width: '100%' }}
+                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
                         value={sortDirection}
                         onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
                     >
                         <option value="asc">Name: A → Z</option>
                         <option value="desc">Name: Z → A</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
                 </div>
 
-                <div className="filter-dropdown">
+                {/* Role */}
+                <div className="relative">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
                     >
@@ -427,13 +440,13 @@ const ManageInterns = () => {
                             <option key={role} value={role}>{role}</option>
                         ))}
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
                 </div>
 
-                <div className="filter-dropdown">
+                {/* Start Date */}
+                <div className="relative">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
                         value={startDateFilter}
                         onChange={(e) => setStartDateFilter(e.target.value)}
                     >
@@ -443,13 +456,13 @@ const ManageInterns = () => {
                         <option value="this-month">This Month</option>
                         <option value="this-year">This Year</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
                 </div>
 
-                <div className="filter-dropdown-wide">
+                {/* Required Hours */}
+                <div className="relative">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
                         value={requiredHoursFilter}
                         onChange={(e) => setRequiredHoursFilter(e.target.value)}
                     >
@@ -460,13 +473,13 @@ const ManageInterns = () => {
                         <option value="highest">Highest to Lowest</option>
                         <option value="lowest">Lowest to Highest</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
                 </div>
 
-                <div className="filter-dropdown">
+                {/* Status */}
+                <div className="relative">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
@@ -474,121 +487,105 @@ const ManageInterns = () => {
                         <option value="active">Active</option>
                         <option value="archived">Archived</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
                 </div>
             </div>
 
             {/* Error Banner */}
             {error && (
-                <div style={{
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    backgroundColor: 'hsl(var(--danger) / 0.1)',
-                    color: 'hsl(var(--danger))',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid hsl(var(--danger) / 0.2)',
-                }}>
+                <div className="p-4 mb-6 bg-red-50 border border-red-200 rounded-lg text-red-700 font-medium">
                     {error}
                 </div>
             )}
 
-            {/* Table Container - Scrollable */}
-            <div className="table-container" style={{
-                borderRadius: '8px',
-                border: '1px solid #e5e5e5',
-                overflow: 'auto',
-                backgroundColor: 'white',
-                width: '100%',
-                maxWidth: '100vw',
-                position: 'relative'
-            }}>
-
-                <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', textAlign: 'center' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Name</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Role</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Email Address</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>OJT ID</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Start Date</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Required Hours</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Status</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paginatedInterns.length === 0 ? (
-                            <tr>
-                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
-                                    No interns found.
-                                </td>
+            {/* Table Container */}
+            <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6"
+            >
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-center">
+                        <thead>
+                            <tr className="bg-[#ff7a00] text-white">
+                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Name</th>
+                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Role</th>
+                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Email Address</th>
+                                <th className="px-6 py-4 font-semibold whitespace-nowrap">OJT ID</th>
+                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Start Date</th>
+                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Required Hours</th>
+                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Status</th>
+                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Actions</th>
                             </tr>
-                        ) : (
-                            paginatedInterns.map((intern) => (
-                                <tr key={intern.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.full_name}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_role || '—'}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.email}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_id || '—'}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{formatDate(intern.start_date)}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <span
-                                            style={{
-                                                color: intern.status === 'active' ? '#22c55e' : '#8b5cf6',
-                                                fontWeight: 500,
-                                                textTransform: 'capitalize',
-                                            }}
-                                        >
-                                            {intern.status}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                                            <button
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    color: '#64748b',
-                                                    padding: '4px'
-                                                }}
-                                                title="Edit"
-                                                onClick={() => openEditModal(intern)}
-                                            >
-                                                <Pencil size={18} />
-                                            </button>
-                                            <button
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    color: '#64748b',
-                                                    padding: '4px'
-                                                }}
-                                                title={intern.status === 'active' ? 'Archive' : 'Restore'}
-                                                onClick={() => handleArchiveToggle(intern)}
-                                            >
-                                                <Archive size={18} />
-                                            </button>
-                                        </div>
+                        </thead>
+                        <tbody>
+                            {paginatedInterns.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} className="text-center py-12 text-gray-500">
+                                        No interns found.
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                            ) : (
+                                paginatedInterns.map((intern, index) => (
+                                    <motion.tr 
+                                        key={intern.id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                                        className="border-b border-gray-100 hover:bg-gray-50 transition"
+                                    >
+                                        <td className="px-6 py-4 text-gray-700">{intern.full_name}</td>
+                                        <td className="px-6 py-4 text-gray-700">{intern.ojt_role || '—'}</td>
+                                        <td className="px-6 py-4 text-gray-700">{intern.email}</td>
+                                        <td className="px-6 py-4 text-gray-700">{intern.ojt_id || '—'}</td>
+                                        <td className="px-6 py-4 text-gray-700">{formatDate(intern.start_date)}</td>
+                                        <td className="px-6 py-4 text-gray-700">{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`font-medium capitalize ${intern.status === 'active' ? 'text-green-600' : 'text-purple-600'}`}>
+                                                {intern.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex justify-center gap-2">
+                                                <button
+                                                    className="text-gray-500 hover:text-[#ff7a00] transition p-2"
+                                                    title="Edit"
+                                                    onClick={() => openEditModal(intern)}
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                                <button
+                                                    className="text-gray-500 hover:text-[#ff7a00] transition p-2"
+                                                    title={intern.status === 'active' ? 'Archive' : 'Restore'}
+                                                    onClick={() => handleArchiveToggle(intern)}
+                                                >
+                                                    <Archive size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </motion.tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </motion.div>
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-                <div className="pagination-controls">
-                    <div className="pagination-summary">
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
+                    className="flex flex-col md:flex-row justify-between items-center gap-4 p-4 bg-white rounded-lg border border-gray-100"
+                >
+                    <div className="text-sm text-gray-600 font-medium">
                         Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredInterns.length)} of {filteredInterns.length} interns
                     </div>
-                    <div className="pagination-buttons">
+                    <div className="flex gap-2 flex-wrap justify-center">
                         <button
-                            className="pagination-btn pagination-arrow"
+                            className="px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium"
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
@@ -604,7 +601,7 @@ const ManageInterns = () => {
                                 return (
                                     <button
                                         key={page}
-                                        className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                                        className={`px-3 py-2 rounded-lg font-medium text-sm transition ${currentPage === page ? 'bg-[#ff7a00] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
                                         onClick={() => setCurrentPage(page)}
                                     >
                                         {page}
@@ -614,189 +611,174 @@ const ManageInterns = () => {
                                 page === currentPage - 2 ||
                                 page === currentPage + 2
                             ) {
-                                return <span key={page} className="pagination-ellipsis">...</span>;
+                                return <span key={page} className="px-2 py-2 text-gray-400">...</span>;
                             }
                             return null;
                         })}
                         <button
-                            className="pagination-btn pagination-arrow"
+                            className="px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium"
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
                             Next
                         </button>
                     </div>
-                </div>
+                </motion.div>
             )}
 
-            {/* ===== Edit Intern Modal ===== */}
-            {editingIntern && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    backdropFilter: 'blur(2px)'
-                }} onClick={closeEditModal}>
-                    <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
-                        {/* Heading */}
-                        <div style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Edit Intern Information</h2>
-                        </div>
+            {/* Edit Intern Modal */}
+            <AnimatePresence>
+                {editingIntern && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4 backdrop-blur-sm"
+                        onClick={closeEditModal}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Heading */}
+                            <h2 className="text-2xl font-bold text-[#ff7a00] mb-6">Edit Intern Information</h2>
 
-                        {editError && (
-                            <div style={{
-                                padding: '0.75rem 1rem',
-                                marginBottom: '1.5rem',
-                                backgroundColor: 'hsl(var(--danger) / 0.1)',
-                                color: 'hsl(var(--danger))',
-                                borderRadius: '8px',
-                                border: '1px solid hsl(var(--danger) / 0.2)',
-                                fontSize: '0.875rem',
-                            }}>
-                                {editError}
+                            {editError && (
+                                <div className="p-3 mb-6 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                                    {editError}
+                                </div>
+                            )}
+
+                            {/* Full Name */}
+                            <div className="mb-6">
+                                <label className="block font-semibold text-gray-700 mb-2">Full Name:</label>
+                                <input
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00]"
+                                    name="full_name"
+                                    value={editForm.full_name}
+                                    onChange={handleEditChange}
+                                    placeholder="Enter full name"
+                                />
                             </div>
-                        )}
 
-                        {/* Full Name */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Full Name:</label>
-                            <input
-                                className="input"
-                                name="full_name"
-                                value={editForm.full_name}
-                                onChange={handleEditChange}
-                                placeholder="Enter full name"
-                                style={{ width: '100%', backgroundColor: 'white' }}
-                            />
-                        </div>
+                            {/* Email */}
+                            <div className="mb-6">
+                                <label className="block font-semibold text-gray-700 mb-2">Email Address:</label>
+                                <input
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00]"
+                                    name="email"
+                                    type="email"
+                                    value={editForm.email}
+                                    onChange={handleEditChange}
+                                    placeholder="Enter email address"
+                                />
+                            </div>
 
-                        {/* Email */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Email Address:</label>
-                            <input
-                                className="input"
-                                name="email"
-                                type="email"
-                                value={editForm.email}
-                                onChange={handleEditChange}
-                                placeholder="Enter email address"
-                                style={{ width: '100%', backgroundColor: 'white' }}
-                            />
-                        </div>
-
-                        {/* OJT Role & OJT ID */}
-                        <div className="modal-grid-2col">
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Role:</label>
-                                <div style={{ position: 'relative' }}>
-                                    <select
-                                        className="select"
-                                        name="ojt_role"
-                                        value={editForm.ojt_role}
+                            {/* OJT Role & OJT ID */}
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label className="block font-semibold text-gray-700 mb-2">OJT Role:</label>
+                                    <div className="relative">
+                                        <select
+                                            className="w-full appearance-none px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00]"
+                                            name="ojt_role"
+                                            value={editForm.ojt_role}
+                                            onChange={handleEditChange}
+                                        >
+                                            <option value="">Select Role</option>
+                                            {OJT_ROLES.map(role => (
+                                                <option key={role} value={role}>{role}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block font-semibold text-gray-700 mb-2">OJT ID:</label>
+                                    <input
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00]"
+                                        name="ojt_id"
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={4}
+                                        value={editForm.ojt_id}
                                         onChange={handleEditChange}
-                                        style={{ width: '100%', backgroundColor: 'white' }}
-                                    >
-                                        <option value="">Select Role</option>
-                                        {OJT_ROLES.map(role => (
-                                            <option key={role} value={role}>{role}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                        placeholder="e.g. 1101"
+                                    />
                                 </div>
                             </div>
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT ID:</label>
-                                <input
-                                    className="input"
-                                    name="ojt_id"
-                                    type="text"
-                                    inputMode="numeric"
-                                    maxLength={4}
-                                    value={editForm.ojt_id}
-                                    onChange={handleEditChange}
-                                    placeholder="e.g. 1101"
-                                    style={{ width: '100%', backgroundColor: 'white' }}
-                                />
-                            </div>
-                        </div>
 
-                        {/* Start Date & Required Hours */}
-                        <div className="modal-grid-2col">
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Start Date:</label>
-                                <input
-                                    className="input"
-                                    name="start_date"
-                                    type="date"
-                                    value={editForm.start_date}
-                                    onChange={handleEditChange}
-                                    style={{ width: '100%', backgroundColor: 'white' }}
-                                />
+                            {/* Start Date & Required Hours */}
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label className="block font-semibold text-gray-700 mb-2">Start Date:</label>
+                                    <input
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00]"
+                                        name="start_date"
+                                        type="date"
+                                        value={editForm.start_date}
+                                        onChange={handleEditChange}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-semibold text-gray-700 mb-2">Required Hours:</label>
+                                    <input
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00]"
+                                        name="required_hours"
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={4}
+                                        value={editForm.required_hours}
+                                        onChange={handleEditChange}
+                                        placeholder="e.g. 600"
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Required Hours:</label>
-                                <input
-                                    className="input"
-                                    name="required_hours"
-                                    type="text"
-                                    inputMode="numeric"
-                                    maxLength={4}
-                                    value={editForm.required_hours}
-                                    onChange={handleEditChange}
-                                    placeholder="e.g. 600"
-                                    style={{ width: '100%', backgroundColor: 'white' }}
-                                />
-                            </div>
-                        </div>
 
-                        {/* OJT Type */}
-                        <div style={{ marginBottom: '3rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Type:</label>
-                            <div style={{ position: 'relative' }}>
-                                <select
-                                    className="select"
-                                    name="ojt_type"
-                                    value={editForm.ojt_type}
-                                    onChange={handleEditChange}
-                                    style={{ width: '100%', backgroundColor: 'white' }}
+                            {/* OJT Type */}
+                            <div className="mb-8">
+                                <label className="block font-semibold text-gray-700 mb-2">OJT Type:</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full appearance-none px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00]"
+                                        name="ojt_type"
+                                        value={editForm.ojt_type}
+                                        onChange={handleEditChange}
+                                    >
+                                        <option value="">Select OJT Type</option>
+                                        <option value="required">Required</option>
+                                        <option value="voluntary">Voluntary</option>
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    className="px-6 py-2 border border-[#ff7a00] text-[#ff7a00] rounded-lg hover:bg-orange-50 transition font-medium disabled:opacity-50"
+                                    onClick={closeEditModal}
+                                    disabled={saving}
                                 >
-                                    <option value="">Select OJT Type</option>
-                                    <option value="required">Required</option>
-                                    <option value="voluntary">Voluntary</option>
-                                </select>
-                                <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-6 py-2 bg-[#ff7a00] text-white rounded-lg hover:bg-[#e55a00] transition font-medium disabled:opacity-50"
+                                    onClick={handleEditSave}
+                                    disabled={saving}
+                                >
+                                    {saving ? 'Saving...' : 'Save Changes'}
+                                </button>
                             </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button
-                                className="btn"
-                                onClick={closeEditModal}
-                                disabled={saving}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleEditSave}
-                                disabled={saving}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
-                            >
-                                {saving ? 'Saving...' : 'Save Changes'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

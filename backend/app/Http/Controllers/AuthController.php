@@ -178,6 +178,20 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', PasswordRule::min(6)],
         ]);
 
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            $pastPasswords = \Illuminate\Support\Facades\DB::table('password_histories')
+                ->where('user_id', $user->id)
+                ->pluck('password');
+            foreach ($pastPasswords as $oldHash) {
+                if (\Illuminate\Support\Facades\Hash::check($request->password, $oldHash)) {
+                    return response()->json([
+                        'error' => 'You cannot use a password that has been used before.'
+                    ], 422);
+                }
+            }
+        }
+
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user, string $password) {

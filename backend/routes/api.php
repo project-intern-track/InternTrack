@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -51,4 +52,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users',                 [UserController::class, 'store']);
     Route::get('/users/{id}',             [UserController::class, 'show']);
     Route::put('/users/{id}',             [UserController::class, 'update']);
+
+    // Intern Task Endpoints
+    Route::get('/tasks',                  [TaskController::class, 'index']);
+    Route::get('/tasks/{id}',             [TaskController::class, 'show']);
+    Route::patch('/tasks/{id}/status',    [TaskController::class, 'updateStatus']);
 });

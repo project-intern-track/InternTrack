@@ -27,7 +27,7 @@ class AuthController extends Controller
             'role'           => 'nullable|in:admin,supervisor,intern',
             'avatar_url'     => 'nullable|url',
             'ojt_role'       => 'nullable|string',
-            'start_date'     => 'nullable|date',
+            'start_date'     => 'nullable|date|after_or_equal:today',
             'required_hours' => 'nullable|integer|min:1',
             'ojt_type'       => 'nullable|in:required,voluntary',
         ]);

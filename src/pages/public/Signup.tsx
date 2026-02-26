@@ -47,6 +47,9 @@ const Signup = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+    const todayDate = new Date();
+    const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+
     // Re-validate required hours when OJT type changes
     useEffect(() => {
         if (touched.requiredHours) {
@@ -87,6 +90,7 @@ const Signup = () => {
                 return undefined;
             case 'startDate':
                 if (!startDate) return 'Start date is required.';
+                if (startDate < todayStr) return 'Start date cannot be in the past.';
                 return undefined;
             case 'requiredHours':
                 if (!requiredHours) return 'Required hours is needed.';
@@ -162,8 +166,8 @@ const Signup = () => {
             const msg = result.error;
 
             // If this is a duplicate email error, highlight the email field too
-            if (msg.toLowerCase().includes('email already exists')) {
-                setFieldErrors((prev) => ({ ...prev, email: msg }));
+            if (msg.toLowerCase().includes('email already exists') || msg.toLowerCase().includes('taken')) {
+                setFieldErrors((prev) => ({ ...prev, email: "Email is already used." }));
                 setTouched((prev) => ({ ...prev, email: true }));
             }
 
@@ -263,6 +267,7 @@ const Signup = () => {
                                 <label htmlFor="signup-start-date" className="auth-label">Start Date</label>
                                 <div className={touched.startDate && fieldErrors.startDate ? 'auth-input-error' : ''}>
                                     <input id="signup-start-date" type="date" className="auth-input" value={startDate}
+                                        min={todayStr}
                                         onChange={(e) => handleChange('startDate', e.target.value)}
                                         onBlur={() => handleBlur('startDate')} disabled={isSubmitting} />
                                 </div>

@@ -8,7 +8,7 @@ import { userService } from "../../services/userServices";
 import { taskService } from "../../services/taskServices";
 import { attendanceService } from "../../services/attendanceServices";
 import type { Announcement, Tasks, Attendance, Users } from "../../types/database.types";
-// import { Loader2 } from "lucide-react";
+import PageLoader from '../../components/PageLoader';
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -228,8 +228,8 @@ const StudentDashboard: React.FC = () => {
     ...(hoveredCard === index ? styles.cardHover : {}),
   });
 
-  // This guard removes zero flash while data are being fetched when restarting the website
-  if (!stats) return null;
+  // Show loading spinner while data is being fetched
+  if (!stats) return <PageLoader message="Loading dashboard..." />;
 
   return (
     <div style={styles.container}>

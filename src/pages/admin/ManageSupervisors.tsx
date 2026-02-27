@@ -5,8 +5,10 @@ import {
     Pencil,
     Archive,
     Plus,
-    Loader2
+    Loader2,
+    AlertTriangle
 } from 'lucide-react';
+import PageLoader from '../../components/PageLoader';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
@@ -47,6 +49,9 @@ const ManageSupervisors = () => {
     const [editForm, setEditForm] = useState<EditFormData>({ full_name: '', email: '' });
     const [saving, setSaving] = useState(false);
     const [editError, setEditError] = useState<string | null>(null);
+
+    // Archive Confirmation Modal State
+    const [archiveTarget, setArchiveTarget] = useState<Users | null>(null);
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -116,14 +121,22 @@ const ManageSupervisors = () => {
     // Re-fetch whenever users table changes in real-time
     useRealtime('users', () => { loadSupervisors(); loadStats(); });
 
-    // Handle archive toggle
-    const handleArchiveToggle = async (supervisor: Users) => {
+    // Handle archive toggle — opens confirmation modal
+    const handleArchiveToggle = (supervisor: Users) => {
+        setArchiveTarget(supervisor);
+    };
+
+    // Confirm archive action
+    const confirmArchive = async () => {
+        if (!archiveTarget) return;
         try {
-            await userService.toggleArchiveSupervisor(supervisor.id, supervisor.status);
+            await userService.toggleArchiveSupervisor(archiveTarget.id, archiveTarget.status);
+            setArchiveTarget(null);
             await loadSupervisors();
             await loadStats();
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to update supervisor status');
+            setArchiveTarget(null);
         }
     };
 
@@ -238,7 +251,7 @@ const ManageSupervisors = () => {
     const selectedInternName = eligibleInterns.find(u => u.id === selectedInternId)?.full_name || 'Selected User';
 
     // Guard Check
-    if (!supervisors || !stats) return null;
+    if (!supervisors || !stats) return <PageLoader message="Loading supervisors..." />;
 
     // Pagination Derived State
     const totalPages = Math.ceil(supervisors.length / ITEMS_PER_PAGE);
@@ -353,7 +366,13 @@ const ManageSupervisors = () => {
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
                                             <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => openEditModal(supervisor)}><Pencil size={18} /></button>
-                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleArchiveToggle(supervisor)}><Archive size={18} /></button>
+                                            <button
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                                                title={supervisor.status === 'active' ? 'Archive' : 'Restore'}
+                                                onClick={() => handleArchiveToggle(supervisor)}
+                                            >
+                                                <Archive size={18} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -442,6 +461,41 @@ const ManageSupervisors = () => {
                                     {upgrading ? <Loader2 size={18} /> : 'Confirm Upgrade'}
                                 </button>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== Archive Confirmation Modal ===== */}
+            {archiveTarget && (
+                <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
+                    <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '440px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                            <AlertTriangle size={24} style={{ color: '#ea580c' }} />
+                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
+                                {archiveTarget.status === 'active' ? 'Archive Supervisor' : 'Restore Supervisor'}
+                            </h2>
+                        </div>
+                        <p style={{ margin: '0 0 1.5rem', color: '#334155', lineHeight: 1.5 }}>
+                            Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
+                            <strong>{archiveTarget.full_name}</strong>?
+                            {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button
+                                className="btn"
+                                onClick={() => setArchiveTarget(null)}
+                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={confirmArchive}
+                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                {archiveTarget.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
+                            </button>
                         </div>
                     </div>
                 </div>

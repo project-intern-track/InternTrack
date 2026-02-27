@@ -6,6 +6,7 @@ import {
     ChevronDown,
     Loader2
 } from 'lucide-react';
+import PageLoader from '../../components/PageLoader';
 import { announcementService } from '../../services/announcementService';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -146,7 +147,7 @@ const Announcements = () => {
         return p.charAt(0).toUpperCase() + p.slice(1) + " Priority";
     };
 
-    if (!announcements) return null;
+    if (!announcements) return <PageLoader message="Loading announcements..." />;
 
     return (
         <div className="container" style={{ maxWidth: '100%', padding: '0' }}>

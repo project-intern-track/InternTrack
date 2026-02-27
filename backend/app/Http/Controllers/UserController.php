@@ -102,6 +102,12 @@ class UserController extends Controller
 
         $user->update($request->all());
 
+        // If the user was just archived, revoke all their Sanctum tokens
+        // so their active sessions are immediately terminated.
+        if ($user->status === 'archived') {
+            $user->tokens()->delete();
+        }
+
         return response()->json($user->refresh());
     }
 

@@ -5,8 +5,10 @@ import {
     Pencil,
     Archive,
     ChevronDown,
-    Download
+    Download,
+    AlertTriangle
 } from 'lucide-react';
+import PageLoader from '../../components/PageLoader';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users, OJTType } from '../../types/database.types';
@@ -53,6 +55,9 @@ const ManageInterns = () => {
     });
     const [saving, setSaving] = useState(false);
     const [editError, setEditError] = useState<string | null>(null);
+
+    // Archive Confirmation Modal State
+    const [archiveTarget, setArchiveTarget] = useState<Users | null>(null);
 
     // Stats
     const [stats, setStats] = useState<{ totalInterns: number, totalRoles: number, archivedInterns: number } | null>(null);
@@ -189,10 +194,17 @@ const ManageInterns = () => {
         currentPage * ITEMS_PER_PAGE
     );
 
-    // Handle archive toggle
-    const handleArchiveToggle = async (intern: Users) => {
+    // Handle archive toggle — opens confirmation modal
+    const handleArchiveToggle = (intern: Users) => {
+        setArchiveTarget(intern);
+    };
+
+    // Confirm archive action
+    const confirmArchive = async () => {
+        if (!archiveTarget) return;
         try {
-            await userService.toggleArchiveIntern(intern.id, intern.status);
+            await userService.toggleArchiveIntern(archiveTarget.id, archiveTarget.status);
+            setArchiveTarget(null);
             // Refresh both the list and stats
             await loadInterns();
             const statsData = await userService.getInternStats();
@@ -200,6 +212,7 @@ const ManageInterns = () => {
         } catch (err) {
             console.error('Error toggling archive:', err);
             alert(err instanceof Error ? err.message : 'Failed to update intern');
+            setArchiveTarget(null);
         }
     };
 
@@ -345,7 +358,7 @@ const ManageInterns = () => {
         return d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 
-    if (!interns || !stats) return null;
+    if (!interns || !stats) return <PageLoader message="Loading interns..." />;
 
     return (
         <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
@@ -625,6 +638,41 @@ const ManageInterns = () => {
                         >
                             Next
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== Archive Confirmation Modal ===== */}
+            {archiveTarget && (
+                <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
+                    <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '440px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                            <AlertTriangle size={24} style={{ color: '#ea580c' }} />
+                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
+                                {archiveTarget.status === 'active' ? 'Archive Intern' : 'Restore Intern'}
+                            </h2>
+                        </div>
+                        <p style={{ margin: '0 0 1.5rem', color: '#334155', lineHeight: 1.5 }}>
+                            Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
+                            <strong>{archiveTarget.full_name}</strong>?
+                            {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button
+                                className="btn"
+                                onClick={() => setArchiveTarget(null)}
+                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={confirmArchive}
+                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                {archiveTarget.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -5,10 +5,13 @@ import {
     Pencil,
     Archive,
     Plus,
-    Loader2
+    Loader2,
+    AlertTriangle
 } from 'lucide-react';
+import PageLoader from '../../components/PageLoader';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
+import { useAuth } from '../../context/AuthContext';
 import type { Users } from '../../types/database.types';
 
 // Shape of the edit form data (admin only needs name + email)
@@ -18,6 +21,7 @@ interface EditFormData {
 }
 
 const ManageAdmins = () => {
+    const { user: currentUser } = useAuth();
     const [admins, setAdmins] = useState<Users[] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +51,9 @@ const ManageAdmins = () => {
     const [editForm, setEditForm] = useState<EditFormData>({ full_name: '', email: '' });
     const [saving, setSaving] = useState(false);
     const [editError, setEditError] = useState<string | null>(null);
+
+    // Archive Confirmation Modal State
+    const [archiveTarget, setArchiveTarget] = useState<Users | null>(null);
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -116,14 +123,22 @@ const ManageAdmins = () => {
     // Re-fetch whenever users table changes in real-time
     useRealtime('users', () => { loadAdmins(); loadStats(); });
 
-    // Handle archive toggle
-    const handleArchiveToggle = async (admin: Users) => {
+    // Handle archive toggle — opens confirmation modal
+    const handleArchiveToggle = (admin: Users) => {
+        setArchiveTarget(admin);
+    };
+
+    // Confirm archive action
+    const confirmArchive = async () => {
+        if (!archiveTarget) return;
         try {
-            await userService.toggleArchiveAdmin(admin.id, admin.status);
+            await userService.toggleArchiveAdmin(archiveTarget.id, archiveTarget.status);
+            setArchiveTarget(null);
             await loadAdmins();
             await loadStats();
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to update admin status');
+            setArchiveTarget(null);
         }
     };
 
@@ -238,7 +253,7 @@ const ManageAdmins = () => {
     const selectedInternName = eligibleInterns.find(u => u.id === selectedInternId)?.full_name || 'Selected User';
 
     // Guard Check
-    if (!admins || !stats) return null;
+    if (!admins || !stats) return <PageLoader message="Loading admins..." />;
 
     // Pagination Derived State
     const totalPages = Math.ceil(admins.length / ITEMS_PER_PAGE);
@@ -353,7 +368,15 @@ const ManageAdmins = () => {
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
                                             <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => openEditModal(admin)}><Pencil size={18} /></button>
-                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => handleArchiveToggle(admin)}><Archive size={18} /></button>
+                                            {String(currentUser?.id) !== String(admin.id) && (
+                                                <button
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                                                    title={admin.status === 'active' ? 'Archive' : 'Restore'}
+                                                    onClick={() => handleArchiveToggle(admin)}
+                                                >
+                                                    <Archive size={18} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -442,6 +465,41 @@ const ManageAdmins = () => {
                                     {upgrading ? <Loader2 size={18} /> : 'Confirm Upgrade'}
                                 </button>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== Archive Confirmation Modal ===== */}
+            {archiveTarget && (
+                <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
+                    <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '440px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                            <AlertTriangle size={24} style={{ color: '#ea580c' }} />
+                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
+                                {archiveTarget.status === 'active' ? 'Archive Admin' : 'Restore Admin'}
+                            </h2>
+                        </div>
+                        <p style={{ margin: '0 0 1.5rem', color: '#334155', lineHeight: 1.5 }}>
+                            Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
+                            <strong>{archiveTarget.full_name}</strong>?
+                            {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button
+                                className="btn"
+                                onClick={() => setArchiveTarget(null)}
+                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={confirmArchive}
+                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                            >
+                                {archiveTarget.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
+                            </button>
                         </div>
                     </div>
                 </div>

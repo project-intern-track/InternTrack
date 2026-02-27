@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { UserPlus } from 'lucide-react';
+import PageLoader from '../../components/PageLoader';
 import { Bar } from 'react-chartjs-2';
 import { userService } from '../../services/userServices';
 import { announcementService } from '../../services/announcementService';
@@ -42,13 +43,14 @@ const AdminDashboard = () => {
     useEffect(() => {
         const loadDashboardData = async () => {
             try {
-                // 1. Fetch Stats
-                const statsData = await userService.getDashboardStats();
-                setStats(statsData);
+                // Parallel fetch for faster loading
+                const [statsData, recentInterns, announcements] = await Promise.all([
+                    userService.getDashboardStats(),
+                    userService.getRecentInterns(5),
+                    announcementService.getAnnouncements(),
+                ]);
 
-                // 2. Fetch Recent Activities (Interns + Announcements)
-                const recentInterns = await userService.getRecentInterns(5);
-                const announcements = await announcementService.getAnnouncements();
+                setStats(statsData);
 
                 // Merge and sort activities
                 const activityFeed = [
@@ -201,7 +203,7 @@ const AdminDashboard = () => {
         return Math.floor(seconds) + " seconds ago";
     };
 
-    if (!stats) return null;
+    if (!stats) return <PageLoader message="Loading dashboard..." />;
 
     return (
         <>

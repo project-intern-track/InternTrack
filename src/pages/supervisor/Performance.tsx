@@ -2,10 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../services/supabaseClient';
 import { useRealtime } from '../../hooks/useRealtime';
+import PageLoader from '../../components/PageLoader';
 
 const InternPerformance = () => {
   const { user } = useAuth();
   const [interns, setInterns] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchInterns = useCallback(async () => {
     if (!user) return;
@@ -31,6 +33,7 @@ const InternPerformance = () => {
     );
 
     setInterns(results);
+    setLoading(false);
   }, [user]);
 
   useEffect(() => {
@@ -39,6 +42,8 @@ const InternPerformance = () => {
 
   // Re-fetch whenever users or tasks change in real-time
   useRealtime(['users', 'tasks'], fetchInterns);
+
+  if (loading) return <PageLoader message="Loading performance data..." />;
 
   return (
     <div>

@@ -27,7 +27,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
 

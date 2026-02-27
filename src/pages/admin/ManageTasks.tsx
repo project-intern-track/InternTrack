@@ -743,6 +743,14 @@ const ManageTasks = () => {
                         )}
 
                         <div className="task-detail-actions">
+                            {selectedTask.status === 'completed' && (
+                                <button
+                                    onClick={openRejectModal}
+                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: '#dc2626', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                                >
+                                    Reject Task
+                                </button>
+                            )}
                             <button onClick={closeViewDetail} className="btn btn-primary">
                                 Close
                             </button>

@@ -56,12 +56,16 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     // Task Routes
     Route::get('/tasks/my-tasks',         [TaskController::class, 'myTasks']);
+    Route::get('/tasks/supervisor',       [TaskController::class, 'supervisorTasks']);
     Route::get('/tasks',                  [TaskController::class, 'index']);
     Route::post('/tasks',                 [TaskController::class, 'store']);
     Route::get('/tasks/{id}',             [TaskController::class, 'show']);
     Route::put('/tasks/{id}',             [TaskController::class, 'update']);
     Route::put('/tasks/{id}/status',      [TaskController::class, 'updateStatus']);
     Route::put('/tasks/{id}/reject',      [TaskController::class, 'reject']);
+    Route::put('/tasks/{id}/approve',           [TaskController::class, 'approve']);
+    Route::put('/tasks/{id}/supervisor-reject', [TaskController::class, 'supervisorReject']);
+    Route::put('/tasks/{id}/request-revision',  [TaskController::class, 'requestRevision']);
 
     // Admin Report Endpoints
     Route::get('/reports/interns',              [ReportController::class, 'index']);

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -18,7 +19,7 @@ class DatabaseSeeder extends Seeder
         // will automatically create the user_settings for newly seeded users!
 
         // 1. Create an Admin User
-        User::firstOrCreate(
+        $admin = User::firstOrCreate(
             ['email' => 'admin@interntrack.com'],
             [
                 'full_name' => 'System Administrator',
@@ -32,7 +33,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // 2. Create a Supervisor User
-        User::firstOrCreate(
+        $supervisor = User::firstOrCreate(
             ['email' => 'supervisor@interntrack.com'],
             [
                 'full_name' => 'IT Department Supervisor',
@@ -46,8 +47,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 3. Create a Dummy Intern User
-        User::firstOrCreate(
+        // 3. Create a Dummy Intern User (linked to supervisor)
+        $intern = User::firstOrCreate(
             ['email' => 'intern@interntrack.com'],
             [
                 'full_name' => 'Test Intern User',
@@ -61,10 +62,53 @@ class DatabaseSeeder extends Seeder
                 'required_hours' => 500,
                 'ojt_type' => 'required',
                 'start_date' => Carbon::now()->subDays(10),
+                'supervisor_id' => $supervisor->id,
             ]
         );
 
-        // 4. Seed report data for the intern
+        // Update supervisor_id if intern already existed without it
+        if (!$intern->supervisor_id) {
+            $intern->update(['supervisor_id' => $supervisor->id]);
+        }
+
+        // 4. Create sample tasks with pending_approval status for supervisor testing
+        $task1 = Task::firstOrCreate(
+            ['title' => 'Build Login Page UI'],
+            [
+                'description' => 'Create the login page with email and password fields, form validation, and responsive design.',
+                'due_date' => Carbon::now()->addDays(7),
+                'priority' => 'high',
+                'status' => 'pending_approval',
+                'created_by' => $admin->id,
+            ]
+        );
+        $task1->assignedInterns()->syncWithoutDetaching([$intern->id]);
+
+        $task2 = Task::firstOrCreate(
+            ['title' => 'Write API Documentation'],
+            [
+                'description' => 'Document all REST API endpoints with request/response examples using Postman or Swagger.',
+                'due_date' => Carbon::now()->addDays(14),
+                'priority' => 'medium',
+                'status' => 'pending_approval',
+                'created_by' => $admin->id,
+            ]
+        );
+        $task2->assignedInterns()->syncWithoutDetaching([$intern->id]);
+
+        $task3 = Task::firstOrCreate(
+            ['title' => 'Setup Unit Tests'],
+            [
+                'description' => 'Set up PHPUnit test suite and write initial tests for authentication endpoints.',
+                'due_date' => Carbon::now()->addDays(10),
+                'priority' => 'low',
+                'status' => 'pending_approval',
+                'created_by' => $admin->id,
+            ]
+        );
+        $task3->assignedInterns()->syncWithoutDetaching([$intern->id]);
+
+        // 5. Seed report data for the intern
         $this->call(ReportSeeder::class);
     }
 }

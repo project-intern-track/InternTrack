@@ -15,7 +15,7 @@ type Task = {
 };
 
 const statusColors: Record<Status, string> = {
-  review: '#098d40', // not used directly
+  review: '#098d40',
   done: '#098d40',
   'Needs Revision': '#eba72a',
   Rejected: '#d32f2f',
@@ -28,7 +28,8 @@ const priorityColors: Record<string, string> = {
 };
 
 const SupervisorApprovals = () => {
-  const [activeTab, setActiveTab] = useState<'review' | 'approved' | 'Needs Revision' | 'Rejected'>('review');
+  const [activeTab, setActiveTab] =
+    useState<'review' | 'approved' | 'Needs Revision' | 'Rejected'>('review');
 
   const [tasks, setTasks] = useState<Task[]>([
     { id: '1', title: 'Design Login Page', description: 'Create UI for login', assignedIntern: 'Juan Dela Cruz', due_date: '2026-02-20', priority: 'High Priority', status: 'review' },
@@ -38,7 +39,6 @@ const SupervisorApprovals = () => {
     { id: '5', title: 'Email Notifications', description: 'Integrate email alerts', assignedIntern: 'Juan Dela Cruz', due_date: '2026-02-18', priority: 'Medium Priority', status: 'Rejected' },
   ]);
 
-  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -62,19 +62,29 @@ const SupervisorApprovals = () => {
       : tasks.filter(t => t.status === 'Rejected');
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem' }}>
-      <h1 style={{ color: '#ff8c42' }}>Supervisor Panel</h1>
+    <div style={{ padding: '1rem', maxWidth: '1400px', margin: '0 auto' }}>
+      <h1 style={{ color: '#ff8c42', fontSize: 'clamp(1.5rem, 2vw, 2rem)' }}>
+        Supervisor Panel
+      </h1>
 
       <div
         style={{
           border: '1px solid #ccc',
           borderRadius: '1rem',
-          padding: '1rem',
+          padding: '1.5rem',
           backgroundColor: '#e8ddd0',
+          marginTop: '1rem',
         }}
       >
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            marginBottom: '1.5rem',
+          }}
+        >
           {[
             { key: 'review', label: 'To be Reviewed', count: tasks.filter(t => t.status === 'review').length },
             { key: 'approved', label: 'Approved', count: tasks.filter(t => t.status === 'done').length },
@@ -85,11 +95,11 @@ const SupervisorApprovals = () => {
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
               style={{
-                flex: 1,
-                padding: '0.75rem 1rem',
+                flex: '1 1 200px',
+                padding: '0.75rem',
                 borderRadius: '0.75rem',
-                border: activeTab === tab.key ? '2px solid black' : 'none',
-                backgroundColor: activeTab === tab.key ? '#ebab5d' : 'transparent',
+                border: activeTab === tab.key ? '2px solid black' : '1px solid #ccc',
+                backgroundColor: activeTab === tab.key ? '#ebab5d' : '#fff',
                 fontWeight: 'bold',
                 cursor: 'pointer',
               }}
@@ -110,12 +120,12 @@ const SupervisorApprovals = () => {
                 style={{
                   border: '1px solid #ccc',
                   borderRadius: '1rem',
-                  padding: '1rem',
-                  position: 'relative',
+                  padding: '1.5rem',
                   backgroundColor: '#fff',
+                  position: 'relative',
                 }}
               >
-                {/* Priority Indicator */}
+                {/* Priority Badge */}
                 <div
                   style={{
                     position: 'absolute',
@@ -124,10 +134,9 @@ const SupervisorApprovals = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.4rem',
-                    backgroundColor: 'rgba(255,255,255,0.6)',
-                    padding: '0.25rem 0.5rem',
+                    backgroundColor: 'rgba(255,255,255,0.85)',
+                    padding: '0.25rem 0.6rem',
                     borderRadius: '999px',
-                    backdropFilter: 'blur(4px)',
                   }}
                 >
                   <span
@@ -136,7 +145,6 @@ const SupervisorApprovals = () => {
                       height: '10px',
                       borderRadius: '50%',
                       backgroundColor: priorityColors[task.priority],
-                      display: 'inline-block',
                     }}
                   />
                   {task.priority}
@@ -145,25 +153,35 @@ const SupervisorApprovals = () => {
                 <h3>{task.title}</h3>
                 <p>{task.description}</p>
                 <p><strong>Assigned to:</strong> {task.assignedIntern}</p>
+                <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                  Due: {new Date(task.due_date).toLocaleDateString()}
+                </p>
 
-                {/* Review Tab = Buttons */}
                 {activeTab === 'review' ? (
-                  <div style={{ marginTop: '1rem', textAlign: 'right' }}>
+                  <div
+                    style={{
+                      marginTop: '1rem',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem',
+                    }}
+                  >
                     <button
                       onClick={() => openRevisionModal(task)}
                       style={{
+                        flex: '1 1 140px',
                         backgroundColor: '#eba72a',
                         color: '#fff',
                         border: 'none',
-                        padding: '0.5rem 1rem',
+                        padding: '0.6rem',
                         borderRadius: '1rem',
                         fontWeight: 'bold',
                         cursor: 'pointer',
-                        marginRight: '0.5rem',
                       }}
                     >
                       Request Revision
                     </button>
+
                     <button
                       onClick={() =>
                         setTasks(prev =>
@@ -171,18 +189,19 @@ const SupervisorApprovals = () => {
                         )
                       }
                       style={{
+                        flex: '1 1 120px',
                         backgroundColor: '#098d40',
                         color: '#fff',
                         border: 'none',
-                        padding: '0.5rem 1rem',
+                        padding: '0.6rem',
                         borderRadius: '1rem',
                         fontWeight: 'bold',
                         cursor: 'pointer',
-                        marginRight: '0.5rem',
                       }}
                     >
                       Approve
                     </button>
+
                     <button
                       onClick={() =>
                         setTasks(prev =>
@@ -190,10 +209,11 @@ const SupervisorApprovals = () => {
                         )
                       }
                       style={{
+                        flex: '1 1 120px',
                         backgroundColor: '#d32f2f',
                         color: '#fff',
                         border: 'none',
-                        padding: '0.5rem 1rem',
+                        padding: '0.6rem',
                         borderRadius: '1rem',
                         fontWeight: 'bold',
                         cursor: 'pointer',
@@ -203,8 +223,7 @@ const SupervisorApprovals = () => {
                     </button>
                   </div>
                 ) : (
-                  /* Other Tabs = Status Badge & Revision Info */
-                  <div style={{ marginTop: '1rem', textAlign: 'left' }}>
+                  <div style={{ marginTop: '1rem' }}>
                     <span
                       style={{
                         backgroundColor: statusColors[task.status],
@@ -213,19 +232,16 @@ const SupervisorApprovals = () => {
                         padding: '0.4rem 0.9rem',
                         borderRadius: '999px',
                         fontSize: '0.8rem',
-                        opacity: 0.9,
                       }}
                     >
                       {task.status === 'done' ? 'Approved' : task.status}
                     </span>
 
-                    {/* Show revision details if present */}
                     {task.revisionReason && (
                       <div
                         style={{
-                          marginTop: '0.5rem',
-                          padding: '0.5rem',
-                          border: '1px solid #ccc',
+                          marginTop: '0.75rem',
+                          padding: '0.75rem',
                           borderRadius: '0.5rem',
                           backgroundColor: '#fff3e0',
                         }}
@@ -236,27 +252,23 @@ const SupervisorApprovals = () => {
                     )}
                   </div>
                 )}
-
-                <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Due: {new Date(task.due_date).toLocaleDateString()}</p>
               </div>
             ))
           )}
         </div>
       </div>
 
-      {/* ================= MODAL POP-UP ================= */}
+      {/* Modal */}
       {showModal && selectedTask && (
         <div
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
+            inset: 0,
             background: 'rgba(0,0,0,0.4)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            padding: '1rem',
             zIndex: 999,
           }}
         >
@@ -264,9 +276,9 @@ const SupervisorApprovals = () => {
             style={{
               background: '#fff',
               padding: '2rem',
-              width: '450px',
-              borderRadius: '0.5rem',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+              width: '100%',
+              maxWidth: '500px',
+              borderRadius: '0.75rem',
               position: 'relative',
             }}
           >
@@ -275,36 +287,46 @@ const SupervisorApprovals = () => {
               style={{
                 position: 'absolute',
                 top: '0.5rem',
-                right: '0.5rem',
+                right: '0.75rem',
                 border: 'none',
                 background: 'transparent',
                 fontSize: '1.2rem',
                 cursor: 'pointer',
-                fontWeight: 'bold',
               }}
             >
-              x
+              ×
             </button>
 
-            <h2 style={{ marginBottom: '1rem' }}>Request Revision</h2>
+            <h2>Request Revision</h2>
 
-            <h4>Revision Reason:</h4>
             <textarea
-              placeholder="Enter the reason for revision here"
-              style={{ width: '100%', height: '100px', marginBottom: '1rem', padding: '0.5rem' }}
-              onChange={e =>
-                setSelectedTask(prev => prev && { ...prev, revisionReason: e.target.value })
-              }
+              placeholder="Enter the reason for revision"
+              style={{
+                width: '100%',
+                minHeight: '100px',
+                marginTop: '1rem',
+                padding: '0.5rem',
+              }}
               value={selectedTask.revisionReason || ''}
+              onChange={e =>
+                setSelectedTask(prev =>
+                  prev && { ...prev, revisionReason: e.target.value }
+                )
+              }
             />
 
-            <h4>Revision Category:</h4>
             <select
-              style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem' }}
-              onChange={e =>
-                setSelectedTask(prev => prev && { ...prev, revisionCategory: e.target.value })
-              }
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                marginTop: '1rem',
+              }}
               value={selectedTask.revisionCategory || 'Other'}
+              onChange={e =>
+                setSelectedTask(prev =>
+                  prev && { ...prev, revisionCategory: e.target.value }
+                )
+              }
             >
               <option>Other</option>
               <option>Incomplete task details</option>
@@ -314,26 +336,28 @@ const SupervisorApprovals = () => {
               <option>Duplicate task</option>
             </select>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-              <button
-                onClick={closeModal}
-                style={{
-                  padding: '0.4rem 0.75rem',
-                  borderRadius: '0.3rem',
-                  border: '1px solid #ccc',
-                  background: '#fff',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.5rem',
+                marginTop: '1.5rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <button onClick={closeModal}>Cancel</button>
               <button
                 onClick={() => {
                   if (selectedTask) {
                     setTasks(prev =>
                       prev.map(t =>
                         t.id === selectedTask.id
-                          ? { ...t, status: 'Needs Revision', revisionReason: selectedTask.revisionReason, revisionCategory: selectedTask.revisionCategory }
+                          ? {
+                              ...t,
+                              status: 'Needs Revision',
+                              revisionReason: selectedTask.revisionReason,
+                              revisionCategory: selectedTask.revisionCategory,
+                            }
                           : t
                       )
                     );
@@ -344,8 +368,7 @@ const SupervisorApprovals = () => {
                   background: '#FB8C00',
                   color: '#fff',
                   border: 'none',
-                  padding: '0.4rem 0.75rem',
-                  borderRadius: '0.3rem',
+                  padding: '0.5rem 1rem',
                 }}
               >
                 Submit

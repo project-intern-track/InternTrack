@@ -116,7 +116,16 @@ const ProtectedRoute = ({
   children: React.ReactNode;
   allowedRoles?: string[];
 }) => {
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading, verifySession } = useAuth();
+  const location = useLocation();
+
+  // On every route change, immediately verify the session is still valid.
+  // If the user was archived, verifySession triggers a forced logout.
+  useEffect(() => {
+    if (isAuthenticated) {
+      verifySession();
+    }
+  }, [location.pathname, isAuthenticated, verifySession]);
 
   if (isLoading) {
     return <LoadingScreen />;

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { supabase } from '../services/supabaseClient';
 
 type RealtimeTable =
   | 'announcements'
@@ -10,45 +9,35 @@ type RealtimeTable =
   | 'user_settings';
 
 /**
- * useRealtime – subscribes to INSERT / UPDATE / DELETE events on one or more
- * Supabase tables and calls `onChanged` whenever any row changes.
+ * useRealtime – polls at a fixed interval and calls `onChanged` to refresh data.
+ *
+ * Replaces the previous Supabase realtime subscription with simple polling.
+ * The API signature is kept identical so existing consumers don't need changes.
  *
  * Usage:
  *   useRealtime('announcements', fetchAnnouncements);
  *   useRealtime(['tasks', 'users'], fetchDashboardData);
+ *
+ * @param _tables  Table name(s) – kept for API compatibility but unused.
+ * @param onChanged  Callback invoked every polling interval.
+ * @param intervalMs  Polling interval in milliseconds (default: 30 000).
  */
 export function useRealtime(
-  tables: RealtimeTable | RealtimeTable[],
-  onChanged: () => void
+  _tables: RealtimeTable | RealtimeTable[],
+  onChanged: () => void,
+  intervalMs = 30_000
 ): void {
-  // Keep a stable ref so we don't re-subscribe when the callback identity changes
+  // Keep a stable ref so we don't restart the interval when the callback identity changes
   const callbackRef = useRef(onChanged);
   useEffect(() => {
     callbackRef.current = onChanged;
   }, [onChanged]);
 
   useEffect(() => {
-    const tableList = Array.isArray(tables) ? tables : [tables];
-    const channelName = `realtime:${tableList.join(',')}:${Math.random()}`;
+    const id = setInterval(() => {
+      callbackRef.current();
+    }, intervalMs);
 
-    const channel = supabase.channel(channelName);
-
-    tableList.forEach((table) => {
-      channel.on(
-        // @ts-ignore – postgres_changes is a valid event
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        () => {
-          callbackRef.current();
-        }
-      );
-    });
-
-    channel.subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(Array.isArray(tables) ? tables : [tables])]);
+    return () => clearInterval(id);
+  }, [intervalMs]);
 }

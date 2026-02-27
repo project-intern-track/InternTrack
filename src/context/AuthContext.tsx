@@ -10,6 +10,7 @@ interface AuthContextType extends AuthState {
     signUp: (email: string, password: string, metadata: SignUpMetadata) => Promise<{ error: string | null }>;
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<{ error: string | null }>;
+    verifySession: () => void;
     updatePassword: (newPassword: string, token: string, email: string) => Promise<{ error: string | null }>;
     clearPasswordRecovery: () => void;
 }
@@ -43,6 +44,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     const isHandlingAuth = useRef(false);
+    const checkSessionRef = useRef<(() => void) | null>(null);
+    const lastVerifyRef = useRef(0);
 
     /**
      * Fetches the user profile from the Laravel API.
@@ -148,6 +151,66 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [loadProfileAndSetState]);
 
     // ========================
+    // Deactivation Guard
+    // Kicks the user out immediately if their account is archived while they are logged in.
+    // Polls /auth/user every 30 seconds to detect deactivation.
+    // ========================
+    useEffect(() => {
+        // Only run when the user is authenticated
+        if (!state.isAuthenticated || !state.user) return;
+
+        let isMounted = true;
+        const userId = state.user.id;
+
+        /**
+         * Force the user to the login page with a deactivated notice.
+         */
+        const forceDeactivatedLogout = () => {
+            if (!isMounted) return;
+            localStorage.removeItem('auth_token');
+            clearLastKnownRole();
+            sessionStorage.setItem('account_deactivated', '1');
+            setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                isPasswordRecovery: false,
+            });
+            // No window.location.href here — the setState above triggers
+            // <Navigate to="/" /> via ProtectedRoute, which is enough.
+        };
+
+        /**
+         * Poll /auth/user to verify the session is still valid.
+         * If the token was revoked (401) or the user is archived (403), kick them out.
+         */
+        const checkSession = async () => {
+            try {
+                const { profile, error } = await authService.getUserProfile(userId);
+                if (!isMounted) return;
+
+                if (error || !profile || profile.status === 'archived') {
+                    forceDeactivatedLogout();
+                }
+            } catch {
+                // Network errors are ignored — we only act on definitive deactivation
+            }
+        };
+
+        // Poll every 30 seconds
+        const intervalId = setInterval(checkSession, 30_000);
+
+        // Store checkSession so verifySession can call it on-demand
+        checkSessionRef.current = checkSession;
+
+        return () => {
+            isMounted = false;
+            checkSessionRef.current = null;
+            clearInterval(intervalId);
+        };
+    }, [state.isAuthenticated, state.user]);
+
+    // ========================
     // Auth Actions
     // ========================
 
@@ -241,6 +304,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return await authService.updatePassword(newPassword, token, email);
     };
 
+    /**
+     * Immediately verify the session is still valid.
+     * Throttled to at most once every 3 seconds to avoid flooding the API.
+     */
+    const verifySession = useCallback(() => {
+        const now = Date.now();
+        if (now - lastVerifyRef.current < 3_000) return;
+        lastVerifyRef.current = now;
+        checkSessionRef.current?.();
+    }, []);
+
     const clearPasswordRecovery = useCallback(() => {
         setState((prev) => {
             if (!prev.isPasswordRecovery) return prev;
@@ -257,6 +331,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 signOut,
                 resetPassword,
                 updatePassword,
+                verifySession,
                 clearPasswordRecovery,
             }}
         >

@@ -1,38 +1,31 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../services/supabaseClient';
+// TODO: Migrate to apiClient — Supabase has been removed.
+// import { apiClient } from '../../services/apiClient';
 import { useRealtime } from '../../hooks/useRealtime';
 import PageLoader from '../../components/PageLoader';
 
+interface InternWithTasks {
+  id: string | number;
+  name: string;
+  role: string;
+  completedTasks: number;
+}
+
 const InternPerformance = () => {
   const { user } = useAuth();
-  const [interns, setInterns] = useState<any[]>([]);
+  const [interns, setInterns] = useState<InternWithTasks[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchInterns = useCallback(async () => {
     if (!user) return;
 
-    // Get all interns
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('id, name, role')
-      .eq('role', 'intern');
-
-    if (error) return;
-
-    // For each intern, count completed tasks
-    const results = await Promise.all(
-      (users || []).map(async intern => {
-        const { count } = await supabase
-          .from('tasks')
-          .select('*', { count: 'exact' })
-          .eq('assigned_to', intern.id)
-          .eq('status', 'done');
-        return { ...intern, completedTasks: count || 0 };
-      })
-    );
-
-    setInterns(results);
+    // TODO: Replace with apiClient calls once Laravel backend endpoints exist.
+    // Example:
+    //   const { data: users } = await apiClient.get('/users', { params: { role: 'intern' } });
+    //   Then for each intern, fetch their completed task count.
+    console.warn('Performance.tsx: fetchInterns() not yet migrated to Laravel backend.');
+    setInterns([]);
     setLoading(false);
   }, [user]);
 
@@ -40,7 +33,7 @@ const InternPerformance = () => {
     fetchInterns();
   }, [fetchInterns]);
 
-  // Re-fetch whenever users or tasks change in real-time
+  // Re-fetch whenever users or tasks change
   useRealtime(['users', 'tasks'], fetchInterns);
 
   if (loading) return <PageLoader message="Loading performance data..." />;

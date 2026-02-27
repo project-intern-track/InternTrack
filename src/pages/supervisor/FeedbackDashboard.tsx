@@ -247,7 +247,7 @@ const FeedbackDashboard = () => {
                     <td style={{ padding: '0.5rem' }}>
                       <button
                         style={{
-                          backgroundColor: '#ff8a429d', border: 'none', borderRadius: '0.5rem',
+                          backgroundColor: '#ff8a42', border: 'none', borderRadius: '0.5rem',
                           padding: '0.25rem 0.75rem', color: '#fff', cursor: 'pointer', fontWeight: 'bold'
                         }}
                         onClick={() => {

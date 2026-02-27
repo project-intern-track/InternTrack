@@ -1,4 +1,10 @@
-import { PieChart, Pie, Tooltip, Cell } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Tooltip,
+  Cell,
+  ResponsiveContainer,
+} from 'recharts';
 
 type PendingTask = {
   intern: string;
@@ -18,6 +24,7 @@ type PerformanceSummary = {
 // ============================
 // Dummy Static Data
 // ============================
+
 const dummyTasks: PendingTask[] = [
   { intern: 'Juan Dela Cruz', task: 'Weekly Report', due_date: '2026-02-22', status: 'excellent' },
   { intern: 'Maria Santos', task: 'UI Prototype', due_date: '2026-02-23', status: 'very good' },
@@ -29,8 +36,9 @@ const dummyTasks: PendingTask[] = [
 ];
 
 // ============================
-// Helper Functions
+// Helpers
 // ============================
+
 const computeSummary = (tasks: PendingTask[]): PerformanceSummary => {
   const summary: PerformanceSummary = {
     excellent: 0,
@@ -39,6 +47,7 @@ const computeSummary = (tasks: PendingTask[]): PerformanceSummary => {
     needsImprovement: 0,
     poor: 0,
   };
+
   tasks.forEach(t => {
     switch (t.status) {
       case 'excellent':
@@ -58,15 +67,16 @@ const computeSummary = (tasks: PendingTask[]): PerformanceSummary => {
         break;
     }
   });
+
   return summary;
 };
 
-// Compute top performing intern and score out of 100
-const computeTopIntern = (tasks: PendingTask[]): { name: string; score: number } => {
+const computeTopIntern = (tasks: PendingTask[]) => {
   const internScores: Record<string, number[]> = {};
+
   tasks.forEach(t => {
     if (!internScores[t.intern]) internScores[t.intern] = [];
-    // Count excellent & very good as 100 points, satisfactory 75, needs improvement 50, poor 25
+
     let points = 0;
     switch (t.status) {
       case 'excellent':
@@ -85,6 +95,7 @@ const computeTopIntern = (tasks: PendingTask[]): { name: string; score: number }
         points = 25;
         break;
     }
+
     internScores[t.intern].push(points);
   });
 
@@ -105,6 +116,7 @@ const computeTopIntern = (tasks: PendingTask[]): { name: string; score: number }
 // ============================
 // Colors
 // ============================
+
 const statusColors: Record<string, string> = {
   excellent: '#2E7D32',
   'very good': '#00897B',
@@ -113,7 +125,6 @@ const statusColors: Record<string, string> = {
   poor: '#D32F2F',
 };
 
-// Helper to make hex color slightly transparent
 const hexToRgba = (hex: string, alpha: number) => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -122,15 +133,14 @@ const hexToRgba = (hex: string, alpha: number) => {
 };
 
 // ============================
-// Main Component
+// Component
 // ============================
+
 const SupervisorDashboard = () => {
   const supervisorName = 'Test Supervisor';
 
-  const pendingTasks = dummyTasks;
   const summary = computeSummary(dummyTasks);
   const topInternData = computeTopIntern(dummyTasks);
-
   const total = Object.values(summary).reduce((acc, v) => acc + v, 0);
 
   const pieData = [
@@ -143,132 +153,176 @@ const SupervisorDashboard = () => {
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Welcome back, {supervisorName}</h1>
+      <h1 style={{ fontSize: 'clamp(1.5rem, 2vw, 2rem)' }}>
+        Welcome back, {supervisorName}
+      </h1>
       <p style={{ color: '#555' }}>Supervisor Dashboard</p>
 
       {/* TOP GRID */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '2fr 1fr',
-          gap: '1rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '1.5rem',
           marginTop: '2rem',
         }}
       >
         {/* Pending Tasks */}
         <div
-          className="card"
-          style={{ textAlign: 'left', padding: '1rem', background: '#f9f9f9', borderRadius: '0.5rem' }}
+          style={{
+            padding: '1rem',
+            background: '#f9f9f9',
+            borderRadius: '0.5rem',
+          }}
         >
-          <h3 style={{ textAlign: 'left' }}>Pending Tasks</h3>
-          <table style={{ width: '100%', marginTop: '1rem', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: '#ff8c42', color: '#fff' }}>
-                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Intern</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Task</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Due Date</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left' }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingTasks.map((t, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '0.5rem' }}>{t.intern}</td>
-                  <td style={{ padding: '0.5rem' }}>{t.task}</td>
-                  <td style={{ padding: '0.5rem' }}>{t.due_date}</td>
-                  <td style={{ padding: '0.5rem', fontWeight: 'bold', color: statusColors[t.status] }}>
-                    {t.status}
-                  </td>
+          <h3>Pending Tasks</h3>
+
+          <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                minWidth: '600px',
+              }}
+            >
+              <thead>
+                <tr style={{ background: '#ff8c42', color: '#fff' }}>
+                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Intern</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Task</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Due Date</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {dummyTasks.map((t, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '0.5rem' }}>{t.intern}</td>
+                    <td style={{ padding: '0.5rem' }}>{t.task}</td>
+                    <td style={{ padding: '0.5rem' }}>{t.due_date}</td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        fontWeight: 'bold',
+                        color: statusColors[t.status],
+                      }}
+                    >
+                      {t.status}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-{/* Top Intern */}
-<div
-  className="card"
-  style={{ padding: '1rem', background: '#f0f0f0', borderRadius: '0.5rem' }}
->
-  <h3>Top Performing Intern</h3>
-  <div
-    style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginTop: '1rem',
-    }}
-  >
-    <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{topInternData.name}</span>
-    <span
-      style={{
-        fontSize: '1.25rem',
-        fontWeight: 'bold',
-        background: hexToRgba(statusColors['excellent'], 0.8),
-        color: '#fff',
-        padding: '0.25rem 0.5rem',
-        borderRadius: '0.25rem',
-        minWidth: '60px',
-        textAlign: 'center',
-      }}
-    >
-      {topInternData.score}
-    </span>
-  </div>
-</div>
-</div>
+        {/* Top Intern */}
+        <div
+          style={{
+            padding: '1rem',
+            background: '#f0f0f0',
+            borderRadius: '0.5rem',
+          }}
+        >
+          <h3>Top Performing Intern</h3>
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '1rem',
+              flexWrap: 'wrap',
+              gap: '0.5rem',
+            }}
+          >
+            <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
+              {topInternData.name}
+            </span>
+
+            <span
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                background: hexToRgba(statusColors['excellent'], 0.8),
+                color: '#fff',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '0.25rem',
+              }}
+            >
+              {topInternData.score}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* BOTTOM GRID */}
       <div
-        className="card"
         style={{
-          marginTop: '1rem',
+          marginTop: '2rem',
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: '2rem',
         }}
       >
-        {/* Pie Chart Column */}
-        <div style={{ textAlign: 'center' }}>
-          <h3 style={{ marginBottom: '1rem' }}>Overall Performance Distribution</h3>
-          <PieChart width={600} height={450}>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              cx="50%"
-              cy="50%"
-              outerRadius={200}
-              label={({ value }) => `${((value / total) * 100).toFixed(0)}%`}
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={index} fill={statusColors[entry.name.toLowerCase()]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value: any) => `${((Number(value) / total) * 100).toFixed(0)}%`} />
-          </PieChart>
+        {/* Pie Chart */}
+        <div style={{ width: '100%', height: '400px' }}>
+          <h3 style={{ textAlign: 'center', marginBottom: '1rem' }}>
+            Overall Performance Distribution
+          </h3>
+
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                outerRadius="80%"
+                label={({ value }) =>
+                  total > 0
+                    ? `${((value / total) * 100).toFixed(0)}%`
+                    : '0%'
+                }
+              >
+                {pieData.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fill={statusColors[entry.name.toLowerCase()]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Performance Summary Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <h3 style={{ marginBottom: '1rem', textAlign: 'center' }}>Performance Summary</h3>
+        {/* Summary */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <h3 style={{ textAlign: 'center' }}>Performance Summary</h3>
+
           {Object.entries(summary).map(([key, value]) => {
-            const summaryKeyToStatus: Record<string, string> = {
+            const mapping: Record<string, string> = {
               excellent: 'excellent',
               veryGood: 'very good',
               satisfactory: 'satisfactory',
               needsImprovement: 'needs improvement',
               poor: 'poor',
             };
-            const color = hexToRgba(statusColors[summaryKeyToStatus[key]], 0.3); 
-            const percent = ((value / total) * 100).toFixed(0);
-            const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+            const percent =
+              total > 0 ? ((value / total) * 100).toFixed(0) : '0';
+
+            const label = key
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase());
+
             return (
               <div
                 key={key}
                 style={{
-                  background: color,
-                  color: '#000', 
-                  padding: '0.5rem',
-                  borderRadius: '0.25rem',
+                  background: hexToRgba(statusColors[mapping[key]], 0.25),
+                  padding: '0.75rem',
+                  borderRadius: '0.5rem',
                   fontWeight: 'bold',
                   textAlign: 'center',
                 }}

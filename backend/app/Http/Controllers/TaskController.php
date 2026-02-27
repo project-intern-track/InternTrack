@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -77,7 +78,7 @@ class TaskController extends Controller
             'description'  => 'sometimes|nullable|string',
             'due_date'     => 'sometimes|date',
             'priority'     => 'sometimes|in:low,medium,high',
-            'status'       => 'sometimes|in:not_started,in_progress,pending,completed,rejected,overdue',
+            'status'       => 'sometimes|in:not_started,in_progress,pending,completed,rejected,overdue,pending_approval,needs_revision',
             'intern_ids'   => 'sometimes|array',
             'intern_ids.*' => 'integer|exists:users,id',
         ]);
@@ -164,6 +165,129 @@ class TaskController extends Controller
         return response()->json(['data' => $this->formatTask($task)]);
     }
 
+    // ── Supervisor Endpoints ────────────────────────────────────────────────
+
+    /**
+     * GET /api/tasks/supervisor
+     * Returns tasks pending approval for interns under this supervisor.
+     */
+    public function supervisorTasks(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $internIds = User::where('supervisor_id', $user->id)->pluck('id');
+
+        $tasks = Task::whereHas('assignedInterns', fn($q) => $q->whereIn('users.id', $internIds))
+            ->where('status', 'pending_approval')
+            ->with(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($task) => $this->formatTask($task));
+
+        return response()->json(['data' => $tasks]);
+    }
+
+    /**
+     * PUT /api/tasks/{id}/approve
+     * Supervisor approves a pending task → status becomes 'not_started'.
+     */
+    public function approve(Request $request, int $id): JsonResponse
+    {
+        $task = Task::with('assignedInterns')->findOrFail($id);
+
+        if ($task->status !== 'pending_approval') {
+            return response()->json([
+                'error' => 'Only tasks with pending_approval status can be approved.',
+            ], 422);
+        }
+
+        if (!$this->supervisorOwnsTask($request->user(), $task)) {
+            return response()->json([
+                'error' => 'You are not the supervisor for this task\'s assigned intern.',
+            ], 403);
+        }
+
+        $task->update([
+            'status'      => 'not_started',
+            'approved_by' => $request->user()->id,
+            'approved_at' => Carbon::now(),
+        ]);
+
+        $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
+
+        return response()->json(['data' => $this->formatTask($task)]);
+    }
+
+    /**
+     * PUT /api/tasks/{id}/supervisor-reject
+     * Supervisor rejects a pending task with a reason.
+     */
+    public function supervisorReject(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|min:1',
+        ]);
+
+        $task = Task::with('assignedInterns')->findOrFail($id);
+
+        if ($task->status !== 'pending_approval') {
+            return response()->json([
+                'error' => 'Only tasks with pending_approval status can be rejected.',
+            ], 422);
+        }
+
+        if (!$this->supervisorOwnsTask($request->user(), $task)) {
+            return response()->json([
+                'error' => 'You are not the supervisor for this task\'s assigned intern.',
+            ], 403);
+        }
+
+        $task->update([
+            'status'           => 'rejected',
+            'rejection_reason' => $validated['rejection_reason'],
+        ]);
+
+        $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
+
+        return response()->json(['data' => $this->formatTask($task)]);
+    }
+
+    /**
+     * PUT /api/tasks/{id}/request-revision
+     * Supervisor sends a task back to admin for revision.
+     */
+    public function requestRevision(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'revision_reason'   => 'required|string|min:1',
+            'revision_category' => 'required|string|in:Incomplete task details,Incorrect intern assignment,Deadline needs adjustment,Not aligned with objectives,Duplicate task',
+        ]);
+
+        $task = Task::with('assignedInterns')->findOrFail($id);
+
+        if ($task->status !== 'pending_approval') {
+            return response()->json([
+                'error' => 'Only tasks with pending_approval status can be sent for revision.',
+            ], 422);
+        }
+
+        if (!$this->supervisorOwnsTask($request->user(), $task)) {
+            return response()->json([
+                'error' => 'You are not the supervisor for this task\'s assigned intern.',
+            ], 403);
+        }
+
+        $task->update([
+            'status'            => 'needs_revision',
+            'rejection_reason'  => $validated['revision_reason'],
+            'revision_category' => $validated['revision_category'],
+        ]);
+
+        $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
+
+        return response()->json(['data' => $this->formatTask($task)]);
+    }
+
     // ── Private Helpers ─────────────────────────────────────────────────────
 
     private function markOverdueTasks(): void
@@ -171,6 +295,12 @@ class TaskController extends Controller
         Task::whereNotIn('status', ['completed', 'rejected', 'overdue'])
             ->where('due_date', '<', Carbon::now())
             ->update(['status' => 'overdue']);
+    }
+
+    private function supervisorOwnsTask(User $supervisor, Task $task): bool
+    {
+        $internIds = User::where('supervisor_id', $supervisor->id)->pluck('id');
+        return $task->assignedInterns->pluck('id')->intersect($internIds)->isNotEmpty();
     }
 
     private function formatTask(Task $task): array
@@ -183,6 +313,9 @@ class TaskController extends Controller
             'priority'               => $task->priority,
             'status'                 => $task->status,
             'rejection_reason'       => $task->rejection_reason,
+            'revision_category'      => $task->revision_category,
+            'approved_by'            => $task->approved_by,
+            'approved_at'            => $task->approved_at?->toISOString(),
             'created_by'             => $task->created_by,
             'created_at'             => $task->created_at?->toISOString(),
             'assigned_interns'       => $task->assignedInterns ?? [],

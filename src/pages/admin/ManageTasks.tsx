@@ -1,5 +1,5 @@
-import { Filter, Search, Calendar, X } from 'lucide-react';
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { Filter, Search, Calendar, X, Loader2 } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import '../../index.css';
 
 import { taskService } from '../../services/taskServices';
@@ -33,37 +33,44 @@ const ManageTasks = () => {
     const [internSearch, setInternSearch] = useState('');
     const [selectedInterns, setSelectedInterns] = useState<Users[]>([]);
     const [isInternSearchFocused, setIsInternSearchFocused] = useState(false);
+    const [assigning, setAssigning] = useState(false);
 
     const dateInputRef = useRef<HTMLInputElement>(null);
     const internSearchInputRef = useRef<HTMLInputElement>(null);
 
-    const fetchTasks = async (showLoading = true) => {
+    const fetchTasks = useCallback(async (showLoading = true, signal?: AbortSignal) => {
         if (showLoading) setIsLoadingTasks(true);
         try {
-            const data = await taskService.getTasks();
+            const data = await taskService.getTasks(signal);
+            if (signal?.aborted) return;
             setTasks(data);
         } catch (err) {
+            const e = err as { name?: string; code?: string };
+            if (e?.name === 'CanceledError' || e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return;
             console.error('Failed to fetch tasks:', err);
         } finally {
-            if (showLoading) setIsLoadingTasks(false);
+            if (!signal?.aborted && showLoading) setIsLoadingTasks(false);
         }
-    };
+    }, []);
 
-    const fetchInterns = async () => {
+    const fetchInterns = useCallback(async (signal?: AbortSignal) => {
         try {
-            const data = await userService.fetchInterns();
+            const data = await userService.fetchInterns(undefined, { signal });
+            if (signal?.aborted) return;
             setInterns(data.filter((u: Users) => u.status === 'active'));
         } catch (err) {
+            const e = err as { name?: string; code?: string };
+            if (e?.name === 'CanceledError' || e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return;
             console.error('Failed to fetch interns:', err);
         }
-    };
+    }, []); 
 
     useEffect(() => {
-        // Fetch both in parallel - each updates its own state immediately when ready
-        // Tasks will display as soon as they're fetched, without waiting for interns
-        fetchTasks();
-        fetchInterns();
-    }, []);
+        const controller = new AbortController();
+        fetchTasks(true, controller.signal);
+        fetchInterns(controller.signal);
+        return () => controller.abort();
+    }, [fetchTasks, fetchInterns]);
 
     const filteredInternOptions = useMemo(() => {
         if (!isInternSearchFocused) return [];
@@ -169,6 +176,7 @@ const ManageTasks = () => {
                 return;
             }
             setDueDateError('');
+            setAssigning(true);
 
             await taskService.createTask({
                 title: taskTitle,
@@ -185,6 +193,8 @@ const ManageTasks = () => {
         } catch (err) {
             console.error('Failed to create task:', err);
             alert('Failed to create task. Please try again.');
+        } finally {
+            setAssigning(false);
         }
     };
 
@@ -667,14 +677,18 @@ const ManageTasks = () => {
                             <button 
                                 onClick={handleAssign} 
                                 className="btn btn-primary" 
-                                disabled={!isFormValid}
+                                disabled={!isFormValid || assigning}
                                 style={{ 
                                     padding: '0.625rem 1.5rem', 
                                     fontSize: '0.875rem',
-                                    opacity: isFormValid ? 1 : 0.5,
-                                    cursor: isFormValid ? 'pointer' : 'not-allowed'
+                                    opacity: isFormValid && !assigning ? 1 : 0.5,
+                                    cursor: isFormValid && !assigning ? 'pointer' : 'not-allowed',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
                                 }}>
-                                Assign
+                                {assigning && <Loader2 size={16} className="spinner" style={{ flexShrink: 0 }} />}
+                                {assigning ? 'Assigning...' : 'Assign'}
                             </button>
                         </div>
                     </div>
@@ -729,6 +743,14 @@ const ManageTasks = () => {
                         )}
 
                         <div className="task-detail-actions">
+                            {selectedTask.status === 'completed' && (
+                                <button
+                                    onClick={openRejectModal}
+                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: '#dc2626', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                                >
+                                    Reject Task
+                                </button>
+                            )}
                             <button onClick={closeViewDetail} className="btn btn-primary">
                                 Close
                             </button>

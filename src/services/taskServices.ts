@@ -2,13 +2,13 @@ import { apiClient } from './apiClient';
 import type { Tasks } from '../types/database.types';
 
 export const taskService = {
-    async getTasks(): Promise<Tasks[]> {
-        const response = await apiClient.get<{ data: Tasks[] }>('/tasks');
+    async getTasks(signal?: AbortSignal): Promise<Tasks[]> {
+        const response = await apiClient.get<{ data: Tasks[] }>('/tasks', { signal });
         return response.data.data;
     },
 
-    async getMyTasks(): Promise<Tasks[]> {
-        const response = await apiClient.get<{ data: Tasks[] }>('/tasks/my-tasks');
+    async getMyTasks(signal?: AbortSignal): Promise<Tasks[]> {
+        const response = await apiClient.get<{ data: Tasks[] }>('/tasks/my-tasks', { signal });
         return response.data.data;
     },
 

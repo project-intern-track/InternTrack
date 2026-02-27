@@ -208,14 +208,19 @@ const AdminDashboard = () => {
     if (!stats) return null;
 
     return (
-        <div className="p-6 md:p-8 bg-gray-50 min-h-screen font-sans">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-orange-50/40 to-gray-50 p-6 md:p-8">
             {/* Welcome Header */}
-            <div className="mb-8">
-                <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                    Welcome back, <span className="text-[#ff7a00]">Admin {user?.name}</span>!
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                className="mb-8"
+            >
+                <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">
+                    Welcome back, <span className="text-[#ff7a00]">Admin {user?.name}</span>
                 </h2>
-                <p className="text-gray-500 mt-2 font-medium">Here's an overview of your internship program.</p>
-            </div>
+                <p className="mt-1 text-sm text-gray-600">Here is an overview of your internship program.</p>
+            </motion.div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -225,7 +230,7 @@ const AdminDashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                    className="bg-white p-6 rounded-2xl relative min-h-[160px] shadow-sm border border-gray-100 cursor-pointer"
+                    className="relative min-h-[160px] cursor-pointer rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
                 >
                     <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center absolute top-6 right-6">
                         <Users className="text-2xl" />
@@ -246,7 +251,7 @@ const AdminDashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                    className="bg-white p-6 rounded-2xl relative min-h-[160px] shadow-sm border border-gray-100 cursor-pointer"
+                    className="relative min-h-[160px] cursor-pointer rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
                 >
                     <div className="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center absolute top-6 right-6">
                         <UserPlus className="text-2xl" />
@@ -267,7 +272,7 @@ const AdminDashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                    className="bg-white p-6 rounded-2xl relative min-h-[160px] shadow-sm border border-gray-100 cursor-pointer"
+                    className="relative min-h-[160px] cursor-pointer rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
                 >
                     <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center absolute top-6 right-6">
                         <AlertCircle className="text-2xl" />
@@ -290,15 +295,15 @@ const AdminDashboard = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
-                    className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                    className="lg:col-span-2 rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
                 >
-                    <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                    <div className="mb-6 rounded-xl border border-orange-100 bg-orange-50/40 p-4">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-3">
                                 <UserPlus className="text-[#ff7a00]" />
                                 <span className="font-semibold text-gray-900">New Registers</span>
                             </div>
-                            <select className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]" aria-label="Filter time period">
+                            <select className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]" aria-label="Filter time period">
                                 <option>Last 30 Days</option>
                             </select>
                         </div>
@@ -313,7 +318,7 @@ const AdminDashboard = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
-                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                    className="rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
                 >
                     <h3 className="text-lg font-bold text-gray-900 mb-6 tracking-tight">Recent Activity</h3>
                     <div className="space-y-4 max-h-96 overflow-y-auto">

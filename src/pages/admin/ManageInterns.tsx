@@ -349,18 +349,26 @@ const ManageInterns = () => {
     if (!interns || !stats) return null;
 
     return (
-        <div className="p-6 md:p-8 bg-gray-50 min-h-screen">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-orange-50/40 to-gray-50 p-6 md:p-8">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <h1 className="text-3xl font-extrabold text-[#ff7a00]">Manage Interns</h1>
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center"
+            >
+                <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Manage Interns</h1>
+                    <p className="mt-1 text-sm text-gray-600">Manage intern profiles, filters, and archive status.</p>
+                </div>
                 <button 
                     onClick={handleExportCSV}
-                    className="flex items-center gap-2 bg-[#ff7a00] text-white px-4 py-2 rounded-lg hover:bg-[#e55a00] transition font-medium"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#eb6f00]"
                 >
                     <Download size={18} />
                     Export to CSV
                 </button>
-            </div>
+            </motion.div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -368,7 +376,7 @@ const ManageInterns = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+                    className="rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
                 >
                     <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Total Interns</p>
                     <h3 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.totalInterns}</h3>
@@ -378,7 +386,7 @@ const ManageInterns = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
-                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+                    className="rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
                 >
                     <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Total Roles</p>
                     <h3 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.totalRoles}</h3>
@@ -388,107 +396,107 @@ const ManageInterns = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
-                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+                    className="rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
                 >
                     <p className="text-gray-500 font-bold text-xs tracking-wider uppercase mb-3">Archived Interns</p>
                     <h3 className="text-5xl font-black text-gray-900 leading-none tracking-tight">{stats.archivedInterns}</h3>
                 </motion.div>
             </div>
 
-            {/* Search Bar */}
-            <div className="relative mb-6">
-                <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                    type="text"
-                    className="w-full pl-12 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff7a00] bg-white"
-                    placeholder="Search by name, role, email, or OJT ID"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                />
-            </div>
-
-            {/* Filter Section */}
-            <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-gray-200">
-                <div className="flex items-center gap-2 font-semibold text-gray-700">
-                    <Filter size={20} />
-                    <span>Filters:</span>
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.05 }}
+                className="mb-6 rounded-2xl border border-orange-100 bg-white p-4 shadow-sm"
+            >
+                <div className="relative mb-3">
+                    <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                        placeholder="Search by name, role, email, or OJT ID"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                    />
                 </div>
 
-                {/* Sort */}
-                <div className="relative">
-                    <select
-                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
-                        value={sortDirection}
-                        onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
-                    >
-                        <option value="asc">Name: A → Z</option>
-                        <option value="desc">Name: Z → A</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
-                </div>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600">
+                        <Filter size={16} />
+                        Filters
+                    </div>
 
-                {/* Role */}
-                <div className="relative">
-                    <select
-                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                    >
-                        <option value="all">All Roles</option>
-                        {OJT_ROLES.map(role => (
-                            <option key={role} value={role}>{role}</option>
-                        ))}
-                    </select>
-                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
-                </div>
+                    <div className="relative min-w-[160px]">
+                        <select
+                            className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-8 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                            value={sortDirection}
+                            onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
+                        >
+                            <option value="asc">Name: A to Z</option>
+                            <option value="desc">Name: Z to A</option>
+                        </select>
+                        <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    </div>
 
-                {/* Start Date */}
-                <div className="relative">
-                    <select
-                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
-                        value={startDateFilter}
-                        onChange={(e) => setStartDateFilter(e.target.value)}
-                    >
-                        <option value="all">All Start Date</option>
-                        <option value="newest">Newest to Oldest</option>
-                        <option value="oldest">Oldest to Newest</option>
-                        <option value="this-month">This Month</option>
-                        <option value="this-year">This Year</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
-                </div>
+                    <div className="relative min-w-[170px]">
+                        <select
+                            className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-8 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                        >
+                            <option value="all">All Roles</option>
+                            {OJT_ROLES.map(role => (
+                                <option key={role} value={role}>{role}</option>
+                            ))}
+                        </select>
+                        <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    </div>
 
-                {/* Required Hours */}
-                <div className="relative">
-                    <select
-                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
-                        value={requiredHoursFilter}
-                        onChange={(e) => setRequiredHoursFilter(e.target.value)}
-                    >
-                        <option value="all">All Required Hours</option>
-                        <option value="100-200">100-200 hours</option>
-                        <option value="201-300">201-300 hours</option>
-                        <option value="301-400">301-400 hours</option>
-                        <option value="highest">Highest to Lowest</option>
-                        <option value="lowest">Lowest to Highest</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
-                </div>
+                    <div className="relative min-w-[170px]">
+                        <select
+                            className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-8 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                            value={startDateFilter}
+                            onChange={(e) => setStartDateFilter(e.target.value)}
+                        >
+                            <option value="all">All Start Date</option>
+                            <option value="newest">Newest to Oldest</option>
+                            <option value="oldest">Oldest to Newest</option>
+                            <option value="this-month">This Month</option>
+                            <option value="this-year">This Year</option>
+                        </select>
+                        <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    </div>
 
-                {/* Status */}
-                <div className="relative">
-                    <select
-                        className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ff7a00] text-sm"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="archived">Archived</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400" />
+                    <div className="relative min-w-[190px]">
+                        <select
+                            className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-8 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                            value={requiredHoursFilter}
+                            onChange={(e) => setRequiredHoursFilter(e.target.value)}
+                        >
+                            <option value="all">All Required Hours</option>
+                            <option value="100-200">100-200 hours</option>
+                            <option value="201-300">201-300 hours</option>
+                            <option value="301-400">301-400 hours</option>
+                            <option value="highest">Highest to Lowest</option>
+                            <option value="lowest">Lowest to Highest</option>
+                        </select>
+                        <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    </div>
+
+                    <div className="relative min-w-[150px]">
+                        <select
+                            className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-8 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                        <ChevronDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Error Banner */}
             {error && (
@@ -502,20 +510,20 @@ const ManageInterns = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6"
+                className="mb-6 overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm"
             >
                 <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-center">
+                    <table className="w-full min-w-[980px] border-collapse">
                         <thead>
-                            <tr className="bg-[#ff7a00] text-white">
-                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Name</th>
-                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Role</th>
-                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Email Address</th>
-                                <th className="px-6 py-4 font-semibold whitespace-nowrap">OJT ID</th>
-                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Start Date</th>
-                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Required Hours</th>
-                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Status</th>
-                                <th className="px-6 py-4 font-semibold whitespace-nowrap">Actions</th>
+                            <tr className="bg-[#ff7a00] text-left text-xs font-semibold uppercase tracking-wide text-white">
+                                <th className="px-5 py-3.5 whitespace-nowrap">Name</th>
+                                <th className="px-5 py-3.5 whitespace-nowrap">Role</th>
+                                <th className="px-5 py-3.5 whitespace-nowrap">Email Address</th>
+                                <th className="px-5 py-3.5 whitespace-nowrap">OJT ID</th>
+                                <th className="px-5 py-3.5 whitespace-nowrap">Start Date</th>
+                                <th className="px-5 py-3.5 whitespace-nowrap">Required Hours</th>
+                                <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                                <th className="px-5 py-3.5 whitespace-nowrap text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -532,30 +540,30 @@ const ManageInterns = () => {
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ duration: 0.3, delay: index * 0.05 }}
-                                        className="border-b border-gray-100 hover:bg-gray-50 transition"
+                                        className="border-b border-gray-100 text-sm text-gray-700 transition hover:bg-orange-50/40"
                                     >
-                                        <td className="px-6 py-4 text-gray-700">{intern.full_name}</td>
-                                        <td className="px-6 py-4 text-gray-700">{intern.ojt_role || '—'}</td>
-                                        <td className="px-6 py-4 text-gray-700">{intern.email}</td>
-                                        <td className="px-6 py-4 text-gray-700">{intern.ojt_id || '—'}</td>
-                                        <td className="px-6 py-4 text-gray-700">{formatDate(intern.start_date)}</td>
-                                        <td className="px-6 py-4 text-gray-700">{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`font-medium capitalize ${intern.status === 'active' ? 'text-green-600' : 'text-purple-600'}`}>
+                                        <td className="px-5 py-4 font-medium text-gray-900">{intern.full_name}</td>
+                                        <td className="px-5 py-4">{intern.ojt_role || '—'}</td>
+                                        <td className="px-5 py-4">{intern.email}</td>
+                                        <td className="px-5 py-4">{intern.ojt_id || '—'}</td>
+                                        <td className="px-5 py-4">{formatDate(intern.start_date)}</td>
+                                        <td className="px-5 py-4">{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
+                                        <td className="px-5 py-4">
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${intern.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-violet-50 text-violet-700'}`}>
                                                 {intern.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-5 py-4">
                                             <div className="flex justify-center gap-2">
                                                 <button
-                                                    className="text-gray-500 hover:text-[#ff7a00] transition p-2"
+                                                    className="rounded-lg p-2 text-gray-500 transition hover:bg-orange-100 hover:text-[#ff7a00]"
                                                     title="Edit"
                                                     onClick={() => openEditModal(intern)}
                                                 >
                                                     <Pencil size={18} />
                                                 </button>
                                                 <button
-                                                    className="text-gray-500 hover:text-[#ff7a00] transition p-2"
+                                                    className="rounded-lg p-2 text-gray-500 transition hover:bg-orange-100 hover:text-[#ff7a00]"
                                                     title={intern.status === 'active' ? 'Archive' : 'Restore'}
                                                     onClick={() => handleArchiveToggle(intern)}
                                                 >
@@ -577,14 +585,14 @@ const ManageInterns = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.2 }}
-                    className="flex flex-col md:flex-row justify-between items-center gap-4 p-4 bg-white rounded-lg border border-gray-100"
+                    className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-orange-100 bg-white p-4 md:flex-row"
                 >
                     <div className="text-sm text-gray-600 font-medium">
                         Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredInterns.length)} of {filteredInterns.length} interns
                     </div>
                     <div className="flex gap-2 flex-wrap justify-center">
                         <button
-                            className="px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium"
+                            className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
@@ -600,7 +608,7 @@ const ManageInterns = () => {
                                 return (
                                     <button
                                         key={page}
-                                        className={`px-3 py-2 rounded-lg font-medium text-sm transition ${currentPage === page ? 'bg-[#ff7a00] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
+                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition ${currentPage === page ? 'bg-[#ff7a00] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
                                         onClick={() => setCurrentPage(page)}
                                     >
                                         {page}
@@ -615,7 +623,7 @@ const ManageInterns = () => {
                             return null;
                         })}
                         <button
-                            className="px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm font-medium"
+                            className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
@@ -641,7 +649,7 @@ const ManageInterns = () => {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             transition={{ duration: 0.3, ease: "easeOut" }}
-                            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8"
+                            className="w-full max-w-md rounded-2xl border border-orange-100 bg-white p-8 shadow-xl"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Heading */}

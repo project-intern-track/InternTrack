@@ -33,7 +33,7 @@ const StudentDashboard: React.FC = () => {
         const [announcementsData, profileData, tasksData, attendanceData] = await Promise.all([
           announcementService.getAnnouncements(),
           userService.getProfile(user.id),
-          taskService.getTasks(),
+          taskService.getMyTasks(),
           attendanceService.getAttendance()
         ]);
 
@@ -47,9 +47,9 @@ const StudentDashboard: React.FC = () => {
         const profile = profileData as Users;
         const targetHours = profile.required_hours || 400;
 
-        // Tasks Stats (RLS filters tasks for this user)
+        // Tasks Stats (intern's assigned tasks from Laravel)
         const myTasks = tasksData as Tasks[] || [];
-        const tasksCompleted = myTasks.filter(t => t.status === 'done').length;
+        const tasksCompleted = myTasks.filter(t => t.status === 'completed').length;
 
         // Attendance Stats (RLS filters attendance for this user)
         const myAttendance = attendanceData as Attendance[] || [];

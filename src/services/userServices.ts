@@ -44,7 +44,7 @@ export const userService = {
         role?: string;
         status?: string;
         sortDirection?: "asc" | "desc";
-    }) {
+    }, options?: { signal?: AbortSignal }) {
         try {
             const params = new URLSearchParams();
             params.append("role", "intern");
@@ -61,7 +61,7 @@ export const userService = {
                 params.append("sortDirection", filters.sortDirection);
             }
 
-            const response = await apiClient.get(`/users?${params.toString()}`);
+            const response = await apiClient.get(`/users?${params.toString()}`, { signal: options?.signal });
             return response.data as Users[];
         } catch (error: any) {
             throw new Error(

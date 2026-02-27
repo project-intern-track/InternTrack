@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { taskService } from '../../services/taskServices';
 import type { Tasks, TaskStatus } from '../../types/database.types';
 
@@ -62,12 +62,26 @@ export default function TaskList() {
     // View details modal
     const [detailTask, setDetailTask] = useState<Tasks | null>(null);
 
-    useEffect(() => {
-        taskService.getMyTasks()
-            .then(setTasks)
-            .catch(console.error)
-            .finally(() => setLoading(false));
+    const fetchTasks = useCallback(async (signal?: AbortSignal) => {
+        setLoading(true);
+        try {
+            const data = await taskService.getMyTasks(signal);
+            if (signal?.aborted) return;
+            setTasks(data);
+        } catch (err) {
+            const e = err as { name?: string; code?: string };
+            if (e?.name === 'CanceledError' || e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return;
+            console.error('Failed to fetch tasks:', err);
+        } finally {
+            if (!signal?.aborted) setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        fetchTasks(controller.signal);
+        return () => controller.abort();
+    }, [fetchTasks]);
 
     const openStatusModal = (task: Tasks) => {
         setStatusModalTask(task);

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Auth\Events\Verified;
@@ -61,4 +62,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::put('/tasks/{id}',             [TaskController::class, 'update']);
     Route::put('/tasks/{id}/status',      [TaskController::class, 'updateStatus']);
     Route::put('/tasks/{id}/reject',      [TaskController::class, 'reject']);
+
+    // Admin Report Endpoints
+    Route::get('/reports/interns',              [ReportController::class, 'index']);
+    Route::get('/reports/interns/export',       [ReportController::class, 'export']);
+    Route::get('/reports/interns/{id}',         [ReportController::class, 'show']);
+    Route::get('/reports/interns/{id}/weekly',  [ReportController::class, 'weekly']);
+    Route::get('/reports/interns/{id}/monthly', [ReportController::class, 'monthly']);
 });

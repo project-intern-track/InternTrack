@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 
@@ -97,10 +99,30 @@ class UserController extends Controller
             'status' => 'nullable|in:active,archived',
             'ojt_role' => 'nullable|string',
             'avatar_url' => 'nullable|url',
+
+            // Password Fields
+            'current_password' => 'required_with:password',
+            'password' => 'nullable|confirmed|min:8'
             // ... add other updatable fields as needed based on frontend sent payload
         ]);
 
-        $user->update($request->all());
+        unset($validated['current_password'], $validated['password_confirmation']);
+
+        $user->update($validated);
+
+
+        // Handle Password Update
+        if ($request->filled('password')) {
+            // Verify Password if it matches database
+            if (!\Hash::check($request->current_password, $user->password)) {
+                return response() -> json(['message'=> 'Current password does not match.'], 422);
+            }
+
+            // If password Assigned then hash
+            $user->password = $request->password;
+            $user->save();
+
+        }
 
         // If the user was just archived, revoke all their Sanctum tokens
         // so their active sessions are immediately terminated.

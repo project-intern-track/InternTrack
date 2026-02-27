@@ -27,7 +27,7 @@ class AuthController extends Controller
             'role'           => 'nullable|in:admin,supervisor,intern',
             'avatar_url'     => 'nullable|url',
             'ojt_role'       => 'nullable|string',
-            'start_date'     => 'nullable|date',
+            'start_date'     => 'nullable|date|after_or_equal:today',
             'required_hours' => 'nullable|integer|min:1',
             'ojt_type'       => 'nullable|in:required,voluntary',
         ]);
@@ -43,7 +43,7 @@ class AuthController extends Controller
 
         $user = User::create([
             'email'          => $validated['email'],
-            'password'       => Hash::make($validated['password']),
+            'password'       => $validated['password'],
             'full_name'      => $validated['full_name'],
             'role'           => $role,
             'avatar_url'     => $avatarUrl,
@@ -88,9 +88,15 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (! $user || ! Hash::check($validated['password'], $user->password)) {
+        if (! $user) {
             return response()->json([
-                'error' => 'Invalid credentials.',
+                'error' => 'Email not found.',
+            ], 401);
+        }
+
+        if (! Hash::check($validated['password'], $user->password)) {
+            return response()->json([
+                'error' => 'Incorrect password.',
             ], 401);
         }
 
@@ -172,10 +178,24 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', PasswordRule::min(6)],
         ]);
 
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            $pastPasswords = \Illuminate\Support\Facades\DB::table('password_histories')
+                ->where('user_id', $user->id)
+                ->pluck('password');
+            foreach ($pastPasswords as $oldHash) {
+                if (\Illuminate\Support\Facades\Hash::check($request->password, $oldHash)) {
+                    return response()->json([
+                        'error' => 'You cannot use a password that has been used before.'
+                    ], 422);
+                }
+            }
+        }
+
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user, string $password) {
-                $user->forceFill(['password' => Hash::make($password)])
+                $user->forceFill(['password' => $password])
                      ->setRememberToken(Str::random(60));
                 $user->save();
                 $user->tokens()->delete();

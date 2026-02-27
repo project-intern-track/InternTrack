@@ -65,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin Report Endpoints
     Route::get('/reports/interns',              [ReportController::class, 'index']);
+    Route::get('/reports/interns/export',       [ReportController::class, 'export']);
     Route::get('/reports/interns/{id}',         [ReportController::class, 'show']);
     Route::get('/reports/interns/{id}/weekly',  [ReportController::class, 'weekly']);
     Route::get('/reports/interns/{id}/monthly', [ReportController::class, 'monthly']);

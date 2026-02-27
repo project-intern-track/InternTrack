@@ -55,7 +55,8 @@ export const authService = {
             return {
                 user: null,
                 session: null,
-                error: err.response?.data?.error || err.message,
+                error: err.response?.data?.message ||
+                    err.response?.data?.error || err.message,
             };
         }
     },

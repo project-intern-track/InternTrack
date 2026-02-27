@@ -8,6 +8,7 @@ use App\Models\WeeklyReport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
@@ -62,6 +63,69 @@ class ReportController extends Controller
         });
 
         return response()->json(['data' => $data]);
+    }
+
+    /**
+     * GET /api/reports/interns/export
+     * Export all interns report data as a CSV file download.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $query = User::where('role', 'intern');
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $interns = $query->with('supervisor:id,full_name')->get();
+
+        $headers = [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="intern-reports-' . now()->format('Y-m-d') . '.csv"',
+        ];
+
+        return response()->stream(function () use ($interns) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Name',
+                'Email',
+                'Role',
+                'OJT ID',
+                'Department',
+                'Supervisor',
+                'Status',
+                'Total Hours',
+                'Attendance %',
+                'Tasks Completed',
+            ]);
+
+            foreach ($interns as $intern) {
+                $latestMonthly = MonthlyReport::where('intern_id', $intern->id)
+                    ->orderByDesc('year')
+                    ->orderByDesc('month')
+                    ->first();
+
+                $totalHours = MonthlyReport::where('intern_id', $intern->id)->sum('total_hours');
+                $attendance = $latestMonthly ? $latestMonthly->attendance_percentage : 0;
+                $tasksCompleted = $latestMonthly ? $latestMonthly->tasks_completed : 0;
+
+                fputcsv($handle, [
+                    $intern->full_name,
+                    $intern->email,
+                    $intern->ojt_role,
+                    $intern->ojt_id,
+                    $intern->department,
+                    $intern->supervisor?->full_name,
+                    ucfirst($intern->status),
+                    (int) $totalHours,
+                    (int) $attendance,
+                    $tasksCompleted,
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
     }
 
     /**

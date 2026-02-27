@@ -4,8 +4,10 @@ import {
     Filter,
     Plus,
     ChevronDown,
-    Loader2
+    Loader2,
+    Megaphone
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { announcementService } from '../../services/announcementService';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -13,13 +15,12 @@ import type { Announcement, AnnouncementPriority } from '../../types/database.ty
 
 const Announcements = () => {
     const { user } = useAuth();
-    const [announcements, setAnnouncements] = useState<Announcement[] | null>(null); // initializes null
+    const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
     const [dateCreatedFilter, setDateCreatedFilter] = useState('all');
 
-    // Form State
     const [formData, setFormData] = useState({
         title: '',
         content: '',
@@ -27,18 +28,16 @@ const Announcements = () => {
     });
     const [submitting, setSubmitting] = useState(false);
 
-    // Fetch Announcements
     const fetchAnnouncements = async () => {
         try {
             const data = await announcementService.getAnnouncements();
-            // Sort by created_at desc
             const sorted = (data || []).sort((a, b) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
             setAnnouncements(sorted);
         } catch (err) {
             console.error(err);
-            setAnnouncements([])
+            setAnnouncements([]);
         }
     };
 
@@ -46,14 +45,12 @@ const Announcements = () => {
         fetchAnnouncements();
     }, []);
 
-    // Re-fetch whenever announcements table changes in real-time
     useRealtime('announcements', fetchAnnouncements);
 
-    // Handle Create
     const handleCreate = async () => {
         if (!user) return;
         if (!formData.title || !formData.content) {
-            alert("Title and content are required");
+            alert('Title and content are required');
             return;
         }
 
@@ -64,29 +61,26 @@ const Announcements = () => {
                 content: formData.content,
                 priority: formData.priority,
                 created_by: user.id,
-                visibility: 'all', // default
+                visibility: 'all',
             });
             setIsModalOpen(false);
             setFormData({ title: '', content: '', priority: 'low' });
             fetchAnnouncements();
         } catch (err) {
             console.error(err);
-            alert("Failed to create announcement");
+            alert('Failed to create announcement');
         } finally {
             setSubmitting(false);
         }
     };
 
-    // Filter Logic
     const filteredAnnouncements = (() => {
-        // Step 1: search + priority filter
-
         if (!announcements) return [];
 
-        let result = announcements.filter(a => {
+        let result = announcements.filter((a) => {
             const cleanSearch = searchTerm.trim().toLowerCase();
-
             const matchesPriority = priorityFilter === 'all' || a.priority === priorityFilter;
+
             if (!cleanSearch) return matchesPriority;
 
             const matchesSearch =
@@ -95,16 +89,15 @@ const Announcements = () => {
             return matchesSearch && matchesPriority;
         });
 
-        // Step 2: date created filter / sort
         if (dateCreatedFilter === 'this-month') {
             const now = new Date();
-            result = result.filter(a => {
+            result = result.filter((a) => {
                 const d = new Date(a.created_at);
                 return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
             });
         } else if (dateCreatedFilter === 'this-year') {
             const year = new Date().getFullYear();
-            result = result.filter(a => new Date(a.created_at).getFullYear() === year);
+            result = result.filter((a) => new Date(a.created_at).getFullYear() === year);
         }
 
         if (dateCreatedFilter === 'newest') {
@@ -116,250 +109,249 @@ const Announcements = () => {
         return result;
     })();
 
-    // Formatting
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString('en-US', {
             year: 'numeric',
-            month: '2-digit',
+            month: 'short',
             day: '2-digit'
         });
     };
 
-    // Re-evaluating Colors based on Image 1 vs Image 2 contradiction:
-    // Image 1: "Low Priority" -> Blue Dot.
-    // Image 2 Key: High -> Blue.
-    // If I use Blue for High, and the mock data says "Low Priority", it won't be Blue.
-    // I will use: High=Blue, Medium=Yellow, Low=Red (Following Image 2 Key strictly).
-    // But then Image 1 (Low=Blue) is impossible to replicate with data.
-    // I'll stick to Standard (Red=High, Blue=Low) because it makes more sense and matches Image 1's "Low=Blue".
-
     const getPriorityColor = (p: string) => {
         switch (p) {
-            case 'high': return '#ef4444'; // Red
-            case 'medium': return '#eab308'; // Yellow
-            case 'low': return '#3b82f6'; // Blue
-            default: return '#9ca3af';
+            case 'high':
+                return 'bg-red-500';
+            case 'medium':
+                return 'bg-amber-500';
+            case 'low':
+                return 'bg-blue-500';
+            default:
+                return 'bg-gray-400';
         }
     };
 
-    const getPriorityLabel = (p: string) => {
-        return p.charAt(0).toUpperCase() + p.slice(1) + " Priority";
+    const getPriorityPill = (p: string) => {
+        switch (p) {
+            case 'high':
+                return 'bg-red-50 text-red-700 ring-red-200';
+            case 'medium':
+                return 'bg-amber-50 text-amber-700 ring-amber-200';
+            case 'low':
+                return 'bg-blue-50 text-blue-700 ring-blue-200';
+            default:
+                return 'bg-gray-50 text-gray-700 ring-gray-200';
+        }
     };
+
+    const getPriorityLabel = (p: string) => `${p.charAt(0).toUpperCase()}${p.slice(1)} Priority`;
 
     if (!announcements) return null;
 
     return (
-        <div className="container" style={{ maxWidth: '100%', padding: '0' }}>
-            {/* Header */}
-            <div className="row row-between" style={{ marginBottom: '2rem' }}>
-                <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Announcements</h1>
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-orange-50/40 to-gray-50 p-6 md:p-8">
+            <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                className="mb-7 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+            >
+                <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Announcements</h1>
+                    <p className="mt-1 text-sm text-gray-600">Create and publish updates for the entire platform.</p>
+                </div>
                 <button
-                    className="btn btn-primary"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#eb6f00]"
                     onClick={() => setIsModalOpen(true)}
-                    style={{ gap: '0.5rem', backgroundColor: '#ff8c42', border: 'none' }}
                 >
                     <Plus size={18} />
                     Create Announcement
                 </button>
-            </div>
+            </motion.div>
 
-            {/* Filter Bar */}
-            <div className="row" style={{
-                marginBottom: '2rem',
-                border: '1px solid #e5e5e5',
-                borderRadius: '8px',
-                padding: '0.75rem',
-                backgroundColor: '#F9F7F4',
-                gap: '1rem',
-                alignItems: 'center',
-                flexWrap: 'wrap'
-            }}>
-                <div className="input-group" style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-                    <input
-                        type="text"
-                        className="input"
-                        placeholder="Search by name or email"
-                        style={{ paddingLeft: '3rem', width: '100%' }}
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.05 }}
+                className="mb-6 rounded-2xl border border-orange-100 bg-white/90 p-4 shadow-sm backdrop-blur"
+            >
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div className="relative flex-1">
+                        <Search
+                            size={18}
+                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
+                        <input
+                            type="text"
+                            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                            placeholder="Search by title or content"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600">
+                        <Filter size={16} />
+                        Filters
+                    </div>
+
+                    <div className="relative min-w-[190px]">
+                        <select
+                            className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-8 text-sm text-gray-700 outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                            value={dateCreatedFilter}
+                            onChange={(e) => setDateCreatedFilter(e.target.value)}
+                        >
+                            <option value="all">All Date Created</option>
+                            <option value="newest">Newest to Oldest</option>
+                            <option value="oldest">Oldest to Newest</option>
+                            <option value="this-month">This Month</option>
+                            <option value="this-year">This Year</option>
+                        </select>
+                        <ChevronDown
+                            size={16}
+                            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
+                    </div>
+
+                    <div className="relative min-w-[160px]">
+                        <select
+                            className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 pr-8 text-sm text-gray-700 outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                            value={priorityFilter}
+                            onChange={(e) => setPriorityFilter(e.target.value)}
+                        >
+                            <option value="all">All Priority</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                        <ChevronDown
+                            size={16}
+                            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
+                    </div>
                 </div>
+            </motion.div>
 
-                <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
-                    <Filter size={20} />
-                    <span style={{ fontWeight: 600 }}>Filters:</span>
+            {filteredAnnouncements.length === 0 ? (
+                <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+                    <Megaphone className="mx-auto mb-3 text-gray-300" size={36} />
+                    <p className="text-sm font-medium text-gray-500">No announcements found for the selected filters.</p>
                 </div>
-
-                <div style={{ position: 'relative', minWidth: '180px' }}>
-                    <select
-                        className="select"
-                        style={{ width: '100%' }}
-                        value={dateCreatedFilter}
-                        onChange={(e) => setDateCreatedFilter(e.target.value)}
-                    >
-                        <option value="all">All Date Created</option>
-                        <option value="newest">Newest to Oldest</option>
-                        <option value="oldest">Oldest to Newest</option>
-                        <option value="this-month">This Month</option>
-                        <option value="this-year">This Year</option>
-                    </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                </div>
-
-                <div style={{ position: 'relative', minWidth: '150px' }}>
-                    <select
-                        className="select"
-                        style={{ width: '100%' }}
-                        value={priorityFilter}
-                        onChange={(e) => setPriorityFilter(e.target.value)}
-                    >
-                        <option value="all">All Priority</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                </div>
-            </div>
-
-            {/* Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-                {filteredAnnouncements.map((announcement) => (
-                    <div key={announcement.id} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#F9F7F4' }}>
-                        <div style={{ marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
-                                {announcement.title}
-                            </h3>
-                        </div>
-                        <div style={{ flex: 1, marginBottom: '2rem' }}>
-                            <p style={{ margin: 0, color: '#1f2937', lineHeight: '1.5' }}>
-                                {announcement.content}
-                            </p>
-                        </div>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            fontSize: '0.875rem',
-                            color: '#6b7280',
-                            marginTop: 'auto'
-                        }}>
-                            <div className="row" style={{ gap: '0.5rem', alignItems: 'center' }}>
-                                <span>Priority:</span>
-                                <div className="row" style={{ alignItems: 'center', gap: '0.25rem' }}>
-                                    <div style={{
-                                        width: '10px',
-                                        height: '10px',
-                                        borderRadius: '50%',
-                                        backgroundColor: getPriorityColor(announcement.priority)
-                                    }} />
-                                    <span style={{ fontWeight: 600, color: '#111827' }}>
-                                        {getPriorityLabel(announcement.priority)}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="row" style={{ gap: '0.5rem' }}>
-                                <span>Date Created:</span>
-                                <span style={{ fontWeight: 600, color: '#111827' }}>
-                                    {formatDate(announcement.created_at)}
+            ) : (
+                <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                    {filteredAnnouncements.map((announcement, index) => (
+                        <motion.article
+                            key={announcement.id}
+                            initial={{ opacity: 0, y: 14 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.2) }}
+                            className="group flex h-full flex-col rounded-2xl border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                        >
+                            <div className="mb-4 flex items-start justify-between gap-3">
+                                <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">{announcement.title}</h3>
+                                <span
+                                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${getPriorityPill(announcement.priority)}`}
+                                >
+                                    <span className={`h-2 w-2 rounded-full ${getPriorityColor(announcement.priority)}`} />
+                                    {announcement.priority}
                                 </span>
                             </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
 
-            {/* Modal */}
-            {isModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    backdropFilter: 'blur(2px)'
-                }}>
-                    <div style={{
-                        backgroundColor: '#e6ded6', // Beige background from image
-                        borderRadius: '12px',
-                        padding: '2rem',
-                        width: '100%',
-                        maxWidth: '500px',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
-                    }}>
-                        <div style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Announcement Information</h2>
-                        </div>
+                            <p className="mb-6 line-clamp-4 flex-1 text-sm leading-6 text-gray-600">{announcement.content}</p>
 
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Announcement Title:</label>
-                            <input
-                                type="text"
-                                className="input"
-                                placeholder="Enter task title" // Placeholder per image
-                                value={formData.title}
-                                onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                style={{ width: '100%', backgroundColor: 'white' }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Announcement Description:</label>
-                            <textarea
-                                className="input"
-                                placeholder="Brief description of the task" // Placeholder per image
-                                value={formData.content}
-                                onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                style={{ width: '100%', height: '120px', resize: 'none', backgroundColor: 'white', fontFamily: 'inherit' }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '3rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Priority:</label>
-                            <div style={{ position: 'relative' }}>
-                                <select
-                                    className="select"
-                                    style={{ width: '100%', backgroundColor: 'white' }}
-                                    value={formData.priority}
-                                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as AnnouncementPriority })}
-                                >
-                                    <option value="high">High</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="low">Low</option>
-                                </select>
-                                <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4 text-xs text-gray-500">
+                                <span className="font-medium text-gray-700">
+                                    {getPriorityLabel(announcement.priority)}
+                                </span>
+                                <span>{formatDate(announcement.created_at)}</span>
                             </div>
-                        </div>
-
-                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button
-                                className="btn"
-                                onClick={() => {
-                                    setFormData({ title: '', content: '', priority: 'low' });
-                                    setIsModalOpen(false); // Or separate 'Cancel' behavior
-                                }}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
-                            >
-                                Clear
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleCreate}
-                                disabled={submitting}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
-                            >
-                                {submitting ? <Loader2 className="spinner" size={18} /> : 'Announce'}
-                            </button>
-                        </div>
-                    </div>
+                        </motion.article>
+                    ))}
                 </div>
             )}
+
+            <AnimatePresence>
+                {isModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+                        onClick={() => setIsModalOpen(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.96, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.96, y: 20 }}
+                            transition={{ duration: 0.24, ease: 'easeOut' }}
+                            className="w-full max-w-xl rounded-2xl border border-orange-100 bg-white p-6 shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h2 className="mb-6 text-xl font-bold text-gray-900">Announcement Information</h2>
+
+                            <div className="mb-4">
+                                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Announcement Title</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                                    placeholder="Enter title"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Announcement Description</label>
+                                <textarea
+                                    className="h-32 w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                                    placeholder="Write your announcement"
+                                    value={formData.content}
+                                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="mb-7">
+                                <label className="mb-1.5 block text-sm font-semibold text-gray-700">Priority</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full appearance-none rounded-xl border border-gray-200 px-3 py-2.5 pr-8 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                                        value={formData.priority}
+                                        onChange={(e) => setFormData({ ...formData, priority: e.target.value as AnnouncementPriority })}
+                                    >
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                    <ChevronDown
+                                        size={16}
+                                        className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col justify-end gap-2 sm:flex-row">
+                                <button
+                                    className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                                    onClick={() => {
+                                        setFormData({ title: '', content: '', priority: 'low' });
+                                        setIsModalOpen(false);
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#eb6f00] disabled:cursor-not-allowed disabled:opacity-60"
+                                    onClick={handleCreate}
+                                    disabled={submitting}
+                                >
+                                    {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
+                                    {submitting ? 'Publishing...' : 'Announce'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

@@ -1,77 +1,22 @@
-import { Filter, Search, Calendar, X } from 'lucide-react';
+import { Filter, Search, Calendar, X, Plus, ClipboardList } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from '../../services/supabaseClient';
-import '../../index.css';
-
-// Added Import to get Tasks Data
 import { taskService } from '../../services/taskServices';
 import type { Tasks, TaskStatus, TaskPriority } from '../../types/database.types';
 import { useRealtime } from '../../hooks/useRealtime';
 
-
-// sample records
-const sampleTasks = [
-    {
-        id: '1',
-        title: 'MOBILE APP #1',
-        description: 'This section contains the brief description of the project.',
-        priority: 'low',
-        assignedTo: 5,
-        dueDate: '02/19/2026 - 11:59 PM',
-        status: 'In Progress'
-    },
-    {
-        id: '2',
-        title: 'MOBILE APP #2',
-        description: 'This section contains the brief description of the project.',
-        priority: 'low',
-        assignedTo: 6,
-        dueDate: '02/27/2026 - 11:59 PM',
-        status: 'Not Started'
-    },
-    {
-        id: '3',
-        title: 'UI DESIGN #1',
-        description: 'This section contains the brief description of the project.',
-        priority: 'medium',
-        assignedTo: 3,
-        dueDate: '02/27/2026 - 11:59 PM',
-        status: 'Completed'
-    },
-    {
-        id: '4',
-        title: 'WEBSITE #1',
-        description: 'This section contains the brief description of the project.',
-        priority: 'high',
-        assignedTo: 8,
-        dueDate: '02/27/2026 - 11:59 PM',
-        status: 'Pending'
-    },
-    {
-        id: '5',
-        title: 'WEBSITE #2',
-        description: 'This section contains the brief description of the project.',
-        priority: 'high',
-        assignedTo: 8,
-        dueDate: '02/27/2026 - 11:59 PM',
-        status: 'Rejected'
-    }
-];
-
 const ManageTasks = () => {
     const [search, setSearch] = useState('');
-    const [dueDateFilter, setDueDateFilter] = useState('All Due Date');
-    const [priorityFilter, setPriorityFilter] = useState('All Priority');
-    const [statusFilter, setStatusFilter] = useState('All Status');
+    const [dueDateFilter, setDueDateFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
 
-    // Actual Data From Supabase
     const [tasks, setTasks] = useState<Tasks[]>([]);
     const [selectedTask, setSelectedTask] = useState<Tasks | null>(null);
-    
-    // modal state
+
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
-    // form state
+
     const [taskTitle, setTaskTitle] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
     const [dueDate, setDueDate] = useState('');
@@ -81,39 +26,24 @@ const ManageTasks = () => {
     const [selectedInterns, setSelectedInterns] = useState<string[]>([]);
     const [isInternSearchFocused, setIsInternSearchFocused] = useState(false);
 
-    // Fetching Task
+    const dateInputRef = useRef<HTMLInputElement>(null);
+    const internSearchInputRef = useRef<HTMLInputElement>(null);
+
     const fetchTask = async () => {
-
         try {
-
-            //Get All Task Data from Supabase
             const data = await taskService.getTasks();
-            console.log("Supabase Connection Successful! Data received:", data);
-
-
             setTasks(data as Tasks[]);
- 
         } catch (err) {
-            console.log('Failed to Catch Task', err);
-            console.error("Supabase Connection Failed:", err);
+            console.error('Failed to fetch tasks:', err);
         }
-
     };
 
-    // Updates Tasks Real Time
     useRealtime('tasks', fetchTask);
 
-    // Run Function For Collecting Data
     useEffect(() => {
         fetchTask();
     }, []);
-    
-    // ref for date input
-    const dateInputRef = useRef<HTMLInputElement>(null);
-    // ref for intern search input
-    const internSearchInputRef = useRef<HTMLInputElement>(null);
-    
-    // Sample interns
+
     const sampleInterns = [
         'John Jones',
         'Lebron James',
@@ -122,20 +52,20 @@ const ManageTasks = () => {
         'Totoy Brown',
         'Ant Davis'
     ];
-   //intern search filter   
+
     const filteredInterns = useMemo(() => {
         if (!isInternSearchFocused) return [];
-        
+
         if (!internSearch.trim()) {
-            return sampleInterns.filter(intern => !selectedInterns.includes(intern));
+            return sampleInterns.filter((intern) => !selectedInterns.includes(intern));
         }
-        
-        return sampleInterns.filter(intern =>
+
+        return sampleInterns.filter((intern) =>
             !selectedInterns.includes(intern) &&
             intern.toLowerCase().includes(internSearch.toLowerCase())
         );
     }, [internSearch, isInternSearchFocused, selectedInterns]);
-    
+
     const handleInternSelect = (intern: string) => {
         if (!selectedInterns.includes(intern)) {
             setSelectedInterns([...selectedInterns, intern]);
@@ -144,12 +74,11 @@ const ManageTasks = () => {
         setIsInternSearchFocused(false);
         internSearchInputRef.current?.blur();
     };
-    
-    // intern removal
+
     const handleInternRemove = (intern: string) => {
-        setSelectedInterns(selectedInterns.filter(i => i !== intern));
+        setSelectedInterns(selectedInterns.filter((i) => i !== intern));
     };
-    // clear
+
     const handleClear = () => {
         setTaskTitle('');
         setTaskDescription('');
@@ -158,923 +87,541 @@ const ManageTasks = () => {
         setPriority('');
         setSelectedInterns([]);
         setInternSearch('');
-    }; 
+    };
 
-    // 
     const handleViewDetail = (task: Tasks) => {
         setSelectedTask(task);
-    }
+    };
 
     const closeViewDetail = () => {
         setSelectedTask(null);
-    }
+    };
 
-    // Handle assign
     const handleAssign = async () => {
-        // Updated Connected to API
-        try 
-            {
-                if (!taskTitle || !selectedInterns.length) {
-                    alert("Please provide a title and assign at least one intern.");
-                    return;
-                }
-
-                const { data: { user } } = await supabase.auth.getUser();
-
-                if (!user) {
-                alert("Session expired. Please log in again.");
+        try {
+            if (!taskTitle || !selectedInterns.length || !priority || !dueDate) {
+                alert('Please provide a title, due date, priority, and assign at least one intern.');
                 return;
-                }
+            }
 
-                const taskData = {
-                    title: taskTitle,
-                    description: taskDescription,
-                    priority: priority as TaskPriority,
-                    status: 'todo' as TaskStatus,
-                    due_date: `${dueDate}T${dueTime || '23:59'}:00`, // Combines date and time
-                    assigned_to: selectedInterns[0], 
-                    created_by: user.id // Get current Admin ID 
-                }
-            
-                // Send to Supabase
-                await taskService.createTask(taskData);
+            const { data: { user } } = await supabase.auth.getUser();
 
-                // Fetched Data load
-                await fetchTask();
+            if (!user) {
+                alert('Session expired. Please log in again.');
+                return;
+            }
 
-                // Keep Console Log for debugging if something went wrong
-                console.log('Assign task successful:', {
+            const taskData = {
                 title: taskTitle,
                 description: taskDescription,
-                dueDate,
-                dueTime,
-                priority,
-                assignedInterns: selectedInterns,
-                });
+                priority: priority as TaskPriority,
+                status: 'todo' as TaskStatus,
+                due_date: `${dueDate}T${dueTime || '23:59'}:00`,
+                assigned_to: selectedInterns[0],
+                created_by: user.id,
+            };
 
-                // UI clean Up
-                setIsModalOpen(false);
-                handleClear();
-                alert("Task Assigned Properly")
-            } catch (err) {
-                console.log("Database Error:", err)
-                alert('Failed to Connect')
-            }
-        };
-    
-    // Close modal
+            await taskService.createTask(taskData);
+            await fetchTask();
+
+            setIsModalOpen(false);
+            handleClear();
+            alert('Task assigned successfully.');
+        } catch (err) {
+            console.error('Database Error:', err);
+            alert('Failed to assign task.');
+        }
+    };
+
     const closeModal = () => {
         setIsModalOpen(false);
         handleClear();
     };
 
-    
+    const parseTaskDate = (value: string): Date | null => {
+        if (!value) return null;
 
-    const getPriorityStyle = (priority: string) => {
-        switch (priority) {
-            case 'low':
-                return {
-                    backgroundColor: '#95b6e1',
-                    color: '#082eae',
-                    borderColor: '#93c5fd'
-                };
-            case 'medium':
-                return {
-                    backgroundColor: '#e6d9a6',
-                    color: '#92400e',
-                    borderColor: '#fcd34d'
-                };
-            case 'high':
-                return {
-                    backgroundColor: '#daadad',
-                    color: '#991b1b',
-                    borderColor: '#fca5a5'
-                };
-            default:
-                return {
-                    backgroundColor: '#f3f4f6',
-                    color: '#374151',
-                    borderColor: '#d1d5db'
-                };
-        }
-    };
+        const iso = new Date(value);
+        if (!Number.isNaN(iso.getTime())) return iso;
 
-    const getPriorityLabel = (priority: string) => {
-        return priority.charAt(0).toUpperCase() + priority.slice(1) + ' Priority';
-    };
-
-    // Helper function to parse due date string to Date object
-    const parseDueDate = (dueDateString: string): Date | null => {
         try {
-            // Format: 'MM/DD/YYYY - HH:MM AM/PM'
-            const datePart = dueDateString.split(' - ')[0]; 
+            const datePart = value.split(' - ')[0];
             const [month, day, year] = datePart.split('/').map(Number);
-            return new Date(year, month - 1, day); 
-        } catch (error) {
+            const fallback = new Date(year, month - 1, day);
+            return Number.isNaN(fallback.getTime()) ? null : fallback;
+        } catch {
             return null;
         }
     };
 
-    // function to check if date is today
+    const toDateKey = (date: Date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
     const isToday = (date: Date): boolean => {
         const today = new Date();
         return date.getDate() === today.getDate() &&
-               date.getMonth() === today.getMonth() &&
-               date.getFullYear() === today.getFullYear();
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
     };
 
-    // Get all unique due dates from tasks and sort them
     const availableDueDates = useMemo(() => {
         const dateSet = new Set<string>();
-        sampleTasks.forEach(task => {
-            const datePart = task.dueDate.split(' - ')[0];
-            dateSet.add(datePart);
-        });
-        
-        // Convert to array and sort chronologically
-        return Array.from(dateSet).sort((a, b) => {
-            const [monthA, dayA, yearA] = a.split('/').map(Number);
-            const [monthB, dayB, yearB] = b.split('/').map(Number);
-            const dateA = new Date(yearA, monthA - 1, dayA);
-            const dateB = new Date(yearB, monthB - 1, dayB);
-            return dateA.getTime() - dateB.getTime();
-        });
-    }, []);
 
-    // Filter tasks based on search and filters
+        tasks.forEach((task) => {
+            const parsed = parseTaskDate(task.due_date);
+            if (parsed) {
+                dateSet.add(toDateKey(parsed));
+            }
+        });
+
+        return Array.from(dateSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    }, [tasks]);
+
     const filteredTasks = useMemo(() => {
-        return tasks.filter(task => {
+        return tasks.filter((task) => {
             const searchLower = search.toLowerCase();
-            const matchesSearch = search === '' || 
+            const matchesSearch = search === '' ||
                 task.title.toLowerCase().includes(searchLower) ||
                 task.description.toLowerCase().includes(searchLower);
 
-            const matchesPriority = priorityFilter === 'All Priority' ||
-                task.priority.toLowerCase() === priorityFilter.toLowerCase();
-
-            const matchesStatus = statusFilter === 'All Status' ||
-                task.status === statusFilter;
+            const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+            const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
 
             let matchesDueDate = true;
-            if (dueDateFilter !== 'All Due Date') {
-                const taskDueDate = parseDueDate(task.due_date);
-                if (!taskDueDate) {
+            if (dueDateFilter !== 'all') {
+                const parsed = parseTaskDate(task.due_date);
+                if (!parsed) {
                     matchesDueDate = false;
-                } else if (dueDateFilter === 'Today') {
-                    matchesDueDate = isToday(taskDueDate);
+                } else if (dueDateFilter === 'today') {
+                    matchesDueDate = isToday(parsed);
                 } else {
-                    const taskDatePart = task.due_date.split(' - ')[0];
-                    matchesDueDate = taskDatePart === dueDateFilter;
+                    matchesDueDate = toDateKey(parsed) === dueDateFilter;
                 }
             }
 
             return matchesSearch && matchesPriority && matchesStatus && matchesDueDate;
         });
-    }, [tasks ,search, priorityFilter, statusFilter, dueDateFilter]);
+    }, [tasks, search, priorityFilter, statusFilter, dueDateFilter]);
+
+    const getPriorityStyle = (taskPriority: string) => {
+        switch (taskPriority) {
+            case 'low':
+                return 'bg-blue-50 text-blue-700 ring-blue-200';
+            case 'medium':
+                return 'bg-amber-50 text-amber-700 ring-amber-200';
+            case 'high':
+                return 'bg-rose-50 text-rose-700 ring-rose-200';
+            default:
+                return 'bg-gray-50 text-gray-700 ring-gray-200';
+        }
+    };
+
+    const getStatusLabel = (status: TaskStatus) => {
+        switch (status) {
+            case 'todo':
+                return 'To Do';
+            case 'in-progress':
+                return 'In Progress';
+            case 'review':
+                return 'Review';
+            case 'done':
+                return 'Done';
+            default:
+                return status;
+        }
+    };
+
+    const formatDueDate = (value: string) => {
+        const parsed = parseTaskDate(value);
+        if (!parsed) return value;
+
+        return parsed.toLocaleString('en-US', {
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+    };
 
     return (
-        <div>
-         <style>{`
-            input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-                display: none;
-                -webkit-appearance: none;
-            }
-            input[type="datetime-local"]::-webkit-inner-spin-button,
-            input[type="datetime-local"]::-webkit-clear-button {
-                display: none;
-                -webkit-appearance: none;
-            }
-            @media (max-width: 768px) {
-                .manage-tasks-filter-row {
-                    flex-direction: column !important;
-                    align-items: stretch !important;
-                }
-                .manage-tasks-filter-label {
-                    margin-bottom: 0.5rem;
-                }
-                .create-task-modal-content {
-                    grid-template-columns: 1fr !important;
-                }
-                .create-task-modal-bottom {
-                    grid-template-columns: 1fr !important;
-                }
-            }
-            @media (max-width: 480px) {
-                .manage-tasks-filter-row {
-                    padding: 0.5rem !important;
-                }
-                .create-task-modal {
-                    padding: 1.5rem !important;
-                    margin: 0.5rem !important;
-                }
-                .create-task-modal-actions {
-                    flex-direction: column !important;
-                }
-                .create-task-modal-actions button {
-                    width: 100% !important;
-                }
-            }
-        `}</style>
-         <div className="row row-between" style={{ marginBottom: '2rem' }}>
-            <h1 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: "31px"}}>Manage Tasks</h1>    
-            <button 
-                className='btn btn-primary' 
-                style={{fontSize: "15px"}}
-                onClick={() => setIsModalOpen(true)}
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-orange-50/40 to-gray-50 p-6 md:p-8">
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
             >
-                + Create Task
-            </button>
-         </div>
-                
-        <div style={{ marginTop: '20px', marginBottom: '1.5rem' }}>
-         <div className="input-group" style={{ position: 'relative', width: '100%' }}>
-            <Search
-            size={20}
-            style={{
-                position: 'absolute',
-                left: '1rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'hsl(var(--muted-foreground))'
-            }}
-            />
-           
-            <input
-            type="text"
-            className="input"
-            placeholder="Search Task"
-            style={{
-                paddingLeft: '3rem', 
-                width: '100%',       
-                boxSizing: 'border-box'
-            }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            />
-         </div>
-        </div>
-
-       <div className="row manage-tasks-filter-row" style={{
-          padding: '0.75rem 1rem',
-          borderRadius: '8px',
-          backgroundColor: '#f5f5dc',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        }}>
-       <div className="manage-tasks-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-         <Filter size={20} style={{ color: '#333' }} />
-         <span style={{ fontWeight: 500, color: '#333' }}>Filters:</span>
-       </div>
-
-          <select 
-            className="select" 
-            style={{ 
-              backgroundColor: '#fff',
-              border: '1px solid #ccc',
-              minWidth: '150px',
-            }}
-            value={dueDateFilter}
-            onChange={(e) => setDueDateFilter(e.target.value)}
-          >
-            <option>All Due Date</option>
-            <option>Today</option>
-            {availableDueDates.map((date) => (
-              <option key={date} value={date}>{date}</option>
-            ))}
-          </select>
-
-          <select 
-            className="select" 
-            style={{ 
-              backgroundColor: '#fff',
-              border: '1px solid #ccc',
-              minWidth: '150px',
-            }}
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-          >
-            <option>All Priority</option>
-            <option>High</option>
-            <option>Medium</option>
-            <option>Low</option>
-          </select>
-
-          <select 
-            className="select" 
-            style={{ 
-              backgroundColor: '#fff',
-              border: '1px solid #ccc',
-              minWidth: '150px',
-            }}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option>All Status</option>
-            <option>Not Started</option>
-            <option>In Progress</option>
-            <option>Rejected</option>
-            <option>Pending</option>
-            <option>Completed</option>
-          </select>
-        </div>
-
-        <div className="grid-3" style={{ marginTop: '2rem' }}>
-            {filteredTasks.map((task) => {
-                const priorityStyle = getPriorityStyle(task.priority);
-                return (
-                    <div
-                        key={task.id}
-                        className="card"
-                        // TO DO - Check if this loads all task from supabase
-                        onClick={() => handleViewDetail(task)}
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            padding: '1.5rem',
-                            backgroundColor: '#fff',
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                            cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-4px)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.12)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                        }}
-                    >
-                        {/*title and prio*/}
-                        <div style={{ 
-                            marginBottom: '1rem',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            gap: '1rem'
-                        }}>
-                            <h3 style={{ 
-                                fontSize: '1.125rem', 
-                                fontWeight: 700, 
-                                color: '#000',
-                                margin: 0,
-                                flex: 1
-                            }}>
-                                {task.title}
-                            </h3>
-                            <div
-                                style={{
-                                    display: 'inline-block',
-                                    padding: '0.375rem 0.75rem',
-                                    borderRadius: '6px',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 600,
-                                    border: `1px solid ${priorityStyle.borderColor}`,
-                                    whiteSpace: 'nowrap',
-                                    ...priorityStyle
-                                }}
-                            >
-                                {getPriorityLabel(task.priority)}
-                            </div>
-                        </div>
-
-                        {/*description*/}
-                        <p style={{
-                            fontSize: '0.875rem',
-                            color: '#666',
-                            lineHeight: '1.5',
-                            marginBottom: '1.5rem',
-                            flex: 1
-                        }}>
-                            {task.description}
-                        </p>
-
-                        {/*details*/}
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.75rem',
-                            marginBottom: '1.5rem',
-                            fontSize: '0.875rem'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: '#666' }}>Assigned to:</span>
-                                <span style={{ fontWeight: 600, color: '#000' }}>
-                                    {task.assigned_to} intern
-                                </span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: '#666' }}>Due:</span>
-                                <span style={{ fontWeight: 600, color: '#000' }}>
-                                    {task.due_date}
-                                </span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: '#666' }}>Status:</span>
-                                <span style={{ fontWeight: 600, color: '#000' }}>
-                                    {task.status}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/*view details button*/}
-                        <button
-                            className="btn btn-primary"
-                            style={{
-                                marginTop: 'auto',
-                                fontSize: '0.875rem'
-                            }}
-                        >
-                            View Details
-                        </button>
-                    </div>
-                );
-            })}
-        </div>
-
-        {/*Create task modal*/}
-        {isModalOpen && (
-            <div 
-                className="modal-overlay"
-                onClick={closeModal}
-            >
-                <div 
-                    className="modal create-task-modal"
-                    style={{
-                        backgroundColor: '#e8ddd0',
-                        maxWidth: '900px',
-                        width: '100%',
-                        padding: '2rem',
-                        margin: '1rem',
-                        position: 'relative'
-                    }}
-                    onClick={(e) => e.stopPropagation()}
+                <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Manage Tasks</h1>
+                    <p className="mt-1 text-sm text-gray-600">Create and monitor intern task assignments.</p>
+                </div>
+                <button
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#eb6f00]"
+                    onClick={() => setIsModalOpen(true)}
                 >
-                    {/*Modal header*/}
-                    <div style={{ 
-                        marginBottom: '2rem',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }}>
-                        <h2 style={{ 
-                            color: 'hsl(var(--orange))', 
-                            margin: 0, 
-                            fontSize: '1.5rem', 
-                            fontWeight: 700 
-                        }}>
-                            Task Information
-                        </h2>
-                        <button
-                            onClick={closeModal}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                padding: '0.5rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#666',
-                                borderRadius: '4px',
-                                transition: 'background-color 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                            }}
+                    <Plus size={17} />
+                    Create Task
+                </button>
+            </motion.div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.05 }}
+                className="mb-6 rounded-2xl border border-orange-100 bg-white p-4 shadow-sm"
+            >
+                <div className="mb-3 relative">
+                    <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                        placeholder="Search tasks"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600">
+                        <Filter size={16} />
+                        Filters
+                    </div>
+
+                    <select
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100 lg:w-[220px]"
+                        value={dueDateFilter}
+                        onChange={(e) => setDueDateFilter(e.target.value)}
+                    >
+                        <option value="all">All Due Dates</option>
+                        <option value="today">Today</option>
+                        {availableDueDates.map((date) => (
+                            <option key={date} value={date}>{date}</option>
+                        ))}
+                    </select>
+
+                    <select
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100 lg:w-[180px]"
+                        value={priorityFilter}
+                        onChange={(e) => setPriorityFilter(e.target.value)}
+                    >
+                        <option value="all">All Priority</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+
+                    <select
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100 lg:w-[180px]"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="all">All Status</option>
+                        <option value="todo">To Do</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="review">Review</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+            </motion.div>
+
+            {filteredTasks.length === 0 ? (
+                <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+                    <ClipboardList size={40} className="mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm font-medium text-gray-500">No tasks found for the selected filters.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+                    {filteredTasks.map((task, index) => (
+                        <motion.article
+                            key={task.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.24, delay: Math.min(index * 0.04, 0.18) }}
+                            className="flex h-full cursor-pointer flex-col rounded-2xl border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                            onClick={() => handleViewDetail(task)}
                         >
-                            <X size={24} />
-                        </button>
-                    </div>
-
-                    <div className="create-task-modal-content" style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '2rem',
-                        marginBottom: '2rem'
-                    }}>
-
-                        <div>
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <label className="label" style={{ marginBottom: '0.5rem' }}>
-                                    <b>Task Title:</b>
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input"
-                                    placeholder="Enter task title"
-                                    value={taskTitle}
-                                    onChange={(e) => setTaskTitle(e.target.value)}
-                                    style={{ backgroundColor: '#fff' }}
-                                />
+                            <div className="mb-4 flex items-start justify-between gap-2">
+                                <h3 className="line-clamp-2 text-base font-semibold text-gray-900">{task.title}</h3>
+                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${getPriorityStyle(task.priority)}`}>
+                                    {task.priority}
+                                </span>
                             </div>
 
-                            {/*Task desc*/}
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <label className="label" style={{ marginBottom: '0.5rem' }}>
-                                    <b>Task Description:</b>
-                                </label>
-                                <textarea
-                                    className="input"
-                                    placeholder="Brief description of the task"
-                                    value={taskDescription}
-                                    onChange={(e) => setTaskDescription(e.target.value)}
-                                    style={{ 
-                                        backgroundColor: '#fff',
-                                        minHeight: '120px',
-                                        resize: 'vertical'
-                                    }}
-                                />
+                            <p className="mb-5 line-clamp-3 flex-1 text-sm leading-6 text-gray-600">
+                                {task.description || 'No description provided.'}
+                            </p>
+
+                            <div className="mb-5 space-y-1.5 text-sm">
+                                <p className="flex items-center justify-between gap-2">
+                                    <span className="text-gray-500">Assigned to</span>
+                                    <span className="font-medium text-gray-800">{task.assigned_to}</span>
+                                </p>
+                                <p className="flex items-center justify-between gap-2">
+                                    <span className="text-gray-500">Due</span>
+                                    <span className="font-medium text-gray-800">{formatDueDate(task.due_date)}</span>
+                                </p>
+                                <p className="flex items-center justify-between gap-2">
+                                    <span className="text-gray-500">Status</span>
+                                    <span className="font-medium text-gray-800">{getStatusLabel(task.status)}</span>
+                                </p>
                             </div>
-                        </div>
 
-                        {/*right column*/}
-                        <div>
-                            {/*Assign to Intern/s*/}
-                            <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
-                                <label className="label" style={{ marginBottom: '0.5rem' }}>
-                                    <b>Assign to Intern/s:</b>
-                                </label>
-                                <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-                                    <Search
-                                        size={20}
-                                        style={{
-                                            position: 'absolute',
-                                            left: '0.875rem',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)',
-                                            color: 'hsl(var(--muted-foreground))',
-                                            pointerEvents: 'none',
-                                            zIndex: 10
-                                        }}
-                                    />
-                                    <input
-                                        ref={internSearchInputRef}
-                                        type="text"
-                                        className="input"
-                                        placeholder="Search interns by name"
-                                        value={internSearch}
-                                        onChange={(e) => {
-                                            setInternSearch(e.target.value);
-                                            setIsInternSearchFocused(true);
-                                        }}
-                                        onFocus={() => setIsInternSearchFocused(true)}
-                                        onBlur={() => {
-                                            
-                                            setTimeout(() => {
-                                                const activeElement = document.activeElement;
-                                                if (!activeElement || !activeElement.closest('.intern-dropdown')) {
-                                                    setIsInternSearchFocused(false);
-                                                }
-                                            }, 200);
-                                        }}
-                                        style={{ 
-                                            backgroundColor: '#fff',
-                                            paddingLeft: '2.75rem',
-                                            position: 'relative',
-                                            zIndex: 1
-                                        }}
-                                    />
-                                    
-                                    {/* Intern search dropdown*/}
-                                    {isInternSearchFocused && filteredInterns.length > 0 && (
-                                        <div 
-                                            className="intern-dropdown"
-                                            style={{
-                                                position: 'absolute',
-                                                top: '100%',
-                                                left: 0,
-                                                right: 0,
-                                                zIndex: 1000,
-                                                backgroundColor: '#fff',
-                                                border: '1px solid hsl(var(--border))',
-                                                borderRadius: 'var(--radius-md)',
-                                                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-                                                maxHeight: '250px',
-                                                overflowY: 'auto',
-                                                marginTop: '0.25rem',
-                                                width: '100%'
-                                            }}
-                                        >
-                                            {filteredInterns.map((intern) => (
-                                                <div
-                                                    key={intern}
-                                                    onMouseDown={(e) => {
-                                                        e.preventDefault();
-                                                        handleInternSelect(intern);
-                                                    }}
-                                                    style={{
-                                                        padding: '0.75rem 1rem',
-                                                        cursor: 'pointer',
-                                                        transition: 'background-color 0.2s ease',
-                                                        borderBottom: '1px solid hsl(var(--border))'
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.backgroundColor = 'transparent';
-                                                    }}
-                                                >
-                                                    {intern}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                            <button className="rounded-xl bg-[#ff7a00] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#eb6f00]">
+                                View Details
+                            </button>
+                        </motion.article>
+                    ))}
+                </div>
+            )}
 
-                                {/*Selected interns display*/}
-                                <div style={{
-                                    backgroundColor: '#fff',
-                                    border: '1px solid hsl(var(--input))',
-                                    borderRadius: 'var(--radius-md)',
-                                    minHeight: '150px',
-                                    padding: '1rem',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.5rem'
-                                }}>
-                                    {selectedInterns.length === 0 ? (
-                                        <p style={{
-                                            color: 'hsl(var(--muted-foreground))',
-                                            fontSize: '0.875rem',
-                                            margin: 0,
-                                            fontStyle: 'italic'
-                                        }}>
-                                            List of selected interns will appear here
-                                        </p>
-                                    ) : (
-                                        selectedInterns.map((intern) => (
-                                            <div
-                                                key={intern}
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    padding: '0.5rem 0.75rem',
-                                                    backgroundColor: 'hsl(var(--muted))',
-                                                    borderRadius: 'var(--radius-sm)',
-                                                    fontSize: '0.875rem'
-                                                }}
-                                            >
-                                                <span>{intern}</span>
-                                                <button
-                                                    onClick={() => handleInternRemove(intern)}
-                                                    style={{
-                                                        background: 'transparent',
-                                                        border: 'none',
-                                                        cursor: 'pointer',
-                                                        padding: '0.25rem',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        color: 'hsl(var(--danger))',
-                                                        borderRadius: '4px'
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.backgroundColor = 'hsl(var(--danger) / 0.1)';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.backgroundColor = 'transparent';
-                                                    }}
-                                                >
-                                                    <X size={16} />
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="create-task-modal-bottom" style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '2rem',
-                        marginBottom: '2rem'
-                    }}>
-                        {/*Due Date*/}
-                        <div>
-                            <label className="label" style={{ marginBottom: '0.5rem' }}>
-                               <b>Due Date:</b>
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <input
-                                    ref={dateInputRef}
-                                    type="datetime-local"
-                                    className="input"
-                                    value={dueDate && dueTime ? `${dueDate}T${dueTime}` : dueDate ? `${dueDate}T00:00` : ''}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value) {
-                                            const [date, time] = value.split('T');
-                                            setDueDate(date || '');
-                                            setDueTime(time || '00:00');
-                                        } else {
-                                            setDueDate('');
-                                            setDueTime('');
-                                        }
-                                    }}
-                                    style={{ 
-                                        backgroundColor: '#fff',
-                                        paddingRight: '2.5rem',
-                                        colorScheme: 'light'
-                                    }}
-                                />
+            <AnimatePresence>
+                {isModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+                        onClick={closeModal}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+                            transition={{ duration: 0.24 }}
+                            className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-orange-100 bg-white p-6 shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="mb-5 flex items-center justify-between">
+                                <h2 className="text-xl font-bold text-gray-900">Task Information</h2>
                                 <button
-                                    type="button"
-                                    onClick={() => {
-                                        dateInputRef.current?.showPicker?.() || dateInputRef.current?.click();
-                                    }}
-                                    style={{
-                                        position: 'absolute',
-                                        right: '0.875rem',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        background: 'transparent',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        padding: '0.25rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: 'hsl(var(--muted-foreground))',
-                                        borderRadius: '4px',
-                                        transition: 'background-color 0.2s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = 'transparent';
-                                    }}
+                                    onClick={closeModal}
+                                    className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
                                 >
-                                    <Calendar size={20} />
+                                    <X size={20} />
                                 </button>
                             </div>
-                        </div>
 
-                        {/*Priority*/}
-                        <div>
-                            <label className="label" style={{ marginBottom: '0.5rem' }}>
-                                <b>Priority:</b>
-                            </label>
-                            <select
-                                className="select"
-                                value={priority}
-                                onChange={(e) => setPriority(e.target.value)}
-                                style={{ backgroundColor: '#fff' }}
-                            >
-                                <option value="">Select priority</option>
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                            </select>
-                        </div>
-                    </div>
+                            <div className="mb-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                                <div>
+                                    <div className="mb-4">
+                                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Task Title</label>
+                                        <input
+                                            type="text"
+                                            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                                            placeholder="Enter task title"
+                                            value={taskTitle}
+                                            onChange={(e) => setTaskTitle(e.target.value)}
+                                        />
+                                    </div>
 
-                    {/* Action buttons*/}
-                    <div className="create-task-modal-actions" style={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        gap: '1rem',
-                        marginTop: '2rem',
-                        flexWrap: 'wrap'
-                    }}>
-                        <button
-                            onClick={handleClear}
-                            style={{
-                                padding: '0.625rem 1.5rem',
-                                backgroundColor: '#fff',
-                                color: 'hsl(var(--orange))',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: 'var(--radius-md)',
-                                cursor: 'pointer',
-                                fontWeight: 500,
-                                fontSize: '0.875rem',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#f5f5f5';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = '#fff';
-                            }}
+                                    <div>
+                                        <label className="mb-1.5 block text-sm font-semibold text-gray-700">Task Description</label>
+                                        <textarea
+                                            className="h-32 w-full resize-y rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                                            placeholder="Brief description of the task"
+                                            value={taskDescription}
+                                            onChange={(e) => setTaskDescription(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-semibold text-gray-700">Assign to Intern/s</label>
+
+                                    <div className="relative mb-3">
+                                        <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            ref={internSearchInputRef}
+                                            type="text"
+                                            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 pl-10 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                                            placeholder="Search interns by name"
+                                            value={internSearch}
+                                            onChange={(e) => {
+                                                setInternSearch(e.target.value);
+                                                setIsInternSearchFocused(true);
+                                            }}
+                                            onFocus={() => setIsInternSearchFocused(true)}
+                                            onBlur={() => {
+                                                setTimeout(() => {
+                                                    const activeElement = document.activeElement;
+                                                    if (!activeElement || !activeElement.closest('.intern-dropdown')) {
+                                                        setIsInternSearchFocused(false);
+                                                    }
+                                                }, 200);
+                                            }}
+                                        />
+
+                                        {isInternSearchFocused && filteredInterns.length > 0 && (
+                                            <div className="intern-dropdown absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                                                {filteredInterns.map((intern) => (
+                                                    <button
+                                                        key={intern}
+                                                        type="button"
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault();
+                                                            handleInternSelect(intern);
+                                                        }}
+                                                        className="block w-full border-b border-gray-100 px-3 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
+                                                    >
+                                                        {intern}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="min-h-[150px] rounded-xl border border-gray-200 bg-gray-50/60 p-3">
+                                        {selectedInterns.length === 0 ? (
+                                            <p className="text-sm italic text-gray-500">Selected interns will appear here.</p>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {selectedInterns.map((intern) => (
+                                                    <div
+                                                        key={intern}
+                                                        className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm text-gray-700"
+                                                    >
+                                                        <span>{intern}</span>
+                                                        <button
+                                                            onClick={() => handleInternRemove(intern)}
+                                                            className="rounded-md p-1 text-rose-500 transition hover:bg-rose-50"
+                                                        >
+                                                            <X size={15} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mb-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-semibold text-gray-700">Due Date</label>
+                                    <div className="relative">
+                                        <input
+                                            ref={dateInputRef}
+                                            type="datetime-local"
+                                            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 pr-10 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                                            value={dueDate && dueTime ? `${dueDate}T${dueTime}` : dueDate ? `${dueDate}T00:00` : ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value) {
+                                                    const [date, time] = value.split('T');
+                                                    setDueDate(date || '');
+                                                    setDueTime(time || '00:00');
+                                                } else {
+                                                    setDueDate('');
+                                                    setDueTime('');
+                                                }
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                dateInputRef.current?.showPicker?.() || dateInputRef.current?.click();
+                                            }}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-500 transition hover:bg-gray-100"
+                                        >
+                                            <Calendar size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-semibold text-gray-700">Priority</label>
+                                    <select
+                                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#ff7a00] focus:ring-4 focus:ring-orange-100"
+                                        value={priority}
+                                        onChange={(e) => setPriority(e.target.value)}
+                                    >
+                                        <option value="">Select priority</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col justify-end gap-2 sm:flex-row">
+                                <button
+                                    onClick={handleClear}
+                                    className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                                >
+                                    Clear
+                                </button>
+                                <button
+                                    onClick={handleAssign}
+                                    className="rounded-xl bg-[#ff7a00] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#eb6f00]"
+                                >
+                                    Assign
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {selectedTask && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+                        onClick={closeViewDetail}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+                            transition={{ duration: 0.24 }}
+                            className="w-full max-w-xl rounded-2xl border border-orange-100 bg-white p-6 shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            Clear
-                        </button>
-                        <button
-                            onClick={handleAssign}
-                            className="btn btn-primary"
-                            style={{
-                                padding: '0.625rem 1.5rem',
-                                fontSize: '0.875rem'
-                            }}
-                        >
-                            Assign
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
+                            <div className="mb-4">
+                                <h2 className="text-xl font-bold text-gray-900">{selectedTask.title}</h2>
+                                <div className="mt-2 inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                    {getStatusLabel(selectedTask.status)}
+                                </div>
+                            </div>
 
+                            <p className="mb-5 text-sm leading-6 text-gray-600">
+                                {selectedTask.description || 'No description provided.'}
+                            </p>
 
-        {/* --- TASK DETAIL MODAL --- */}
-        {selectedTask && (
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 1000,
-                backdropFilter: 'blur(4px)'
-            }}>
-                <div style={{
-                    backgroundColor: '#fff',
-                    width: '90%',
-                    maxWidth: '500px',
-                    borderRadius: '16px',
-                    padding: '2rem',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                    position: 'relative'
-                }}>
-                    {/* Header */}
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111', margin: 0 }}>
-                                {selectedTask.title}
-                            </h2>
-                        </div>
-                        <span style={{ 
-                            display: 'inline-block', 
-                            marginTop: '0.5rem', 
-                            padding: '4px 12px', 
-                            borderRadius: '20px', 
-                            fontSize: '0.75rem', 
-                            fontWeight: 600,
-                            backgroundColor: '#e5e7eb',
-                            color: '#374151'
-                        }}>
-                            {selectedTask.status}
-                        </span>
-                    </div>
+                            <div className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-4 sm:grid-cols-2">
+                                <div>
+                                    <p className="text-xs uppercase tracking-wide text-gray-500">Assigned To</p>
+                                    <p className="text-sm font-semibold text-gray-800">{selectedTask.assigned_to}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs uppercase tracking-wide text-gray-500">Due Date</p>
+                                    <p className="inline-flex items-center gap-1 text-sm font-semibold text-gray-800">
+                                        <Calendar size={14} />
+                                        {formatDueDate(selectedTask.due_date)}
+                                    </p>
+                                </div>
+                            </div>
 
-                    {/* Description */}
-                    <p style={{ color: '#4b5563', lineHeight: 1.6, marginBottom: '2rem' }}>
-                        {selectedTask.description || "No description provided."}
-                    </p>
-
-                    {/* Information Box */}
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: '1fr 1fr', 
-                        gap: '1rem',
-                        padding: '1.5rem',
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '12px',
-                        marginBottom: '2rem'
-                    }}>
-                        <div>
-                            <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', textTransform: 'uppercase' }}>Assigned To</span>
-                            <span style={{ fontWeight: 600, color: '#111' }}>{selectedTask.assigned_to}</span>
-                        </div>
-                        <div>
-                            <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', textTransform: 'uppercase' }}>Due Date</span>
-                            <span style={{ fontWeight: 600, color: '#111' }}>
-                                {new Date(selectedTask.due_date).toLocaleDateString()}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Buttons */}
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                        <button 
-                            onClick={closeViewDetail}
-                            style={{
-                                padding: '0.75rem 1.5rem',
-                                borderRadius: '8px',
-                                border: '1px solid #e5e7eb',
-                                backgroundColor: '#fff',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
-       </div>
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={closeViewDetail}
+                                    className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 };
 

@@ -5,8 +5,7 @@ import {
     Pencil,
     Archive,
     ChevronDown,
-    Download,
-    Users as UsersIcon
+    Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { userService } from '../../services/userServices';

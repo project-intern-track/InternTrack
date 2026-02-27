@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { apiClient } from '../../services/apiClient';
+import PageLoader from '../../components/PageLoader';
 
 const Settings = () => {
   // PROFILE DATA (Unmasked)
@@ -10,6 +11,8 @@ const Settings = () => {
     name: '',
     email: ''
   });
+
+  const [profileLoading, setProfileLoading] = useState(true);
 
   // PASSWORD DATA (Masked)
   const [passwordData, setPasswordData] = useState({
@@ -32,6 +35,7 @@ const Settings = () => {
       } else if (error) {
         console.error("Fetch failed:", error);
       }
+      setProfileLoading(false);
     };
 
     loadProfile();
@@ -96,6 +100,8 @@ const Settings = () => {
         alert(err.response?.data?.message || "Update failed. The backend might not support password changes via this route.");
       }
     };
+
+  if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
     <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>

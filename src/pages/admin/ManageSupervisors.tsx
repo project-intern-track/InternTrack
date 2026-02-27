@@ -7,6 +7,7 @@ import {
     Plus,
     Loader2
 } from 'lucide-react';
+import PageLoader from '../../components/PageLoader';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
@@ -238,7 +239,7 @@ const ManageSupervisors = () => {
     const selectedInternName = eligibleInterns.find(u => u.id === selectedInternId)?.full_name || 'Selected User';
 
     // Guard Check
-    if (!supervisors || !stats) return null;
+    if (!supervisors || !stats) return <PageLoader message="Loading supervisors..." />;
 
     // Pagination Derived State
     const totalPages = Math.ceil(supervisors.length / ITEMS_PER_PAGE);

@@ -7,6 +7,7 @@ import {
     Plus,
     Loader2
 } from 'lucide-react';
+import PageLoader from '../../components/PageLoader';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
@@ -238,7 +239,7 @@ const ManageAdmins = () => {
     const selectedInternName = eligibleInterns.find(u => u.id === selectedInternId)?.full_name || 'Selected User';
 
     // Guard Check
-    if (!admins || !stats) return null;
+    if (!admins || !stats) return <PageLoader message="Loading admins..." />;
 
     // Pagination Derived State
     const totalPages = Math.ceil(admins.length / ITEMS_PER_PAGE);

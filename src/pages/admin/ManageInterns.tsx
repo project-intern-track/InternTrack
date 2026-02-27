@@ -7,6 +7,7 @@ import {
     ChevronDown,
     Download
 } from 'lucide-react';
+import PageLoader from '../../components/PageLoader';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users, OJTType } from '../../types/database.types';
@@ -345,7 +346,7 @@ const ManageInterns = () => {
         return d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 
-    if (!interns || !stats) return null;
+    if (!interns || !stats) return <PageLoader message="Loading interns..." />;
 
     return (
         <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>

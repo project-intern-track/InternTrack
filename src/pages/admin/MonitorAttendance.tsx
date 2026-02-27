@@ -31,11 +31,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
 
-  // sample
+  // sample data (loaded synchronously — no artificial delay)
   useEffect(() => {
-    setLoading(true);
-    // simulate
-    setTimeout(() => {
       const sampleData: AttendanceRecord[] = [
         {
           id: '1',
@@ -179,8 +176,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           },
       ];
       setAttendanceRecords(sampleData);
-      setLoading(false);
-    }, 500);
   }, []);
 
  

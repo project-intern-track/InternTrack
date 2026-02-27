@@ -1,90 +1,43 @@
 // ========
 // IMPORTS
 // ========
-import { supabase } from "./supabaseClient";
+// TODO: Migrate to apiClient — Supabase has been removed.
+// import { apiClient } from "./apiClient";
 import { attendanceSchema } from "./validation";
-import type { Attendance } from "../types/database.types"; // Attendance Interface From Database Types
+import type { Attendance } from "../types/database.types";
 
 
 // Attendance Services Functions
+// TODO: Each method below needs a corresponding Laravel backend endpoint.
+// Once the backend routes/controllers are created, replace the placeholder
+// implementations with apiClient calls (e.g. apiClient.get('/attendance')).
 export const attendanceService = {
 
-    async getAttendance() {
-
-        const { data, error } = await supabase
-            .from('attendance')
-            .select('*');
-
-        if (error) throw new Error(`Error Fetching Attendance: ${error.message}`);
-        return data;
-
+    async getAttendance(): Promise<Attendance[]> {
+        // TODO: Replace with apiClient.get('/attendance')
+        console.warn('attendanceService.getAttendance() not yet migrated to Laravel backend.');
+        return [];
     },
 
-
-    async createAttendance(newAttendanceData: Omit<Attendance, 'id' | 'created_at'>) {
-
+    async createAttendance(newAttendanceData: Omit<Attendance, 'id' | 'created_at'>): Promise<Attendance> {
         const validation = attendanceSchema.safeParse(newAttendanceData);
-
         if (!validation.success) {
             throw new Error(`Invalid Attendance Data: ${validation.error.message}`);
         }
-
-        const { data, error } = await supabase
-            .from('attendance')
-            .insert(newAttendanceData)
-            .select()
-            .single();
-
-        // Catch ad Logs errors
-        if (error) throw new Error(`Error Creating Attendance: ${error.message}`);
-        return data as Attendance;
-
-
+        // TODO: Replace with apiClient.post('/attendance', newAttendanceData)
+        throw new Error('attendanceService.createAttendance() not yet migrated to Laravel backend.');
     },
 
-    async clockIn(userId: string) {
-
-        const { data, error } = await supabase
-            .from('attendance')
-            .insert(
-                {
-                    user_id: userId, // FK Reference to 'users.id'
-                    time_in: new Date().toISOString(), // Current Timestamp
-                    status: 'present' // Default Status, can be updated later based on time_in
-                }
-            )
-
-            .select()
-            .single();
-
-        if (error) throw new Error(`Error Clocking In: ${error.message}`);
-        return data as Attendance;
-
+    async clockIn(userId: string): Promise<Attendance> {
+        // TODO: Replace with apiClient.post('/attendance/clock-in', { user_id: userId })
+        void userId;
+        throw new Error('attendanceService.clockIn() not yet migrated to Laravel backend.');
     },
 
-    async clockOut(attendanceId: string, timeInString: string) {
-        // Fetch the existing attendance record to calculate total hours
-        const timeOut = new Date().toISOString();
-
-
-        // Calculate Total Hours
-        const timeIn = new Date(timeInString); // Calls The Time In Strinf From Specific Attendance Record
-        const timeOutDate = new Date(timeOut);
-        const totalHours = (timeOutDate.getTime() - timeIn.getTime()) / (1000 * 60 * 60); // Convert milliseconds to hours
-
-        const { data, error } = await supabase
-            .from('attendance')
-            .update({
-                time_out: timeOut, // ISO timestamp string for clock-out time
-                total_hours: Number(totalHours.toFixed(2)) // Rounded to 2 decimal places
-            })
-            .eq('id', attendanceId) // PK Reference for the specific attendance record
-            .select()
-            .single();
-
-        if (error) throw new Error(`Error Clocking Out: ${error.message}`);
-        return data as Attendance;
-
+    async clockOut(attendanceId: string, _timeInString: string): Promise<Attendance> {
+        // TODO: Replace with apiClient.post(`/attendance/${attendanceId}/clock-out`)
+        void attendanceId;
+        throw new Error('attendanceService.clockOut() not yet migrated to Laravel backend.');
     }
 
 }

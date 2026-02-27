@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, AlertCircle, Info, RefreshCw, ShieldAlert } from 'lucide-react';
+import { Eye, EyeOff, Loader2, AlertCircle, Info, RefreshCw } from 'lucide-react';
 import { authService } from '../../services/authService';
 import '../../styles/auth.css';
 
@@ -62,7 +62,11 @@ const Login = () => {
     const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
     const [resendMessage, setResendMessage] = useState<string | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
-    const isDeactivated = searchParams.get('deactivated') === '1';
+    // Persist deactivation flag in state so it survives the cleanup re-render.
+    // Initialized once on mount from URL param or sessionStorage.
+    const [isDeactivated] = useState(() =>
+        searchParams.get('deactivated') === '1' || sessionStorage.getItem('account_deactivated') === '1'
+    );
 
     useEffect(() => {
         const hashParams = parseHashParams();
@@ -70,8 +74,10 @@ const Login = () => {
             setError(getHashErrorMessage(hashParams.errorCode, hashParams.errorDescription));
             if (hashParams.errorCode === 'otp_expired') setShowResend(true);
         }
-        // Clear the deactivated param from URL after reading it (keep the notice visible)
+        // Clean up the deactivated indicators from URL and sessionStorage
+        // (the message stays visible because isDeactivated is in React state)
         if (isDeactivated) {
+            sessionStorage.removeItem('account_deactivated');
             setSearchParams({}, { replace: true });
         }
     }, []);
@@ -152,14 +158,9 @@ const Login = () => {
                         </div>
                     </div>
                     {isDeactivated && (
-                        <div className="auth-error" id="deactivated-notice" style={{ backgroundColor: 'hsl(25 95% 53% / 0.08)', borderColor: 'hsl(25 95% 53% / 0.3)', color: '#c2410c' }}>
-                            <ShieldAlert size={18} className="auth-error-alert-icon" />
-                            <div>
-                                <strong>Account Deactivated</strong>
-                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem' }}>
-                                    Your account has been deactivated by an administrator. Please contact your admin if you believe this is a mistake.
-                                </p>
-                            </div>
+                        <div className="auth-error" id="deactivated-notice">
+                            <AlertCircle size={18} className="auth-error-alert-icon" />
+                            <div>Your account has been archived.</div>
                         </div>
                     )}
                     {error && (

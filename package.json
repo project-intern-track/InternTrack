@@ -8,13 +8,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "db:link": "npx supabase link --project-ref vhzpbtgwfmhzrepualwc",
-    "db:push": "npx supabase db push",
-    "db:status": "npx supabase migration list"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.95.3",
     "axios": "^1.13.5",
     "chart.js": "^4.5.1",
     "lucide-react": "^0.563.0",

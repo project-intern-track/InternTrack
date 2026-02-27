@@ -1,28 +1,28 @@
 // ========
 // IMPORTS
 // ========
-import { supabase } from "./supabaseClient";
+// TODO: Migrate to apiClient — Supabase has been removed.
+// import { apiClient } from "./apiClient";
 import { announcementSchema } from "./validation";
-import type { Announcement, AnnouncementPriority, UserRole } from "../types/database.types"; 
+import type { Announcement, AnnouncementPriority, UserRole } from "../types/database.types";
 
 // Announcement Services Functions
+// TODO: Each method below needs a corresponding Laravel backend endpoint.
+// Once the backend routes/controllers are created, replace the placeholder
+// implementations with apiClient calls (e.g. apiClient.get('/announcements')).
 export const announcementService = {
 
     /**
      * Fetches all announcements from the database
      */
-    async getAnnouncements() : Promise<Announcement[]> {
-        const { data, error } = await supabase
-            .from('announcements')
-            .select("*");
-
-        if (error) throw new Error(`Error Fetching Announcements: ${error.message}`);
-        return data as Announcement[];
+    async getAnnouncements(): Promise<Announcement[]> {
+        // TODO: Replace with apiClient.get('/announcements')
+        console.warn('announcementService.getAnnouncements() not yet migrated to Laravel backend.');
+        return [];
     },
 
     /**
      * Validates and creates a new announcement
-     * Matches the updated schema with 'intern' visibility and 'priority'
      */
     async createAnnouncement(newAnnouncementData: {
         title: string;
@@ -30,21 +30,12 @@ export const announcementService = {
         priority: AnnouncementPriority;
         created_by: string;
         visibility: 'all' | UserRole;
-    }) {
-        // Run Zod validation against the lead's schema
+    }): Promise<Announcement> {
         const validation = announcementSchema.safeParse(newAnnouncementData);
-
         if (!validation.success) {
             throw new Error(`Invalid Announcement Data: ${validation.error.message}`);
         }
-
-        const { data, error } = await supabase
-            .from('announcements')
-            .insert(newAnnouncementData)
-            .select()
-            .single();
-
-        if (error) throw new Error(`Error Creating Announcement: ${error.message}`);
-        return data as Announcement;
+        // TODO: Replace with apiClient.post('/announcements', newAnnouncementData)
+        throw new Error('announcementService.createAnnouncement() not yet migrated to Laravel backend.');
     }
 }

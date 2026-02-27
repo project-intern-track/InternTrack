@@ -34,10 +34,17 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Handle revoked tokens — when a user is archived, their tokens are deleted
+        // from the database, so subsequent API calls return 401.
+        // We clear the token and set a sessionStorage flag; AuthContext's polling
+        // will detect the invalid session and redirect via React Router.
         if (error.response?.status === 401) {
-            // Option to trigger logout or redirect here globally
-            // localStorage.removeItem('auth_token');
-            // window.location.href = '/login';
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('last_known_user_role');
+                sessionStorage.setItem('account_deactivated', '1');
+            }
         }
 
         // Handle archived/deactivated users — backend returns 403 with ACCOUNT_DEACTIVATED
@@ -47,8 +54,7 @@ apiClient.interceptors.response.use(
         ) {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('last_known_user_role');
-            // Redirect to login with a deactivated notice
-            window.location.href = '/?deactivated=1';
+            sessionStorage.setItem('account_deactivated', '1');
         }
 
         return Promise.reject(error);

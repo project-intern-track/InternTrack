@@ -1,14 +1,25 @@
 import { apiClient } from "./apiClient";
-import type {
-    AuthChangeEvent,
-    Session,
-    User as SupabaseUser,
-} from "@supabase/supabase-js";
 import type { UserRole } from "../types/database.types";
 
 // ========================
-// Types
+// Types (replaces @supabase/supabase-js types)
 // ========================
+
+/** Minimal user object returned by auth operations. */
+export interface AuthUser {
+    id: string;
+    email: string;
+    user_metadata: Record<string, any>;
+    [key: string]: any;
+}
+
+/** Minimal session object returned by auth operations. */
+export interface AuthSession {
+    user: AuthUser;
+    access_token: string;
+    [key: string]: any;
+}
+
 export interface SignUpMetadata {
     full_name: string;
     role: UserRole;
@@ -20,8 +31,8 @@ export interface SignUpMetadata {
 }
 
 export interface AuthResult {
-    user: SupabaseUser | null;
-    session: Session | null;
+    user: AuthUser | null;
+    session: AuthSession | null;
     error: string | null;
 }
 
@@ -71,7 +82,7 @@ export const authService = {
 
             localStorage.setItem("auth_token", token);
 
-            const fakeSupabaseUser = {
+            const authUser: AuthUser = {
                 id: user.id.toString(),
                 email: user.email,
                 user_metadata: {
@@ -79,11 +90,11 @@ export const authService = {
                     full_name: user.full_name,
                     avatar_url: user.avatar_url,
                 },
-            } as any;
+            };
 
             return {
-                user: fakeSupabaseUser,
-                session: { user: fakeSupabaseUser, access_token: token } as any,
+                user: authUser,
+                session: { user: authUser, access_token: token },
                 error: null,
             };
         } catch (err: any) {
@@ -136,7 +147,7 @@ export const authService = {
     },
 
     async getSession(): Promise<
-        { session: Session | null; error: string | null }
+        { session: AuthSession | null; error: string | null }
     > {
         try {
             const token = localStorage.getItem("auth_token");
@@ -145,7 +156,7 @@ export const authService = {
             const response = await apiClient.get("/auth/user");
             const user = response.data.user;
 
-            const fakeSupabaseUser = {
+            const authUser: AuthUser = {
                 id: user.id.toString(),
                 email: user.email,
                 user_metadata: {
@@ -153,10 +164,10 @@ export const authService = {
                     full_name: user.full_name,
                     avatar_url: user.avatar_url,
                 },
-            } as any;
+            };
 
             return {
-                session: { user: fakeSupabaseUser, access_token: token } as any,
+                session: { user: authUser, access_token: token },
                 error: null,
             };
         } catch (err: any) {
@@ -183,9 +194,9 @@ export const authService = {
     },
 
     onAuthStateChange(
-        _callback: (event: AuthChangeEvent, session: Session | null) => void,
+        _callback: (event: string, session: AuthSession | null) => void,
     ) {
-        // Return a dummy unsubscribe function
+        // No-op: Laravel uses token-based auth, no realtime state change listener needed.
         return () => {};
     },
 

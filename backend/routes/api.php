@@ -38,7 +38,7 @@ Route::get('/auth/verify-email/{id}/{hash}', function (Request $request) {
 })->middleware('signed')->name('verification.verify');
 
 // ── Protected Routes (Sanctum token auth) ───
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/user',    [AuthController::class, 'user']);
 

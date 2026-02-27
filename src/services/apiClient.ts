@@ -39,6 +39,18 @@ apiClient.interceptors.response.use(
             // localStorage.removeItem('auth_token');
             // window.location.href = '/login';
         }
+
+        // Handle archived/deactivated users — backend returns 403 with ACCOUNT_DEACTIVATED
+        if (
+            error.response?.status === 403 &&
+            error.response?.data?.error === 'ACCOUNT_DEACTIVATED'
+        ) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('last_known_user_role');
+            // Redirect to login with a deactivated notice
+            window.location.href = '/?deactivated=1';
+        }
+
         return Promise.reject(error);
     },
 );

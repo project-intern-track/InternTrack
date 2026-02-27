@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, AlertCircle, Info, RefreshCw } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, Loader2, AlertCircle, Info, RefreshCw, ShieldAlert } from 'lucide-react';
 import { authService } from '../../services/authService';
 import '../../styles/auth.css';
 
@@ -61,12 +61,18 @@ const Login = () => {
     const [resendEmail, setResendEmail] = useState('');
     const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
     const [resendMessage, setResendMessage] = useState<string | null>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const isDeactivated = searchParams.get('deactivated') === '1';
 
     useEffect(() => {
         const hashParams = parseHashParams();
         if (hashParams?.error) {
             setError(getHashErrorMessage(hashParams.errorCode, hashParams.errorDescription));
             if (hashParams.errorCode === 'otp_expired') setShowResend(true);
+        }
+        // Clear the deactivated param from URL after reading it (keep the notice visible)
+        if (isDeactivated) {
+            setSearchParams({}, { replace: true });
         }
     }, []);
 
@@ -145,6 +151,17 @@ const Login = () => {
                             <span className="auth-mobile-wordmark-track">Track</span>
                         </div>
                     </div>
+                    {isDeactivated && (
+                        <div className="auth-error" id="deactivated-notice" style={{ backgroundColor: 'hsl(25 95% 53% / 0.08)', borderColor: 'hsl(25 95% 53% / 0.3)', color: '#c2410c' }}>
+                            <ShieldAlert size={18} className="auth-error-alert-icon" />
+                            <div>
+                                <strong>Account Deactivated</strong>
+                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem' }}>
+                                    Your account has been deactivated by an administrator. Please contact your admin if you believe this is a mistake.
+                                </p>
+                            </div>
+                        </div>
+                    )}
                     {error && (
                         <div className="auth-error" id="login-error">
                             <AlertCircle size={18} className="auth-error-alert-icon" />

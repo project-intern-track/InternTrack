@@ -29,6 +29,10 @@ const Settings = () => {
     confirm: false
   });
 
+  const [profileErr, setProfileErr] = useState('');
+  const [pwdErr, setPwdErr] = useState('');
+  const [successPopup, setSuccessPopup] = useState('');
+
   // Load user data on mount
   useEffect(() => {
     const loadProfile = async () => {
@@ -65,8 +69,9 @@ const Settings = () => {
   };
 
   const handleSave = async () => {
+    setProfileErr('');
     if (!formData.id) {
-      alert("Error: No User ID found. Please refresh the page.");
+      setProfileErr("Error: No User ID found. Please refresh the page.");
       return;
     }
 
@@ -74,12 +79,12 @@ const Settings = () => {
 
     // Safety Check: Basic validation
     if (trimmedName.length < 2) {
-      alert("Please enter a valid name.");
+      setProfileErr("Please enter a valid name.");
       return;
     }
 
     if (!/^[a-zA-Z]+( [a-zA-Z]+)*$/.test(trimmedName)) {
-      alert("Full name can only contain alphabetic characters and single spaces.");
+      setProfileErr("Full name can only contain alphabetic characters and single spaces.");
       return;
     }
 
@@ -89,28 +94,30 @@ const Settings = () => {
         email: formData.email
       });
       updateUser({ name: trimmedName, email: formData.email });
-      alert('Profile Updated Successfully!');
+      setSuccessPopup('Profile Updated Successfully!');
+      setTimeout(() => setSuccessPopup(''), 3000);
     } catch (err) {
       console.error(err);
-      alert('Update Failed');
+      setProfileErr('Update Failed. Please try again.');
     }
   };
 
   const handleUpdatePassword = async () => {
+      setPwdErr('');
       const { currentPassword, newPassword, newPasswordConfirmation } = passwordData;
 
       if (!currentPassword || !newPassword || !newPasswordConfirmation) {
-        alert("Please fill in all password fields.");
+        setPwdErr("Please fill in all password fields.");
         return;
       }
 
       if (currentPassword === newPassword) {
-        alert("New password cannot be the same as your current password.");
+        setPwdErr("New password cannot be the same as your current password.");
         return;
       }
 
       if (newPassword !== newPasswordConfirmation) {
-        alert("New passwords do not match!");
+        setPwdErr("New passwords do not match!");
         return;
       }
 
@@ -121,17 +128,40 @@ const Settings = () => {
           password_confirmation: newPasswordConfirmation,
         });
 
-        alert("Password updated successfully!");
+        setSuccessPopup("Password updated successfully!");
+        setTimeout(() => setSuccessPopup(''), 3000);
         setPasswordData({ currentPassword: '', newPassword: '', newPasswordConfirmation: '' });
       } catch (err: any) {
-        alert(err.response?.data?.message || "Update failed. The backend might not support password changes via this route.");
+        setPwdErr(err.response?.data?.message || "Update failed. Please try again.");
       }
     };
 
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
+    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem', position: 'relative' }}>
+      {successPopup && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '50%',
+          transform: 'translateX(50%)',
+          backgroundColor: '#ff8c42',
+          color: 'white',
+          padding: '1rem 2rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          fontWeight: 'bold'
+        }}>
+          {successPopup}
+          <button onClick={() => setSuccessPopup('')} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1.25rem' }}>&times;</button>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
         <div>
@@ -222,7 +252,8 @@ const Settings = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '1.5rem', gap: '1rem' }}>
+          {profileErr && <span style={{ color: '#d9534f', fontSize: '0.875rem', fontWeight: 'bold' }}>{profileErr}</span>}
           <button onClick={handleSave} style={primaryButtonStyle}>
             Save Changes
           </button>
@@ -308,7 +339,8 @@ const Settings = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '1.5rem', gap: '1rem' }}>
+          {pwdErr && <span style={{ color: '#d9534f', fontSize: '0.875rem', fontWeight: 'bold' }}>{pwdErr}</span>}
           <button onClick={handleUpdatePassword} style={primaryButtonStyle}>
             Update Password
           </button>

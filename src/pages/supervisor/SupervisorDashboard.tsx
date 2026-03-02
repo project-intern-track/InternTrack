@@ -1,164 +1,290 @@
-import {
-  PieChart,
-  Pie,
-  Tooltip,
-  Cell,
-  ResponsiveContainer,
-} from 'recharts';
+import { PieChart, Pie, Tooltip, Cell, ResponsiveContainer } from 'recharts';
 
-type PendingTask = {
+// ============================
+// Types
+// ============================
+
+type PerformanceStatus = 'excellent' | 'very good' | 'satisfactory' | 'needs improvement' | 'poor';
+type TaskStatus = 'pending' | 'approved' | 'rejected' | 'overdue';
+
+interface PendingTask {
   intern: string;
   task: string;
   due_date: string;
-  status: 'excellent' | 'very good' | 'satisfactory' | 'needs improvement' | 'poor';
-};
+  status: PerformanceStatus;
+}
 
-type PerformanceSummary = {
-  excellent: number;
-  veryGood: number;
-  satisfactory: number;
-  needsImprovement: number;
-  poor: number;
-};
+interface TaskTableItem {
+  intern: string;
+  task: string;
+  due_date: string;
+  status: TaskStatus;
+}
 
-// ============================
-// Dummy Static Data
-// ============================
-
-const dummyTasks: PendingTask[] = [
-  { intern: 'Juan Dela Cruz', task: 'Weekly Report', due_date: '2026-02-22', status: 'excellent' },
-  { intern: 'Maria Santos', task: 'UI Prototype', due_date: '2026-02-23', status: 'very good' },
-  { intern: 'Carlo Reyes', task: 'Database Schema', due_date: '2026-02-20', status: 'satisfactory' },
-  { intern: 'Angela Lim', task: 'API Integration', due_date: '2026-02-21', status: 'needs improvement' },
-  { intern: 'Carlo Reyes', task: 'Frontend Fixes', due_date: '2026-02-19', status: 'poor' },
-  { intern: 'Juan Dela Cruz', task: 'Unit Testing', due_date: '2026-02-24', status: 'very good' },
-  { intern: 'Angela Lim', task: 'Documentation', due_date: '2026-02-25', status: 'excellent' },
-];
+type PerformanceSummary = Record<PerformanceStatus, number>;
 
 // ============================
-// Helpers
+// Config
 // ============================
 
-const computeSummary = (tasks: PendingTask[]): PerformanceSummary => {
-  const summary: PerformanceSummary = {
-    excellent: 0,
-    veryGood: 0,
-    satisfactory: 0,
-    needsImprovement: 0,
-    poor: 0,
-  };
-
-  tasks.forEach(t => {
-    switch (t.status) {
-      case 'excellent':
-        summary.excellent++;
-        break;
-      case 'very good':
-        summary.veryGood++;
-        break;
-      case 'satisfactory':
-        summary.satisfactory++;
-        break;
-      case 'needs improvement':
-        summary.needsImprovement++;
-        break;
-      case 'poor':
-        summary.poor++;
-        break;
-    }
-  });
-
-  return summary;
-};
-
-const computeTopIntern = (tasks: PendingTask[]) => {
-  const internScores: Record<string, number[]> = {};
-
-  tasks.forEach(t => {
-    if (!internScores[t.intern]) internScores[t.intern] = [];
-
-    let points = 0;
-    switch (t.status) {
-      case 'excellent':
-        points = 100;
-        break;
-      case 'very good':
-        points = 85;
-        break;
-      case 'satisfactory':
-        points = 70;
-        break;
-      case 'needs improvement':
-        points = 50;
-        break;
-      case 'poor':
-        points = 25;
-        break;
-    }
-
-    internScores[t.intern].push(points);
-  });
-
-  let bestName = 'N/A';
-  let bestScore = 0;
-
-  Object.entries(internScores).forEach(([name, scores]) => {
-    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-    if (avg > bestScore) {
-      bestScore = avg;
-      bestName = name;
-    }
-  });
-
-  return { name: bestName, score: Math.round(bestScore) };
-};
-
-// ============================
-// Colors
-// ============================
-
-const statusColors: Record<string, string> = {
+const STATUS_COLORS: Record<string, string> = {
   excellent: '#2E7D32',
   'very good': '#00897B',
   satisfactory: '#F9A825',
   'needs improvement': '#FB8C00',
   poor: '#D32F2F',
+  pending: '#F9A825',
+  approved: '#2E7D32',
+  rejected: '#616161',
+  overdue: '#D32F2F',
 };
 
-const hexToRgba = (hex: string, alpha: number) => {
+const STATUS_SCORES: Record<PerformanceStatus, number> = {
+  excellent: 100,
+  'very good': 85,
+  satisfactory: 70,
+  'needs improvement': 50,
+  poor: 25,
+};
+
+// ============================
+// Helpers
+// ============================
+
+const hexToRgba = (hex: string, alpha: number): string => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
+const getInitials = (name: string): string =>
+  name.split(' ').map(n => n[0].toUpperCase()).join('');
+
+const computeSummary = (tasks: PendingTask[]): PerformanceSummary => {
+  const summary = Object.fromEntries(
+    Object.keys(STATUS_SCORES).map(k => [k, 0])
+  ) as PerformanceSummary;
+
+  for (const task of tasks) summary[task.status]++;
+  return summary;
+};
+
+const computeTopInterns = (tasks: PendingTask[], topN = 3) => {
+  const scores: Record<string, number[]> = {};
+
+  for (const task of tasks) {
+    (scores[task.intern] ??= []).push(STATUS_SCORES[task.status]);
+  }
+
+  return Object.entries(scores)
+    .map(([name, arr]) => ({
+      name,
+      initials: getInitials(name),
+      avg: arr.reduce((a, b) => a + b, 0) / arr.length,
+    }))
+    .sort((a, b) => b.avg - a.avg)
+    .slice(0, topN);
+};
+
+const toTaskStatus = (score: number): TaskStatus => {
+  if (score >= 85) return 'approved';
+  if (score >= 50) return 'pending';
+  return 'rejected';
+};
+
+const formatLabel = (key: string): string =>
+  key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+
 // ============================
-// Component
+// Shared Styles
+// ============================
+
+const AVATAR_BASE: React.CSSProperties = {
+  width: 32,
+  height: 32,
+  borderRadius: '50%',
+  background: '#ff8c42',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  fontWeight: 'bold',
+  color: '#fff',
+  fontSize: 12,
+  flexShrink: 0,
+};
+
+// ============================
+// Components
+// ============================
+
+const Avatar = ({ name, size = 32 }: { name: string; size?: number }) => (
+  <div style={{ ...AVATAR_BASE, width: size, height: size }}>
+    {getInitials(name)}
+  </div>
+);
+
+const TaskTable = ({ tasks }: { tasks: TaskTableItem[] }) => (
+  <div style={{ padding: '1rem', background: '#f9f9f9', borderRadius: '0.5rem' }}>
+    <h3>Pending Tasks</h3>
+    <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+        <thead>
+          <tr>
+            {['Intern', 'Task', 'Due Date', 'Status'].map(h => (
+              <th
+                key={h}
+                style={{
+                  background: '#ff8c42',
+                  color: '#fff',
+                  textAlign: 'left',
+                  padding: '0.5rem',
+                }}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.map((t, i) => (
+            <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
+              <td style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Avatar name={t.intern} />
+                {t.intern}
+              </td>
+              <td style={{ padding: '0.5rem' }}>{t.task}</td>
+              <td style={{ padding: '0.5rem' }}>{t.due_date}</td>
+              <td style={{ padding: '0.5rem', fontWeight: 'bold', color: STATUS_COLORS[t.status] }}>
+                {t.status}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
+const PieSummary = ({ summary }: { summary: PerformanceSummary }) => {
+  const pieData = Object.entries(summary).map(([name, value]) => ({ name, value }));
+  const total = pieData.reduce((sum, d) => sum + d.value, 0);
+
+  return (
+    <div style={{ width: '100%', height: 400 }}>
+      <h3 style={{ textAlign: 'center', marginBottom: '1rem' }}>Overall Performance Distribution</h3>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={pieData}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            outerRadius="80%"
+            label={({ value }) => total > 0 ? `${((value / total) * 100).toFixed(0)}%` : '0%'}
+          >
+            {pieData.map((entry, index) => (
+              <Cell key={index} fill={STATUS_COLORS[entry.name]} />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+const PerformanceSummaryList = ({ summary }: { summary: PerformanceSummary }) => {
+  const total = Object.values(summary).reduce((a, b) => a + b, 0);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <h3 style={{ textAlign: 'center' }}>Performance Summary</h3>
+      {Object.entries(summary).map(([key, value]) => (
+        <div
+          key={key}
+          style={{
+            background: hexToRgba(STATUS_COLORS[key], 0.25),
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
+        >
+          {formatLabel(key)}: {value} ({total > 0 ? ((value / total) * 100).toFixed(0) : '0'}%)
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const TopPerformers = ({ interns }: { interns: { name: string; avg: number; initials: string }[] }) => (
+  <div style={{ padding: '1rem', background: '#f0f0f0', borderRadius: '0.5rem' }}>
+    <h3>Top Performing Interns</h3>
+    {interns.map((t, i) => (
+      <div
+        key={i}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: i > 0 ? 8 : 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Avatar name={t.name} size={35} />
+          <span>{t.name}</span>
+        </div>
+        <span
+          style={{
+            fontWeight: 'bold',
+            background: hexToRgba(STATUS_COLORS['excellent'], 0.8),
+            color: '#fff',
+            padding: '0.25rem 0.75rem',
+            borderRadius: '0.25rem',
+          }}
+        >
+          {Math.round(t.avg)}
+        </span>
+      </div>
+    ))}
+  </div>
+);
+
+// ============================
+// Main Component
 // ============================
 
 const SupervisorDashboard = () => {
   const supervisorName = 'Test Supervisor';
 
-  const summary = computeSummary(dummyTasks);
-  const topInternData = computeTopIntern(dummyTasks);
-  const total = Object.values(summary).reduce((acc, v) => acc + v, 0);
-
-  const pieData = [
-    { name: 'Excellent', value: summary.excellent },
-    { name: 'Very Good', value: summary.veryGood },
-    { name: 'Satisfactory', value: summary.satisfactory },
-    { name: 'Needs Improvement', value: summary.needsImprovement },
-    { name: 'Poor', value: summary.poor },
+  // TODO: Replace with real DB data
+  const tasks: PendingTask[] = [
+    { intern: 'Juan Dela Cruz', task: 'Weekly Report', due_date: '2026-02-22', status: 'excellent' },
+    { intern: 'Maria Santos', task: 'UI Prototype', due_date: '2026-02-23', status: 'very good' },
+    { intern: 'Carlo Reyes', task: 'Database Schema', due_date: '2026-02-20', status: 'satisfactory' },
+    { intern: 'Angela Lim', task: 'API Integration', due_date: '2026-02-21', status: 'needs improvement' },
+    { intern: 'Pedro Gonzales', task: 'Frontend Fixes', due_date: '2026-02-19', status: 'poor' },
+    { intern: 'Luisa Mendoza', task: 'Unit Testing', due_date: '2026-02-24', status: 'very good' },
+    { intern: 'Juan Dela Cruz', task: 'Documentation', due_date: '2026-02-25', status: 'excellent' },
   ];
+
+  const tableTasks: TaskTableItem[] = tasks.map(t => ({
+    intern: t.intern,
+    task: t.task,
+    due_date: t.due_date,
+    status: toTaskStatus(STATUS_SCORES[t.status]),
+  }));
+
+  const summary = computeSummary(tasks);
+  const topInterns = computeTopInterns(tasks);
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: 'clamp(1.5rem, 2vw, 2rem)' }}>
+      <h1 style={{ fontSize: 'clamp(1.5rem, 2vw, 2rem)', color: '#ff8c42' }}>
         Welcome back, {supervisorName}
       </h1>
-      <p style={{ color: '#555' }}>Supervisor Dashboard</p>
 
-      {/* TOP GRID */}
       <div
         style={{
           display: 'grid',
@@ -167,95 +293,10 @@ const SupervisorDashboard = () => {
           marginTop: '2rem',
         }}
       >
-        {/* Pending Tasks */}
-        <div
-          style={{
-            padding: '1rem',
-            background: '#f9f9f9',
-            borderRadius: '0.5rem',
-          }}
-        >
-          <h3>Pending Tasks</h3>
-
-          <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                minWidth: '600px',
-              }}
-            >
-              <thead>
-                <tr style={{ background: '#ff8c42', color: '#fff' }}>
-                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Intern</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Task</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Due Date</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dummyTasks.map((t, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '0.5rem' }}>{t.intern}</td>
-                    <td style={{ padding: '0.5rem' }}>{t.task}</td>
-                    <td style={{ padding: '0.5rem' }}>{t.due_date}</td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        fontWeight: 'bold',
-                        color: statusColors[t.status],
-                      }}
-                    >
-                      {t.status}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Top Intern */}
-        <div
-          style={{
-            padding: '1rem',
-            background: '#f0f0f0',
-            borderRadius: '0.5rem',
-          }}
-        >
-          <h3>Top Performing Intern</h3>
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '1rem',
-              flexWrap: 'wrap',
-              gap: '0.5rem',
-            }}
-          >
-            <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-              {topInternData.name}
-            </span>
-
-            <span
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 'bold',
-                background: hexToRgba(statusColors['excellent'], 0.8),
-                color: '#fff',
-                padding: '0.25rem 0.75rem',
-                borderRadius: '0.25rem',
-              }}
-            >
-              {topInternData.score}
-            </span>
-          </div>
-        </div>
+        <TaskTable tasks={tableTasks} />
+        <TopPerformers interns={topInterns} />
       </div>
 
-      {/* BOTTOM GRID */}
       <div
         style={{
           marginTop: '2rem',
@@ -264,74 +305,8 @@ const SupervisorDashboard = () => {
           gap: '2rem',
         }}
       >
-        {/* Pie Chart */}
-        <div style={{ width: '100%', height: '400px' }}>
-          <h3 style={{ textAlign: 'center', marginBottom: '1rem' }}>
-            Overall Performance Distribution
-          </h3>
-
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                outerRadius="80%"
-                label={({ value }) =>
-                  total > 0
-                    ? `${((value / total) * 100).toFixed(0)}%`
-                    : '0%'
-                }
-              >
-                {pieData.map((entry, index) => (
-                  <Cell
-                    key={index}
-                    fill={statusColors[entry.name.toLowerCase()]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Summary */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <h3 style={{ textAlign: 'center' }}>Performance Summary</h3>
-
-          {Object.entries(summary).map(([key, value]) => {
-            const mapping: Record<string, string> = {
-              excellent: 'excellent',
-              veryGood: 'very good',
-              satisfactory: 'satisfactory',
-              needsImprovement: 'needs improvement',
-              poor: 'poor',
-            };
-
-            const percent =
-              total > 0 ? ((value / total) * 100).toFixed(0) : '0';
-
-            const label = key
-              .replace(/([A-Z])/g, ' $1')
-              .replace(/^./, str => str.toUpperCase());
-
-            return (
-              <div
-                key={key}
-                style={{
-                  background: hexToRgba(statusColors[mapping[key]], 0.25),
-                  padding: '0.75rem',
-                  borderRadius: '0.5rem',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                }}
-              >
-                {label}: {value} ({percent}%)
-              </div>
-            );
-          })}
-        </div>
+        <PieSummary summary={summary} />
+        <PerformanceSummaryList summary={summary} />
       </div>
     </div>
   );

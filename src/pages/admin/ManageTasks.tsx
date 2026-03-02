@@ -6,6 +6,19 @@ import { taskService } from '../../services/taskServices';
 import { userService } from '../../services/userServices';
 import type { Tasks, TaskStatus, TaskPriority, Users } from '../../types/database.types';
 
+const TECH_STACK_CATEGORIES = [
+    'All Category',
+    'Frontend Development',
+    'Backend Development',
+    'Database Management',
+    'API & Integration',
+    'DevOps & Deployment',
+    'Mobile Development',
+    'Testing',
+    'Project Management',
+    'UI/UX Design',
+] as const;
+
 const ManageTasks = () => {
     const [search, setSearch] = useState('');
     const [dueDateFilter, setDueDateFilter] = useState('All Due Date');
@@ -29,6 +42,8 @@ const ManageTasks = () => {
     const [dueDate, setDueDate] = useState('');
     const [dueTime, setDueTime] = useState('');
     const [priority, setPriority] = useState('');
+    const [isPriorityDropdownOpen, setIsPriorityDropdownOpen] = useState(false);
+    const [techCategory, setTechCategory] = useState<(typeof TECH_STACK_CATEGORIES)[number]>('All Category');
     const [dueDateError, setDueDateError] = useState('');
     const [internSearch, setInternSearch] = useState('');
     const [selectedInterns, setSelectedInterns] = useState<Users[]>([]);
@@ -98,6 +113,8 @@ const ManageTasks = () => {
         setDueDate('');
         setDueTime('');
         setPriority('');
+        setIsPriorityDropdownOpen(false);
+        setTechCategory('All Category');
         setSelectedInterns([]);
         setInternSearch('');
         setDueDateError('');
@@ -266,6 +283,7 @@ const ManageTasks = () => {
         });
         return Array.from(dateSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
     }, [tasks]);
+
 
     const filteredTasks = useMemo(() => {
         const filtered = tasks.filter(task => {
@@ -545,53 +563,96 @@ const ManageTasks = () => {
             {isModalOpen && (
                 <div className="modal-overlay" onClick={closeModal}>
                     <div className="modal create-task-modal"
-                        style={{ backgroundColor: '#e8ddd0', maxWidth: '900px', width: '100%', padding: '2rem', margin: '1rem', position: 'relative' }}
+                        style={{ backgroundColor: '#e8ddd0', maxWidth: '900px', width: '100%', padding: '1.5rem', margin: '0.75rem', position: 'relative' }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h2 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Task Information</h2>
                             <button onClick={closeModal} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.5rem', display: 'flex', alignItems: 'center', color: '#666', borderRadius: '4px' }}>
                                 <X size={24} />
                             </button>
                         </div>
 
-                        <div className="create-task-modal-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                        <div className="create-task-modal-content" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.05fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
                             <div>
-                                <div style={{ marginBottom: '1.5rem' }}>
+                                <div style={{ marginBottom: '1rem' }}>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Task Title:</b></label>
-                                    <input type="text" className="input" placeholder="Enter task title"
-                                        value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)}
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        placeholder="Enter task title"
+                                        value={taskTitle}
+                                        onChange={(e) => setTaskTitle(e.target.value)}
                                         style={{ backgroundColor: '#fff' }}
                                     />
                                 </div>
-                                <div style={{ marginBottom: '1.5rem' }}>
+                                <div style={{ marginBottom: '1rem' }}>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Task Description:</b></label>
-                                    <textarea className="input" placeholder="Brief description of the task"
-                                        value={taskDescription} onChange={(e) => setTaskDescription(e.target.value)}
-                                        style={{ backgroundColor: '#fff', minHeight: '120px', resize: 'vertical' }}
+                                    <textarea
+                                        className="input"
+                                        placeholder="Brief description of the task"
+                                        value={taskDescription}
+                                        onChange={(e) => setTaskDescription(e.target.value)}
+                                        style={{ backgroundColor: '#fff', minHeight: '100px', resize: 'vertical' }}
                                     />
                                 </div>
-                            </div>
-
-                            <div>
-                                <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
+                                <div style={{ marginBottom: '1rem', position: 'relative' }}>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Assign to Intern/s:</b></label>
                                     <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-                                        <Search size={20} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))', pointerEvents: 'none', zIndex: 10 }} />
-                                        <input ref={internSearchInputRef} type="text" className="input"
+                                        <Search
+                                            size={20}
+                                            style={{
+                                                position: 'absolute',
+                                                left: '0.875rem',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                color: 'hsl(var(--muted-foreground))',
+                                                pointerEvents: 'none',
+                                                zIndex: 10,
+                                            }}
+                                        />
+                                        <input
+                                            ref={internSearchInputRef}
+                                            type="text"
+                                            className="input"
                                             placeholder="Search interns by name"
                                             value={internSearch}
                                             onChange={(e) => { setInternSearch(e.target.value); setIsInternSearchFocused(true); }}
                                             onFocus={() => setIsInternSearchFocused(true)}
-                                            onBlur={() => setTimeout(() => { if (!document.activeElement?.closest('.intern-dropdown')) setIsInternSearchFocused(false); }, 200)}
+                                            onBlur={() =>
+                                                setTimeout(() => {
+                                                    if (!document.activeElement?.closest('.intern-dropdown')) setIsInternSearchFocused(false);
+                                                }, 200)
+                                            }
                                             style={{ backgroundColor: '#fff', paddingLeft: '2.75rem' }}
                                         />
                                         {isInternSearchFocused && filteredInternOptions.length > 0 && (
-                                            <div className="intern-dropdown" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, backgroundColor: '#fff', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', maxHeight: '250px', overflowY: 'auto', marginTop: '0.25rem' }}>
+                                            <div
+                                                className="intern-dropdown"
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: '100%',
+                                                    left: 0,
+                                                    right: 0,
+                                                    zIndex: 1000,
+                                                    backgroundColor: '#fff',
+                                                    border: '1px solid hsl(var(--border))',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                                                    maxHeight: '250px',
+                                                    overflowY: 'auto',
+                                                    marginTop: '0.25rem',
+                                                }}
+                                            >
                                                 {filteredInternOptions.map((intern) => (
-                                                    <div key={intern.id}
+                                                    <div
+                                                        key={intern.id}
                                                         onMouseDown={(e) => { e.preventDefault(); handleInternSelect(intern); }}
-                                                        style={{ padding: '0.75rem 1rem', cursor: 'pointer', borderBottom: '1px solid hsl(var(--border))' }}
+                                                        style={{
+                                                            padding: '0.75rem 1rem',
+                                                            cursor: 'pointer',
+                                                            borderBottom: '1px solid hsl(var(--border))',
+                                                        }}
                                                         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'; }}
                                                         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                                                     >
@@ -602,15 +663,57 @@ const ManageTasks = () => {
                                         )}
                                     </div>
 
-                                    <div style={{ backgroundColor: '#fff', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-md)', minHeight: '150px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <div
+                                        style={{
+                                            backgroundColor: '#fff',
+                                            border: '1px solid hsl(var(--input))',
+                                            borderRadius: 'var(--radius-md)',
+                                            minHeight: '100px',
+                                            padding: '1rem',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.5rem',
+                                        }}
+                                    >
                                         {selectedInterns.length === 0 ? (
-                                            <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.875rem', margin: 0, fontStyle: 'italic' }}>List of selected interns will appear here</p>
+                                            <p
+                                                style={{
+                                                    color: 'hsl(var(--muted-foreground))',
+                                                    fontSize: '0.875rem',
+                                                    margin: 0,
+                                                    fontStyle: 'italic',
+                                                }}
+                                            >
+                                                List of selected interns will appear here
+                                            </p>
                                         ) : (
                                             selectedInterns.map((intern) => (
-                                                <div key={intern.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', backgroundColor: 'hsl(var(--muted))', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>
+                                                <div
+                                                    key={intern.id}
+                                                    style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        padding: '0.5rem 0.75rem',
+                                                        backgroundColor: 'hsl(var(--muted))',
+                                                        borderRadius: 'var(--radius-sm)',
+                                                        fontSize: '0.875rem',
+                                                    }}
+                                                >
                                                     <span>{intern.full_name}</span>
-                                                    <button onClick={() => handleInternRemove(intern.id)}
-                                                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', color: 'hsl(var(--danger))', borderRadius: '4px' }}>
+                                                    <button
+                                                        onClick={() => handleInternRemove(intern.id)}
+                                                        style={{
+                                                            background: 'transparent',
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            padding: '0.25rem',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            color: 'hsl(var(--danger))',
+                                                            borderRadius: '4px',
+                                                        }}
+                                                    >
                                                         <X size={16} />
                                                     </button>
                                                 </div>
@@ -619,10 +722,9 @@ const ManageTasks = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="create-task-modal-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                            <div>
+                            <div className="create-task-modal-bottom" style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                                <div style={{ marginBottom: '0.25rem' }}>
                                 {dueDateError && (
                                     <p style={{ marginBottom: '0.35rem', fontSize: '0.8rem', color: 'hsl(var(--danger))', fontWeight: 500 }}>
                                         {dueDateError}
@@ -658,14 +760,154 @@ const ManageTasks = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div>
-                                <label className="label" style={{ marginBottom: '0.5rem' }}><b>Priority:</b></label>
-                                <select className="select" value={priority} onChange={(e) => setPriority(e.target.value)} style={{ backgroundColor: '#fff' }}>
-                                    <option value="">Select priority</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                </select>
+                                <div style={{ marginBottom: '0.25rem' }}>
+                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Priority:</b></label>
+                                    <div
+                                        style={{ position: 'relative' }}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsPriorityDropdownOpen((prev) => !prev)}
+                                            style={{
+                                                width: '100%',
+                                                borderRadius: 'var(--radius-md)',
+                                                border: '1px solid hsl(var(--input))',
+                                                backgroundColor: '#fff',
+                                                padding: '0.55rem 0.9rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'flex-start',
+                                                gap: '0.6rem',
+                                                cursor: 'pointer',
+                                                fontSize: '0.9rem',
+                                                color: '#111827',
+                                            }}
+                                        >
+                                            {priority ? (
+                                                <>
+                                                    <span
+                                                        style={{
+                                                            width: '12px',
+                                                            height: '12px',
+                                                            borderRadius: '999px',
+                                                            backgroundColor:
+                                                                priority === 'low'
+                                                                    ? '#60a5fa'
+                                                                    : priority === 'medium'
+                                                                        ? '#eab308'
+                                                                        : '#f97373',
+                                                            border: '2px solid #e5e7eb',
+                                                        }}
+                                                    />
+                                                    <span style={{ fontWeight: 500 }}>
+                                                        {priority === 'low'
+                                                            ? 'Low Priority'
+                                                            : priority === 'medium'
+                                                                ? 'Medium Priority'
+                                                                : 'High Priority'}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <span style={{ color: 'hsl(var(--muted-foreground))' }}>Select priority</span>
+                                            )}
+                                        </button>
+                                        {isPriorityDropdownOpen && (
+                                            <div
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: 'calc(100% + 4px)',
+                                                    left: 0,
+                                                    right: 0,
+                                                    backgroundColor: '#fff',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    border: '1px solid hsl(var(--border))',
+                                                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                                                    zIndex: 50,
+                                                    overflow: 'hidden',
+                                                    fontSize: '0.9rem',
+                                                }}
+                                            >
+                                                {[
+                                                    { value: 'low', label: 'Low Priority', color: '#60a5fa' },
+                                                    { value: 'medium', label: 'Medium Priority', color: '#eab308' },
+                                                    { value: 'high', label: 'High Priority', color: '#f97373' },
+                                                ].map((opt) => (
+                                                    <button
+                                                        key={opt.value}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setPriority(opt.value);
+                                                            setIsPriorityDropdownOpen(false);
+                                                        }}
+                                                        style={{
+                                                            width: '100%',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'flex-start',
+                                                            gap: '0.6rem',
+                                                            padding: '0.5rem 0.9rem',
+                                                            backgroundColor: priority === opt.value ? '#f9fafb' : '#fff',
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            textAlign: 'left',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            style={{
+                                                                width: '12px',
+                                                                height: '12px',
+                                                                borderRadius: '999px',
+                                                                backgroundColor: opt.color,
+                                                                border: '2px solid #e5e7eb',
+                                                            }}
+                                                        />
+                                                        <span style={{ fontWeight: 500 }}>{opt.label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Tech Stack Category:</b></label>
+                                    <select
+                                        className="select"
+                                        value={techCategory}
+                                        onChange={(e) => setTechCategory(e.target.value as (typeof TECH_STACK_CATEGORIES)[number])}
+                                        style={{ backgroundColor: '#fff' }}
+                                    >
+                                        {TECH_STACK_CATEGORIES.map((category) => (
+                                            <option key={category} value={category}>
+                                                {category}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Tools &amp; Technologies:</b></label>
+                                    <div
+                                        style={{
+                                            backgroundColor: '#fff',
+                                            border: '1px solid hsl(var(--input))',
+                                            borderRadius: 'var(--radius-md)',
+                                            minHeight: '120px',
+                                            padding: '0.9rem',
+                                            display: 'block',
+                                        }}
+                                    >
+                                        <p
+                                            style={{
+                                                color: 'hsl(var(--muted-foreground))',
+                                                fontSize: '0.95rem',
+                                                margin: 0,
+                                                lineHeight: 1.6,
+                                            }}
+                                        >
+                                            List of tools and technologies with check boxes according to the selected
+                                            tech stack category will appear here
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User } from 'lucide-react';
+import { User, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { apiClient } from '../../services/apiClient';
 import PageLoader from '../../components/PageLoader';
@@ -21,6 +21,12 @@ const Settings = () => {
     currentPassword: '',
     newPassword: '',
     newPasswordConfirmation: ''
+  });
+
+  const [showPwd, setShowPwd] = useState({
+    current: false,
+    new: false,
+    confirm: false
   });
 
   // Load user data on mount
@@ -95,6 +101,11 @@ const Settings = () => {
 
       if (!currentPassword || !newPassword || !newPasswordConfirmation) {
         alert("Please fill in all password fields.");
+        return;
+      }
+
+      if (currentPassword === newPassword) {
+        alert("New password cannot be the same as your current password.");
         return;
       }
 
@@ -236,37 +247,64 @@ const Settings = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
               <label>Current Password</label>
-              <input 
-                type="password" 
-                name="currentPassword"
-                value={passwordData.currentPassword}
-                onChange={handlePasswordChange}
-                style={inputStyle} 
-              />
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showPwd.current ? "text" : "password"} 
+                  name="currentPassword"
+                  value={passwordData.currentPassword}
+                  onChange={handlePasswordChange}
+                  style={{ ...inputStyle, paddingRight: '2.5rem' }} 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd({ ...showPwd, current: !showPwd.current })}
+                  style={eyeButtonStyle}
+                >
+                  {showPwd.current ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
+                </button>
+              </div>
             </div>
 
             <div>
               <label>New Password</label>
-              <input 
-                type="password" 
-                name="newPassword"
-                value={passwordData.newPassword}
-                onChange={handlePasswordChange}
-                style={inputStyle} 
-              />
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showPwd.new ? "text" : "password"} 
+                  name="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordChange}
+                  style={{ ...inputStyle, paddingRight: '2.5rem' }} 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd({ ...showPwd, new: !showPwd.new })}
+                  style={eyeButtonStyle}
+                >
+                  {showPwd.new ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
+                </button>
+              </div>
             </div>
           </div>
 
           {/* RIGHT */}
           <div>
             <label>Confirm New Password</label>
-            <input 
-              type="password" 
-              name="newPasswordConfirmation"
-              value={passwordData.newPasswordConfirmation}
-              onChange={handlePasswordChange}
-              style={inputStyle} 
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showPwd.confirm ? "text" : "password"} 
+                name="newPasswordConfirmation"
+                value={passwordData.newPasswordConfirmation}
+                onChange={handlePasswordChange}
+                style={{ ...inputStyle, paddingRight: '2.5rem' }} 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd({ ...showPwd, confirm: !showPwd.confirm })}
+                style={eyeButtonStyle}
+              >
+                {showPwd.confirm ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -278,6 +316,20 @@ const Settings = () => {
       </div>
     </div>
   );
+};
+
+const eyeButtonStyle: React.CSSProperties = {
+  position: 'absolute',
+  right: '0.5rem',
+  top: '50%',
+  transform: 'translateY(-35%)',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
 };
 
 const inputStyle: React.CSSProperties = {

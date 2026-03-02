@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     Search,
     Filter,
@@ -9,12 +9,11 @@ import {
 import PageLoader from '../../components/PageLoader';
 import { announcementService } from '../../services/announcementService';
 import { useAuth } from '../../context/AuthContext';
-import { useRealtime } from '../../hooks/useRealtime';
 import type { Announcement, AnnouncementPriority } from '../../types/database.types';
 
 const Announcements = () => {
     const { user } = useAuth();
-    const [announcements, setAnnouncements] = useState<Announcement[] | null>(null); // initializes null
+    const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -28,27 +27,29 @@ const Announcements = () => {
     });
     const [submitting, setSubmitting] = useState(false);
 
-    // Fetch Announcements
-    const fetchAnnouncements = async () => {
+    const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+
+    const fetchAnnouncements = useCallback(async (signal?: AbortSignal) => {
         try {
-            const data = await announcementService.getAnnouncements();
-            // Sort by created_at desc
+            const data = await announcementService.getAnnouncements(signal);
+            if (signal?.aborted) return;
             const sorted = (data || []).sort((a, b) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
             setAnnouncements(sorted);
         } catch (err) {
+            const e = err as { name?: string; code?: string };
+            if (e?.name === 'CanceledError' || e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return;
             console.error(err);
-            setAnnouncements([])
+            setAnnouncements([]);
         }
-    };
-
-    useEffect(() => {
-        fetchAnnouncements();
     }, []);
 
-    // Re-fetch whenever announcements table changes in real-time
-    useRealtime('announcements', fetchAnnouncements);
+    useEffect(() => {
+        const controller = new AbortController();
+        fetchAnnouncements(controller.signal);
+        return () => controller.abort();
+    }, [fetchAnnouncements]);
 
     // Handle Create
     const handleCreate = async () => {
@@ -227,14 +228,31 @@ const Announcements = () => {
             {/* Content Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
                 {filteredAnnouncements.map((announcement) => (
-                    <div key={announcement.id} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#F9F7F4' }}>
+                    <div
+                        key={announcement.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedAnnouncement(announcement)}
+                        onKeyDown={(e) => e.key === 'Enter' && setSelectedAnnouncement(announcement)}
+                        className="card"
+                        style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '200px', backgroundColor: '#F9F7F4', cursor: 'pointer' }}
+                    >
                         <div style={{ marginBottom: '1rem' }}>
                             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
                                 {announcement.title}
                             </h3>
                         </div>
-                        <div style={{ flex: 1, marginBottom: '2rem' }}>
-                            <p style={{ margin: 0, color: '#1f2937', lineHeight: '1.5' }}>
+                <div style={{ flex: 1, marginBottom: '2rem', minHeight: '4.5rem', overflow: 'hidden' }}>
+                            <p style={{
+                                margin: 0,
+                                color: '#1f2937',
+                                lineHeight: 1.5,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical' as const,
+                            }}>
                                 {announcement.content}
                             </p>
                         </div>
@@ -271,7 +289,67 @@ const Announcements = () => {
                 ))}
             </div>
 
-            {/* Modal */}
+            {/* Detail Modal */}
+            {selectedAnnouncement && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        zIndex: 1001,
+                        backdropFilter: 'blur(2px)',
+                    }}
+                    onClick={() => setSelectedAnnouncement(null)}
+                >
+                    <div
+                        style={{
+                            backgroundColor: '#fff',
+                            borderRadius: '12px',
+                            padding: '2rem',
+                            width: '100%',
+                            maxWidth: '560px',
+                            maxHeight: '90vh',
+                            overflowX: 'hidden',
+                            overflowY: 'auto',
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 style={{ color: '#ea580c', margin: '0 0 1rem', fontSize: '1.35rem', fontWeight: 700 }}>
+                            {selectedAnnouncement.title}
+                        </h2>
+                        <p style={{ margin: '0 0 1.5rem', color: '#1f2937', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}>
+                            {selectedAnnouncement.content}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span>Priority:</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: getPriorityColor(selectedAnnouncement.priority) }} />
+                                    <span style={{ fontWeight: 600, color: '#111827' }}>{getPriorityLabel(selectedAnnouncement.priority)}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span>Date Created: </span>
+                                <span style={{ fontWeight: 600, color: '#111827' }}>{formatDate(selectedAnnouncement.created_at)}</span>
+                            </div>
+                        </div>
+                        <div style={{ marginTop: '1.5rem' }}>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() => setSelectedAnnouncement(null)}
+                                style={{ backgroundColor: '#ff8c42', border: 'none' }}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Modal */}
             {isModalOpen && (
                 <div style={{
                     position: 'fixed',

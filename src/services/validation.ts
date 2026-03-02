@@ -44,7 +44,7 @@ export const announcementSchema = z.object({
     title: z.string().min(1, "Announcement title is required"),
     content: z.string().min(1, "Announcement content is required"),
     priority: z.enum(["low", "medium", "high"]),
-    created_by: z.string().uuid("Invalid created_by user ID"),
+    created_by: z.string().min(1, "Created by is required"),
     visibility: z.enum(["all", "admin", "supervisor", "intern"]),
 });
 

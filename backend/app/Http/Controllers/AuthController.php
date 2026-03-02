@@ -23,7 +23,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email'          => 'required|email|unique:users,email',
             'password'       => ['required', 'string', PasswordRule::min(6)],
-            'full_name'      => 'required|string|min:1',
+            'full_name'      => ['required', 'string', 'min:1', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
             'role'           => 'nullable|in:admin,supervisor,intern',
             'avatar_url'     => 'nullable|url',
             'ojt_role'       => 'nullable|string',

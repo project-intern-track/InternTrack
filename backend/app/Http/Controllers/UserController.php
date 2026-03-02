@@ -76,7 +76,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'id' => 'required|string', // Suppose UUID from some external auth if needed
             'email' => 'required|email|unique:users,email',
-            'full_name' => 'required|string',
+            'full_name' => ['required', 'string', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
             'role' => 'required|string',
             'avatar_url' => 'nullable|url',
         ]);
@@ -94,7 +94,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'email' => ['nullable', 'email', Rule::unique('users')->ignore($user->id)],
-            'full_name' => 'nullable|string',
+            'full_name' => ['nullable', 'string', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
             'role' => 'nullable|string',
             'status' => 'nullable|in:active,archived',
             'ojt_role' => 'nullable|string',

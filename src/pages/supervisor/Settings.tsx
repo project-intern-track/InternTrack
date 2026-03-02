@@ -3,9 +3,10 @@ import { User } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { apiClient } from '../../services/apiClient';
 import PageLoader from '../../components/PageLoader';
-
+import { useAuth } from '../../context/AuthContext';
 
 const Settings = () => {
+  const { updateUser } = useAuth();
   // PROFILE DATA (Unmasked)
   const [formData, setFormData] = useState({
     id: '',
@@ -44,6 +45,12 @@ const Settings = () => {
 
   // Handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.name === 'name') {
+      const val = e.target.value;
+      if (val.startsWith(' ')) return;
+      if (val.includes('  ')) return;
+      if (val !== '' && !/^[a-zA-Z\s]*$/.test(val)) return;
+    }
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -57,17 +64,25 @@ const Settings = () => {
       return;
     }
 
+    const trimmedName = formData.name.trim();
+
     // Safety Check: Basic validation
-    if (formData.name.trim().length < 2) {
+    if (trimmedName.length < 2) {
       alert("Please enter a valid name.");
+      return;
+    }
+
+    if (!/^[a-zA-Z]+( [a-zA-Z]+)*$/.test(trimmedName)) {
+      alert("Full name can only contain alphabetic characters and single spaces.");
       return;
     }
 
     try {
       await apiClient.put(`/users/${formData.id}`, {
-        full_name: formData.name,
+        full_name: trimmedName,
         email: formData.email
       });
+      updateUser({ name: trimmedName, email: formData.email });
       alert('Profile Updated Successfully!');
     } catch (err) {
       console.error(err);

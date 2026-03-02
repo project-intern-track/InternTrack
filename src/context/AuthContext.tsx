@@ -13,6 +13,7 @@ interface AuthContextType extends AuthState {
     verifySession: () => void;
     updatePassword: (newPassword: string, token: string, email: string) => Promise<{ error: string | null }>;
     clearPasswordRecovery: () => void;
+    updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -322,6 +323,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
     }, []);
 
+    const updateUser = useCallback((updates: Partial<User>) => {
+        setState((prev) => {
+            if (!prev.user) return prev;
+            return {
+                ...prev,
+                user: { ...prev.user, ...updates }
+            };
+        });
+    }, []);
+
     return (
         <AuthContext.Provider
             value={{
@@ -333,6 +344,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 updatePassword,
                 verifySession,
                 clearPasswordRecovery,
+                updateUser,
             }}
         >
             {children}

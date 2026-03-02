@@ -76,7 +76,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'id' => 'required|string', // Suppose UUID from some external auth if needed
             'email' => 'required|email|unique:users,email',
-            'full_name' => 'required|string',
+            'full_name' => ['required', 'string', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
             'role' => 'required|string',
             'avatar_url' => 'nullable|url',
         ]);
@@ -94,7 +94,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'email' => ['nullable', 'email', Rule::unique('users')->ignore($user->id)],
-            'full_name' => 'nullable|string',
+            'full_name' => ['nullable', 'string', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
             'role' => 'nullable|string',
             'status' => 'nullable|in:active,archived',
             'ojt_role' => 'nullable|string',
@@ -106,7 +106,7 @@ class UserController extends Controller
             // ... add other updatable fields as needed based on frontend sent payload
         ]);
 
-        unset($validated['current_password'], $validated['password_confirmation']);
+        unset($validated['current_password'], $validated['password_confirmation'], $validated['password']);
 
         $user->update($validated);
 
@@ -115,13 +115,33 @@ class UserController extends Controller
         if ($request->filled('password')) {
             // Verify Password if it matches database
             if (!\Hash::check($request->current_password, $user->password)) {
-                return response() -> json(['message'=> 'Current password does not match.'], 422);
+                return response()->json(['message'=> 'Current password does not match.'], 422);
+            }
+
+            if ($request->current_password === $request->password) {
+                return response()->json(['message' => 'New password cannot be the same as your current password.'], 422);
+            }
+
+            // Check if password was used before
+            $pastPasswords = \Illuminate\Support\Facades\DB::table('password_histories')
+                ->where('user_id', $user->id)
+                ->pluck('password');
+            foreach ($pastPasswords as $oldHash) {
+                if (\Illuminate\Support\Facades\Hash::check($request->password, $oldHash)) {
+                    return response()->json(['message' => 'You cannot use a password that has been used before.'], 422);
+                }
             }
 
             // If password Assigned then hash
             $user->password = $request->password;
             $user->save();
 
+            \Illuminate\Support\Facades\DB::table('password_histories')->insert([
+                'user_id' => $user->id,
+                'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
 
         // If the user was just archived, revoke all their Sanctum tokens

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
@@ -66,6 +67,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::put('/tasks/{id}/approve',           [TaskController::class, 'approve']);
     Route::put('/tasks/{id}/supervisor-reject', [TaskController::class, 'supervisorReject']);
     Route::put('/tasks/{id}/request-revision',  [TaskController::class, 'requestRevision']);
+
+    // Announcements
+    Route::get('/announcements',  [AnnouncementController::class, 'index']);
+    Route::post('/announcements', [AnnouncementController::class, 'store']);
 
     // Admin Report Endpoints
     Route::get('/reports/interns',              [ReportController::class, 'index']);

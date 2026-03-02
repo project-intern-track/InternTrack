@@ -98,6 +98,7 @@ const StudentDashboard: React.FC = () => {
 
   /* Track which card is hovered */
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
 
   const styles: Record<string, React.CSSProperties> = {
     container: {
@@ -214,11 +215,12 @@ const StudentDashboard: React.FC = () => {
       padding: '1.5rem',
       display: 'flex',
       flexDirection: 'column',
-      backgroundColor: '#F9F7F4', // Admin style match
+      backgroundColor: '#F9F7F4',
       borderRadius: '8px',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       border: '1px solid #e5e5e5',
-      flexShrink: 0
+      flexShrink: 0,
+      minHeight: '180px',
     },
   };
 
@@ -288,14 +290,30 @@ const StudentDashboard: React.FC = () => {
             </div>
           ) : (
             announcements.map((announcement) => (
-              <div key={announcement.id} style={styles.announcementCard}>
+              <div
+                key={announcement.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedAnnouncement(announcement)}
+                onKeyDown={(e) => e.key === 'Enter' && setSelectedAnnouncement(announcement)}
+                style={{ ...styles.announcementCard, cursor: 'pointer' }}
+              >
                 <div style={{ marginBottom: '1rem' }}>
                   <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1f2937' }}>
                     {announcement.title}
                   </h3>
                 </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <p style={{ margin: 0, color: '#4b5563', lineHeight: '1.5' }}>
+                <div style={{ marginBottom: '1rem', minHeight: '4.5rem', overflow: 'hidden' }}>
+                  <p style={{
+                    margin: 0,
+                    color: '#4b5563',
+                    lineHeight: 1.5,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical' as const,
+                  }}>
                     {announcement.content}
                   </p>
                 </div>
@@ -333,6 +351,65 @@ const StudentDashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Announcement Detail Modal */}
+      {selectedAnnouncement && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 1001,
+            backdropFilter: 'blur(2px)',
+          }}
+          onClick={() => setSelectedAnnouncement(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '12px',
+              padding: '2rem',
+              width: '100%',
+              maxWidth: '560px',
+              maxHeight: '90vh',
+              overflowX: 'hidden',
+              overflowY: 'auto',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ color: '#ff7a00', margin: '0 0 1rem', fontSize: '1.35rem', fontWeight: 700 }}>
+              {selectedAnnouncement.title}
+            </h2>
+            <p style={{ margin: '0 0 1.5rem', color: '#1f2937', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}>
+              {selectedAnnouncement.content}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>Priority:</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: getPriorityColor(selectedAnnouncement.priority) }} />
+                  <span style={{ fontWeight: 600, color: '#111827' }}>{getPriorityLabel(selectedAnnouncement.priority)}</span>
+                </div>
+              </div>
+              <div>
+                <span>Date Created: </span>
+                <span style={{ fontWeight: 600, color: '#111827' }}>{formatDate(selectedAnnouncement.created_at)}</span>
+              </div>
+            </div>
+            <div style={{ marginTop: '1.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setSelectedAnnouncement(null)}
+                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: '#ff7a00', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

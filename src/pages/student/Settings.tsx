@@ -11,7 +11,13 @@ const Settings = () => {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
-    email: ''
+    email: '',
+    role: '',
+    ojt_id: '',
+    start_date: '',
+    required_hours: '',
+    ojt_type: '',
+    status: '',
   });
 
   const [profileLoading, setProfileLoading] = useState(true);
@@ -42,7 +48,14 @@ const Settings = () => {
         setFormData({
           id: session.user.id,
           name: session.user.user_metadata.full_name || '',
-          email: session.user.email || ''
+          email: session.user.email || '',
+          role: session.user.user_metadata.role || '',
+          ojt_id: session.user.user_metadata.ojt_id || '',
+          start_date: session.user.user_metadata.start_date || '',
+          required_hours: session.user.user_metadata.required_hours || '',
+          ojt_type: session.user.user_metadata.ojt_type || '',
+          status: session.user.user_metadata.status || '',
+
         });
       } else if (error) {
         console.error("Fetch failed:", error);
@@ -237,10 +250,30 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>Account Type</label>
+              <label>Role</label>
               <input
                 type="text"
-                defaultValue="Supervisor"
+                defaultValue={formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+
+          <div>
+              <label>ID</label>
+              <input
+                type="text"
+                defaultValue={formData.ojt_id}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+
+            <div>
+              <label>Status</label>
+              <input
+                type="text"
+                defaultValue={formData.status}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />
@@ -261,10 +294,31 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>Date Created</label>
+              <label>OJT Type</label>
               <input
                 type="text"
-                defaultValue="January 15, 2026"
+                defaultValue={formData.ojt_type.charAt(0).toUpperCase() + formData.ojt_type.slice(1)}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+
+            <div>
+              <label>Date Started</label>
+              <input
+                type="text"
+                defaultValue={formData.start_date}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+
+
+            <div>
+              <label>Required Hours</label>
+              <input
+                type="text"
+                defaultValue={formData.required_hours}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />

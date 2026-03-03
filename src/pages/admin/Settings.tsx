@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { User, Eye, EyeOff } from 'lucide-react';
+import { User } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { apiClient } from '../../services/apiClient';
 import PageLoader from '../../components/PageLoader';
-import { useAuth } from '../../context/AuthContext';
+
 
 const Settings = () => {
-  const { updateUser } = useAuth();
   // PROFILE DATA (Unmasked)
   const [formData, setFormData] = useState({
     id: '',
     name: '',
-    email: ''
+    email: '',
+    role: '',
+    ojt_id: '',
+    start_date: '',
+    required_hours: '',
+    ojt_type: '',
+    status: '',
   });
 
   const [profileLoading, setProfileLoading] = useState(true);
@@ -23,16 +28,6 @@ const Settings = () => {
     newPasswordConfirmation: ''
   });
 
-  const [showPwd, setShowPwd] = useState({
-    current: false,
-    new: false,
-    confirm: false
-  });
-
-  const [profileErr, setProfileErr] = useState('');
-  const [pwdErr, setPwdErr] = useState('');
-  const [successPopup, setSuccessPopup] = useState('');
-
   // Load user data on mount
   useEffect(() => {
     const loadProfile = async () => {
@@ -42,7 +37,13 @@ const Settings = () => {
         setFormData({
           id: session.user.id,
           name: session.user.user_metadata.full_name || '',
-          email: session.user.email || ''
+          email: session.user.email || '',
+          role: session.user.user_metadata.role || '',
+          ojt_id: session.user.user_metadata.ojt_id || '',
+          start_date: session.user.user_metadata.start_date || '',
+          required_hours: session.user.user_metadata.required_hours || '',
+          ojt_type: session.user.user_metadata.ojt_type || '',
+          status: session.user.user_metadata.status || '',
         });
       } else if (error) {
         console.error("Fetch failed:", error);
@@ -55,12 +56,6 @@ const Settings = () => {
 
   // Handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.name === 'name') {
-      const val = e.target.value;
-      if (val.startsWith(' ')) return;
-      if (val.includes('  ')) return;
-      if (val !== '' && !/^[a-zA-Z\s]*$/.test(val)) return;
-    }
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -69,77 +64,39 @@ const Settings = () => {
   };
 
   const handleSave = async () => {
-    setProfileErr('');
     if (!formData.id) {
-      setProfileErr("Error: No User ID found. Please refresh the page.");
+      alert("Error: No User ID found. Please refresh the page.");
       return;
     }
-
-    const trimmedName = formData.name.trim();
 
     // Safety Check: Basic validation
-    if (trimmedName.length < 2) {
-      setProfileErr("Please enter a valid name.");
-      return;
-    }
-
-    if (!/^[a-zA-Z]+( [a-zA-Z]+)*$/.test(trimmedName)) {
-      setProfileErr("Full name can only contain alphabetic characters and single spaces.");
+    if (formData.name.trim().length < 2) {
+      alert("Please enter a valid name.");
       return;
     }
 
     try {
-
-      // Check if anything changed before making an update call
-      const isNameChanged = trimmedName !== formData.name;
-      const isEmailChanged = formData.email !== formData.email;
-
-      if (!isNameChanged && !isEmailChanged) {
-        console.log("No changes detected, skipping update.");
-        return;
-      }
-
-
       await apiClient.put(`/users/${formData.id}`, {
-        full_name: trimmedName,
+        full_name: formData.name,
         email: formData.email
       });
-      updateUser({ name: trimmedName, email: formData.email });
-      setSuccessPopup('Profile Updated Successfully!');
-      setTimeout(() => setSuccessPopup(''), 3000);
+      alert('Profile Updated Successfully!');
     } catch (err) {
       console.error(err);
-      setProfileErr('Update Failed. Please try again.');
+      alert('Update Failed');
     }
   };
 
   const handleUpdatePassword = async () => {
-      setPwdErr('');
       const { currentPassword, newPassword, newPasswordConfirmation } = passwordData;
 
       if (!currentPassword || !newPassword || !newPasswordConfirmation) {
-        setPwdErr("Please fill in all password fields.");
-        return;
-      }
-
-      if (currentPassword === newPassword) {
-        setPwdErr("New password cannot be the same as your current password.");
+        alert("Please fill in all password fields.");
         return;
       }
 
       if (newPassword !== newPasswordConfirmation) {
-        setPwdErr("New passwords do not match!");
-        return;
-      }
-
-      const missing = [];
-      if (newPassword.length < 8) missing.push('be at least 8 characters');
-      if (!/[A-Z]/.test(newPassword)) missing.push('contain a capital letter');
-      if (!/[0-9]/.test(newPassword)) missing.push('contain a number');
-      if (!/[^a-zA-Z0-9]/.test(newPassword)) missing.push('contain a special symbol');
-
-      if (missing.length > 0) {
-        setPwdErr('Password must: ' + missing.join(', '));
+        alert("New passwords do not match!");
         return;
       }
 
@@ -150,40 +107,17 @@ const Settings = () => {
           password_confirmation: newPasswordConfirmation,
         });
 
-        setSuccessPopup("Password updated successfully!");
-        setTimeout(() => setSuccessPopup(''), 3000);
+        alert("Password updated successfully!");
         setPasswordData({ currentPassword: '', newPassword: '', newPasswordConfirmation: '' });
       } catch (err: any) {
-        setPwdErr(err.response?.data?.message || "Update failed. Please try again.");
+        alert(err.response?.data?.message || "Update failed. The backend might not support password changes via this route.");
       }
     };
 
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem', position: 'relative' }}>
-      {successPopup && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '50%',
-          transform: 'translateX(50%)',
-          backgroundColor: '#ff8c42',
-          color: 'white',
-          padding: '1rem 2rem',
-          borderRadius: '0.5rem',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          fontWeight: 'bold'
-        }}>
-          {successPopup}
-          <button onClick={() => setSuccessPopup('')} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1.25rem' }}>&times;</button>
-        </div>
-      )}
-
+    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
         <div>
@@ -239,10 +173,30 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>Account Type</label>
+              <label>Role</label>
               <input
                 type="text"
-                defaultValue="Supervisor"
+                defaultValue={formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+
+          <div>
+              <label>ID</label>
+              <input
+                type="text"
+                defaultValue={formData.ojt_id}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+
+            <div>
+              <label>Status</label>
+              <input
+                type="text"
+                defaultValue={formData.status}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />
@@ -263,10 +217,31 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>Date Created</label>
+              <label>OJT Type</label>
               <input
                 type="text"
-                defaultValue="January 15, 2026"
+                defaultValue={formData.ojt_type.charAt(0).toUpperCase() + formData.ojt_type.slice(1)}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+
+            <div>
+              <label>Date Started</label>
+              <input
+                type="text"
+                defaultValue={formData.start_date}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
+
+
+            <div>
+              <label>Required Hours</label>
+              <input
+                type="text"
+                defaultValue={formData.required_hours}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />
@@ -274,8 +249,7 @@ const Settings = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '1.5rem', gap: '1rem' }}>
-          {profileErr && <span style={{ color: '#d9534f', fontSize: '0.875rem', fontWeight: 'bold' }}>{profileErr}</span>}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
           <button onClick={handleSave} style={primaryButtonStyle}>
             Save Changes
           </button>
@@ -300,69 +274,41 @@ const Settings = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
               <label>Current Password</label>
-              <div style={{ position: 'relative' }}>
-                <input 
-                  type={showPwd.current ? "text" : "password"} 
-                  name="currentPassword"
-                  value={passwordData.currentPassword}
-                  onChange={handlePasswordChange}
-                  style={{ ...inputStyle, paddingRight: '2.5rem' }} 
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPwd({ ...showPwd, current: !showPwd.current })}
-                  style={eyeButtonStyle}
-                >
-                  {showPwd.current ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
-                </button>
-              </div>
+              <input 
+                type="password" 
+                name="currentPassword"
+                value={passwordData.currentPassword}
+                onChange={handlePasswordChange}
+                style={inputStyle} 
+              />
             </div>
 
             <div>
               <label>New Password</label>
-              <div style={{ position: 'relative' }}>
-                <input 
-                  type={showPwd.new ? "text" : "password"} 
-                  name="newPassword"
-                  value={passwordData.newPassword}
-                  onChange={handlePasswordChange}
-                  style={{ ...inputStyle, paddingRight: '2.5rem' }} 
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPwd({ ...showPwd, new: !showPwd.new })}
-                  style={eyeButtonStyle}
-                >
-                  {showPwd.new ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
-                </button>
-              </div>
+              <input 
+                type="password" 
+                name="newPassword"
+                value={passwordData.newPassword}
+                onChange={handlePasswordChange}
+                style={inputStyle} 
+              />
             </div>
           </div>
 
           {/* RIGHT */}
           <div>
             <label>Confirm New Password</label>
-            <div style={{ position: 'relative' }}>
-              <input 
-                type={showPwd.confirm ? "text" : "password"} 
-                name="newPasswordConfirmation"
-                value={passwordData.newPasswordConfirmation}
-                onChange={handlePasswordChange}
-                style={{ ...inputStyle, paddingRight: '2.5rem' }} 
-              />
-              <button
-                type="button"
-                onClick={() => setShowPwd({ ...showPwd, confirm: !showPwd.confirm })}
-                style={eyeButtonStyle}
-              >
-                {showPwd.confirm ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
-              </button>
-            </div>
+            <input 
+              type="password" 
+              name="newPasswordConfirmation"
+              value={passwordData.newPasswordConfirmation}
+              onChange={handlePasswordChange}
+              style={inputStyle} 
+            />
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '1.5rem', gap: '1rem' }}>
-          {pwdErr && <span style={{ color: '#d9534f', fontSize: '0.875rem', fontWeight: 'bold' }}>{pwdErr}</span>}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
           <button onClick={handleUpdatePassword} style={primaryButtonStyle}>
             Update Password
           </button>
@@ -370,20 +316,6 @@ const Settings = () => {
       </div>
     </div>
   );
-};
-
-const eyeButtonStyle: React.CSSProperties = {
-  position: 'absolute',
-  right: '0.5rem',
-  top: '50%',
-  transform: 'translateY(-35%)',
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  padding: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
 };
 
 const inputStyle: React.CSSProperties = {

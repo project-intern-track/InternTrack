@@ -121,6 +121,17 @@ const Settings = () => {
         return;
       }
 
+      const missing = [];
+      if (newPassword.length < 8) missing.push('be at least 8 characters');
+      if (!/[A-Z]/.test(newPassword)) missing.push('contain a capital letter');
+      if (!/[0-9]/.test(newPassword)) missing.push('contain a number');
+      if (!/[^a-zA-Z0-9]/.test(newPassword)) missing.push('contain a special symbol');
+
+      if (missing.length > 0) {
+        setPwdErr('Password must: ' + missing.join(', '));
+        return;
+      }
+
       try {
         await apiClient.put(`/users/${formData.id}`, {
           current_password: currentPassword,

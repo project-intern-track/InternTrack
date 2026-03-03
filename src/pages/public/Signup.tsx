@@ -80,7 +80,7 @@ const Signup = () => {
                 if (!password) return 'Password is required.';
                 {
                     const missing = [];
-                    if (password.length < 6) missing.push('be at least 6 characters');
+                    if (password.length < 8) missing.push('be at least 8 characters');
                     if (!/[A-Z]/.test(password)) missing.push('contain a capital letter');
                     if (!/[0-9]/.test(password)) missing.push('contain a number');
                     if (!/[^a-zA-Z0-9]/.test(password)) missing.push('contain a special symbol');

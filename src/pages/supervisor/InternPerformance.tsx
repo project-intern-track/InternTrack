@@ -1,4 +1,6 @@
 
+import { motion } from 'framer-motion';
+
 type Intern = {
   id: string;
   name: string;
@@ -19,58 +21,79 @@ const interns: Intern[] = [
 
 const InternPerformance = () => {
   return (
-    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
+    <div className="max-w-[2000px] mx-auto p-4 space-y-6">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-4 mb-6"
+      >
         <div>
-          <h1 style={{ margin: 0, color: '#ff8c42' }}>Intern Performance</h1>
-          <p style={{ color: '#555', margin: 0 }}>
+          <h1 className="text-3xl font-bold text-primary dark:text-primary mb-1">
+            Intern Performance
+          </h1>
+          <p className="text-muted-foreground dark:text-gray-400">
             Overview of intern attendance, tasks, and performance metrics.
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Performance Table */}
-      <div style={{ overflowX: 'auto', borderRadius: '0.5rem', border: '1px solid #ccc' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead style={{ backgroundColor: '#f5f5f5' }}>
-            <tr>
-              <th style={{ padding: '0.75rem', textAlign: 'left' }}>Intern</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left' }}>Total Hours</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left' }}>Tasks Completed</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left' }}>Attendance %</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left' }}>Performance Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {interns.map(intern => (
-              <tr key={intern.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '0.75rem' }}>
-                  <strong>{intern.name}</strong>
-                  <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>{intern.email}</div>
-                </td>
-                <td style={{ padding: '0.75rem' }}>{intern.totalHours}</td>
-                <td style={{ padding: '0.75rem' }}>{intern.tasksCompleted}</td>
-                <td style={{ padding: '0.75rem' }}>{intern.attendancePercent}%</td>
-                <td style={{ padding: '0.75rem', textTransform: 'capitalize', fontWeight: 'bold', color: performanceColor(intern.performanceStatus) }}>
-                  {intern.performanceStatus}
-                </td>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] shadow-sm overflow-hidden"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-white/5">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Intern</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Total Hours</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Tasks Completed</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Attendance %</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Performance Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
+              {interns.map((intern, index) => (
+                <motion.tr
+                  key={intern.id}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15 + index * 0.05 }}
+                  className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="font-semibold text-gray-900 dark:text-white">{intern.name}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{intern.email}</div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{intern.totalHours}</td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{intern.tasksCompleted}</td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{intern.attendancePercent}%</td>
+                  <td className="px-6 py-4">
+                    <span className={`font-bold capitalize ${performanceColorClass(intern.performanceStatus)}`}>
+                      {intern.performanceStatus}
+                    </span>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </div>
   );
 };
 
 // Helper for performance status colors
-const performanceColor = (status: Intern['performanceStatus']) => {
+const performanceColorClass = (status: Intern['performanceStatus']) => {
   switch (status) {
-    case 'Excellent': return '#2ecc71';
-    case 'Good': return '#3498db';
-    case 'Average': return '#f39c12';
-    case 'Needs Improvement': return '#e74c3c';
+    case 'Excellent': return 'text-green-600 dark:text-green-400';
+    case 'Good': return 'text-blue-600 dark:text-blue-400';
+    case 'Average': return 'text-orange-600 dark:text-orange-400';
+    case 'Needs Improvement': return 'text-red-600 dark:text-red-400';
   }
 };
 

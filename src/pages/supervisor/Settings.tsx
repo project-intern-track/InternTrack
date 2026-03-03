@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { authService } from '../../services/authService';
 import { apiClient } from '../../services/apiClient';
 import PageLoader from '../../components/PageLoader';
@@ -104,181 +105,179 @@ const Settings = () => {
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem' }}>
+    <div className="max-w-[2000px] mx-auto p-4 space-y-6">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-4 mb-6"
+      >
         <div>
-          <h1 style={{ margin: 0, color: '#ff8c42' }}>Settings</h1>
-          <p style={{ margin: 0, color: '#555' }}>
+          <h1 className="text-3xl font-bold text-primary dark:text-primary mb-1">
+            Settings
+          </h1>
+          <p className="text-muted-foreground dark:text-gray-400">
             Manage your profile and account preferences.
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* PROFILE INFORMATION */}
-      <div style={{
-        border: '1px solid #ccc',
-        backgroundColor: '#e8ddd08e',
-        borderRadius: '0.5rem',
-        padding: '1.5rem',
-        marginBottom: '2rem',
-        textAlign: 'center'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Profile Information</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm text-center"
+      >
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+          Profile Information
+        </h2>
 
-        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-          <User
-            size={100}
-            color="#000000be"
-            strokeWidth={1.5}
-            style={{
-              borderRadius: '50%',
-              padding: '10px',
-              backgroundColor: '#fff',
-              border: '3px solid #000000b4',
-            }}
-          />
+        <div className="flex justify-center mb-8">
+          <div className="p-3 rounded-full bg-white border-[3px] border-gray-800 dark:border-gray-300">
+            <User 
+              size={100} 
+              className="text-gray-700 dark:text-gray-300" 
+              strokeWidth={1.5} 
+            />
+          </div>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '1.5rem',
-          textAlign: 'left'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
           {/* LEFT */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="space-y-4">
             <div>
-              <label>Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Full Name
+              </label>
               <input
                 name="name"
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                style={inputStyle}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
             </div>
 
             <div>
-              <label>Account Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Account Type
+              </label>
               <input
                 type="text"
                 defaultValue="Supervisor"
                 disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
             </div>
           </div>
 
           {/* RIGHT */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="space-y-4">
             <div>
-              <label>Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email Address
+              </label>
               <input
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                style={inputStyle}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
             </div>
 
             <div>
-              <label>Date Created</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date Created
+              </label>
               <input
                 type="text"
                 defaultValue="January 15, 2026"
                 disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-          <button onClick={handleSave} style={primaryButtonStyle}>
+        <div className="flex justify-end mt-6">
+          <button 
+            onClick={handleSave}
+            className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
+          >
             Save Changes
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* CHANGE PASSWORD */}
-      <div style={{
-        border: '1px solid #ccc',
-        borderRadius: '0.5rem',
-        backgroundColor: '#e8ddd08e',
-        padding: '1.5rem'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Change Password</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm"
+      >
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+          Change Password
+        </h2>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '1.5rem'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* LEFT */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="space-y-4">
             <div>
-              <label>Current Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Current Password
+              </label>
               <input 
                 type="password" 
                 name="currentPassword"
                 value={passwordData.currentPassword}
                 onChange={handlePasswordChange}
-                style={inputStyle} 
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
             </div>
 
             <div>
-              <label>New Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                New Password
+              </label>
               <input 
                 type="password" 
                 name="newPassword"
                 value={passwordData.newPassword}
                 onChange={handlePasswordChange}
-                style={inputStyle} 
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
             </div>
           </div>
 
           {/* RIGHT */}
           <div>
-            <label>Confirm New Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Confirm New Password
+            </label>
             <input 
               type="password" 
               name="newPasswordConfirmation"
               value={passwordData.newPasswordConfirmation}
               onChange={handlePasswordChange}
-              style={inputStyle} 
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
             />
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-          <button onClick={handleUpdatePassword} style={primaryButtonStyle}>
+        <div className="flex justify-end mt-6">
+          <button 
+            onClick={handleUpdatePassword}
+            className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
+          >
             Update Password
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.5rem',
-  borderRadius: '0.25rem',
-  border: '1px solid #ccc',
-  marginTop: '0.25rem'
-};
-
-const primaryButtonStyle: React.CSSProperties = {
-  padding: '0.5rem 1.25rem',
-  borderRadius: '0.25rem',
-  border: 'none',
-  backgroundColor: '#f87e32',
-  color: 'white',
-  cursor: 'pointer'
 };
 
 export default Settings;

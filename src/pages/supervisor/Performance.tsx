@@ -1,12 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { Star, ClipboardList, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../services/supabaseClient';
 import { useRealtime } from '../../hooks/useRealtime';
 import PageLoader from '../../components/PageLoader';
 
-const InternPerformance = () => {
+interface InternPerformanceRow {
+  id: string;
+  name: string;
+  completedTasks: number;
+}
+
+const Performance = () => {
   const { user } = useAuth();
-  const [interns, setInterns] = useState<any[]>([]);
+  const [interns, setInterns] = useState<InternPerformanceRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchInterns = useCallback(async () => {
@@ -15,7 +23,7 @@ const InternPerformance = () => {
     // Get all interns
     const { data: users, error } = await supabase
       .from('users')
-      .select('id, name, role')
+      .select('id, name, full_name, role')
       .eq('role', 'intern');
 
     if (error) return;
@@ -28,11 +36,16 @@ const InternPerformance = () => {
           .select('*', { count: 'exact' })
           .eq('assigned_to', intern.id)
           .eq('status', 'done');
-        return { ...intern, completedTasks: count || 0 };
+
+        return {
+          id: intern.id,
+          name: intern.full_name || intern.name || 'Unnamed Intern',
+          completedTasks: count || 0,
+        };
       })
     );
 
-    setInterns(results);
+    setInterns(results.sort((a, b) => b.completedTasks - a.completedTasks));
     setLoading(false);
   }, [user]);
 
@@ -45,21 +58,111 @@ const InternPerformance = () => {
 
   if (loading) return <PageLoader message="Loading performance data..." />;
 
-  return (
-    <div>
-      <h1>Intern Performance</h1>
-      {user && <p>Logged in as: <strong>{user.name || user.name}</strong></p>}
+  const topTasks = interns[0]?.completedTasks ?? 0;
+  const totalCompletedTasks = interns.reduce((sum, intern) => sum + intern.completedTasks, 0);
+  const averageCompletedTasks = interns.length > 0
+    ? Math.round(totalCompletedTasks / interns.length)
+    : 0;
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
-        {interns.map(intern => (
-          <div className="card" key={intern.id} style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: '0.5rem' }}>
-            <h3>{intern.name || intern.name}</h3>
-            <p>Completed Tasks: {intern.completedTasks}</p>
+  return (
+    <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="rounded-lg border border-border bg-card p-6"
+      >
+        <h1 className="text-2xl font-bold text-foreground md:text-3xl">Intern Performance</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Track completed tasks and identify top-performing interns.
+        </p>
+        {user && (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Signed in as <span className="font-semibold text-foreground">{user.name || 'Supervisor'}</span>
+          </p>
+        )}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.1 }}
+        className="grid grid-cols-1 gap-4 md:grid-cols-3"
+      >
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+            <Users size={16} /> Total Interns
           </div>
-        ))}
-      </div>
+          <p className="text-2xl font-bold text-foreground">{interns.length}</p>
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+            <ClipboardList size={16} /> Completed Tasks
+          </div>
+          <p className="text-2xl font-bold text-foreground">{totalCompletedTasks}</p>
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+            <Star size={16} /> Average per Intern
+          </div>
+          <p className="text-2xl font-bold text-foreground">{averageCompletedTasks}</p>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="rounded-lg border border-border bg-card p-6"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Intern Ranking</h2>
+          <span className="text-sm text-muted-foreground">Sorted by completed tasks</span>
+        </div>
+
+        <div className="space-y-3">
+          {interns.length === 0 && (
+            <p className="rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+              No intern performance data available.
+            </p>
+          )}
+
+          {interns.map((intern, index) => {
+            const progress = topTasks > 0 ? (intern.completedTasks / topTasks) * 100 : 0;
+
+            return (
+              <motion.div
+                key={intern.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.06 * index }}
+                className="rounded-md border border-border bg-background p-4"
+              >
+                <div className="mb-2 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium text-foreground">{intern.name}</p>
+                    <p className="text-xs text-muted-foreground">Rank #{index + 1}</p>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">{intern.completedTasks} tasks</p>
+                </div>
+
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.45, delay: 0.08 * index }}
+                    className="h-full rounded-full bg-primary"
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
     </div>
   );
 };
 
-export default InternPerformance;
+export default Performance;

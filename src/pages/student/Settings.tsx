@@ -89,6 +89,15 @@ const Settings = () => {
     }
 
     try {
+
+      // Check if anything changed before making an update call
+      const isNameChanged = trimmedName !== formData.name;
+      const isEmailChanged = formData.email !== formData.email;
+
+      if (!isNameChanged && !isEmailChanged) {
+        return;
+      }
+
       await apiClient.put(`/users/${formData.id}`, {
         full_name: trimmedName,
         email: formData.email

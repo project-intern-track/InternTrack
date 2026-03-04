@@ -13,11 +13,7 @@ const Settings = () => {
     name: '',
     email: '',
     role: '',
-    ojt_id: '',
-    start_date: '',
-    required_hours: '',
-    ojt_type: '',
-    status: '',
+    created_at: '',
   });
 
   const [profileLoading, setProfileLoading] = useState(true);
@@ -49,12 +45,8 @@ const Settings = () => {
           id: session.user.id,
           name: session.user.user_metadata.full_name || '',
           email: session.user.email || '',
-          role: session.user.user_metadata.role || '',
-          ojt_id: session.user.user_metadata.ojt_id || '',
-          start_date: session.user.user_metadata.start_date || '',
-          required_hours: session.user.user_metadata.required_hours || '',
-          ojt_type: session.user.user_metadata.ojt_type || '',
-          status: session.user.user_metadata.status || '',
+          role: session.user.user_metadata.role || 'supervisor',
+          created_at: session.user.created_at ? new Date(session.user.created_at).toLocaleDateString('en-US', {month: '2-digit', day: '2-digit', year: 'numeric'}) : '',
         });
       } else if (error) {
         console.error("Fetch failed:", error);
@@ -101,15 +93,6 @@ const Settings = () => {
     }
 
     try {
-
-      // Check if anything changed before making an update call
-      const isNameChanged = trimmedName !== formData.name;
-      const isEmailChanged = formData.email !== formData.email;
-
-      if (!isNameChanged && !isEmailChanged) {
-        return;
-      }
-
       await apiClient.put(`/users/${formData.id}`, {
         full_name: trimmedName,
         email: formData.email
@@ -249,30 +232,10 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>Role</label>
+              <label>Account Type</label>
               <input
                 type="text"
-                defaultValue={formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-          <div>
-              <label>ID</label>
-              <input
-                type="text"
-                defaultValue={formData.ojt_id}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-            <div>
-              <label>Status</label>
-              <input
-                type="text"
-                defaultValue={formData.status}
+                defaultValue={formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : 'Supervisor'}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />
@@ -293,31 +256,10 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>OJT Type</label>
+              <label>Date Created</label>
               <input
                 type="text"
-                defaultValue={formData.ojt_type.charAt(0).toUpperCase() + formData.ojt_type.slice(1)}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-            <div>
-              <label>Date Started</label>
-              <input
-                type="text"
-                defaultValue={formData.start_date}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-
-            <div>
-              <label>Required Hours</label>
-              <input
-                type="text"
-                defaultValue={formData.required_hours}
+                defaultValue={formData.created_at}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />

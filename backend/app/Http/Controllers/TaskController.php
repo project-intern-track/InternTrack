@@ -45,7 +45,7 @@ class TaskController extends Controller
             'description' => $validated['description'] ?? null,
             'due_date'    => $validated['due_date'],
             'priority'    => $validated['priority'],
-            'status'      => 'not_started',
+            'status'      => 'pending_approval',
             'created_by'  => $request->user()->id,
         ]);
 
@@ -109,6 +109,7 @@ class TaskController extends Controller
             ->update(['status' => 'overdue']);
 
         $tasks = $user->assignedTasks()
+            ->whereNotIn('status', ['pending_approval', 'needs_revision'])
             ->with('creator:id,full_name')
             ->orderByDesc('created_at')
             ->get()
@@ -169,16 +170,24 @@ class TaskController extends Controller
 
     /**
      * GET /api/tasks/supervisor
-     * Returns tasks pending approval for interns under this supervisor.
+     * Returns tasks that are in the supervisor review lifecycle.
+     *
+     * NOTE: For now this returns all such tasks regardless of which supervisor
+     * created them, so the feature works even before strict supervisor
+     * assignments are fully wired in the UI.
      */
     public function supervisorTasks(Request $request): JsonResponse
     {
-        $user = $request->user();
-
-        $internIds = User::where('supervisor_id', $user->id)->pluck('id');
-
-        $tasks = Task::whereHas('assignedInterns', fn($q) => $q->whereIn('users.id', $internIds))
-            ->where('status', 'pending_approval')
+        $tasks = Task::whereIn('status', [
+                'pending_approval', // For checking
+                'not_started',
+                'in_progress',
+                'pending',
+                'completed',
+                'needs_revision',
+                'rejected',
+                'overdue',
+            ])
             ->with(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name'])
             ->orderByDesc('created_at')
             ->get()
@@ -197,14 +206,8 @@ class TaskController extends Controller
 
         if ($task->status !== 'pending_approval') {
             return response()->json([
-                'error' => 'Only tasks with pending_approval status can be approved.',
+                'error' => 'Only tasks awaiting approval can be approved.',
             ], 422);
-        }
-
-        if (!$this->supervisorOwnsTask($request->user(), $task)) {
-            return response()->json([
-                'error' => 'You are not the supervisor for this task\'s assigned intern.',
-            ], 403);
         }
 
         $task->update([
@@ -236,12 +239,6 @@ class TaskController extends Controller
             ], 422);
         }
 
-        if (!$this->supervisorOwnsTask($request->user(), $task)) {
-            return response()->json([
-                'error' => 'You are not the supervisor for this task\'s assigned intern.',
-            ], 403);
-        }
-
         $task->update([
             'status'           => 'rejected',
             'rejection_reason' => $validated['rejection_reason'],
@@ -260,7 +257,7 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'revision_reason'   => 'required|string|min:1',
-            'revision_category' => 'required|string|in:Incomplete task details,Incorrect intern assignment,Deadline needs adjustment,Not aligned with objectives,Duplicate task',
+            'revision_category' => 'required|string|in:Incomplete task details,Incorrect intern assignment,Deadline needs adjustment,Not aligned with objectives,Duplicate task,Other',
         ]);
 
         $task = Task::with('assignedInterns')->findOrFail($id);
@@ -269,12 +266,6 @@ class TaskController extends Controller
             return response()->json([
                 'error' => 'Only tasks with pending_approval status can be sent for revision.',
             ], 422);
-        }
-
-        if (!$this->supervisorOwnsTask($request->user(), $task)) {
-            return response()->json([
-                'error' => 'You are not the supervisor for this task\'s assigned intern.',
-            ], 403);
         }
 
         $task->update([

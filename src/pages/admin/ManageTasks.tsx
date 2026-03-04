@@ -19,6 +19,166 @@ const TECH_STACK_CATEGORIES = [
     'UI/UX Design',
 ] as const;
 
+const TOOLS_PER_PAGE = 9;
+
+const TOOLS_BY_CATEGORY: Record<(typeof TECH_STACK_CATEGORIES)[number], string[]> = {
+    'Frontend Development': [
+        'HTML',
+        'CSS',
+        'JavaScript',
+        'React.js',
+        'Next.js',
+        'Vue.js',
+        'Angular',
+        'Typescript',
+        'Bootstrap',
+        'Tailwind CSS',
+    ],
+    'Backend Development': [
+        'Node.js',
+        'Express.js',
+        'Laravel',
+        'PHP',
+        'Django',
+        'Flask',
+        'Spring Boot',
+        'ASP.NET',
+    ],
+    'Database Management': [
+        'MySQL',
+        'PostgreSQL',
+        'MongoDB',
+        'Firebase',
+        'SQLite',
+        'Oracle DB',
+    ],
+    'API & Integration': [
+        'REST API',
+        'GraphQL',
+        'Postman',
+        'Swagger / OpenAPI',
+        'OAuth / Authentication',
+    ],
+    'DevOps & Deployment': [
+        'Git / Github',
+        'Docker',
+        'Kubernetes',
+        'Jenkins',
+        'Vercel',
+        'AWS',
+        'Azure',
+    ],
+    'Mobile Development': [
+        'React Native',
+        'Flutter',
+        'Android (Java)',
+        'Android (Kotlin)',
+        'Swift (iOS)',
+    ],
+    Testing: [
+        'Selenium',
+        'Jest',
+        'Mocha',
+        'Cypress',
+        'JUnit',
+    ],
+    'Project Management': [
+        'Jira',
+        'Trello',
+        'Asana',
+        'ClickUp',
+        'Monday.com',
+        'Notion',
+        'GitHub Projects',
+        'GitLab Boards',
+        'Scrum / Agile Methodology',
+        'Kanban',
+    ],
+    'UI/UX Design': [
+        'Figma',
+        'Adobe XD',
+        'Sketch',
+        'InVision',
+        'Hotjar',
+        'Maze',
+        'UserTesting',
+        'Zeplin',
+        'Miro',
+        'Notion',
+    ],
+    'All Category': [
+        'HTML',
+        'CSS',
+        'JavaScript',
+        'React.js',
+        'Next.js',
+        'Vue.js',
+        'Angular',
+        'Typescript',
+        'Bootstrap',
+        'Tailwind CSS',
+        'Node.js',
+        'Express.js',
+        'Laravel',
+        'PHP',
+        'Django',
+        'Flask',
+        'Spring Boot',
+        'ASP.NET',
+        'MySQL',
+        'PostgreSQL',
+        'MongoDB',
+        'Firebase',
+        'SQLite',
+        'Oracle DB',
+        'REST API',
+        'GraphQL',
+        'Postman',
+        'Swagger / OpenAPI',
+        'OAuth / Authentication',
+        'Git / Github',
+        'Docker',
+        'Kubernetes',
+        'Jenkins',
+        'Vercel',
+        'AWS',
+        'Azure',
+        'React Native',
+        'Flutter',
+        'Android (Java)',
+        'Android (Kotlin)',
+        'Swift (iOS)',
+        'Selenium',
+        'Jest',
+        'Mocha',
+        'Cypress',
+        'JUnit',
+        'Jira',
+        'Trello',
+        'Asana',
+        'ClickUp',
+        'Monday.com',
+        'Notion',
+        'GitHub Projects',
+        'GitLab Boards',
+        'Scrum / Agile Methodology',
+        'Kanban',
+        'Adobe Photoshop',
+        'Adobe Illustrator',
+        'Figma',
+        'Canva',
+        'GIMP',
+        'CorelDRAW',
+        'Sketch',
+        'InVision',
+        'Hotjar',
+        'Maze',
+        'UserTesting',
+        'Zeplin',
+        'Miro',
+    ],
+};
+
 const ManageTasks = () => {
     const [search, setSearch] = useState('');
     const [dueDateFilter, setDueDateFilter] = useState('All Due Date');
@@ -50,6 +210,8 @@ const ManageTasks = () => {
     const [isInternSearchFocused, setIsInternSearchFocused] = useState(false);
     const [assigning, setAssigning] = useState(false);
     const [editingTask, setEditingTask] = useState<Tasks | null>(null);
+    const [selectedTools, setSelectedTools] = useState<string[]>([]);
+    const [toolsPage, setToolsPage] = useState(1);
 
     const dateInputRef = useRef<HTMLInputElement>(null);
     const internSearchInputRef = useRef<HTMLInputElement>(null);
@@ -108,6 +270,12 @@ const ManageTasks = () => {
         setSelectedInterns(prev => prev.filter(i => i.id !== internId));
     };
 
+    const toggleToolSelection = (tool: string) => {
+        setSelectedTools(prev =>
+            prev.includes(tool) ? prev.filter(t => t !== tool) : [...prev, tool]
+        );
+    };
+
     const handleClear = () => {
         setEditingTask(null);
         setTaskTitle('');
@@ -120,6 +288,7 @@ const ManageTasks = () => {
         setSelectedInterns([]);
         setInternSearch('');
         setDueDateError('');
+        setSelectedTools([]);
     };
 
     const handleViewDetail = (task: Tasks) => setSelectedTask(task);
@@ -332,6 +501,35 @@ const ManageTasks = () => {
         return Array.from(dateSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
     }, [tasks]);
 
+    const availableTools = useMemo(() => {
+        const tools = TOOLS_BY_CATEGORY[techCategory] ?? [];
+        return Array.from(new Set(tools));
+    }, [techCategory]);
+
+    const toolsMaxPage = useMemo(
+        () => Math.max(1, Math.ceil(availableTools.length / TOOLS_PER_PAGE || 1)),
+        [availableTools.length]
+    );
+
+    // Reset or clamp tools pagination when category or tool list changes
+    useEffect(() => {
+        setToolsPage(1);
+    }, [techCategory]);
+
+    useEffect(() => {
+        if (availableTools.length === 0) {
+            setToolsPage(1);
+            return;
+        }
+        if (toolsPage > toolsMaxPage) {
+            setToolsPage(toolsMaxPage);
+        }
+    }, [availableTools.length, toolsMaxPage, toolsPage]);
+
+    const paginatedTools = useMemo(() => {
+        const start = (toolsPage - 1) * TOOLS_PER_PAGE;
+        return availableTools.slice(start, start + TOOLS_PER_PAGE);
+    }, [availableTools, toolsPage]);
 
     const filteredTasks = useMemo(() => {
         const filtered = tasks.filter(task => {
@@ -613,7 +811,7 @@ const ManageTasks = () => {
         {isModalOpen && (
                 <div className="modal-overlay" onClick={closeModal}>
                     <div className="modal create-task-modal"
-                        style={{ backgroundColor: '#e8ddd0', maxWidth: '900px', width: '100%', padding: '1.5rem', margin: '0.75rem', position: 'relative' }}
+                        style={{ backgroundColor: '#e8ddd0', maxWidth: '880px', width: '100%', padding: '1.25rem', margin: '0.75rem', position: 'relative' }}
                     onClick={(e) => e.stopPropagation()}
                 >
                         <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -623,7 +821,7 @@ const ManageTasks = () => {
                         </button>
                     </div>
 
-                        <div className="create-task-modal-content" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.05fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                        <div className="create-task-modal-content" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.05fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                         <div>
                                 <div style={{ marginBottom: '1rem' }}>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Task Title:</b></label>
@@ -718,8 +916,8 @@ const ManageTasks = () => {
                                     backgroundColor: '#fff',
                                     border: '1px solid hsl(var(--input))',
                                     borderRadius: 'var(--radius-md)',
-                                            minHeight: '100px',
-                                    padding: '1rem',
+                                            minHeight: '170px',
+                                    padding: '0.75rem',
                                     display: 'flex',
                                     flexDirection: 'column',
                                             gap: '0.5rem',
@@ -936,26 +1134,161 @@ const ManageTasks = () => {
                                 <div>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Tools &amp; Technologies:</b></label>
                                     <div
-                            style={{
-                                backgroundColor: '#fff',
+                                        style={{
+                                            backgroundColor: '#fff',
                                             border: '1px solid hsl(var(--input))',
-                                borderRadius: 'var(--radius-md)',
-                                            minHeight: '120px',
-                                            padding: '0.9rem',
-                                            display: 'block',
+                                            borderRadius: 'var(--radius-md)',
+                                            minHeight: '185px',
+                                            padding: '0.75rem 0.9rem',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.75rem',
                                         }}
                                     >
                                         <p
                                             style={{
                                                 color: 'hsl(var(--muted-foreground))',
-                                                fontSize: '0.95rem',
+                                                fontSize: '0.85rem',
                                                 margin: 0,
-                                                lineHeight: 1.6,
                                             }}
                                         >
-                                            List of tools and technologies with check boxes according to the selected
-                                            tech stack category will appear here
+                                            Showing tools for{' '}
+                                            <span style={{ fontWeight: 600, color: '#111827' }}>
+                                                {techCategory}
+                                            </span>
                                         </p>
+
+                                        {availableTools.length === 0 ? (
+                                            <p
+                                                style={{
+                                                    color: 'hsl(var(--muted-foreground))',
+                                                    fontSize: '0.9rem',
+                                                    margin: 0,
+                                                    fontStyle: 'italic',
+                                                }}
+                                            >
+                                                Select a tech stack category to view available tools and technologies.
+                                            </p>
+                                        ) : (
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    flex: 1,
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display: 'grid',
+                                                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                                                        gap: '0.5rem 1.25rem',
+                                                        flexGrow: 1,
+                                                        alignContent: 'flex-start',
+                                                    }}
+                                                >
+                                                    {paginatedTools.map((tool) => {
+                                                    const id = `tool-${tool.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+                                                    const checked = selectedTools.includes(tool);
+                                                    return (
+                                                        <label
+                                                            key={tool}
+                                                            htmlFor={id}
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '0.5rem',
+                                                                fontSize: '0.85rem',
+                                                                color: '#111827',
+                                                                cursor: 'pointer',
+                                                                userSelect: 'none',
+                                                            }}
+                                                        >
+                                                            <input
+                                                                id={id}
+                                                                type="checkbox"
+                                                                checked={checked}
+                                                                onChange={() => toggleToolSelection(tool)}
+                                                                style={{
+                                                                    width: '14px',
+                                                                    height: '14px',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            />
+                                                            <span>{tool}</span>
+                                                        </label>
+                                                    );
+                                                })}
+                                                </div>
+
+                                                {availableTools.length > TOOLS_PER_PAGE && (
+                                                    <div
+                                                        style={{
+                                                            marginTop: '0.75rem',
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            gap: '0.75rem',
+                                                            fontSize: '0.8rem',
+                                                        }}
+                                                    >
+                                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>
+                                                            {(() => {
+                                                                const start = (toolsPage - 1) * TOOLS_PER_PAGE + 1;
+                                                                const end = Math.min(toolsPage * TOOLS_PER_PAGE, availableTools.length);
+                                                                return `Showing ${start}-${end} of ${availableTools.length}`;
+                                                            })()}
+                                                        </span>
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '0.5rem',
+                                                            }}
+                                                        >
+                                                            {toolsPage > 1 && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setToolsPage((p) => Math.max(1, p - 1))}
+                                                                    style={{
+                                                                        padding: '0.3rem 0.9rem',
+                                                                        borderRadius: '999px',
+                                                                        border: 'none',
+                                                                        backgroundColor: 'hsl(var(--orange))',
+                                                                        color: '#fff',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '0.8rem',
+                                                                        fontWeight: 500,
+                                                                    }}
+                                                                >
+                                                                    Prev
+                                                                </button>
+                                                            )}
+                                                            <span style={{ color: 'hsl(var(--muted-foreground))' }}>
+                                                                Page {toolsPage} of {toolsMaxPage}
+                                                            </span>
+                                                            {toolsPage < toolsMaxPage && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setToolsPage((p) => Math.min(toolsMaxPage, p + 1))}
+                                                                    style={{
+                                                                        padding: '0.3rem 0.9rem',
+                                                                        borderRadius: '999px',
+                                                                        border: 'none',
+                                                                        backgroundColor: 'hsl(var(--orange))',
+                                                                        color: '#fff',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '0.8rem',
+                                                                        fontWeight: 500,
+                                                                    }}
+                                                                >
+                                                                    Next
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

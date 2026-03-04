@@ -357,6 +357,7 @@ const Settings = () => {
                   name="currentPassword"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
+                  autoComplete="new-password"
                   style={{ ...inputStyle, paddingRight: '2.5rem' }} 
                 />
                 <button

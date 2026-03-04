@@ -1,6 +1,6 @@
 // Aliases for database types
 export type UserRole = 'admin' | 'supervisor' | 'intern';
-export type TaskStatus = 'not_started' | 'in_progress' | 'pending' | 'completed' | 'rejected' | 'overdue';
+export type TaskStatus = 'not_started' | 'in_progress' | 'pending' | 'completed' | 'rejected' | 'overdue' | 'pending_approval' | 'needs_revision';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 export type OJTType = 'required' | 'voluntary';
@@ -41,6 +41,7 @@ export interface Tasks {
     priority: TaskPriority;
     status: TaskStatus;
     rejection_reason: string | null;
+    revision_category?: string | null;
     created_by: number;
     created_at: string;
     assigned_interns: TaskIntern[];

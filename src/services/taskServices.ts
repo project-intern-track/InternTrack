@@ -12,6 +12,26 @@ export const taskService = {
         return response.data.data;
     },
 
+    async getSupervisorTasks(signal?: AbortSignal): Promise<Tasks[]> {
+        const response = await apiClient.get<{ data: Tasks[] }>('/tasks/supervisor', { signal });
+        return response.data?.data ?? [];
+    },
+
+    async approveTask(id: number): Promise<Tasks> {
+        const response = await apiClient.put<{ data: Tasks }>(`/tasks/${id}/approve`);
+        return response.data.data;
+    },
+
+    async supervisorRejectTask(id: number, rejection_reason: string): Promise<Tasks> {
+        const response = await apiClient.put<{ data: Tasks }>(`/tasks/${id}/supervisor-reject`, { rejection_reason });
+        return response.data.data;
+    },
+
+    async requestRevisionTask(id: number, revision_reason: string, revision_category: string): Promise<Tasks> {
+        const response = await apiClient.put<{ data: Tasks }>(`/tasks/${id}/request-revision`, { revision_reason, revision_category });
+        return response.data.data;
+    },
+
     async createTask(payload: {
         title: string;
         description?: string;

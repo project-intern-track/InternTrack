@@ -49,6 +49,7 @@ const ManageTasks = () => {
     const [selectedInterns, setSelectedInterns] = useState<Users[]>([]);
     const [isInternSearchFocused, setIsInternSearchFocused] = useState(false);
     const [assigning, setAssigning] = useState(false);
+    const [editingTask, setEditingTask] = useState<Tasks | null>(null);
 
     const dateInputRef = useRef<HTMLInputElement>(null);
     const internSearchInputRef = useRef<HTMLInputElement>(null);
@@ -102,12 +103,13 @@ const ManageTasks = () => {
         setIsInternSearchFocused(false);
         internSearchInputRef.current?.blur();
     };
-
+    
     const handleInternRemove = (internId: string | number) => {
         setSelectedInterns(prev => prev.filter(i => i.id !== internId));
     };
 
     const handleClear = () => {
+        setEditingTask(null);
         setTaskTitle('');
         setTaskDescription('');
         setDueDate('');
@@ -132,6 +134,7 @@ const ManageTasks = () => {
         setRejectModalOpen(false);
         setRejectionReason('');
     };
+
 
     const handleReject = async () => {
         if (!selectedTask || !rejectionReason.trim()) return;
@@ -161,8 +164,8 @@ const ManageTasks = () => {
         try {
             if (!taskTitle.trim()) {
                 alert('Please provide a task title.');
-                return;
-            }
+                    return;
+                }
             if (!taskDescription.trim()) {
                 alert('Please provide a task description.');
                 return;
@@ -178,7 +181,7 @@ const ManageTasks = () => {
             if (!priority) {
                 alert('Please select a priority.');
                 return;
-            }
+                }
 
             // Prevent assigning tasks with a due date/time in the past
             const dueDateTimeString = `${dueDate}T${dueTime || '23:59'}:00`;
@@ -195,13 +198,24 @@ const ManageTasks = () => {
             setDueDateError('');
             setAssigning(true);
 
-            await taskService.createTask({
-                title: taskTitle,
-                description: taskDescription,
-                due_date: dueDateTimeString,
-                priority: priority as TaskPriority,
-                intern_ids: selectedInterns.map(i => Number(i.id)),
-            });
+            if (editingTask) {
+                await taskService.updateTask(editingTask.id, {
+                    title: taskTitle,
+                    description: taskDescription,
+                    due_date: dueDateTimeString,
+                    priority: priority as TaskPriority,
+                    status: 'pending_approval',
+                    intern_ids: selectedInterns.map(i => Number(i.id)),
+                });
+            } else {
+                await taskService.createTask({
+                    title: taskTitle,
+                    description: taskDescription,
+                    due_date: dueDateTimeString,
+                    priority: priority as TaskPriority,
+                    intern_ids: selectedInterns.map(i => Number(i.id)),
+                });
+            }
 
             // Refresh tasks without showing loading spinner (silent refresh)
             await fetchTasks(false);
@@ -220,6 +234,35 @@ const ManageTasks = () => {
         handleClear();
     };
 
+    const openCreateModal = () => {
+        handleClear();
+        setIsModalOpen(true);
+    };
+
+    const startEditTask = (task: Tasks) => {
+        setEditingTask(task);
+        setTaskTitle(task.title);
+        setTaskDescription(task.description ?? '');
+
+        const due = new Date(task.due_date);
+        if (!Number.isNaN(due.getTime())) {
+            const iso = due.toISOString();
+            const datePart = iso.slice(0, 10);
+            const timePart = iso.slice(11, 16);
+            setDueDate(datePart);
+            setDueTime(timePart);
+        } else {
+            setDueDate('');
+            setDueTime('');
+        }
+
+        const assignedIds = new Set(task.assigned_interns?.map(i => i.id));
+        const preselected = interns.filter(i => assignedIds.has(Number(i.id)));
+        setSelectedInterns(preselected);
+        setDueDateError('');
+        setIsModalOpen(true);
+    };
+
     const getPriorityStyle = (priority: string) => {
         switch (priority) {
             case 'low':    return { backgroundColor: '#95b6e1', color: '#082eae', borderColor: '#93c5fd' };
@@ -234,12 +277,14 @@ const ManageTasks = () => {
 
     const getStatusLabel = (status: TaskStatus) => {
         const map: Record<TaskStatus, string> = {
-            not_started: 'Not Started',
-            in_progress: 'In Progress',
-            pending:     'Pending',
-            completed:   'Completed',
-            rejected:    'Rejected',
-            overdue:     'Overdue',
+            pending_approval: 'For checking',
+            needs_revision:   'For revision',
+            not_started:      'Not Started',
+            in_progress:      'In Progress',
+            pending:          'Pending',
+            completed:        'Completed',
+            rejected:         'Rejected',
+            overdue:          'Overdue',
         };
         return map[status] ?? status;
     };
@@ -257,7 +302,10 @@ const ManageTasks = () => {
             case 'overdue':
                 return { backgroundColor: '#fee2e2', color: '#b91c1c', borderColor: '#fecaca' };
             case 'rejected':
-                // Needs Revision
+                return { backgroundColor: '#ffedd5', color: '#c2410c', borderColor: '#fed7aa' };
+            case 'pending_approval':
+                return { backgroundColor: '#e0e7ff', color: '#3730a3', borderColor: '#c7d2fe' };
+            case 'needs_revision':
                 return { backgroundColor: '#ffedd5', color: '#c2410c', borderColor: '#fed7aa' };
             default:
                 return { backgroundColor: '#e5e7eb', color: '#374151', borderColor: '#d1d5db' };
@@ -288,7 +336,7 @@ const ManageTasks = () => {
     const filteredTasks = useMemo(() => {
         const filtered = tasks.filter(task => {
             const searchLower = search.toLowerCase();
-            const matchesSearch = search === '' ||
+            const matchesSearch = search === '' || 
                 task.title.toLowerCase().includes(searchLower) ||
                 (task.description ?? '').toLowerCase().includes(searchLower);
 
@@ -328,13 +376,13 @@ const ManageTasks = () => {
 
     return (
         <div>
-            <style>{`
+         <style>{`
                 @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
                 input[type="datetime-local"]::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
-                input[type="datetime-local"]::-webkit-inner-spin-button,
+            input[type="datetime-local"]::-webkit-inner-spin-button,
                 input[type="datetime-local"]::-webkit-clear-button { display: none; -webkit-appearance: none; }
                 
                 /* Task Detail Modal Styles */
@@ -440,57 +488,59 @@ const ManageTasks = () => {
                     .task-detail-actions { flex-direction: column; }
                     .task-detail-actions button { width: 100%; }
                     .task-detail-modal { padding: 1.25rem; max-width: 95vw; }
-                }
-            `}</style>
+            }
+        `}</style>
 
-            <div className="row row-between" style={{ marginBottom: '2rem' }}>
-                <h1 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: '31px' }}>Manage Tasks</h1>
-                <button className="btn btn-primary" style={{ fontSize: '15px' }} onClick={() => setIsModalOpen(true)}>
-                    + Create Task
-                </button>
-            </div>
-
-            <div style={{ marginTop: '20px', marginBottom: '1.5rem' }}>
-                <div className="input-group" style={{ position: 'relative', width: '100%' }}>
+        <div className="row row-between" style={{ marginBottom: '2rem' }}>
+            <h1 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: '31px' }}>Manage Tasks</h1>
+            <button className="btn btn-primary" style={{ fontSize: '15px' }} onClick={openCreateModal}>
+                + Create Task
+            </button>
+        </div>
+                
+        <div style={{ marginTop: '20px', marginBottom: '1.5rem' }}>
+         <div className="input-group" style={{ position: 'relative', width: '100%' }}>
                     <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
                     <input type="text" className="input" placeholder="Search Task"
                         style={{ paddingLeft: '3rem', width: '100%', boxSizing: 'border-box' }}
                         value={search} onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
-            </div>
+            />
+         </div>
+        </div>
 
             <div className="row manage-tasks-filter-row" style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#f5f5dc', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <div className="manage-tasks-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Filter size={20} style={{ color: '#333' }} />
-                    <span style={{ fontWeight: 500, color: '#333' }}>Filters:</span>
-                </div>
+       <div className="manage-tasks-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+         <Filter size={20} style={{ color: '#333' }} />
+         <span style={{ fontWeight: 500, color: '#333' }}>Filters:</span>
+       </div>
                 <select className="select" style={{ backgroundColor: '#fff', border: '1px solid #ccc', minWidth: '150px' }}
                     value={dueDateFilter} onChange={(e) => setDueDateFilter(e.target.value)}>
-                    <option>All Due Date</option>
-                    <option>Today</option>
+            <option>All Due Date</option>
+            <option>Today</option>
                     {availableDueDates.map(date => <option key={date} value={date}>{date}</option>)}
-                </select>
+          </select>
                 <select className="select" style={{ backgroundColor: '#fff', border: '1px solid #ccc', minWidth: '150px' }}
                     value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
-                    <option>All Priority</option>
-                    <option>High</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                </select>
+            <option>All Priority</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
                 <select className="select" style={{ backgroundColor: '#fff', border: '1px solid #ccc', minWidth: '150px' }}
                     value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                    <option>All Status</option>
-                    <option>Not Started</option>
-                    <option>In Progress</option>
+            <option>All Status</option>
+                    <option>For checking</option>
+                    <option>For revision</option>
+            <option>Not Started</option>
+            <option>In Progress</option>
+            <option>Pending</option>
+            <option>Completed</option>
                     <option>Rejected</option>
-                    <option>Pending</option>
-                    <option>Completed</option>
                     <option>Overdue</option>
-                </select>
-            </div>
+          </select>
+        </div>
 
-            <div className="grid-3" style={{ marginTop: '2rem' }}>
+        <div className="grid-3" style={{ marginTop: '2rem' }}>
                 {isLoadingTasks && tasks.length === 0 ? (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', paddingTop: '3rem', paddingBottom: '3rem' }}>
                         <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid hsl(var(--orange))', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
@@ -498,12 +548,12 @@ const ManageTasks = () => {
                     </div>
                 ) : (
                     <>
-                        {filteredTasks.map((task) => {
-                            const priorityStyle = getPriorityStyle(task.priority);
+            {filteredTasks.map((task) => {
+                const priorityStyle = getPriorityStyle(task.priority);
                             const statusStyle = getStatusStyle(task.status);
-                            return (
+                return (
                                 <div key={task.id} className="card"
-                                    onClick={() => handleViewDetail(task)}
+                        onClick={() => handleViewDetail(task)}
                                     style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'pointer' }}
                                     onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)'; }}
                                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; }}
@@ -511,29 +561,29 @@ const ManageTasks = () => {
                                     <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
                                         <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#000', margin: 0, flex: 1 }}>{task.title}</h3>
                                         <div style={{ display: 'inline-block', padding: '0.375rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: `1px solid ${priorityStyle.borderColor}`, whiteSpace: 'nowrap', ...priorityStyle }}>
-                                            {getPriorityLabel(task.priority)}
-                                        </div>
-                                    </div>
+                                {getPriorityLabel(task.priority)}
+                            </div>
+                        </div>
                                     <p style={{ fontSize: '0.875rem', color: '#666', lineHeight: '1.5', marginBottom: '1.5rem', flex: 1 }}>
-                                        {task.description}
-                                    </p>
+                            {task.description}
+                        </p>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <span style={{ color: '#666' }}>Assigned to:</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: '#666' }}>Assigned to:</span>
                                             <span style={{ fontWeight: 600, color: '#000' }}>{task.assigned_interns_count} intern{task.assigned_interns_count !== 1 ? 's' : ''}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <span style={{ color: '#666' }}>Date Created:</span>
                                             <span style={{ fontWeight: 600, color: '#000' }}>{new Date(task.created_at).toLocaleDateString('en-US')}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <span style={{ color: '#666' }}>Due:</span>
                                             <span style={{ fontWeight: 600, color: '#000' }}>{new Date(task.due_date).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                                        </div>
+                            </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <span style={{ color: '#666' }}>Status:</span>
                                             <span
-                                                style={{
+                            style={{
                                                     display: 'inline-block',
                                                     padding: '0.25rem 0.75rem',
                                                     borderRadius: '999px',
@@ -549,179 +599,179 @@ const ManageTasks = () => {
                                         </div>
                                     </div>
                                     <button className="btn btn-primary" style={{ marginTop: 'auto', fontSize: '0.875rem' }}>View Details</button>
-                                </div>
-                            );
-                        })}
+                    </div>
+                );
+            })}
                         {filteredTasks.length === 0 && !isLoadingTasks && (
                             <p style={{ color: '#888', gridColumn: '1 / -1', textAlign: 'center', paddingTop: '2rem' }}>No tasks found.</p>
                         )}
                     </>
                 )}
-            </div>
+        </div>
 
             {/* Create Task Modal */}
-            {isModalOpen && (
+        {isModalOpen && (
                 <div className="modal-overlay" onClick={closeModal}>
                     <div className="modal create-task-modal"
                         style={{ backgroundColor: '#e8ddd0', maxWidth: '900px', width: '100%', padding: '1.5rem', margin: '0.75rem', position: 'relative' }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                    onClick={(e) => e.stopPropagation()}
+                >
                         <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h2 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Task Information</h2>
                             <button onClick={closeModal} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.5rem', display: 'flex', alignItems: 'center', color: '#666', borderRadius: '4px' }}>
-                                <X size={24} />
-                            </button>
-                        </div>
+                            <X size={24} />
+                        </button>
+                    </div>
 
                         <div className="create-task-modal-content" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.05fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                            <div>
+                        <div>
                                 <div style={{ marginBottom: '1rem' }}>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Task Title:</b></label>
-                                    <input
-                                        type="text"
-                                        className="input"
-                                        placeholder="Enter task title"
-                                        value={taskTitle}
-                                        onChange={(e) => setTaskTitle(e.target.value)}
-                                        style={{ backgroundColor: '#fff' }}
-                                    />
-                                </div>
+                                <input
+                                    type="text"
+                                    className="input"
+                                    placeholder="Enter task title"
+                                    value={taskTitle}
+                                    onChange={(e) => setTaskTitle(e.target.value)}
+                                    style={{ backgroundColor: '#fff' }}
+                                />
+                            </div>
                                 <div style={{ marginBottom: '1rem' }}>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Task Description:</b></label>
-                                    <textarea
-                                        className="input"
-                                        placeholder="Brief description of the task"
-                                        value={taskDescription}
-                                        onChange={(e) => setTaskDescription(e.target.value)}
+                                <textarea
+                                    className="input"
+                                    placeholder="Brief description of the task"
+                                    value={taskDescription}
+                                    onChange={(e) => setTaskDescription(e.target.value)}
                                         style={{ backgroundColor: '#fff', minHeight: '100px', resize: 'vertical' }}
-                                    />
-                                </div>
+                                />
+                            </div>
                                 <div style={{ marginBottom: '1rem', position: 'relative' }}>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Assign to Intern/s:</b></label>
-                                    <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-                                        <Search
-                                            size={20}
-                                            style={{
-                                                position: 'absolute',
-                                                left: '0.875rem',
-                                                top: '50%',
-                                                transform: 'translateY(-50%)',
-                                                color: 'hsl(var(--muted-foreground))',
-                                                pointerEvents: 'none',
+                                <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
+                                    <Search
+                                        size={20}
+                                        style={{
+                                            position: 'absolute',
+                                            left: '0.875rem',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            color: 'hsl(var(--muted-foreground))',
+                                            pointerEvents: 'none',
                                                 zIndex: 10,
-                                            }}
-                                        />
-                                        <input
-                                            ref={internSearchInputRef}
-                                            type="text"
-                                            className="input"
-                                            placeholder="Search interns by name"
-                                            value={internSearch}
+                                        }}
+                                    />
+                                    <input
+                                        ref={internSearchInputRef}
+                                        type="text"
+                                        className="input"
+                                        placeholder="Search interns by name"
+                                        value={internSearch}
                                             onChange={(e) => { setInternSearch(e.target.value); setIsInternSearchFocused(true); }}
-                                            onFocus={() => setIsInternSearchFocused(true)}
+                                        onFocus={() => setIsInternSearchFocused(true)}
                                             onBlur={() =>
-                                                setTimeout(() => {
+                                            setTimeout(() => {
                                                     if (!document.activeElement?.closest('.intern-dropdown')) setIsInternSearchFocused(false);
                                                 }, 200)
                                             }
                                             style={{ backgroundColor: '#fff', paddingLeft: '2.75rem' }}
                                         />
                                         {isInternSearchFocused && filteredInternOptions.length > 0 && (
-                                            <div
-                                                className="intern-dropdown"
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: '100%',
-                                                    left: 0,
-                                                    right: 0,
-                                                    zIndex: 1000,
-                                                    backgroundColor: '#fff',
-                                                    border: '1px solid hsl(var(--border))',
-                                                    borderRadius: 'var(--radius-md)',
+                                        <div 
+                                            className="intern-dropdown"
+                                            style={{
+                                                position: 'absolute',
+                                                top: '100%',
+                                                left: 0,
+                                                right: 0,
+                                                zIndex: 1000,
+                                                backgroundColor: '#fff',
+                                                border: '1px solid hsl(var(--border))',
+                                                borderRadius: 'var(--radius-md)',
                                                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                                                    maxHeight: '250px',
-                                                    overflowY: 'auto',
-                                                    marginTop: '0.25rem',
+                                                maxHeight: '250px',
+                                                overflowY: 'auto',
+                                                marginTop: '0.25rem',
                                                 }}
                                             >
                                                 {filteredInternOptions.map((intern) => (
                                                     <div
                                                         key={intern.id}
                                                         onMouseDown={(e) => { e.preventDefault(); handleInternSelect(intern); }}
-                                                        style={{
-                                                            padding: '0.75rem 1rem',
-                                                            cursor: 'pointer',
+                                                    style={{
+                                                        padding: '0.75rem 1rem',
+                                                        cursor: 'pointer',
                                                             borderBottom: '1px solid hsl(var(--border))',
                                                         }}
                                                         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'; }}
                                                         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                                                     >
                                                         {intern.full_name}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
                                     <div
                                         style={{
-                                            backgroundColor: '#fff',
-                                            border: '1px solid hsl(var(--input))',
-                                            borderRadius: 'var(--radius-md)',
+                                    backgroundColor: '#fff',
+                                    border: '1px solid hsl(var(--input))',
+                                    borderRadius: 'var(--radius-md)',
                                             minHeight: '100px',
-                                            padding: '1rem',
-                                            display: 'flex',
-                                            flexDirection: 'column',
+                                    padding: '1rem',
+                                    display: 'flex',
+                                    flexDirection: 'column',
                                             gap: '0.5rem',
                                         }}
                                     >
-                                        {selectedInterns.length === 0 ? (
+                                    {selectedInterns.length === 0 ? (
                                             <p
                                                 style={{
-                                                    color: 'hsl(var(--muted-foreground))',
-                                                    fontSize: '0.875rem',
-                                                    margin: 0,
+                                            color: 'hsl(var(--muted-foreground))',
+                                            fontSize: '0.875rem',
+                                            margin: 0,
                                                     fontStyle: 'italic',
                                                 }}
                                             >
-                                                List of selected interns will appear here
-                                            </p>
-                                        ) : (
-                                            selectedInterns.map((intern) => (
-                                                <div
+                                            List of selected interns will appear here
+                                        </p>
+                                    ) : (
+                                        selectedInterns.map((intern) => (
+                                            <div
                                                     key={intern.id}
-                                                    style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center',
-                                                        padding: '0.5rem 0.75rem',
-                                                        backgroundColor: 'hsl(var(--muted))',
-                                                        borderRadius: 'var(--radius-sm)',
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '0.5rem 0.75rem',
+                                                    backgroundColor: 'hsl(var(--muted))',
+                                                    borderRadius: 'var(--radius-sm)',
                                                         fontSize: '0.875rem',
+                                                }}
+                                            >
+                                                    <span>{intern.full_name}</span>
+                                                <button
+                                                        onClick={() => handleInternRemove(intern.id)}
+                                                    style={{
+                                                        background: 'transparent',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        padding: '0.25rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        color: 'hsl(var(--danger))',
+                                                            borderRadius: '4px',
                                                     }}
                                                 >
-                                                    <span>{intern.full_name}</span>
-                                                    <button
-                                                        onClick={() => handleInternRemove(intern.id)}
-                                                        style={{
-                                                            background: 'transparent',
-                                                            border: 'none',
-                                                            cursor: 'pointer',
-                                                            padding: '0.25rem',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            color: 'hsl(var(--danger))',
-                                                            borderRadius: '4px',
-                                                        }}
-                                                    >
-                                                        <X size={16} />
-                                                    </button>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
                             </div>
+                        </div>
+                    </div>
 
                             <div className="create-task-modal-bottom" style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
                                 <div style={{ marginBottom: '0.25rem' }}>
@@ -731,23 +781,23 @@ const ManageTasks = () => {
                                     </p>
                                 )}
                                 <label className="label" style={{ marginBottom: '0.5rem' }}><b>Due Date:</b></label>
-                                <div style={{ position: 'relative' }}>
-                                    <input
-                                        ref={dateInputRef}
-                                        type="datetime-local"
-                                        className="input"
-                                        value={dueDate && dueTime ? `${dueDate}T${dueTime}` : dueDate ? `${dueDate}T00:00` : ''}
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    ref={dateInputRef}
+                                    type="datetime-local"
+                                    className="input"
+                                    value={dueDate && dueTime ? `${dueDate}T${dueTime}` : dueDate ? `${dueDate}T00:00` : ''}
                                         min={new Date().toISOString().slice(0, 16)}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            if (value) {
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value) {
                                                 const [d, t] = value.split('T');
                                                 setDueDate(d || '');
                                                 setDueTime(t || '00:00');
-                                            } else {
-                                                setDueDate('');
-                                                setDueTime('');
-                                            }
+                                        } else {
+                                            setDueDate('');
+                                            setDueTime('');
+                                        }
                                             if (dueDateError) {
                                                 setDueDateError('');
                                             }
@@ -768,11 +818,11 @@ const ManageTasks = () => {
                                         <button
                                             type="button"
                                             onClick={() => setIsPriorityDropdownOpen((prev) => !prev)}
-                                            style={{
+                                    style={{ 
                                                 width: '100%',
                                                 borderRadius: 'var(--radius-md)',
                                                 border: '1px solid hsl(var(--input))',
-                                                backgroundColor: '#fff',
+                                        backgroundColor: '#fff',
                                                 padding: '0.55rem 0.9rem',
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -832,17 +882,17 @@ const ManageTasks = () => {
                                                     { value: 'medium', label: 'Medium Priority', color: '#eab308' },
                                                     { value: 'high', label: 'High Priority', color: '#f97373' },
                                                 ].map((opt) => (
-                                                    <button
+                                <button
                                                         key={opt.value}
-                                                        type="button"
-                                                        onClick={() => {
+                                    type="button"
+                                    onClick={() => {
                                                             setPriority(opt.value);
                                                             setIsPriorityDropdownOpen(false);
-                                                        }}
-                                                        style={{
+                                    }}
+                                    style={{
                                                             width: '100%',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
+                                        display: 'flex',
+                                        alignItems: 'center',
                                                             justifyContent: 'flex-start',
                                                             gap: '0.6rem',
                                                             padding: '0.5rem 0.9rem',
@@ -862,34 +912,34 @@ const ManageTasks = () => {
                                                             }}
                                                         />
                                                         <span style={{ fontWeight: 500 }}>{opt.label}</span>
-                                                    </button>
+                                </button>
                                                 ))}
-                                            </div>
+                            </div>
                                         )}
-                                    </div>
+                        </div>
                                 </div>
-                                <div>
+                        <div>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Tech Stack Category:</b></label>
-                                    <select
-                                        className="select"
+                            <select
+                                className="select"
                                         value={techCategory}
                                         onChange={(e) => setTechCategory(e.target.value as (typeof TECH_STACK_CATEGORIES)[number])}
-                                        style={{ backgroundColor: '#fff' }}
-                                    >
+                                style={{ backgroundColor: '#fff' }}
+                            >
                                         {TECH_STACK_CATEGORIES.map((category) => (
                                             <option key={category} value={category}>
                                                 {category}
                                             </option>
                                         ))}
-                                    </select>
-                                </div>
+                            </select>
+                        </div>
                                 <div>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Tools &amp; Technologies:</b></label>
                                     <div
-                                        style={{
-                                            backgroundColor: '#fff',
+                            style={{
+                                backgroundColor: '#fff',
                                             border: '1px solid hsl(var(--input))',
-                                            borderRadius: 'var(--radius-md)',
+                                borderRadius: 'var(--radius-md)',
                                             minHeight: '120px',
                                             padding: '0.9rem',
                                             display: 'block',
@@ -914,14 +964,14 @@ const ManageTasks = () => {
                         <div className="create-task-modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
                             <button onClick={handleClear}
                                 style={{ padding: '0.625rem 1.5rem', backgroundColor: '#fff', color: 'hsl(var(--orange))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: 500, fontSize: '0.875rem' }}>
-                                Clear
-                            </button>
-                            <button 
-                                onClick={handleAssign} 
-                                className="btn btn-primary" 
+                            Clear
+                        </button>
+                        <button
+                            onClick={handleAssign}
+                            className="btn btn-primary"
                                 disabled={!isFormValid || assigning}
-                                style={{ 
-                                    padding: '0.625rem 1.5rem', 
+                            style={{
+                                padding: '0.625rem 1.5rem',
                                     fontSize: '0.875rem',
                                     opacity: isFormValid && !assigning ? 1 : 0.5,
                                     cursor: isFormValid && !assigning ? 'pointer' : 'not-allowed',
@@ -931,14 +981,14 @@ const ManageTasks = () => {
                                 }}>
                                 {assigning && <Loader2 size={16} className="spinner" style={{ flexShrink: 0 }} />}
                                 {assigning ? 'Assigning...' : 'Assign'}
-                            </button>
-                        </div>
+                        </button>
                     </div>
                 </div>
-            )}
+            </div>
+        )}
 
             {/* Task Detail Modal */}
-            {selectedTask && (
+        {selectedTask && (
                 <div className="modal-overlay" onClick={closeViewDetail}>
                     <div className="modal task-detail-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="task-detail-header">
@@ -960,7 +1010,7 @@ const ManageTasks = () => {
                                 <span className="task-detail-info-label">Assigned To</span>
                                 <span className="task-detail-info-value">
                                     {selectedTask.assigned_interns?.map(i => i.full_name).join(', ') || `${selectedTask.assigned_interns_count} intern(s)`}
-                                </span>
+                        </span>
                             </div>
                             <div className="task-detail-info-item">
                                 <span className="task-detail-info-label">Due Date</span>
@@ -974,7 +1024,7 @@ const ManageTasks = () => {
                                 <span className="task-detail-info-label">Created By</span>
                                 <span className="task-detail-info-value">{selectedTask.creator?.full_name ?? '—'}</span>
                             </div>
-                        </div>
+                    </div>
 
                         {/* Show existing rejection reason if already rejected */}
                         {selectedTask.status === 'rejected' && selectedTask.rejection_reason && (
@@ -985,6 +1035,18 @@ const ManageTasks = () => {
                         )}
 
                         <div className="task-detail-actions">
+                            {(selectedTask.status === 'needs_revision' || selectedTask.status === 'rejected') && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        startEditTask(selectedTask);
+                                        closeViewDetail();
+                                    }}
+                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: '#2563eb', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                                >
+                                    Edit Task
+                                </button>
+                            )}
                             {selectedTask.status === 'completed' && (
                                 <button
                                     onClick={openRejectModal}
@@ -997,8 +1059,8 @@ const ManageTasks = () => {
                                 Close
                             </button>
                         </div>
+                        </div>
                     </div>
-                </div>
             )}
 
             {/* Reject Confirmation Modal */}
@@ -1023,18 +1085,18 @@ const ManageTasks = () => {
                             <button onClick={closeRejectModal} style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: '1px solid #ddd', backgroundColor: '#fff', fontWeight: 600, cursor: 'pointer' }}>
                                 Cancel
                             </button>
-                            <button
+                        <button 
                                 onClick={handleReject}
                                 disabled={rejecting || !rejectionReason.trim()}
                                 style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: rejectionReason.trim() ? '#dc2626' : '#fca5a5', color: '#fff', fontWeight: 700, cursor: rejectionReason.trim() ? 'pointer' : 'not-allowed', opacity: rejecting ? 0.7 : 1 }}
                             >
                                 {rejecting ? 'Rejecting…' : 'Confirm Reject'}
-                            </button>
-                        </div>
+                        </button>
                     </div>
                 </div>
-            )}
-        </div>
+            </div>
+        )}
+       </div>
     );
 };
 

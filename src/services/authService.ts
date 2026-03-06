@@ -85,6 +85,7 @@ export const authService = {
             const authUser: AuthUser = {
                 id: user.id.toString(),
                 email: user.email,
+                created_at: user.created_at || "",
                 user_metadata: {
                     role: user.role,
                     full_name: user.full_name,
@@ -159,6 +160,7 @@ export const authService = {
             const authUser: AuthUser = {
                 id: user.id.toString(),
                 email: user.email,
+                created_at: user.created_at || "",
                 user_metadata: {
                     role: user.role,
                     full_name: user.full_name,

@@ -177,7 +177,7 @@ const SupervisorDashboard = () => {
   });
 
   return (
-    <div className="space-y-6 p-4 md:p-8">
+    <div className="space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -243,41 +243,44 @@ const SupervisorDashboard = () => {
           transition={{ duration: 0.4, delay: 0.1 }}
           className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50 lg:col-span-2"
         >
-          <div className="flex items-center gap-3 border-b border-gray-200 px-8 py-6 dark:border-white/5">
+          <div className="flex items-center gap-3 border-b border-gray-200 px-6 py-5 dark:border-white/5">
             <ClipboardList className="text-primary" size={20} />
             <h2 className="text-xl font-black text-gray-800 dark:text-white">Pending Tasks</h2>
           </div>
-          <div className="overflow-x-auto px-8 py-6">
-            <table className="min-w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-white/5">
-                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern</th>
-                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task</th>
-                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Due Date</th>
-                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingTasks.map((task, index) => (
-                  <motion.tr
-                    key={`${task.intern}-${task.task}-${task.due_date}`}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.03 * index, duration: 0.25 }}
-                    className="border-b border-gray-100 last:border-none dark:border-white/5"
-                  >
-                    <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{task.intern}</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{task.task}</td>
-                    <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">{formatDueDate(task.due_date)}</td>
-                    <td className="py-3 pr-4">
-                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize ${statusStyles[task.status].pill}`}>
-                        {task.status}
-                      </span>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+          {/* overflow-x-auto + 0 horizontal padding so table scrolls freely on mobile */}
+          <div className="overflow-x-auto">
+            <div className="px-6 py-5">
+              <table className="w-full text-left text-sm" style={{ minWidth: '480px' }}>
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-white/5">
+                    <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '130px' }}>Intern</th>
+                    <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '140px' }}>Task</th>
+                    <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '100px' }}>Due Date</th>
+                    <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '130px' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingTasks.map((task, index) => (
+                    <motion.tr
+                      key={`${task.intern}-${task.task}-${task.due_date}`}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.03 * index, duration: 0.25 }}
+                      className="border-b border-gray-100 last:border-none dark:border-white/5"
+                    >
+                      <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">{task.intern}</td>
+                      <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">{task.task}</td>
+                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap">{formatDueDate(task.due_date)}</td>
+                      <td className="py-3">
+                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize whitespace-nowrap ${statusStyles[task.status].pill}`}>
+                          {task.status}
+                        </span>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </motion.div>
 

@@ -17,6 +17,7 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
+    created_at: '',
   });
 
   const [profileLoading, setProfileLoading] = useState(true);
@@ -44,6 +45,9 @@ const Settings = () => {
           required_hours: session.user.user_metadata.required_hours || '',
           ojt_type: session.user.user_metadata.ojt_type || '',
           status: session.user.user_metadata.status || '',
+          created_at: session.user.created_at
+            ? new Date(session.user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+            : '',
         });
       } else if (error) {
         console.error("Fetch failed:", error);
@@ -173,30 +177,10 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>Role</label>
+              <label>Account Type</label>
               <input
                 type="text"
-                defaultValue={formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-          <div>
-              <label>ID</label>
-              <input
-                type="text"
-                defaultValue={formData.ojt_id}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-            <div>
-              <label>Status</label>
-              <input
-                type="text"
-                defaultValue={formData.status}
+                value={formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />
@@ -217,31 +201,10 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>OJT Type</label>
+              <label>Date Created</label>
               <input
                 type="text"
-                defaultValue={formData.ojt_type.charAt(0).toUpperCase() + formData.ojt_type.slice(1)}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-            <div>
-              <label>Date Started</label>
-              <input
-                type="text"
-                defaultValue={formData.start_date}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-
-            <div>
-              <label>Required Hours</label>
-              <input
-                type="text"
-                defaultValue={formData.required_hours}
+                value={formData.created_at || '—'}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />

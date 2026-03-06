@@ -153,12 +153,12 @@ const Announcements = () => {
     return (
         <div className="container" style={{ maxWidth: '100%', padding: '0' }}>
             {/* Header */}
-            <div className="row row-between" style={{ marginBottom: '2rem' }}>
+            <div className="announcements-header" style={{ marginBottom: '2rem' }}>
                 <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Announcements</h1>
                 <button
                     className="btn btn-primary"
                     onClick={() => setIsModalOpen(true)}
-                    style={{ gap: '0.5rem', backgroundColor: '#ff8c42', border: 'none' }}
+                    style={{ gap: '0.5rem', backgroundColor: '#ff8c42', border: 'none', flexShrink: 0 }}
                 >
                     <Plus size={18} />
                     Create Announcement
@@ -166,34 +166,32 @@ const Announcements = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="row" style={{
+            <div className="announcements-filter-bar" style={{
                 marginBottom: '2rem',
                 border: '1px solid #e5e5e5',
                 borderRadius: '8px',
                 padding: '0.75rem',
                 backgroundColor: '#F9F7F4',
                 gap: '1rem',
-                alignItems: 'center',
-                flexWrap: 'wrap'
             }}>
-                <div className="input-group" style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                <div className="announcements-filter-search" style={{ position: 'relative' }}>
+                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', zIndex: 1 }} />
                     <input
                         type="text"
                         className="input"
-                        placeholder="Search by name or email"
+                        placeholder="Search announcements"
                         style={{ paddingLeft: '3rem', width: '100%' }}
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
 
-                <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                <div className="announcements-filter-label">
                     <Filter size={20} />
                     <span style={{ fontWeight: 600 }}>Filters:</span>
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '180px' }}>
+                <div className="announcements-filter-select">
                     <select
                         className="select"
                         style={{ width: '100%' }}
@@ -209,7 +207,7 @@ const Announcements = () => {
                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '150px' }}>
+                <div className="announcements-filter-select">
                     <select
                         className="select"
                         style={{ width: '100%' }}
@@ -225,95 +223,144 @@ const Announcements = () => {
                 </div>
             </div>
 
-            {/* Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-                {filteredAnnouncements.map((announcement) => (
-                    <div
-                        key={announcement.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setSelectedAnnouncement(announcement)}
-                        onKeyDown={(e) => e.key === 'Enter' && setSelectedAnnouncement(announcement)}
-                        className="card"
-                        style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '200px', backgroundColor: '#F9F7F4', cursor: 'pointer' }}
-                    >
-                        <div style={{ marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
-                                {announcement.title}
-                            </h3>
-                        </div>
-                <div style={{ flex: 1, marginBottom: '2rem', minHeight: '4.5rem', overflow: 'hidden' }}>
-                            <p style={{
-                                margin: 0,
-                                color: '#1f2937',
-                                lineHeight: 1.5,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: 'vertical' as const,
+            {/* Content Grid / Empty State */}
+            {filteredAnnouncements.length === 0 ? (
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4rem 1rem',
+                    textAlign: 'center',
+                    minHeight: '320px',
+                }}>
+                    {/* Icon illustration */}
+                    <div style={{
+                        width: '88px',
+                        height: '88px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #ff8c42 0%, #ffa726 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '1.5rem',
+                        boxShadow: '0 8px 24px rgba(255,140,66,0.25)',
+                    }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                    </div>
+
+                    {/* Heading */}
+                    <h2 style={{
+                        fontSize: '1.4rem',
+                        fontWeight: 700,
+                        color: '#111827',
+                        margin: '0 0 0.5rem',
+                    }}>
+                        {searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all'
+                            ? 'No matching announcements'
+                            : 'No announcements yet'}
+                    </h2>
+
+                    {/* Sub-text */}
+                    <p style={{
+                        fontSize: '0.9375rem',
+                        color: '#6b7280',
+                        maxWidth: '380px',
+                        margin: '0 0 1.75rem',
+                        lineHeight: 1.6,
+                    }}>
+                        {searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all'
+                            ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
+                            : 'Get started by creating your first announcement for your team.'}
+                    </p>
+
+                    {/* CTA — only shown when there are truly no announcements (not a filter miss) */}
+                    {!(searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all') && (
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => setIsModalOpen(true)}
+                            style={{ backgroundColor: '#ff8c42', border: 'none', gap: '0.5rem', padding: '0.625rem 1.5rem' }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Create Announcement
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: '1.5rem' }}>
+                    {filteredAnnouncements.map((announcement) => (
+                        <div
+                            key={announcement.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedAnnouncement(announcement)}
+                            onKeyDown={(e) => e.key === 'Enter' && setSelectedAnnouncement(announcement)}
+                            className="card"
+                            style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '200px', backgroundColor: '#F9F7F4', cursor: 'pointer' }}
+                        >
+                            <div style={{ marginBottom: '1rem' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
+                                    {announcement.title}
+                                </h3>
+                            </div>
+                    <div style={{ flex: 1, marginBottom: '2rem', minHeight: '4.5rem', overflow: 'hidden' }}>
+                                <p style={{
+                                    margin: 0,
+                                    color: '#1f2937',
+                                    lineHeight: 1.5,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical' as const,
+                                }}>
+                                    {announcement.content}
+                                </p>
+                            </div>
+                            <div className="announcement-card-footer" style={{
+                                fontSize: '0.875rem',
+                                color: '#6b7280',
+                                marginTop: 'auto'
                             }}>
-                                {announcement.content}
-                            </p>
-                        </div>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            fontSize: '0.875rem',
-                            color: '#6b7280',
-                            marginTop: 'auto'
-                        }}>
-                            <div className="row" style={{ gap: '0.5rem', alignItems: 'center' }}>
-                                <span>Priority:</span>
-                                <div className="row" style={{ alignItems: 'center', gap: '0.25rem' }}>
-                                    <div style={{
-                                        width: '10px',
-                                        height: '10px',
-                                        borderRadius: '50%',
-                                        backgroundColor: getPriorityColor(announcement.priority)
-                                    }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>Priority:</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                        <div style={{
+                                            width: '10px',
+                                            height: '10px',
+                                            borderRadius: '50%',
+                                            backgroundColor: getPriorityColor(announcement.priority)
+                                        }} />
+                                        <span style={{ fontWeight: 600, color: '#111827' }}>
+                                            {getPriorityLabel(announcement.priority)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>Date Created:</span>
                                     <span style={{ fontWeight: 600, color: '#111827' }}>
-                                        {getPriorityLabel(announcement.priority)}
+                                        {formatDate(announcement.created_at)}
                                     </span>
                                 </div>
                             </div>
-                            <div className="row" style={{ gap: '0.5rem' }}>
-                                <span>Date Created:</span>
-                                <span style={{ fontWeight: 600, color: '#111827' }}>
-                                    {formatDate(announcement.created_at)}
-                                </span>
-                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Detail Modal */}
             {selectedAnnouncement && (
                 <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        zIndex: 1001,
-                        backdropFilter: 'blur(2px)',
-                    }}
+                    className="announcement-modal-overlay"
                     onClick={() => setSelectedAnnouncement(null)}
                 >
                     <div
-                        style={{
-                            backgroundColor: '#fff',
-                            borderRadius: '12px',
-                            padding: '2rem',
-                            width: '100%',
-                            maxWidth: '560px',
-                            maxHeight: '90vh',
-                            overflowX: 'hidden',
-                            overflowY: 'auto',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                        }}
+                        className="announcement-modal-panel"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 style={{ color: '#ea580c', margin: '0 0 1rem', fontSize: '1.35rem', fontWeight: 700 }}>
@@ -338,7 +385,7 @@ const Announcements = () => {
                         <div style={{ marginTop: '1.5rem' }}>
                             <button
                                 type="button"
-                                className="btn btn-primary"
+                                className="btn btn-primary announcement-modal-btn"
                                 onClick={() => setSelectedAnnouncement(null)}
                                 style={{ backgroundColor: '#ff8c42', border: 'none' }}
                             >
@@ -351,27 +398,14 @@ const Announcements = () => {
 
             {/* Create Modal */}
             {isModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    backdropFilter: 'blur(2px)'
-                }}>
-                    <div style={{
-                        backgroundColor: '#e6ded6', // Beige background from image
-                        borderRadius: '12px',
-                        padding: '2rem',
-                        width: '100%',
-                        maxWidth: '500px',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
-                    }}>
+                <div
+                    className="announcement-modal-overlay"
+                    onClick={() => setIsModalOpen(false)}
+                >
+                    <div
+                        className="announcement-modal-create"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div style={{ marginBottom: '2rem' }}>
                             <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Announcement Information</h2>
                         </div>
@@ -381,7 +415,7 @@ const Announcements = () => {
                             <input
                                 type="text"
                                 className="input"
-                                placeholder="Enter task title" // Placeholder per image
+                                placeholder="Enter task title"
                                 value={formData.title}
                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
                                 style={{ width: '100%', backgroundColor: 'white' }}
@@ -392,14 +426,14 @@ const Announcements = () => {
                             <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Announcement Description:</label>
                             <textarea
                                 className="input"
-                                placeholder="Brief description of the task" // Placeholder per image
+                                placeholder="Brief description of the task"
                                 value={formData.content}
                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
                                 style={{ width: '100%', height: '120px', resize: 'none', backgroundColor: 'white', fontFamily: 'inherit' }}
                             />
                         </div>
 
-                        <div style={{ marginBottom: '3rem' }}>
+                        <div style={{ marginBottom: '2rem' }}>
                             <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Priority:</label>
                             <div style={{ position: 'relative' }}>
                                 <select
@@ -416,22 +450,22 @@ const Announcements = () => {
                             </div>
                         </div>
 
-                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
+                        <div className="announcement-modal-actions">
                             <button
-                                className="btn"
+                                className="btn announcement-modal-btn"
                                 onClick={() => {
                                     setFormData({ title: '', content: '', priority: 'low' });
-                                    setIsModalOpen(false); // Or separate 'Cancel' behavior
+                                    setIsModalOpen(false);
                                 }}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
+                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none' }}
                             >
                                 Clear
                             </button>
                             <button
-                                className="btn btn-primary"
+                                className="btn btn-primary announcement-modal-btn"
                                 onClick={handleCreate}
                                 disabled={submitting}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                                style={{ backgroundColor: '#ff8c42', border: 'none' }}
                             >
                                 {submitting ? <Loader2 className="spinner" size={18} /> : 'Announce'}
                             </button>

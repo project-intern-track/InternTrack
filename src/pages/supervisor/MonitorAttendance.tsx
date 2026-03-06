@@ -1,4 +1,5 @@
 import { UserCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface AttendanceRecord {
   id: string;
@@ -45,59 +46,79 @@ const sampleRecords: AttendanceRecord[] = [
 
 const MonitorAttendance = () => {
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <UserCheck size={28} />
-        <h1>Monitor Attendance</h1>
-      </div>
+    <div className="max-w-[2000px] mx-auto p-4 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-3 mb-6"
+      >
+        <UserCheck size={32} className="text-primary" />
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Monitor Attendance
+          </h1>
+          <p className="text-muted-foreground dark:text-gray-400 mt-1">
+            Track and manage intern attendance records.
+          </p>
+        </div>
+      </motion.div>
 
-      <p style={{ color: 'hsl(var(--muted-foreground))', marginBottom: '2rem' }}>
-        Track and manage intern attendance records.
-      </p>
-
-      <div className="card" style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>
-              <th style={{ padding: '0.75rem' }}>Intern</th>
-              <th style={{ padding: '0.75rem' }}>Date</th>
-              <th style={{ padding: '0.75rem' }}>Time In</th>
-              <th style={{ padding: '0.75rem' }}>Time Out</th>
-              <th style={{ padding: '0.75rem' }}>Hours</th>
-              <th style={{ padding: '0.75rem' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sampleRecords.map((record) => (
-              <tr key={record.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '0.75rem' }}>
-                  <strong>{record.user.full_name}</strong>
-                  <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>
-                    {record.user.email}
-                  </div>
-                </td>
-                <td style={{ padding: '0.75rem' }}>{record.date}</td>
-                <td style={{ padding: '0.75rem' }}>
-                  {record.time_in
-                    ? new Date(record.time_in).toLocaleTimeString()
-                    : '-'}
-                </td>
-                <td style={{ padding: '0.75rem' }}>
-                  {record.time_out
-                    ? new Date(record.time_out).toLocaleTimeString()
-                    : '-'}
-                </td>
-                <td style={{ padding: '0.75rem' }}>
-                  {record.total_hours ?? '-'}
-                </td>
-                <td style={{ padding: '0.75rem', textTransform: 'capitalize' }}>
-                  {record.status}
-                </td>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] shadow-sm overflow-hidden"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-white/5">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Intern</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Time In</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Time Out</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Hours</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
+              {sampleRecords.map((record, index) => (
+                <motion.tr
+                  key={record.id}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15 + index * 0.05 }}
+                  className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="font-semibold text-gray-900 dark:text-white">{record.user.full_name}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{record.user.email}</div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{record.date}</td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
+                    {record.time_in ? new Date(record.time_in).toLocaleTimeString() : '-'}
+                  </td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
+                    {record.time_out ? new Date(record.time_out).toLocaleTimeString() : '-'}
+                  </td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
+                    {record.total_hours ?? '-'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
+                      record.status === 'present' 
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                    }`}>
+                      {record.status}
+                    </span>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </div>
   );
 };

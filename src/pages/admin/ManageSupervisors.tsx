@@ -1,13 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-    Search,
-    Filter,
-    Pencil,
-    Archive,
-    Plus,
-    Loader2,
-    AlertTriangle
-} from 'lucide-react';
+import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2 } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -471,7 +463,7 @@ const ManageSupervisors = () => {
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
                     <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '440px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                            <AlertTriangle size={24} style={{ color: '#ea580c' }} />
+                            <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
                             <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
                                 {archiveTarget.status === 'active' ? 'Archive Supervisor' : 'Restore Supervisor'}
                             </h2>

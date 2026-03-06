@@ -1,13 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-    Search,
-    Filter,
-    Pencil,
-    Archive,
-    Plus,
-    Loader2,
-    AlertTriangle
-} from 'lucide-react';
+import { Archive, Filter, Loader2, Pencil, Plus, Search, AlertCircle } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -309,6 +301,7 @@ const ManageAdmins = () => {
                     <Filter size={20} /> <span style={{ fontWeight: 600 }}>Filters:</span>
                 </div>
                 <div className="filter-dropdown">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <select className="select" value={dateSort} onChange={(e) => setDateSort(e.target.value as 'newest' | 'oldest')}>
                         <option value="newest">Newest</option>
                         <option value="oldest">Oldest</option>
@@ -475,7 +468,7 @@ const ManageAdmins = () => {
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
                     <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '440px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                            <AlertTriangle size={24} style={{ color: '#ea580c' }} />
+                            <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
                             <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
                                 {archiveTarget.status === 'active' ? 'Archive Admin' : 'Restore Admin'}
                             </h2>

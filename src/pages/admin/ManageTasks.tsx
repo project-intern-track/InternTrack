@@ -1352,181 +1352,105 @@ const ManageTasks = () => {
             {selectedTask && (
                 <div className="modal-overlay" onClick={closeViewDetail}>
                     <div className="modal task-detail-modal" onClick={(e) => e.stopPropagation()}>
-                        {/* Header */}
-                        <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-start',
-                                marginBottom: '1.5rem',
-                            }}
-                        >
-                            <div>
-                                <div
-                                    style={{
-                                        fontSize: '0.8rem',
-                                        textTransform: 'none',
-                                        color: 'hsl(var(--orange))',
-                                        fontWeight: 700,
-                                        marginBottom: '0.35rem',
-                                    }}
-                                >
-                                    Task Information
-                                </div>
-                                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-                                    {selectedTask.title}
-                                </div>
-                                {/* Status / Priority and Dates row */}
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        gap: '3rem',
-                                        fontSize: '0.8rem',
-                                        color: '#111827',
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                                        <div>
-                                            <span style={{ fontWeight: 600 }}>Status:&nbsp;</span>
-                                            <span
-                                                style={{
-                                                    padding: '0.15rem 0.75rem',
-                                                    borderRadius: '999px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: 600,
-                                                    backgroundColor: getStatusStyle(selectedTask.status).backgroundColor,
-                                                    color: getStatusStyle(selectedTask.status).color,
-                                                    border: `1px solid ${getStatusStyle(selectedTask.status).borderColor}`,
-                                                }}
-                                            >
-                                                {getStatusLabel(selectedTask.status)}
-                                            </span>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                            <span style={{ fontWeight: 600 }}>Priority:&nbsp;</span>
-                                            <span
-                                                style={{
-                                                    width: 10,
-                                                    height: 10,
-                                                    borderRadius: '999px',
-                                                    backgroundColor:
-                                                        selectedTask.priority === 'high'
-                                                            ? '#f97373'
-                                                            : selectedTask.priority === 'medium'
-                                                                ? '#facc15'
-                                                                : '#4ade80',
-                                                    display: 'inline-block',
-                                                }}
-                                            />
-                                            <span>{getPriorityLabel(selectedTask.priority)}</span>
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                                        <div>
-                                            <span style={{ fontWeight: 600 }}>Date Created:&nbsp;</span>
-                                            <span>
-                                                {selectedTask.created_at
-                                                    ? new Date(selectedTask.created_at).toLocaleString()
-                                                    : '—'}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span style={{ fontWeight: 600 }}>Due:&nbsp;</span>
-                                            <span>{new Date(selectedTask.due_date).toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Close icon */}
+                        {/* Top-right close button */}
                         <button
+                            type="button"
                             onClick={closeViewDetail}
+                            aria-label="Close"
                             style={{
-                                backgroundColor: 'hsl(var(--orange))',
-                                color: '#fff',
+                                position: 'absolute',
+                                top: '1rem',
+                                right: '1rem',
+                                width: 36,
+                                height: 36,
                                 borderRadius: '999px',
                                 border: 'none',
-                                width: 28,
-                                height: 28,
+                                backgroundColor: 'hsl(var(--orange))',
+                                color: '#fff',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 cursor: 'pointer',
-                                fontWeight: 700,
-                                fontSize: '0.8rem',
                             }}
                         >
-                            ✕
+                            <X size={18} />
                         </button>
-                    </div>
 
-                    {/* Tech stack */}
-                    <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#111827' }}>
-                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Tech Stack:</div>
-                        <div style={{ color: 'hsl(var(--muted-foreground))' }}>Not set</div>
-                    </div>
-
-                    {/* Description */}
-                    <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#111827' }}>
-                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Task Description:</div>
-                        <p style={{ margin: 0, lineHeight: 1.5 }}>
-                            {selectedTask.description || 'No description provided.'}
-                        </p>
-                    </div>
-
-                    {/* Assigned list */}
-                    <div style={{ marginBottom: '1.25rem', fontSize: '0.875rem', color: '#111827' }}>
-                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Assigned to Intern/s:</div>
-                        {selectedTask.assigned_interns && selectedTask.assigned_interns.length > 0 ? (
-                            <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
-                                {selectedTask.assigned_interns.map(intern => (
-                                    <li key={intern.id}>{intern.full_name}</li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p
+                        {/* Header */}
+                        <div style={{ marginBottom: '1.5rem', paddingRight: '3rem' }}>
+                            <div
                                 style={{
-                                    margin: 0,
-                                    color: 'hsl(var(--muted-foreground))',
-                                }}
-                            >
-                                {selectedTask.assigned_interns_count > 0
-                                    ? `${selectedTask.assigned_interns_count} intern(s)`
-                                    : 'No interns assigned.'}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Existing rejection reason, if any */}
-                    {selectedTask.status === 'rejected' && selectedTask.rejection_reason && (
-                        <div className="task-detail-rejection-box">
-                            <span className="task-detail-rejection-label">Rejection Reason</span>
-                            <p className="task-detail-rejection-text">{selectedTask.rejection_reason}</p>
-                        </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="task-detail-actions">
-                        {selectedTask.status === 'needs_revision' && (
-                            <button
-                                onClick={closeViewDetail}
-                                style={{
-                                    backgroundColor: 'hsl(var(--orange))',
-                                    color: '#fff',
-                                    borderRadius: '999px',
-                                    border: 'none',
-                                    width: 28,
-                                    height: 28,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    fontWeight: 700,
                                     fontSize: '0.8rem',
+                                    textTransform: 'none',
+                                    color: 'hsl(var(--orange))',
+                                    fontWeight: 700,
+                                    marginBottom: '0.35rem',
                                 }}
                             >
-                                ✕
-                            </button>
+                                Task Information
+                            </div>
+                            <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+                                {selectedTask.title}
+                            </div>
+
+                            {/* Status / Priority and Dates row */}
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    gap: '3rem',
+                                    fontSize: '0.8rem',
+                                    color: '#111827',
+                                }}
+                            >
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                    <div>
+                                        <span style={{ fontWeight: 600 }}>Status:&nbsp;</span>
+                                        <span
+                                            style={{
+                                                padding: '0.15rem 0.75rem',
+                                                borderRadius: '999px',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                backgroundColor: getStatusStyle(selectedTask.status).backgroundColor,
+                                                color: getStatusStyle(selectedTask.status).color,
+                                                border: `1px solid ${getStatusStyle(selectedTask.status).borderColor}`,
+                                            }}
+                                        >
+                                            {getStatusLabel(selectedTask.status)}
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <span style={{ fontWeight: 600 }}>Priority:&nbsp;</span>
+                                        <span
+                                            style={{
+                                                width: 10,
+                                                height: 10,
+                                                borderRadius: '999px',
+                                                backgroundColor:
+                                                    selectedTask.priority === 'high'
+                                                        ? '#f97373'
+                                                        : selectedTask.priority === 'medium'
+                                                            ? '#facc15'
+                                                            : '#4ade80',
+                                                display: 'inline-block',
+                                            }}
+                                        />
+                                        <span>{getPriorityLabel(selectedTask.priority)}</span>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                    <div>
+                                        <span style={{ fontWeight: 600 }}>Date Created:&nbsp;</span>
+                                        <span>
+                                            {selectedTask.created_at ? new Date(selectedTask.created_at).toLocaleString() : '—'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span style={{ fontWeight: 600 }}>Due:&nbsp;</span>
+                                        <span>{new Date(selectedTask.due_date).toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Tech stack */}
@@ -1555,12 +1479,7 @@ const ManageTasks = () => {
                                     ))}
                                 </ul>
                             ) : (
-                                <p
-                                    style={{
-                                        margin: 0,
-                                        color: 'hsl(var(--muted-foreground))',
-                                    }}
-                                >
+                                <p style={{ margin: 0, color: 'hsl(var(--muted-foreground))' }}>
                                     {selectedTask.assigned_interns_count > 0
                                         ? `${selectedTask.assigned_interns_count} intern(s)`
                                         : 'No interns assigned.'}
@@ -1612,26 +1531,6 @@ const ManageTasks = () => {
                                     Edit Task
                                 </button>
                             )}
-
-                            {/*}
-                        {selectedTask.status === 'completed' && (
-                            <button
-                                onClick={openRejectModal}
-                                style={{
-                                    padding: '0.625rem 1.25rem',
-                                    borderRadius: '999px',
-                                    border: 'none',
-                                    backgroundColor: '#dc2626',
-                                    color: '#fff',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                }}
-                            >
-                                Reject Task
-                            </button>
-                        )}
-                        */}
 
                             {(selectedTask.status === 'needs_revision' || selectedTask.status === 'rejected' || selectedTask.status === 'completed') && (
                                 <button
@@ -1690,7 +1589,6 @@ const ManageTasks = () => {
                         </div>
                     </div>
                 </div>
-            </div>
         )}
             {toast.visible && (
                 <div style={{ ...toastStyles.container, ...(toast.type === 'error' ? toastStyles.error : toastStyles.success) }}>

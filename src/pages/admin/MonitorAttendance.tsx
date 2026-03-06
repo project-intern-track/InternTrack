@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { UserCheck, Search, Filter, ChevronDown } from 'lucide-react';
 import '../../index.css';
 
@@ -23,15 +23,28 @@ interface AttendanceStats {
 }
 
 const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // memoize today's date
+  const todayDate = useMemo(() => getTodayDate(), []);
+
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState(todayDate);
   const [loading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage] = useState(10);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
 
-  // sample data (loaded synchronously — no artificial delay)
+  // sample data
   useEffect(() => {
       const sampleData: AttendanceRecord[] = [
         {
@@ -145,7 +158,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             user: { full_name: 'Bronny James' },
           },
           {
-            id: '1',
+            id: '12',
             date: '2026-02-09',
             time_in: '2026-02-09T08:00:00',
             time_out: '2026-02-09T18:00:00',
@@ -155,7 +168,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             user: { full_name: 'Poison 13' },
           },
           {
-            id: '12',
+            id: '13',
             date: '2026-02-09',
             time_in: '2026-02-09T08:00:00',
             time_out: '2026-02-09T18:00:00',
@@ -165,7 +178,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             user: { full_name: 'Lanzeta Round3' },
           },
           {
-            id: '13',
+            id: '14',
             date: '2026-02-09',
             time_in: '2026-02-09T08:00:00',
             time_out: '2026-02-09T18:00:00',
@@ -179,33 +192,76 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   }, []);
 
  
-  const uniqueDates = Array.from(new Set(attendanceRecords.map((r) => r.date)))
-    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime()); // Sort descending (newest first)
 
-  //filter record
-  const seenKeys = new Set<string>();
-  const uniqueRecords = attendanceRecords.filter((record) => {
-    const key = `${record.id}-${record.date}`;
-    if (seenKeys.has(key)) {
-      return false; // Skip duplicate
+  // Filter and deduplicate records 
+  const uniqueRecords = useMemo(() => {
+    const seenKeys = new Set<string>();
+    return attendanceRecords.filter((record) => {
+      const key = `${record.id}-${record.date}`;
+      if (seenKeys.has(key)) {
+        return false; // Skip duplicate
+      }
+      seenKeys.add(key);
+      return true;
+    });
+  }, [attendanceRecords]);
+
+  const filteredRecords = useMemo(() => {
+    return uniqueRecords.filter((record) => {
+      const searchTermLower = searchTerm.trim().toLowerCase();
+      const matchesSearch = searchTermLower === '' || record.user.full_name.toLowerCase().includes(searchTermLower);
+      
+      const matchesStatus = statusFilter === 'all' || record.status.toLowerCase() === statusFilter.toLowerCase();
+      
+      //show all records
+      const matchesDate = dateFilter === 'all' || record.date.trim() === dateFilter.trim();
+
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [uniqueRecords, searchTerm, statusFilter, dateFilter]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, dateFilter]);
+
+  // Calculate pagination
+  const totalRecords = filteredRecords.length;
+  const totalPages = Math.max(1, Math.ceil(totalRecords / recordsPerPage));
+  // Ensure currentPage is within valid range
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * recordsPerPage;
+  const endIndex = startIndex + recordsPerPage;
+  const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+  
+  // Sync currentpage
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
     }
-    seenKeys.add(key);
-    return true;
-  });
+  }, [totalPages]); // Only depend on totalPages to avoid infinite loops
+  
+  // Pagination helpers
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+   
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+    }
+  };
 
-  const filteredRecords = uniqueRecords.filter((record) => {
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
 
-    const searchTermLower = searchTerm.trim().toLowerCase();
-    const matchesSearch = searchTermLower === '' || record.user.full_name.toLowerCase().includes(searchTermLower);
-    
-    const matchesStatus = statusFilter === 'all' || record.status.toLowerCase() === statusFilter.toLowerCase();
-    
-    // Date filter
-    const matchesDate = dateFilter === 'all' || record.date.trim() === dateFilter.trim();
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+    }
+  };
 
-    // All filters must match
-    return matchesSearch && matchesStatus && matchesDate;
-  });
 
   // Save scroll position
   useEffect(() => {
@@ -232,6 +288,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const completedRecords = attendanceRecords.filter((r) => r.status === 'completed');
   const totalCreditedHours = completedRecords.reduce((sum, r) => sum + (r.credited_hours || 0), 0);
   const completedRecordsCount = completedRecords.length;
+  
+  
   // Average hours per day = total credited hours ÷ number of completed records (each record = one person-day)
   const avgHoursPerDay = completedRecordsCount > 0 ? totalCreditedHours / completedRecordsCount : 0;
 
@@ -517,6 +575,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           .attendance-filter-selects > div {
             width: 100% !important;
             min-width: 100% !important;
+            flex-direction: column !important;
+            display: flex !important;
+            gap: 0.75rem !important;
           }
           
           .attendance-filter-selects select {
@@ -524,6 +585,23 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             min-width: 100% !important;
             font-size: 16px !important;
             padding: 0.75rem 2.5rem 0.75rem 0.875rem !important;
+          }
+          
+          .attendance-filter-selects input[type="date"] {
+            width: 100% !important;
+            min-width: 100% !important;
+            font-size: 16px !important;
+            padding: 0.75rem !important;
+            flex: none !important;
+          }
+          
+          .attendance-filter-selects button {
+            width: 100% !important;
+            padding: 0.75rem 1rem !important;
+            font-size: 0.875rem !important;
+            flex: none !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
           }
           
           .attendance-table-wrapper {
@@ -583,13 +661,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             text-align: right;
           }
           
-          .attendance-results-count {
-            margin-top: 1rem;
-            text-align: center !important;
-            font-size: 0.8125rem !important;
-            padding: 0.5rem 0;
-          }
-          
           .attendance-table-body-wrapper {
             max-height: calc(60vh - 1.5rem) !important;
           }
@@ -635,6 +706,16 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             padding: 0.875rem !important;
           }
           
+          .attendance-filter-selects input[type="date"] {
+            font-size: 16px !important;
+            padding: 0.625rem !important;
+          }
+          
+          .attendance-filter-selects button {
+            font-size: 0.8125rem !important;
+            padding: 0.625rem 0.875rem !important;
+          }
+          
           .attendance-mobile-record {
             padding: 0.875rem !important;
             margin-bottom: 0.75rem !important;
@@ -646,6 +727,134 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           
           .attendance-mobile-record-row {
             font-size: 0.8125rem !important;
+          }
+        }
+        
+        .attendance-pagination {
+          margin-top: 2rem;
+          padding: 1.25rem 1.5rem;
+          background-color: white;
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+        
+        .attendance-pagination-info {
+          color: hsl(var(--muted-foreground));
+          font-size: 0.875rem;
+          font-weight: 500;
+        }
+        
+        .attendance-pagination-controls {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+        
+        .attendance-pagination-page-indicator {
+          color: #1a1a1a;
+          font-size: 0.875rem;
+          font-weight: 500;
+          padding: 0 0.5rem;
+        }
+        
+        .attendance-pagination-button {
+          padding: 0.625rem 1.25rem;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: white;
+          background-color: hsl(var(--orange));
+          border: 2px solid hsl(var(--orange));
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          min-width: 80px;
+        }
+        
+        .attendance-pagination-button:hover:not(:disabled) {
+          background-color: hsl(var(--orange));
+          color: white;
+          opacity: 0.9;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .attendance-pagination-button:active:not(:disabled) {
+          background-color: hsl(var(--orange));
+          color: white;
+          transform: translateY(0);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .attendance-pagination-button:focus:not(:disabled) {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .attendance-pagination-button:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+          background-color: #f5f5f5;
+          color: #999;
+          border-color: #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+          .attendance-pagination {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+          }
+          
+          .attendance-pagination-info {
+            text-align: center;
+            font-size: 0.8125rem;
+            width: 100%;
+          }
+          
+          .attendance-pagination-controls {
+            width: 100%;
+            justify-content: space-between;
+            gap: 0.75rem;
+          }
+          
+          .attendance-pagination-page-indicator {
+            font-size: 0.8125rem;
+            flex: 1;
+            text-align: center;
+          }
+          
+          .attendance-pagination-button {
+            flex: 1;
+            min-width: auto;
+            padding: 0.625rem 1rem;
+            font-size: 0.8125rem;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .attendance-pagination {
+            margin-top: 1.25rem;
+            padding: 0.875rem;
+          }
+          
+          .attendance-pagination-info {
+            font-size: 0.75rem;
+          }
+          
+          .attendance-pagination-page-indicator {
+            font-size: 0.75rem;
+          }
+          
+          .attendance-pagination-button {
+            padding: 0.5rem 0.875rem;
+            font-size: 0.75rem;
           }
         }
       `}</style>
@@ -722,44 +931,73 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               />
             </div>
 
-            {/* Filter Label */}
+            {/* Filter label */}
             <div className="row attendance-filter-label" style={{ gap: '0.5rem', alignItems: 'center' }}>
               <Filter size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
               <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Filters:</span>
             </div>
 
-            {/* Filter Dropdowns */}
+            {/* Filter dropdown */}
             <div className="attendance-filter-selects" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <div style={{ position: 'relative', flex: '1', minWidth: '150px' }}>
-                <select
-                  className="select"
-                  value={dateFilter}
+              <div style={{ position: 'relative', flex: '1', minWidth: '200px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <label htmlFor="date-filter-input" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
+                  Filter by date
+                </label>
+                <input
+                  id="date-filter-input"
+                  type="date"
+                  className="input"
+                  value={dateFilter === 'all' ? '' : dateFilter}
                   onChange={(e) => {
                     if (scrollContainerRef.current) {
                       scrollPositionRef.current = scrollContainerRef.current.scrollTop;
                     }
-                    setDateFilter(e.target.value);
+                    setDateFilter(e.target.value || 'all');
                   }}
-                  style={{ width: '100%', backgroundColor: 'white', paddingRight: '2.5rem' }}
-                >
-                  <option value="all">All Date</option>
-                  {uniqueDates.map((date) => (
-                    <option key={date} value={date}>
-                      {formatDate(date)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={16}
-                  style={{
-                    position: 'absolute',
-                    right: '0.75rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    pointerEvents: 'none',
-                    color: 'hsl(var(--muted-foreground))',
+                  disabled={dateFilter === 'all'}
+                  aria-label="Select date to filter attendance records"
+                  aria-disabled={dateFilter === 'all'}
+                  style={{ 
+                    width: '100%', 
+                    backgroundColor: dateFilter === 'all' ? '#f5f5f5' : 'white',
+                    cursor: dateFilter === 'all' ? 'not-allowed' : 'text',
+                    flex: '1'
                   }}
                 />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (scrollContainerRef.current) {
+                      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+                    }
+                    setDateFilter(dateFilter === 'all' ? todayDate : 'all');
+                  }}
+                  aria-label={dateFilter === 'all' ? 'Show today\'s records' : 'Show all dates'}
+                  style={{
+                    padding: '0.625rem 1rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: dateFilter === 'all' ? 'white' : 'hsl(var(--orange))',
+                    backgroundColor: dateFilter === 'all' ? 'hsl(var(--orange))' : 'white',
+                    border: `2px solid hsl(var(--orange))`,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (dateFilter !== 'all') {
+                      e.currentTarget.style.backgroundColor = '#f5f5f5';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (dateFilter !== 'all') {
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
+                  }}
+                >
+                  {dateFilter === 'all' ? 'Show All Dates' : 'Clear Date'}
+                </button>
               </div>
 
               <div style={{ position: 'relative', flex: '1', minWidth: '150px' }}>
@@ -795,105 +1033,130 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           </div>
         </div>
 
-        {/* Attendance Table - Desktop */}
-        {loading ? (
-          <div className="attendance-empty-state" style={{ padding: '3rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>
-            Loading attendance records...
-          </div>
-        ) : filteredRecords.length === 0 ? (
-          <div className="attendance-empty-state" style={{ padding: '3rem', textAlign: 'center' }}>
-            <UserCheck size={48} style={{ color: 'hsl(var(--muted-foreground))', marginBottom: '1rem' }} />
-            <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '1rem' }}>
-              No attendance records found
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="attendance-table-wrapper">
-              {/* Fixed Header */}
-              <table className="attendance-table-header">
-                <thead>
-                  <tr>
-                    <th style={{ width: '20%' }}>NAME</th>
-                    <th style={{ width: '12%' }}>DATE</th>
-                    <th style={{ width: '12%' }}>TIME IN</th>
-                    <th style={{ width: '12%' }}>TIME OUT</th>
-                    <th style={{ width: '14%' }}>RENDERED HOURS</th>
-                    <th style={{ width: '14%' }}>CREDITED HOURS</th>
-                    <th style={{ width: '16%' }}>STATUS</th>
-                  </tr>
-                </thead>
-              </table>
-              
-              {/* Scrollable Body */}
-              <div className="attendance-table-body-wrapper" ref={scrollContainerRef}>
-                <table className="attendance-table-body">
-                  <tbody>
-                    {filteredRecords.map((record, index) => (
-                      <tr key={`${record.id}-${record.date}-${index}`}>
-                        <td style={{ width: '20%' }}>
-                          <strong>{record.user.full_name}</strong>
-                        </td>
-                        <td style={{ width: '12%' }}>{formatDate(record.date)}</td>
-                        <td style={{ width: '12%' }}>{formatTime(record.time_in)}</td>
-                        <td style={{ width: '12%' }}>{formatTime(record.time_out)}</td>
-                        <td style={{ width: '14%' }}>{formatHours(record.rendered_hours)}</td>
-                        <td style={{ width: '14%' }}>{formatHours(record.credited_hours)}</td>
-                        <td style={{ width: '16%' }}>{getStatusBadge(record.status)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+        <div>
+          
+          {/* Attendance Table - Desktop */}
+          {loading ? (
+            <div className="attendance-empty-state" style={{ padding: '3rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>
+              Loading attendance records...
             </div>
+          ) : filteredRecords.length === 0 ? (
+            <div className="attendance-empty-state" style={{ padding: '3rem', textAlign: 'center' }}>
+              <UserCheck size={48} style={{ color: 'hsl(var(--muted-foreground))', marginBottom: '1rem' }} />
+              <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '1rem' }}>
+                {dateFilter === 'all'
+                  ? 'No attendance records found'
+                  : dateFilter === todayDate
+                  ? `No attendance records found for today (${formatDate(todayDate)})`
+                  : `No attendance records found for the selected date (${formatDate(dateFilter)})`}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="attendance-table-wrapper">
+                {/* Fixed Header */}
+                <table className="attendance-table-header">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '20%' }}>NAME</th>
+                      <th style={{ width: '12%' }}>DATE</th>
+                      <th style={{ width: '12%' }}>TIME IN</th>
+                      <th style={{ width: '12%' }}>TIME OUT</th>
+                      <th style={{ width: '14%' }}>RENDERED HOURS</th>
+                      <th style={{ width: '14%' }}>CREDITED HOURS</th>
+                      <th style={{ width: '16%' }}>STATUS</th>
+                    </tr>
+                  </thead>
+                </table>
+                
+                {/* Scrollable Body */}
+                <div className="attendance-table-body-wrapper" ref={scrollContainerRef}>
+                  <table className="attendance-table-body">
+                    <tbody>
+                      {paginatedRecords.map((record, index) => (
+                        <tr key={`${record.id}-${record.date}-${index}`}>
+                          <td style={{ width: '20%' }}>
+                            <strong>{record.user.full_name}</strong>
+                          </td>
+                          <td style={{ width: '12%' }}>{formatDate(record.date)}</td>
+                          <td style={{ width: '12%' }}>{formatTime(record.time_in)}</td>
+                          <td style={{ width: '12%' }}>{formatTime(record.time_out)}</td>
+                          <td style={{ width: '14%' }}>{formatHours(record.rendered_hours)}</td>
+                          <td style={{ width: '14%' }}>{formatHours(record.credited_hours)}</td>
+                          <td style={{ width: '16%' }}>{getStatusBadge(record.status)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-            {/* Mobile Card View */}
-            <div className="attendance-mobile-card">
-              {filteredRecords.map((record, index) => (
-                <div key={`${record.id}-${record.date}-${index}`} className="attendance-mobile-record">
-                  <div className="attendance-mobile-record-header">
-                    <div className="attendance-mobile-record-name">{record.user.full_name}</div>
-                    <div>{getStatusBadge(record.status)}</div>
+              {/* Mobile Card View */}
+              <div className="attendance-mobile-card">
+                {paginatedRecords.map((record, index) => (
+                  <div key={`${record.id}-${record.date}-${index}`} className="attendance-mobile-record">
+                    <div className="attendance-mobile-record-header">
+                      <div className="attendance-mobile-record-name">{record.user.full_name}</div>
+                      <div>{getStatusBadge(record.status)}</div>
+                    </div>
+                    <div className="attendance-mobile-record-details">
+                      <div className="attendance-mobile-record-row">
+                        <span className="attendance-mobile-record-label">Date</span>
+                        <span className="attendance-mobile-record-value">{formatDate(record.date)}</span>
+                      </div>
+                      <div className="attendance-mobile-record-row">
+                        <span className="attendance-mobile-record-label">Time In</span>
+                        <span className="attendance-mobile-record-value">{formatTime(record.time_in)}</span>
+                      </div>
+                      <div className="attendance-mobile-record-row">
+                        <span className="attendance-mobile-record-label">Time Out</span>
+                        <span className="attendance-mobile-record-value">{formatTime(record.time_out)}</span>
+                      </div>
+                      <div className="attendance-mobile-record-row">
+                        <span className="attendance-mobile-record-label">Rendered Hours</span>
+                        <span className="attendance-mobile-record-value">{formatHours(record.rendered_hours)}</span>
+                      </div>
+                      <div className="attendance-mobile-record-row">
+                        <span className="attendance-mobile-record-label">Credited Hours</span>
+                        <span className="attendance-mobile-record-value">{formatHours(record.credited_hours)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="attendance-mobile-record-details">
-                    <div className="attendance-mobile-record-row">
-                      <span className="attendance-mobile-record-label">Date</span>
-                      <span className="attendance-mobile-record-value">{formatDate(record.date)}</span>
+                ))}
+              </div>
+
+              {/* Pagination Component */}
+              {totalRecords > 0 && (
+                <div className="attendance-pagination">
+                  <div className="attendance-pagination-info">
+                    Showing {startIndex + 1}–{Math.min(endIndex, totalRecords)} of {totalRecords} records
+                  </div>
+                  <div className="attendance-pagination-controls">
+                    <button
+                      className="attendance-pagination-button attendance-pagination-prev"
+                      onClick={handlePrevPage}
+                      disabled={safeCurrentPage === 1}
+                      aria-label="Previous page"
+                    >
+                      Prev
+                    </button>
+                    <div className="attendance-pagination-page-indicator">
+                      Page {safeCurrentPage} of {totalPages}
                     </div>
-                    <div className="attendance-mobile-record-row">
-                      <span className="attendance-mobile-record-label">Time In</span>
-                      <span className="attendance-mobile-record-value">{formatTime(record.time_in)}</span>
-                    </div>
-                    <div className="attendance-mobile-record-row">
-                      <span className="attendance-mobile-record-label">Time Out</span>
-                      <span className="attendance-mobile-record-value">{formatTime(record.time_out)}</span>
-                    </div>
-                    <div className="attendance-mobile-record-row">
-                      <span className="attendance-mobile-record-label">Rendered Hours</span>
-                      <span className="attendance-mobile-record-value">{formatHours(record.rendered_hours)}</span>
-                    </div>
-                    <div className="attendance-mobile-record-row">
-                      <span className="attendance-mobile-record-label">Credited Hours</span>
-                      <span className="attendance-mobile-record-value">{formatHours(record.credited_hours)}</span>
-                    </div>
+                    <button
+                      className="attendance-pagination-button attendance-pagination-next"
+                      onClick={handleNextPage}
+                      disabled={safeCurrentPage === totalPages}
+                      aria-label="Next page"
+                    >
+                      Next
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Results Count */}
-        {!loading && filteredRecords.length > 0 && (
-          <div className="attendance-results-count" style={{
-            marginTop: '1rem',
-            textAlign: 'right',
-            color: 'hsl(var(--muted-foreground))',
-            fontSize: '0.875rem',
-          }}>
-            Showing {filteredRecords.length} of {attendanceRecords.length} records
-          </div>
-        )}
+              )}
+            </>
+          )}
+        </div>
       </div>
     </>
   );

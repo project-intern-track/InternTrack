@@ -73,6 +73,12 @@ class TaskController extends Controller
     {
         $task = Task::findOrFail($id);
 
+        if ($task->status === 'rejected') {
+            return response()->json([
+                'error' => 'Rejected tasks cannot be edited or resubmitted.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'title'        => 'sometimes|string|max:255',
             'description'  => 'sometimes|nullable|string',

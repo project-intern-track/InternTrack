@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2 } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
+import SearchableSelect from '../../components/SearchableSelect';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
@@ -430,14 +431,20 @@ const ManageSupervisors = () => {
                         <h2 style={{ color: '#ea580c' }}>{confirmationStep ? 'Confirm Supervisor Addition' : 'Add New Supervisor'}</h2>
                         {!confirmationStep ? (
                             <div>
-                                <label>Select Intern:</label>
-                                <select className="select" style={{ width: '100%' }} value={selectedInternId} onChange={(e) => setSelectedInternId(e.target.value)} disabled={loadingInterns}>
-                                    <option value="">-- Choose an intern --</option>
-                                    {eligibleInterns.map(intern => (
-                                        <option key={intern.id} value={intern.id}>{intern.full_name} ({intern.email})</option>
-                                    ))}
-                                </select>
-                                {loadingInterns && <span style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>Loading eligible users...</span>}
+                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Select Intern:</label>
+                                {loadingInterns ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666', fontSize: '0.875rem', padding: '0.625rem 0' }}>
+                                        <Loader2 size={16} className="spinner" /> Loading eligible users...
+                                    </div>
+                                ) : (
+                                    <SearchableSelect
+                                        options={eligibleInterns.map(i => ({ value: i.id, label: `${i.full_name} (${i.email})` }))}
+                                        value={selectedInternId}
+                                        onChange={setSelectedInternId}
+                                        placeholder="-- Choose an intern --"
+                                        maxVisible={10}
+                                    />
+                                )}
                             </div>
                         ) : (
                             <p>Are you sure you want to upgrade <strong>{selectedInternName}</strong> to Supervisor?</p>

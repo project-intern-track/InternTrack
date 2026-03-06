@@ -1722,3 +1722,90 @@ textarea,
     align-items: flex-start;
   }
 }
+
+/* ===== Announcement Modals ===== */
+
+/* Shared overlay — padding keeps the panel off the screen edges on all devices */
+.announcement-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  padding: 1rem; /* ← the key fix: gives the panel breathing room */
+}
+
+/* Detail / view modal panel */
+.announcement-modal-panel {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Create / form modal panel */
+.announcement-modal-create {
+  background-color: #e6ded6;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Action row inside modals */
+.announcement-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Buttons inside modals get consistent padding */
+.announcement-modal-btn {
+  padding: 0.625rem 1.5rem;
+}
+
+/* ── Mobile overrides for modals (≤ 480px) ── */
+@media (max-width: 480px) {
+  .announcement-modal-overlay {
+    padding: 0.75rem;   /* tighter on very small phones */
+    align-items: center;
+  }
+
+  .announcement-modal-panel,
+  .announcement-modal-create {
+    padding: 1.25rem;
+    border-radius: 12px;
+    max-height: 92vh;
+  }
+
+  .announcement-modal-panel h2,
+  .announcement-modal-create h2 {
+    font-size: 1.15rem;
+  }
+
+  /* Stack buttons vertically and stretch to full width */
+  .announcement-modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .announcement-modal-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+  }
+}

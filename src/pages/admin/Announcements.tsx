@@ -356,28 +356,11 @@ const Announcements = () => {
             {/* Detail Modal */}
             {selectedAnnouncement && (
                 <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        zIndex: 1001,
-                        backdropFilter: 'blur(2px)',
-                    }}
+                    className="announcement-modal-overlay"
                     onClick={() => setSelectedAnnouncement(null)}
                 >
                     <div
-                        style={{
-                            backgroundColor: '#fff',
-                            borderRadius: '12px',
-                            padding: '2rem',
-                            width: 'calc(100% - 2rem)',
-                            maxWidth: '560px',
-                            maxHeight: '90vh',
-                            overflowX: 'hidden',
-                            overflowY: 'auto',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                        }}
+                        className="announcement-modal-panel"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 style={{ color: '#ea580c', margin: '0 0 1rem', fontSize: '1.35rem', fontWeight: 700 }}>
@@ -402,7 +385,7 @@ const Announcements = () => {
                         <div style={{ marginTop: '1.5rem' }}>
                             <button
                                 type="button"
-                                className="btn btn-primary"
+                                className="btn btn-primary announcement-modal-btn"
                                 onClick={() => setSelectedAnnouncement(null)}
                                 style={{ backgroundColor: '#ff8c42', border: 'none' }}
                             >
@@ -415,29 +398,14 @@ const Announcements = () => {
 
             {/* Create Modal */}
             {isModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    backdropFilter: 'blur(2px)'
-                }}>
-                    <div style={{
-                        backgroundColor: '#e6ded6', // Beige background from image
-                        borderRadius: '12px',
-                        padding: '2rem',
-                        width: 'calc(100% - 2rem)',
-                        maxWidth: '500px',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                    }}>
+                <div
+                    className="announcement-modal-overlay"
+                    onClick={() => setIsModalOpen(false)}
+                >
+                    <div
+                        className="announcement-modal-create"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div style={{ marginBottom: '2rem' }}>
                             <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Announcement Information</h2>
                         </div>
@@ -447,7 +415,7 @@ const Announcements = () => {
                             <input
                                 type="text"
                                 className="input"
-                                placeholder="Enter task title" // Placeholder per image
+                                placeholder="Enter task title"
                                 value={formData.title}
                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
                                 style={{ width: '100%', backgroundColor: 'white' }}
@@ -458,14 +426,14 @@ const Announcements = () => {
                             <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Announcement Description:</label>
                             <textarea
                                 className="input"
-                                placeholder="Brief description of the task" // Placeholder per image
+                                placeholder="Brief description of the task"
                                 value={formData.content}
                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
                                 style={{ width: '100%', height: '120px', resize: 'none', backgroundColor: 'white', fontFamily: 'inherit' }}
                             />
                         </div>
 
-                        <div style={{ marginBottom: '3rem' }}>
+                        <div style={{ marginBottom: '2rem' }}>
                             <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Priority:</label>
                             <div style={{ position: 'relative' }}>
                                 <select
@@ -482,22 +450,22 @@ const Announcements = () => {
                             </div>
                         </div>
 
-                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
+                        <div className="announcement-modal-actions">
                             <button
-                                className="btn"
+                                className="btn announcement-modal-btn"
                                 onClick={() => {
                                     setFormData({ title: '', content: '', priority: 'low' });
-                                    setIsModalOpen(false); // Or separate 'Cancel' behavior
+                                    setIsModalOpen(false);
                                 }}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
+                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none' }}
                             >
                                 Clear
                             </button>
                             <button
-                                className="btn btn-primary"
+                                className="btn btn-primary announcement-modal-btn"
                                 onClick={handleCreate}
                                 disabled={submitting}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
+                                style={{ backgroundColor: '#ff8c42', border: 'none' }}
                             >
                                 {submitting ? <Loader2 className="spinner" size={18} /> : 'Announce'}
                             </button>

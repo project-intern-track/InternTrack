@@ -213,6 +213,18 @@ const ManageTasks = () => {
     const [selectedTools, setSelectedTools] = useState<string[]>([]);
     const [toolsPage, setToolsPage] = useState(1);
 
+    // Toast notification state
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({ message: '', type: 'error', visible: false });
+    const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+        if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+        setToast({ message, type, visible: true });
+        toastTimeoutRef.current = setTimeout(() => {
+            setToast(prev => ({ ...prev, visible: false }));
+        }, 4000);
+    };
+
     const dateInputRef = useRef<HTMLInputElement>(null);
     const internSearchInputRef = useRef<HTMLInputElement>(null);
 
@@ -315,7 +327,7 @@ const ManageTasks = () => {
             closeRejectModal();
         } catch (err) {
             console.error('Failed to reject task:', err);
-            alert('Failed to reject task. Please try again.');
+            showToast('Failed to reject task. Please try again.');
         } finally {
             setRejecting(false);
         }
@@ -332,15 +344,15 @@ const ManageTasks = () => {
     const handleAssign = async () => {
         try {
             if (!taskTitle.trim()) {
-                alert('Please provide a task title.');
+                showToast('Please provide a task title.');
                     return;
                 }
             if (!taskDescription.trim()) {
-                alert('Please provide a task description.');
+                showToast('Please provide a task description.');
                 return;
             }
             if (!selectedInterns.length) {
-                alert('Please assign at least one intern.');
+                showToast('Please assign at least one intern.');
                 return;
             }
             if (!dueDate) {
@@ -348,7 +360,7 @@ const ManageTasks = () => {
                 return;
             }
             if (!priority) {
-                alert('Please select a priority.');
+                showToast('Please select a priority.');
                 return;
                 }
 
@@ -392,7 +404,7 @@ const ManageTasks = () => {
             handleClear();
         } catch (err) {
             console.error('Failed to create task:', err);
-            alert('Failed to create task. Please try again.');
+            showToast('Failed to create task. Please try again.');
         } finally {
             setAssigning(false);
         }
@@ -1479,7 +1491,7 @@ const ManageTasks = () => {
 
                     {/* Actions */}
                     <div className="task-detail-actions">
-                        {(selectedTask.status === 'needs_revision' || selectedTask.status === 'rejected') && (
+                        {selectedTask.status === 'needs_revision' && (
                             <button
                                 type="button"
                                 onClick={() => {
@@ -1578,8 +1590,60 @@ const ManageTasks = () => {
                 </div>
             </div>
         )}
+            {toast.visible && (
+                <div style={{ ...toastStyles.container, ...(toast.type === 'error' ? toastStyles.error : toastStyles.success) }}>
+                    <span>{toast.type === 'error' ? '\u26A0' : '\u2713'}</span>
+                    <span style={{ flex: 1 }}>{toast.message}</span>
+                    <button
+                        style={toastStyles.closeBtn}
+                        onClick={() => setToast(prev => ({ ...prev, visible: false }))}
+                    >
+                        &times;
+                    </button>
+                </div>
+            )}
        </div>
     );
+};
+
+/* Toast notification styles */
+const toastStyles = {
+    container: {
+        position: 'fixed' as const,
+        top: '24px',
+        right: '24px',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '14px 20px',
+        borderRadius: '10px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        maxWidth: '420px',
+        animation: 'slideIn 0.3s ease-out',
+    },
+    error: {
+        backgroundColor: '#fee2e2',
+        color: '#991b1b',
+        border: '1px solid #fca5a5',
+    },
+    success: {
+        backgroundColor: '#dcfce7',
+        color: '#166534',
+        border: '1px solid #86efac',
+    },
+    closeBtn: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        fontSize: '1.1rem',
+        lineHeight: 1,
+        padding: '0 0 0 8px',
+        color: 'inherit',
+        opacity: 0.7,
+    },
 };
 
 export default ManageTasks;

@@ -1,4 +1,5 @@
 import { Bell } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
 const TopBar = () => {
@@ -7,36 +8,69 @@ const TopBar = () => {
     if (!user) return null;
 
     return (
-        <div className="topbar">
-            <div className="topbar-user">
-                <div className="topbar-avatar">
-                    {user.avatarUrl && !user.avatarUrl.includes('ui-avatars.com') ? (
-                        <img src={user.avatarUrl} alt={user.name} />
-                    ) : (
-                        <svg
-                            width="44"
-                            height="44"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#555"
-                            strokeWidth="1.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <circle cx="12" cy="12" r="10" />
-                            <circle cx="12" cy="10" r="3" />
-                            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
-                        </svg>
-                    )}
-                </div>
-                <div className="topbar-user-info">
-                    <div className="topbar-user-name">{user.name}</div>
-                    <div className="topbar-user-role">{user.role}</div>
+        <div className="hidden lg:flex sticky top-0 z-10 bg-white dark:bg-slate-900/50 border-b border-gray-200 dark:border-white/5 h-16 px-6 items-center justify-between backdrop-blur-md">
+            {/* Left side - spacing */}
+            <div className="flex-1" />
+
+            {/* Right side - user info and notifications */}
+            <div className="flex items-center gap-4">
+                {/* Notification Button */}
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors relative"
+                    aria-label="Notifications"
+                >
+                    <Bell size={20} className="text-gray-600 dark:text-gray-400" />
+                    <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full"
+                    />
+                </motion.button>
+
+                {/* Divider */}
+                <div className="h-6 w-px bg-gray-200 dark:bg-white/10" />
+
+                {/* User Info */}
+                <div className="flex items-center gap-3">
+                    <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        className="flex-shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center"
+                    >
+                        {user.avatarUrl && !user.avatarUrl.includes('ui-avatars.com') ? (
+                            <img
+                                src={user.avatarUrl}
+                                alt={user.name}
+                                className="h-full w-full rounded-lg object-cover"
+                            />
+                        ) : (
+                            <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="10" r="3" />
+                                <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
+                            </svg>
+                        )}
+                    </motion.div>
+                    <div className="hidden sm:block">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white ">
+                            {user.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                            {user.role}
+                        </p>
+                    </div>
                 </div>
             </div>
-            <button className="topbar-notification" aria-label="Notifications">
-                <Bell size={20} />
-            </button>
         </div>
     );
 };

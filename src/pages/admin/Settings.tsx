@@ -19,6 +19,7 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
+    created_at: '',
   });
 
   // Original data for change detection
@@ -344,7 +345,7 @@ const Settings = () => {
               </label>
               <input
                 type="text"
-                defaultValue={formData.required_hours}
+                value={formData.created_at || '—'}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />

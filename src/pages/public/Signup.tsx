@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import '../../styles/auth.css';
+import { motion } from 'framer-motion';
 
 const OJT_ROLES = [
     'UI/UX Designer',
@@ -180,141 +180,359 @@ const Signup = () => {
     };
 
     return (
-        <div className="auth-page">
-            {/* Left half: hero image */}
-            <div className="auth-hero">
-                <img src="/heroimage.png" alt="Person typing on laptop" className="auth-hero-image" />
-            </div>
+        <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white overflow-hidden">
+            {/* Left: Hero image */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="hidden md:block relative overflow-hidden"
+            >
+                <img
+                    src="/heroimage.png"
+                    alt="Person typing on laptop"
+                    className="w-full h-full object-cover rounded-r-[2rem]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </motion.div>
 
-            {/* Right half: signup form */}
-            <div className="auth-form-panel">
-                <div className="auth-form-inner">
-                    <div className="auth-mobile-header">
-                        <img src="/heroIcon.png" alt="InternTrack" className="auth-mobile-icon" />
-                        <div className="auth-mobile-wordmark" aria-label="InternTrack">
-                            <span className="auth-mobile-wordmark-intern">Intern</span>
-                            <span className="auth-mobile-wordmark-track">Track</span>
+            {/* Right: Form panel */}
+            <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="flex flex-col justify-center items-center p-6 md:p-12 overflow-y-auto bg-gradient-to-br from-gray-50 via-white to-gray-50"
+            >
+                <div className="w-full max-w-md">
+                    {/* Mobile header */}
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="md:hidden flex flex-col items-center gap-2 mb-8"
+                    >
+                        <img src="/heroIcon.png" alt="InternTrack" className="h-20 w-auto" />
+                        <div className="flex items-center gap-1 font-black text-2xl" aria-label="InternTrack">
+                            <span className="text-gray-800">Intern</span>
+                            <span className="text-orange">Track</span>
                         </div>
-                    </div>
+                    </motion.div>
 
+                    {/* Error message */}
                     {error && (
-                        <div className="auth-error" id="signup-error">
-                            <AlertCircle size={18} className="auth-error-alert-icon" />
-                            <div>{error}</div>
-                        </div>
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-lg flex gap-3 items-start"
+                        >
+                            <AlertCircle size={18} className="text-danger flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-danger">{error}</p>
+                        </motion.div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="auth-form" id="signup-form" noValidate>
-                        <div className="auth-field">
-                            <label htmlFor="signup-name" className="auth-label">Full Name</label>
-                            <div className={touched.fullName && fieldErrors.fullName ? 'auth-input-error' : ''}>
-                                <input id="signup-name" type="text" className="auth-input" placeholder="Enter full name"
-                                    value={fullName} onChange={(e) => handleChange('fullName', e.target.value)}
-                                    onBlur={() => handleBlur('fullName')} disabled={isSubmitting} autoComplete="name" />
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="space-y-4" id="signup-form" noValidate>
+                        {/* Full Name field */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="space-y-2"
+                        >
+                            <label htmlFor="signup-name" className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                Full Name
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="signup-name"
+                                    type="text"
+                                    className="w-full px-4 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    placeholder="Enter full name"
+                                    value={fullName}
+                                    onChange={(e) => handleChange('fullName', e.target.value)}
+                                    onBlur={() => handleBlur('fullName')}
+                                    disabled={isSubmitting}
+                                    autoComplete="name"
+                                />
                             </div>
                             {touched.fullName && fieldErrors.fullName && (
-                                <span className="auth-field-hint auth-field-hint-error">{fieldErrors.fullName}</span>
+                                <motion.span
+                                    initial={{ opacity: 0, y: -5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xs text-danger font-medium"
+                                >
+                                    {fieldErrors.fullName}
+                                </motion.span>
                             )}
-                        </div>
+                        </motion.div>
 
-                        <div className="auth-field">
-                            <label htmlFor="signup-role" className="auth-label">Role</label>
-                            <div className={touched.role && fieldErrors.role ? 'auth-input-error' : ''}>
-                                <select id="signup-role" className={`auth-select ${!role ? 'placeholder-shown' : ''}`}
-                                    value={role} onChange={(e) => handleChange('role', e.target.value)}
-                                    onBlur={() => handleBlur('role')} disabled={isSubmitting}>
-                                    <option value="" disabled>Select role</option>
-                                    {OJT_ROLES.map((r) => (<option key={r} value={r}>{r}</option>))}
+                        {/* Role field */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.34 }}
+                            className="space-y-2"
+                        >
+                            <label htmlFor="signup-role" className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                Role
+                            </label>
+                            <div className="relative">
+                                <select
+                                    id="signup-role"
+                                    className="w-full px-4 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none appearance-none bg-no-repeat bg-right pr-10 border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    style={{
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                                        backgroundPosition: 'right 12px center',
+                                    }}
+                                    value={role}
+                                    onChange={(e) => handleChange('role', e.target.value)}
+                                    onBlur={() => handleBlur('role')}
+                                    disabled={isSubmitting}
+                                >
+                                    <option value="">Select role</option>
+                                    {OJT_ROLES.map((r) => (
+                                        <option key={r} value={r}>
+                                            {r}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             {touched.role && fieldErrors.role && (
-                                <span className="auth-field-hint auth-field-hint-error">{fieldErrors.role}</span>
+                                <motion.span
+                                    initial={{ opacity: 0, y: -5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xs text-danger font-medium"
+                                >
+                                    {fieldErrors.role}
+                                </motion.span>
                             )}
-                        </div>
+                        </motion.div>
 
-                        <div className="auth-field">
-                            <label htmlFor="signup-email" className="auth-label">Email address</label>
-                            <div className={touched.email && fieldErrors.email ? 'auth-input-error' : ''}>
-                                <input id="signup-email" type="email" className="auth-input" placeholder="Enter email address"
-                                    value={email} onChange={(e) => handleChange('email', e.target.value)}
-                                    onBlur={() => handleBlur('email')} disabled={isSubmitting} autoComplete="email" />
+                        {/* Email field */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.38 }}
+                            className="space-y-2"
+                        >
+                            <label htmlFor="signup-email" className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                Email Address
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="signup-email"
+                                    type="email"
+                                    className="w-full px-4 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    placeholder="Enter email address"
+                                    value={email}
+                                    onChange={(e) => handleChange('email', e.target.value)}
+                                    onBlur={() => handleBlur('email')}
+                                    disabled={isSubmitting}
+                                    autoComplete="email"
+                                />
                             </div>
                             {touched.email && fieldErrors.email && (
-                                <span className="auth-field-hint auth-field-hint-error">{fieldErrors.email}</span>
+                                <motion.span
+                                    initial={{ opacity: 0, y: -5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xs text-danger font-medium"
+                                >
+                                    {fieldErrors.email}
+                                </motion.span>
                             )}
-                        </div>
+                        </motion.div>
 
-                        <div className="auth-field">
-                            <label htmlFor="signup-password" className="auth-label">Password</label>
-                            <div className={`auth-input-wrapper ${touched.password && fieldErrors.password ? 'auth-input-error' : ''}`}>
-                                <input id="signup-password" type={showPassword ? 'text' : 'password'} className="auth-input"
-                                    placeholder="Enter password" value={password}
+                        {/* Password field */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.42 }}
+                            className="space-y-2"
+                        >
+                            <label htmlFor="signup-password" className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="signup-password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    className="w-full px-4 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none pr-12 border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    placeholder="Enter password"
+                                    value={password}
                                     onChange={(e) => handleChange('password', e.target.value)}
-                                    onBlur={() => handleBlur('password')} disabled={isSubmitting} autoComplete="new-password" />
-                                <button type="button" className="auth-toggle-password"
-                                    onClick={() => setShowPassword(!showPassword)} tabIndex={-1}
-                                    aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    onBlur={() => handleBlur('password')}
+                                    disabled={isSubmitting}
+                                    autoComplete="new-password"
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors p-1"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    tabIndex={-1}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
                             {touched.password && fieldErrors.password && (
-                                <span className="auth-field-hint auth-field-hint-error">{fieldErrors.password}</span>
+                                <motion.span
+                                    initial={{ opacity: 0, y: -5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xs text-danger font-medium"
+                                >
+                                    {fieldErrors.password}
+                                </motion.span>
                             )}
-                        </div>
+                        </motion.div>
 
-                        <div className="auth-field-row">
-                            <div className="auth-field">
-                                <label htmlFor="signup-start-date" className="auth-label">Start Date</label>
-                                <div className={touched.startDate && fieldErrors.startDate ? 'auth-input-error' : ''}>
-                                    <input id="signup-start-date" type="date" className="auth-input" value={startDate}
+                        {/* Start Date and Required Hours row */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.46 }}
+                                className="space-y-2"
+                            >
+                                <label htmlFor="signup-start-date" className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                    Start Date
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        id="signup-start-date"
+                                        type="date"
+                                    className="w-full px-3 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none text-sm border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                        value={startDate}
                                         min={todayStr}
                                         onChange={(e) => handleChange('startDate', e.target.value)}
-                                        onBlur={() => handleBlur('startDate')} disabled={isSubmitting} />
+                                        onBlur={() => handleBlur('startDate')}
+                                        disabled={isSubmitting}
+                                    />
                                 </div>
                                 {touched.startDate && fieldErrors.startDate && (
-                                    <span className="auth-field-hint auth-field-hint-error">{fieldErrors.startDate}</span>
+                                    <motion.span
+                                        initial={{ opacity: 0, y: -5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="text-xs text-danger font-medium block"
+                                    >
+                                        {fieldErrors.startDate}
+                                    </motion.span>
                                 )}
-                            </div>
-                            <div className="auth-field">
-                                <label htmlFor="signup-hours" className="auth-label">Required Hours</label>
-                                <div className={touched.requiredHours && fieldErrors.requiredHours ? 'auth-input-error' : ''}>
-                                    <input id="signup-hours" type="text" inputMode="numeric" className="auth-input" placeholder="Enter hours"
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.50 }}
+                                className="space-y-2"
+                            >
+                                <label htmlFor="signup-hours" className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                    Required Hours
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        id="signup-hours"
+                                        type="text"
+                                        inputMode="numeric"
+                                    className="w-full px-3 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none text-sm border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                        placeholder="0"
                                         value={requiredHours}
                                         onChange={(e) => handleChange('requiredHours', e.target.value)}
-                                        onBlur={() => handleBlur('requiredHours')} disabled={isSubmitting} />
+                                        onBlur={() => handleBlur('requiredHours')}
+                                        disabled={isSubmitting}
+                                    />
                                 </div>
                                 {touched.requiredHours && fieldErrors.requiredHours && (
-                                    <span className="auth-field-hint auth-field-hint-error">{fieldErrors.requiredHours}</span>
+                                    <motion.span
+                                        initial={{ opacity: 0, y: -5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="text-xs text-danger font-medium block"
+                                    >
+                                        {fieldErrors.requiredHours}
+                                    </motion.span>
                                 )}
-                            </div>
+                            </motion.div>
                         </div>
 
-                        <div className="auth-field">
-                            <label className="auth-label">OJT Type</label>
-                            <div className="auth-radio-group">
-                                <label className="auth-radio-label">
-                                    <input type="radio" name="ojt-type" value="required" checked={ojtType === 'required'}
-                                        onChange={() => setOjtType('required')} disabled={isSubmitting} />
-                                    Required
+                        {/* OJT Type radio group */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.54 }}
+                            className="space-y-2"
+                        >
+                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                OJT Type
+                            </label>
+                            <div className="flex gap-6">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="ojt-type"
+                                        value="required"
+                                        checked={ojtType === 'required'}
+                                        onChange={() => setOjtType('required')}
+                                        disabled={isSubmitting}
+                                        className="w-4 h-4 cursor-pointer accent-orange"
+                                    />
+                                    <span className="text-sm text-gray-700 font-medium">Required</span>
                                 </label>
-                                <label className="auth-radio-label">
-                                    <input type="radio" name="ojt-type" value="voluntary" checked={ojtType === 'voluntary'}
-                                        onChange={() => setOjtType('voluntary')} disabled={isSubmitting} />
-                                    Voluntary
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="ojt-type"
+                                        value="voluntary"
+                                        checked={ojtType === 'voluntary'}
+                                        onChange={() => setOjtType('voluntary')}
+                                        disabled={isSubmitting}
+                                        className="w-4 h-4 cursor-pointer accent-orange"
+                                    />
+                                    <span className="text-sm text-gray-700 font-medium">Voluntary</span>
                                 </label>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <button type="submit" className="auth-submit-btn" disabled={isSubmitting} id="signup-submit">
-                            {isSubmitting ? (<><Loader2 size={18} className="auth-spinner" /> Creating account...</>) : 'Sign Up'}
-                        </button>
+                        {/* Submit button */}
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.58 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="submit"
+                            className="w-full mt-8 px-4 py-3 bg-orange text-white font-bold rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            disabled={isSubmitting}
+                            id="signup-submit"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={18} className="animate-spin" />
+                                    <span>Creating account...</span>
+                                </>
+                            ) : (
+                                'Sign Up'
+                            )}
+                        </motion.button>
                     </form>
 
-                    <div className="auth-footer">
-                        <p>Already have an account? <Link to="/" className="auth-link" id="login-link">Login here</Link></p>
-                    </div>
+                    {/* Footer */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.62 }}
+                        className="mt-6 text-center text-sm text-gray-600"
+                    >
+                        Already have an account?{' '}
+                        <Link
+                            to="/"
+                            className="font-bold text-orange hover:text-orange transition-opacity"
+                            id="login-link"
+                        >
+                            Login here
+                        </Link>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };

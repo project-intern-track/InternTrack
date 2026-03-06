@@ -52,7 +52,6 @@ import AdminManageAdmins from "./pages/admin/ManageAdmins";
 
 
 import { Briefcase } from "lucide-react";
-import "./styles/auth.css";
 
 // ========================
 // Loading Screen

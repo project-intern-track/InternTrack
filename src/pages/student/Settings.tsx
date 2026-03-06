@@ -19,6 +19,7 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
+    created_at: '',
   });
 
   // Original data for change detection

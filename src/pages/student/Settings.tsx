@@ -18,6 +18,7 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
+    created_at: '',
   });
 
   const [profileLoading, setProfileLoading] = useState(true);
@@ -55,7 +56,9 @@ const Settings = () => {
           required_hours: session.user.user_metadata.required_hours || '',
           ojt_type: session.user.user_metadata.ojt_type || '',
           status: session.user.user_metadata.status || '',
-
+          created_at: session.user.created_at
+            ? new Date(session.user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+            : '',
         });
       } else if (error) {
         console.error("Fetch failed:", error);
@@ -281,6 +284,16 @@ const Settings = () => {
                 value={formData.email}
                 onChange={handleChange}
                 style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label>Date Created</label>
+              <input
+                type="text"
+                value={formData.created_at || '—'}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />
             </div>
 

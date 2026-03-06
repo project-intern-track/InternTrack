@@ -67,6 +67,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::put('/tasks/{id}/approve',           [TaskController::class, 'approve']);
     Route::put('/tasks/{id}/supervisor-reject', [TaskController::class, 'supervisorReject']);
     Route::put('/tasks/{id}/request-revision',  [TaskController::class, 'requestRevision']);
+    Route::delete('/tasks/{id}',                 [TaskController::class, 'destroy']);
 
     // Announcements
     Route::get('/announcements',  [AnnouncementController::class, 'index']);

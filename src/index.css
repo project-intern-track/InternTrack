@@ -1232,12 +1232,22 @@ textarea:disabled {
     padding: 0.75rem 1rem 0.75rem 3.5rem;
   }
 
+  .topbar-user {
+    min-width: 0;
+    overflow: hidden;
+  }
+
   .topbar-user-info {
     display: flex;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .topbar-user-name {
     font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .topbar-user-role {
@@ -1381,6 +1391,7 @@ textarea,
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -1635,5 +1646,178 @@ textarea,
     flex-direction: column;
     justify-content: center;
     gap: 1rem;
+  }
+}
+
+/* ===== Announcements Page ===== */
+
+.announcements-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Filter bar: row on desktop, column on mobile */
+.announcements-filter-bar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Search input wrapper – grows to fill available space */
+.announcements-filter-search {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+/* "Filters:" label row */
+.announcements-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Each dropdown wrapper – shrinks but keeps position: relative for the chevron */
+.announcements-filter-select {
+  position: relative;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+/* Card footer */
+.announcement-card-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ── Mobile overrides (≤ 480px) ─────────────────────────── */
+@media (max-width: 480px) {
+  .announcements-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .announcements-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Stack filter bar vertically; every child stretches to full width */
+  .announcements-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .announcements-filter-search,
+  .announcements-filter-select {
+    flex: none;
+    width: 100%;
+  }
+
+  /* Hide the "Filters:" label on very small screens to save space */
+  .announcements-filter-label {
+    display: none;
+  }
+
+  .announcement-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ===== Announcement Modals ===== */
+
+/* Shared overlay — padding keeps the panel off the screen edges on all devices */
+.announcement-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  padding: 1rem; /* ← the key fix: gives the panel breathing room */
+}
+
+/* Detail / view modal panel */
+.announcement-modal-panel {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Create / form modal panel */
+.announcement-modal-create {
+  background-color: #e6ded6;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Action row inside modals */
+.announcement-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Buttons inside modals get consistent padding */
+.announcement-modal-btn {
+  padding: 0.625rem 1.5rem;
+}
+
+/* ── Mobile overrides for modals (≤ 480px) ── */
+@media (max-width: 480px) {
+  .announcement-modal-overlay {
+    padding: 0.75rem;   /* tighter on very small phones */
+    align-items: center;
+  }
+
+  .announcement-modal-panel,
+  .announcement-modal-create {
+    padding: 1.25rem;
+    border-radius: 12px;
+    max-height: 92vh;
+  }
+
+  .announcement-modal-panel h2,
+  .announcement-modal-create h2 {
+    font-size: 1.15rem;
+  }
+
+  /* Stack buttons vertically and stretch to full width */
+  .announcement-modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .announcement-modal-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
   }
 }

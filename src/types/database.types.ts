@@ -40,6 +40,8 @@ export interface Tasks {
     due_date: string;
     priority: TaskPriority;
     status: TaskStatus;
+    tech_stack_categories?: string[] | null;
+    tools?: string[] | null;
     rejection_reason: string | null;
     revision_category?: string | null;
     created_by: number;

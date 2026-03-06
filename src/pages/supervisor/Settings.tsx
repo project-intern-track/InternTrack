@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { authService } from '../../services/authService';
 import { apiClient } from '../../services/apiClient';
 import PageLoader from '../../components/PageLoader';
@@ -154,180 +155,174 @@ const Settings = () => {
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div style={{ maxWidth: '2000px', margin: '0 auto', padding: '1rem', position: 'relative' }}>
+    <div className="max-w-[2000px] mx-auto p-4 space-y-6 relative">
       {successPopup && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '50%',
-          transform: 'translateX(50%)',
-          backgroundColor: '#ff8c42',
-          color: 'white',
-          padding: '1rem 2rem',
-          borderRadius: '0.5rem',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          fontWeight: 'bold'
-        }}>
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-success text-white px-8 py-4 rounded-lg shadow-lg z-50 flex items-center gap-4 font-bold">
           {successPopup}
-          <button onClick={() => setSuccessPopup('')} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1.25rem' }}>&times;</button>
+          <button onClick={() => setSuccessPopup('')} className="bg-transparent border-none text-white cursor-pointer text-xl hover:text-white/80 transition-colors">&times;</button>
         </div>
       )}
-
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-4 mb-6"
+      >
         <div>
-          <h1 style={{ margin: 0, color: '#ff8c42' }}>Settings</h1>
-          <p style={{ margin: 0, color: '#555' }}>
+          <h1 className="text-3xl font-bold text-primary dark:text-primary mb-1">
+            Settings
+          </h1>
+          <p className="text-muted-foreground dark:text-gray-400">
             Manage your profile and account preferences.
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* PROFILE INFORMATION */}
-      <div style={{
-        border: '1px solid #ccc',
-        backgroundColor: '#e8ddd08e',
-        borderRadius: '0.5rem',
-        padding: '1.5rem',
-        marginBottom: '2rem',
-        textAlign: 'center'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Profile Information</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm text-center"
+      >
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+          Profile Information
+        </h2>
 
-        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-          <User
-            size={100}
-            color="#000000be"
-            strokeWidth={1.5}
-            style={{
-              borderRadius: '50%',
-              padding: '10px',
-              backgroundColor: '#fff',
-              border: '3px solid #000000b4',
-            }}
-          />
+        <div className="flex justify-center mb-8">
+          <div className="p-3 rounded-full bg-white border-[3px] border-gray-800 dark:border-gray-300">
+            <User 
+              size={100} 
+              className="text-gray-700 dark:text-gray-300" 
+              strokeWidth={1.5} 
+            />
+          </div>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '1.5rem',
-          textAlign: 'left'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
           {/* LEFT */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="space-y-4">
             <div>
-              <label>Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Full Name
+              </label>
               <input
                 name="name"
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                style={inputStyle}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
             </div>
 
             <div>
-              <label>Account Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Account Type
+              </label>
               <input
                 type="text"
                 defaultValue={formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : 'Supervisor'}
                 disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
             </div>
           </div>
 
           {/* RIGHT */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="space-y-4">
             <div>
-              <label>Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email Address
+              </label>
               <input
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                style={inputStyle}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
             </div>
 
             <div>
-              <label>Date Created</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date Created
+              </label>
               <input
                 type="text"
                 defaultValue={formData.created_at}
                 disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '1.5rem', gap: '1rem' }}>
-          {profileErr && <span style={{ color: '#d9534f', fontSize: '0.875rem', fontWeight: 'bold' }}>{profileErr}</span>}
-          <button onClick={handleSave} style={primaryButtonStyle}>
+        <div className="flex justify-end items-center mt-6 gap-4">
+          {profileErr && <span className="text-danger text-sm font-bold">{profileErr}</span>}
+          <button 
+            onClick={handleSave}
+            className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
+          >
             Save Changes
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* CHANGE PASSWORD */}
-      <div style={{
-        border: '1px solid #ccc',
-        borderRadius: '0.5rem',
-        backgroundColor: '#e8ddd08e',
-        padding: '1.5rem'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Change Password</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm"
+      >
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+          Change Password
+        </h2>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '1.5rem'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* LEFT */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="space-y-4">
             <div>
-              <label>Current Password</label>
-              <div style={{ position: 'relative' }}>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Current Password
+              </label>
+              <div className="relative">
                 <input 
                   type={showPwd.current ? "text" : "password"} 
                   name="currentPassword"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
                   autoComplete="new-password"
-                  style={{ ...inputStyle, paddingRight: '2.5rem' }} 
+                  className="w-full px-4 py-2.5 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPwd({ ...showPwd, current: !showPwd.current })}
-                  style={eyeButtonStyle}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                  {showPwd.current ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
+                  {showPwd.current ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             <div>
-              <label>New Password</label>
-              <div style={{ position: 'relative' }}>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                New Password
+              </label>
+              <div className="relative">
                 <input 
                   type={showPwd.new ? "text" : "password"} 
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
-                  style={{ ...inputStyle, paddingRight: '2.5rem' }} 
+                  className="w-full px-4 py-2.5 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPwd({ ...showPwd, new: !showPwd.new })}
-                  style={eyeButtonStyle}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                  {showPwd.new ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
+                  {showPwd.new ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
@@ -335,66 +330,41 @@ const Settings = () => {
 
           {/* RIGHT */}
           <div>
-            <label>Confirm New Password</label>
-            <div style={{ position: 'relative' }}>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Confirm New Password
+            </label>
+            <div className="relative">
               <input 
                 type={showPwd.confirm ? "text" : "password"} 
                 name="newPasswordConfirmation"
                 value={passwordData.newPasswordConfirmation}
                 onChange={handlePasswordChange}
-                style={{ ...inputStyle, paddingRight: '2.5rem' }} 
+                className="w-full px-4 py-2.5 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd({ ...showPwd, confirm: !showPwd.confirm })}
-                style={eyeButtonStyle}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                {showPwd.confirm ? <EyeOff size={18} color="#666" /> : <Eye size={18} color="#666" />}
+                {showPwd.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '1.5rem', gap: '1rem' }}>
-          {pwdErr && <span style={{ color: '#d9534f', fontSize: '0.875rem', fontWeight: 'bold' }}>{pwdErr}</span>}
-          <button onClick={handleUpdatePassword} style={primaryButtonStyle}>
+        <div className="flex justify-end items-center mt-6 gap-4">
+          {pwdErr && <span className="text-danger text-sm font-bold">{pwdErr}</span>}
+          <button 
+            onClick={handleUpdatePassword}
+            className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
+          >
             Update Password
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
-const eyeButtonStyle: React.CSSProperties = {
-  position: 'absolute',
-  right: '0.5rem',
-  top: '50%',
-  transform: 'translateY(-35%)',
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  padding: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '0.5rem',
-  borderRadius: '0.25rem',
-  border: '1px solid #ccc',
-  marginTop: '0.25rem'
-};
-
-const primaryButtonStyle: React.CSSProperties = {
-  padding: '0.5rem 1.25rem',
-  borderRadius: '0.25rem',
-  border: 'none',
-  backgroundColor: '#f87e32',
-  color: 'white',
-  cursor: 'pointer'
-};
 
 export default Settings;

@@ -32,10 +32,14 @@ const ALL_TASKS_STATUS_ORDER: Record<TaskStatus, number> = {
   needs_revision: 7,
 };
 
+
+
 const STATUS_LABEL: Record<TaskStatus, string> = {
   not_started: "Not Started",
   in_progress: "In Progress",
   pending: "Pending",
+  pending_approval: "Pending Approval",
+  needs_revision: "Needs Revision",
   completed: "Completed",
   rejected: "Rejected",
   overdue: "Overdue",
@@ -58,6 +62,8 @@ function getPillStyle(status: TaskStatus): React.CSSProperties {
   if (status === "overdue") return { background: "#ffc2c2", color: "#333" };
   if (status === "pending") return { background: "#ffe5b4", color: "#333" };
   if (status === "rejected") return { background: "#f8d7da", color: "#842029" };
+  if (status === "pending_approval") return { background: "#fff3cd", color: "#856404" };
+  if (status === "needs_revision") return { background: "#f8d7da", color: "#842029" };
   return { background: "#e5e7eb", color: "#333" };
 }
 

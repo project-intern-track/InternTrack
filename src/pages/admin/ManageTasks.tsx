@@ -294,11 +294,6 @@ const ManageTasks = () => {
     const handleViewDetail = (task: Tasks) => setSelectedTask(task);
     const closeViewDetail = () => setSelectedTask(null);
 
-    const openRejectModal = () => {
-        setRejectionReason('');
-        setRejectModalOpen(true);
-    };
-
     const closeRejectModal = () => {
         setRejectModalOpen(false);
         setRejectionReason('');

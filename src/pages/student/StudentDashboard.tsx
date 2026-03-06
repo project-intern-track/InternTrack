@@ -84,14 +84,6 @@ const StudentDashboard: React.FC = () => {
     fetchData();
   }, [user?.id]);
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    });
-  };
-
   const formatDateTime = (dateStr: string) => {
     return new Date(dateStr).toLocaleString("en-US", {
       month: "short",

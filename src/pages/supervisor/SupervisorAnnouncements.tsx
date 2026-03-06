@@ -1,4 +1,5 @@
 import { Bell } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface Announcement {
   id: string;
@@ -51,28 +52,44 @@ const SupervisorAnnouncements = ({ type = 'company' }: { type?: 'company' | 'int
   const filteredAnnouncements = sampleAnnouncements.filter((a) => a.type === type);
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <Bell size={28} />
-        <h1>{title}</h1>
-      </div>
-
-      <p style={{ color: 'hsl(var(--muted-foreground))', marginBottom: '1.5rem' }}>
-        {description}
-      </p>
+    <div className="max-w-[2000px] mx-auto p-4 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-3 mb-6"
+      >
+        <Bell size={32} className="text-primary" />
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
+          <p className="text-muted-foreground dark:text-gray-400 mt-1">{description}</p>
+        </div>
+      </motion.div>
 
       {filteredAnnouncements.length === 0 ? (
-        <p>No announcements found.</p>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 text-center shadow-sm"
+        >
+          <p className="text-gray-500 dark:text-gray-400">No announcements found.</p>
+        </motion.div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {filteredAnnouncements.map((a) => (
-            <div key={a.id} className="card" style={{ padding: '1rem' }}>
-              <h3>{a.title}</h3>
-              <p style={{ marginBottom: '0.5rem' }}>{a.content}</p>
-              <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+        <div className="space-y-4">
+          {filteredAnnouncements.map((a, index) => (
+            <motion.div
+              key={a.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + index * 0.05 }}
+              className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{a.title}</h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">{a.content}</p>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 By {a.created_by.full_name} — {new Date(a.created_at).toLocaleString()}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

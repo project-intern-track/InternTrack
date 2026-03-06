@@ -310,50 +310,29 @@ const SupervisorApprovals = () => {
               <h2 className="text-xl font-black text-gray-900 dark:text-white">Request Revision</h2>
             </div>
 
-            {/* View Details Modal */}
-            {detailTask && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', zIndex: 1000 }} onClick={() => setDetailTask(null)}>
-                    <div style={{ background: '#fff', padding: '2rem', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowX: 'hidden', overflowY: 'auto', borderRadius: '0.75rem' }} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ color: '#ff8c42', margin: '0 0 1rem' }}>{detailTask.title}</h2>
-                        <p style={{ margin: '0 0 1rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{detailTask.description || '—'}</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', fontSize: '0.9rem' }}>
-                            <div><strong>Assigned to:</strong> {assignedNames(detailTask)}</div>
-                            <div><strong>Due:</strong> {fmtDateTime(detailTask.due_date)}</div>
-                            <div><strong>Priority:</strong> {getPriorityLabel(detailTask.priority)}</div>
-                            <div><strong>Created by:</strong> {detailTask.creator?.full_name ?? '—'}</div>
-                        </div>
-                        {detailTask.tools && detailTask.tools.length > 0 && (
-                            <div style={{ marginTop: '1rem' }}>
-                                <strong>Tools &amp; technologies:</strong>
-                                <ul style={{ margin: '0.25rem 0 0', paddingLeft: '1.2rem' }}>
-                                    {detailTask.tools.map((t) => (
-                                        <li key={t}>{t}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                        {detailTask.rejection_reason && (
-                            <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#fff3e0', borderRadius: '0.5rem' }}>
-                                <strong>Revision/Rejection reason:</strong> {detailTask.rejection_reason}
-                            </div>
-                        )}
-                        <button type="button" onClick={() => setDetailTask(null)} style={{ marginTop: '1.5rem', padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: '#ff8c42', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Close</button>
-                    </div>
-                </div>
-            )}
+            <div className="mb-4">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                Revision Reason
+              </label>
+              <textarea
+                className="min-h-[100px] w-full resize-y rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                placeholder="Explain what needs to be revised..."
+                value={revisionReason}
+                onChange={e => setRevisionReason(e.target.value)}
+              />
+            </div>
 
-              <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  Revision Category
-                </label>
-                <select
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-                  onChange={e => setRevisionCategory(e.target.value)}
-                  value={revisionCategory}
-                >
-                  {REVISION_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
+            <div className="mb-4">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                Revision Category
+              </label>
+              <select
+                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                onChange={e => setRevisionCategory(e.target.value)}
+                value={revisionCategory}
+              >
+                {REVISION_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
 
             <div className="mt-6 flex justify-end gap-2">

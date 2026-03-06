@@ -38,8 +38,6 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
   not_started: "Not Started",
   in_progress: "In Progress",
   pending: "Pending",
-  pending_approval: "Pending Approval",
-  needs_revision: "Needs Revision",
   completed: "Completed",
   rejected: "Rejected",
   overdue: "Overdue",

@@ -177,33 +177,10 @@ const Settings = () => {
             </div>
 
             <div>
-              <label>Role</label>
+              <label>Account Type</label>
               <input
                 type="text"
-                defaultValue={formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
-                disabled
-                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-
-            {/* ID — intern/supervisor only */}
-            {formData.role !== 'admin' && (
-              <div>
-                <label>ID</label>
-                <input
-                  type="text"
-                  defaultValue={formData.ojt_id}
-                  disabled
-                  style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-                />
-              </div>
-            )}
-
-            <div>
-              <label>Status</label>
-              <input
-                type="text"
-                defaultValue={formData.status}
+                value={formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
                 disabled
                 style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
               />
@@ -223,53 +200,15 @@ const Settings = () => {
               />
             </div>
 
-            {/* Date Created — shown for all roles */}
-            {formData.created_at && (
-              <div>
-                <label>Date Created</label>
-                <input
-                  type="text"
-                  value={formData.created_at}
-                  disabled
-                  style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-                />
-              </div>
-            )}
-
-            {/* OJT Type, Date Started, Required Hours — intern/supervisor only */}
-            {formData.role !== 'admin' && (
-              <>
-                <div>
-                  <label>OJT Type</label>
-                  <input
-                    type="text"
-                    defaultValue={formData.ojt_type.charAt(0).toUpperCase() + formData.ojt_type.slice(1)}
-                    disabled
-                    style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-                  />
-                </div>
-
-                <div>
-                  <label>Date Started</label>
-                  <input
-                    type="text"
-                    defaultValue={formData.start_date}
-                    disabled
-                    style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-                  />
-                </div>
-
-                <div>
-                  <label>Required Hours</label>
-                  <input
-                    type="text"
-                    defaultValue={formData.required_hours}
-                    disabled
-                    style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
-                  />
-                </div>
-              </>
-            )}
+            <div>
+              <label>Date Created</label>
+              <input
+                type="text"
+                value={formData.created_at || '—'}
+                disabled
+                style={{ ...inputStyle, backgroundColor: '#f5f5f5' }}
+              />
+            </div>
           </div>
         </div>
 

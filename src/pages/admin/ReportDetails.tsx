@@ -171,24 +171,30 @@ const ReportDetails = () => {
                             gap: '2rem',
                             flexWrap: 'wrap'
                         }}>
-                            <div style={{ textAlign: 'left' }}>
-                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>OJT ID</div>
-                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                    {reportData.ojtId}
+                            {reportData.ojtId && (
+                                <div style={{ textAlign: 'left' }}>
+                                    <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>OJT ID</div>
+                                    <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                        {reportData.ojtId}
+                                    </div>
                                 </div>
-                            </div>
-                            <div style={{ textAlign: 'left' }}>
-                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Department</div>
-                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                    {reportData.department}
+                            )}
+                            {reportData.department && (
+                                <div style={{ textAlign: 'left' }}>
+                                    <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Department</div>
+                                    <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                        {reportData.department}
+                                    </div>
                                 </div>
-                            </div>
-                            <div style={{ textAlign: 'left' }}>
-                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Supervisor</div>
-                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                    {reportData.supervisor}
+                            )}
+                            {reportData.supervisor && (
+                                <div style={{ textAlign: 'left' }}>
+                                    <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Supervisor</div>
+                                    <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                        {reportData.supervisor}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
 

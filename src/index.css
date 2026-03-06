@@ -1626,3 +1626,89 @@ textarea,
     gap: 1rem;
   }
 }
+
+/* ===== Announcements Page ===== */
+
+.announcements-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Filter bar: row on desktop, column on mobile */
+.announcements-filter-bar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Search input wrapper – grows to fill available space */
+.announcements-filter-search {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+/* "Filters:" label row */
+.announcements-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Each dropdown wrapper – shrinks but keeps position: relative for the chevron */
+.announcements-filter-select {
+  position: relative;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+/* Card footer */
+.announcement-card-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ── Mobile overrides (≤ 480px) ─────────────────────────── */
+@media (max-width: 480px) {
+  .announcements-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .announcements-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Stack filter bar vertically; every child stretches to full width */
+  .announcements-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .announcements-filter-search,
+  .announcements-filter-select {
+    flex: none;
+    width: 100%;
+  }
+
+  /* Hide the "Filters:" label on very small screens to save space */
+  .announcements-filter-label {
+    display: none;
+  }
+
+  .announcement-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

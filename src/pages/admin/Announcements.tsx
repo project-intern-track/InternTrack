@@ -153,12 +153,12 @@ const Announcements = () => {
     return (
         <div className="container" style={{ maxWidth: '100%', padding: '0' }}>
             {/* Header */}
-            <div className="row row-between" style={{ marginBottom: '2rem' }}>
+            <div className="announcements-header" style={{ marginBottom: '2rem' }}>
                 <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Announcements</h1>
                 <button
                     className="btn btn-primary"
                     onClick={() => setIsModalOpen(true)}
-                    style={{ gap: '0.5rem', backgroundColor: '#ff8c42', border: 'none' }}
+                    style={{ gap: '0.5rem', backgroundColor: '#ff8c42', border: 'none', flexShrink: 0 }}
                 >
                     <Plus size={18} />
                     Create Announcement
@@ -166,34 +166,32 @@ const Announcements = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="row" style={{
+            <div className="announcements-filter-bar" style={{
                 marginBottom: '2rem',
                 border: '1px solid #e5e5e5',
                 borderRadius: '8px',
                 padding: '0.75rem',
                 backgroundColor: '#F9F7F4',
                 gap: '1rem',
-                alignItems: 'center',
-                flexWrap: 'wrap'
             }}>
-                <div className="input-group" style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                <div className="announcements-filter-search" style={{ position: 'relative' }}>
+                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', zIndex: 1 }} />
                     <input
                         type="text"
                         className="input"
-                        placeholder="Search by name or email"
+                        placeholder="Search announcements"
                         style={{ paddingLeft: '3rem', width: '100%' }}
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
 
-                <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                <div className="announcements-filter-label">
                     <Filter size={20} />
                     <span style={{ fontWeight: 600 }}>Filters:</span>
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '180px' }}>
+                <div className="announcements-filter-select">
                     <select
                         className="select"
                         style={{ width: '100%' }}
@@ -209,7 +207,7 @@ const Announcements = () => {
                     <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '150px' }}>
+                <div className="announcements-filter-select">
                     <select
                         className="select"
                         style={{ width: '100%' }}
@@ -226,7 +224,7 @@ const Announcements = () => {
             </div>
 
             {/* Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: '1.5rem' }}>
                 {filteredAnnouncements.map((announcement) => (
                     <div
                         key={announcement.id}
@@ -256,17 +254,14 @@ const Announcements = () => {
                                 {announcement.content}
                             </p>
                         </div>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
+                        <div className="announcement-card-footer" style={{
                             fontSize: '0.875rem',
                             color: '#6b7280',
                             marginTop: 'auto'
                         }}>
-                            <div className="row" style={{ gap: '0.5rem', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span>Priority:</span>
-                                <div className="row" style={{ alignItems: 'center', gap: '0.25rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                     <div style={{
                                         width: '10px',
                                         height: '10px',
@@ -278,7 +273,7 @@ const Announcements = () => {
                                     </span>
                                 </div>
                             </div>
-                            <div className="row" style={{ gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span>Date Created:</span>
                                 <span style={{ fontWeight: 600, color: '#111827' }}>
                                     {formatDate(announcement.created_at)}
@@ -307,7 +302,7 @@ const Announcements = () => {
                             backgroundColor: '#fff',
                             borderRadius: '12px',
                             padding: '2rem',
-                            width: '100%',
+                            width: 'calc(100% - 2rem)',
                             maxWidth: '560px',
                             maxHeight: '90vh',
                             overflowX: 'hidden',
@@ -368,9 +363,11 @@ const Announcements = () => {
                         backgroundColor: '#e6ded6', // Beige background from image
                         borderRadius: '12px',
                         padding: '2rem',
-                        width: '100%',
+                        width: 'calc(100% - 2rem)',
                         maxWidth: '500px',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
                     }}>
                         <div style={{ marginBottom: '2rem' }}>
                             <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Announcement Information</h2>

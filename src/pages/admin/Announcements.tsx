@@ -223,66 +223,135 @@ const Announcements = () => {
                 </div>
             </div>
 
-            {/* Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: '1.5rem' }}>
-                {filteredAnnouncements.map((announcement) => (
-                    <div
-                        key={announcement.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setSelectedAnnouncement(announcement)}
-                        onKeyDown={(e) => e.key === 'Enter' && setSelectedAnnouncement(announcement)}
-                        className="card"
-                        style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '200px', backgroundColor: '#F9F7F4', cursor: 'pointer' }}
-                    >
-                        <div style={{ marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
-                                {announcement.title}
-                            </h3>
-                        </div>
-                <div style={{ flex: 1, marginBottom: '2rem', minHeight: '4.5rem', overflow: 'hidden' }}>
-                            <p style={{
-                                margin: 0,
-                                color: '#1f2937',
-                                lineHeight: 1.5,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: 'vertical' as const,
+            {/* Content Grid / Empty State */}
+            {filteredAnnouncements.length === 0 ? (
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4rem 1rem',
+                    textAlign: 'center',
+                    minHeight: '320px',
+                }}>
+                    {/* Icon illustration */}
+                    <div style={{
+                        width: '88px',
+                        height: '88px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #ff8c42 0%, #ffa726 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '1.5rem',
+                        boxShadow: '0 8px 24px rgba(255,140,66,0.25)',
+                    }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                    </div>
+
+                    {/* Heading */}
+                    <h2 style={{
+                        fontSize: '1.4rem',
+                        fontWeight: 700,
+                        color: '#111827',
+                        margin: '0 0 0.5rem',
+                    }}>
+                        {searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all'
+                            ? 'No matching announcements'
+                            : 'No announcements yet'}
+                    </h2>
+
+                    {/* Sub-text */}
+                    <p style={{
+                        fontSize: '0.9375rem',
+                        color: '#6b7280',
+                        maxWidth: '380px',
+                        margin: '0 0 1.75rem',
+                        lineHeight: 1.6,
+                    }}>
+                        {searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all'
+                            ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
+                            : 'Get started by creating your first announcement for your team.'}
+                    </p>
+
+                    {/* CTA — only shown when there are truly no announcements (not a filter miss) */}
+                    {!(searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all') && (
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => setIsModalOpen(true)}
+                            style={{ backgroundColor: '#ff8c42', border: 'none', gap: '0.5rem', padding: '0.625rem 1.5rem' }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Create Announcement
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: '1.5rem' }}>
+                    {filteredAnnouncements.map((announcement) => (
+                        <div
+                            key={announcement.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedAnnouncement(announcement)}
+                            onKeyDown={(e) => e.key === 'Enter' && setSelectedAnnouncement(announcement)}
+                            className="card"
+                            style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '200px', backgroundColor: '#F9F7F4', cursor: 'pointer' }}
+                        >
+                            <div style={{ marginBottom: '1rem' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
+                                    {announcement.title}
+                                </h3>
+                            </div>
+                    <div style={{ flex: 1, marginBottom: '2rem', minHeight: '4.5rem', overflow: 'hidden' }}>
+                                <p style={{
+                                    margin: 0,
+                                    color: '#1f2937',
+                                    lineHeight: 1.5,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical' as const,
+                                }}>
+                                    {announcement.content}
+                                </p>
+                            </div>
+                            <div className="announcement-card-footer" style={{
+                                fontSize: '0.875rem',
+                                color: '#6b7280',
+                                marginTop: 'auto'
                             }}>
-                                {announcement.content}
-                            </p>
-                        </div>
-                        <div className="announcement-card-footer" style={{
-                            fontSize: '0.875rem',
-                            color: '#6b7280',
-                            marginTop: 'auto'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span>Priority:</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                    <div style={{
-                                        width: '10px',
-                                        height: '10px',
-                                        borderRadius: '50%',
-                                        backgroundColor: getPriorityColor(announcement.priority)
-                                    }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>Priority:</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                        <div style={{
+                                            width: '10px',
+                                            height: '10px',
+                                            borderRadius: '50%',
+                                            backgroundColor: getPriorityColor(announcement.priority)
+                                        }} />
+                                        <span style={{ fontWeight: 600, color: '#111827' }}>
+                                            {getPriorityLabel(announcement.priority)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>Date Created:</span>
                                     <span style={{ fontWeight: 600, color: '#111827' }}>
-                                        {getPriorityLabel(announcement.priority)}
+                                        {formatDate(announcement.created_at)}
                                     </span>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span>Date Created:</span>
-                                <span style={{ fontWeight: 600, color: '#111827' }}>
-                                    {formatDate(announcement.created_at)}
-                                </span>
-                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Detail Modal */}
             {selectedAnnouncement && (

@@ -14,8 +14,27 @@ const Settings = () => {
     name: '',
     email: '',
     role: '',
-    created_at: '',
+    ojt_id: '',
+    start_date: '',
+    required_hours: '',
+    ojt_type: '',
+    status: '',
   });
+
+  // Original data for change detection
+  const [originalData, setOriginalData] = useState({
+      id: '',
+    name: '',
+    email: '',
+    role: '',
+    ojt_id: '',
+    start_date: '',
+    required_hours: '',
+    ojt_type: '',
+    status: '',
+  });
+
+
 
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -42,13 +61,19 @@ const Settings = () => {
       const { session, error } = await authService.getSession();
 
       if (session?.user) {
-        setFormData({
+        const userData = {  // ✅ Define userData first
           id: session.user.id,
           name: session.user.user_metadata.full_name || '',
           email: session.user.email || '',
-          role: session.user.user_metadata.role || 'supervisor',
-          created_at: session.user.created_at ? new Date(session.user.created_at).toLocaleDateString('en-US', {month: '2-digit', day: '2-digit', year: 'numeric'}) : '',
-        });
+          role: session.user.user_metadata.role || '',
+          ojt_id: session.user.user_metadata.ojt_id || '',
+          start_date: session.user.user_metadata.start_date || '',
+          required_hours: session.user.user_metadata.required_hours || '',
+          ojt_type: session.user.user_metadata.ojt_type || '',
+          status: session.user.user_metadata.status || '',
+        };
+        setFormData(userData);
+        setOriginalData(userData);
       } else if (error) {
         console.error("Fetch failed:", error);
       }
@@ -58,6 +83,20 @@ const Settings = () => {
     loadProfile();
   }, []);
 
+  // Check if profile Data has been Changed
+  const isProfileChanged = () => {
+    return (
+      formData.name !== originalData.name ||
+      formData.email !== originalData.email
+    );
+  };
+
+  // Check if Password Data is Valid
+  const isPasswordValid = () => {
+    return passwordData.currentPassword.trim() !== '' ||
+           passwordData.newPassword.trim() !== '' ||
+           passwordData.newPasswordConfirmation.trim() !== '';
+  };
   // Handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === 'name') {
@@ -75,6 +114,12 @@ const Settings = () => {
 
   const handleSave = async () => {
     setProfileErr('');
+
+    if (!isProfileChanged()) {
+      setProfileErr("No changes detected.");
+      return;
+    }
+
     if (!formData.id) {
       setProfileErr("Error: No User ID found. Please refresh the page.");
       return;
@@ -94,10 +139,12 @@ const Settings = () => {
     }
 
     try {
+      
       await apiClient.put(`/users/${formData.id}`, {
         full_name: trimmedName,
         email: formData.email
       });
+      setOriginalData(formData);
       updateUser({ name: trimmedName, email: formData.email });
       setSuccessPopup('Profile Updated Successfully!');
       setTimeout(() => setSuccessPopup(''), 3000);
@@ -217,11 +264,35 @@ const Settings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Account Type
+                Role
               </label>
               <input
                 type="text"
                 defaultValue={formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : 'Supervisor'}
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                ID
+              </label>
+              <input
+                type="text"
+                defaultValue={formData.id}
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </label>
+              <input
+                type="text"
+                defaultValue={formData.status ? formData.status.charAt(0).toUpperCase() + formData.status.slice(1) : 'Active'}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
@@ -245,11 +316,35 @@ const Settings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Date Created
+                OJT Type
               </label>
               <input
                 type="text"
-                defaultValue={formData.created_at}
+                defaultValue={formData.ojt_type.charAt(0).toUpperCase() + formData.ojt_type.slice(1)}
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                DATE STARTED
+              </label>
+              <input
+                type="text"
+                defaultValue={formData.start_date}
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                REQUIRED HOURS
+              </label>
+              <input
+                type="text"
+                defaultValue={formData.required_hours}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
@@ -259,9 +354,15 @@ const Settings = () => {
 
         <div className="flex justify-end items-center mt-6 gap-4">
           {profileErr && <span className="text-danger text-sm font-bold">{profileErr}</span>}
+          
           <button 
             onClick={handleSave}
-            className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
+            disabled={!isProfileChanged()}
+            className={`px-6 py-2.5 font-medium rounded-lg transition-colors ${
+              isProfileChanged()
+                ? 'bg-primary hover:bg-primary/90 text-white cursor-pointer'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+            }`}
           >
             Save Changes
           </button>
@@ -354,9 +455,15 @@ const Settings = () => {
 
         <div className="flex justify-end items-center mt-6 gap-4">
           {pwdErr && <span className="text-danger text-sm font-bold">{pwdErr}</span>}
+          
           <button 
             onClick={handleUpdatePassword}
-            className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors"
+            disabled={!isPasswordValid()}
+            className={`px-6 py-2.5 font-medium rounded-lg transition-colors ${
+              isPasswordValid()
+                ? 'bg-primary hover:bg-primary/90 text-white cursor-pointer'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+            }`}
           >
             Update Password
           </button>

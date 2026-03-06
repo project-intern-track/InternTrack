@@ -213,6 +213,18 @@ const ManageTasks = () => {
     const [selectedTools, setSelectedTools] = useState<string[]>([]);
     const [toolsPage, setToolsPage] = useState(1);
 
+    // Toast notification state
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({ message: '', type: 'error', visible: false });
+    const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+        if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+        setToast({ message, type, visible: true });
+        toastTimeoutRef.current = setTimeout(() => {
+            setToast(prev => ({ ...prev, visible: false }));
+        }, 4000);
+    };
+
     const dateInputRef = useRef<HTMLInputElement>(null);
     const internSearchInputRef = useRef<HTMLInputElement>(null);
 
@@ -325,7 +337,7 @@ const ManageTasks = () => {
             closeRejectModal();
         } catch (err) {
             console.error('Failed to reject task:', err);
-            alert('Failed to reject task. Please try again.');
+            showToast('Failed to reject task. Please try again.');
         } finally {
             setRejecting(false);
         }
@@ -342,15 +354,15 @@ const ManageTasks = () => {
     const handleAssign = async () => {
         try {
             if (!taskTitle.trim()) {
-                alert('Please provide a task title.');
-                return;
-            }
+                showToast('Please provide a task title.');
+                    return;
+                }
             if (!taskDescription.trim()) {
-                alert('Please provide a task description.');
+                showToast('Please provide a task description.');
                 return;
             }
             if (!selectedInterns.length) {
-                alert('Please assign at least one intern.');
+                showToast('Please assign at least one intern.');
                 return;
             }
             if (!dueDate) {
@@ -358,7 +370,7 @@ const ManageTasks = () => {
                 return;
             }
             if (!priority) {
-                alert('Please select a priority.');
+                showToast('Please select a priority.');
                 return;
             }
 
@@ -406,7 +418,7 @@ const ManageTasks = () => {
             handleClear();
         } catch (err) {
             console.error('Failed to create task:', err);
-            alert('Failed to create task. Please try again.');
+            showToast('Failed to create task. Please try again.');
         } finally {
             setAssigning(false);
         }
@@ -1425,7 +1437,77 @@ const ManageTasks = () => {
                                     </div>
                                 </div>
                             </div>
-                            {/* Close icon */}
+                        </div>
+                        {/* Close icon */}
+                        <button
+                            onClick={closeViewDetail}
+                            style={{
+                                backgroundColor: 'hsl(var(--orange))',
+                                color: '#fff',
+                                borderRadius: '999px',
+                                border: 'none',
+                                width: 28,
+                                height: 28,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                fontWeight: 700,
+                                fontSize: '0.8rem',
+                            }}
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    {/* Tech stack */}
+                    <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#111827' }}>
+                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Tech Stack:</div>
+                        <div style={{ color: 'hsl(var(--muted-foreground))' }}>Not set</div>
+                    </div>
+
+                    {/* Description */}
+                    <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#111827' }}>
+                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Task Description:</div>
+                        <p style={{ margin: 0, lineHeight: 1.5 }}>
+                            {selectedTask.description || 'No description provided.'}
+                        </p>
+                    </div>
+
+                    {/* Assigned list */}
+                    <div style={{ marginBottom: '1.25rem', fontSize: '0.875rem', color: '#111827' }}>
+                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Assigned to Intern/s:</div>
+                        {selectedTask.assigned_interns && selectedTask.assigned_interns.length > 0 ? (
+                            <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                                {selectedTask.assigned_interns.map(intern => (
+                                    <li key={intern.id}>{intern.full_name}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p
+                                style={{
+                                    margin: 0,
+                                    color: 'hsl(var(--muted-foreground))',
+                                }}
+                            >
+                                {selectedTask.assigned_interns_count > 0
+                                    ? `${selectedTask.assigned_interns_count} intern(s)`
+                                    : 'No interns assigned.'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Existing rejection reason, if any */}
+                    {selectedTask.status === 'rejected' && selectedTask.rejection_reason && (
+                        <div className="task-detail-rejection-box">
+                            <span className="task-detail-rejection-label">Rejection Reason</span>
+                            <p className="task-detail-rejection-text">{selectedTask.rejection_reason}</p>
+                        </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="task-detail-actions">
+                        {selectedTask.status === 'needs_revision' && (
                             <button
                                 onClick={closeViewDetail}
                                 style={{
@@ -1608,9 +1690,62 @@ const ManageTasks = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+        )}
+            {toast.visible && (
+                <div style={{ ...toastStyles.container, ...(toast.type === 'error' ? toastStyles.error : toastStyles.success) }}>
+                    <span>{toast.type === 'error' ? '\u26A0' : '\u2713'}</span>
+                    <span style={{ flex: 1 }}>{toast.message}</span>
+                    <button
+                        style={toastStyles.closeBtn}
+                        onClick={() => setToast(prev => ({ ...prev, visible: false }))}
+                    >
+                        &times;
+                    </button>
+                </div>
             )}
-        </div>
+       </div>
     );
+};
+
+/* Toast notification styles */
+const toastStyles = {
+    container: {
+        position: 'fixed' as const,
+        top: '24px',
+        right: '24px',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '14px 20px',
+        borderRadius: '10px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        maxWidth: '420px',
+        animation: 'slideIn 0.3s ease-out',
+    },
+    error: {
+        backgroundColor: '#fee2e2',
+        color: '#991b1b',
+        border: '1px solid #fca5a5',
+    },
+    success: {
+        backgroundColor: '#dcfce7',
+        color: '#166534',
+        border: '1px solid #86efac',
+    },
+    closeBtn: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        fontSize: '1.1rem',
+        lineHeight: 1,
+        padding: '0 0 0 8px',
+        color: 'inherit',
+        opacity: 0.7,
+    },
 };
 
 export default ManageTasks;

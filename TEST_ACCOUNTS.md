@@ -8,85 +8,65 @@ This document contains login credentials for testing different user roles in the
 ## Admin Account
 
 **Email:** `admin@interntrack.com`  
-**Password:** `Admin123!`  
+**Password:** `password123`  
 **Role:** Administrator  
+**Full Name:** System Administrator  
 **Permissions:** Full system access, user management, system configuration
 
 ---
 
-## Supervisor Accounts
+## Supervisor Account
 
-### Supervisor 1
-**Email:** `supervisor1@company.com`  
-**Password:** `Super123!`  
+**Email:** `supervisor@interntrack.com`  
+**Password:** `password123`  
 **Role:** Supervisor  
-**Permissions:** Manage assigned students, approve tasks, view reports
-
-### Supervisor 2
-**Email:** `supervisor2@company.com`  
-**Password:** `Super123!`  
-**Role:** Supervisor  
+**Full Name:** IT Department Supervisor  
+**Department:** IT Department  
 **Permissions:** Manage assigned students, approve tasks, view reports
 
 ---
 
-## Student Accounts
+## Intern Account
 
-### Student 1 (Required OJT)
-**Email:** `student1@university.edu`  
-**Password:** `Student123!`  
-**Role:** Student  
+**Email:** `intern@interntrack.com`  
+**Password:** `password123`  
+**Role:** Intern  
+**Full Name:** Test Intern User  
+**OJT Role:** Frontend Developer  
 **OJT Type:** Required  
 **Required Hours:** 500  
-**Status:** Active
-
-### Student 2 (Voluntary OJT)
-**Email:** `student2@university.edu`  
-**Password:** `Student123!`  
-**Role:** Student  
-**OJT Type:** Voluntary  
-**Required Hours:** 300  
-**Status:** Active
-
-### Student 3 (Completed OJT)
-**Email:** `student3@university.edu`  
-**Password:** `Student123!`  
-**Role:** Student  
-**OJT Type:** Required  
-**Required Hours:** 500  
-**Status:** Completed
+**Status:** Active  
+**Supervisor:** IT Department Supervisor
 
 ---
 
 ## Notes
 
-- **Security:** These are test accounts for development/staging environments only. **Never use these credentials in production.**
-- **Password Policy:** All test passwords follow the format: `[Role]123!`
-- **Email Verification:** Test accounts may need email verification disabled or use a test email service
-- **Data Reset:** Test data should be reset periodically to maintain clean test environments
+- **Status:** These are real accounts automatically seeded into the database by the backend team
+- **Verification:** All test accounts have email verification pre-enabled (`email_verified_at` is set)
+- **Security:** Never use these credentials in production environments
+- **Password Policy:** All test accounts use the same password: `password123`
+- **Data Reset:** Test data is seeded from `DatabaseSeeder.php` and can be reset by re-running migrations and seeders
 
 ---
 
 ## Quick Reference Table
 
-| Role | Email | Password | Use Case |
-|------|-------|----------|----------|
-| Admin | admin@interntrack.com | Admin123! | System administration |
-| Supervisor | supervisor1@company.com | Super123! | Managing students |
-| Supervisor | supervisor2@company.com | Super123! | Alternative supervisor |
-| Student | student1@university.edu | Student123! | Required OJT testing |
-| Student | student2@university.edu | Student123! | Voluntary OJT testing |
-| Student | student3@university.edu | Student123! | Completed OJT testing |
+| Role | Email | Password | Full Name |
+|------|-------|----------|-----------|
+| Admin | admin@interntrack.com | password123 | System Administrator |
+| Supervisor | supervisor@interntrack.com | password123 | IT Department Supervisor |
+| Intern | intern@interntrack.com | password123 | Test Intern User |
 
 ---
 
 ## Creating Additional Test Accounts
 
-To create additional test accounts, use the signup form with these patterns:
+To create additional test accounts, use the signup form with:
 
-- **Email Pattern:** `[role][number]@[domain]`
-- **Password Pattern:** `[Role]123!`
-- **Naming Convention:** Use descriptive names that indicate the test scenario
+- **Email Pattern:** `[username]@[domain]` (e.g., `john.doe@company.com`)
+- **Password:** Use a secure password meeting the requirements: 8+ characters, uppercase, number, special symbol
+- **Role:** Select from available OJT roles in the dropdown
 
 ---
 

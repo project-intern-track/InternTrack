@@ -316,6 +316,16 @@ const SupervisorApprovals = () => {
                             <div><strong>Priority:</strong> {getPriorityLabel(detailTask.priority)}</div>
                             <div><strong>Created by:</strong> {detailTask.creator?.full_name ?? '—'}</div>
                         </div>
+                        {detailTask.tools && detailTask.tools.length > 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                                <strong>Tools &amp; technologies:</strong>
+                                <ul style={{ margin: '0.25rem 0 0', paddingLeft: '1.2rem' }}>
+                                    {detailTask.tools.map((t) => (
+                                        <li key={t}>{t}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                         {detailTask.rejection_reason && (
                             <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#fff3e0', borderRadius: '0.5rem' }}>
                                 <strong>Revision/Rejection reason:</strong> {detailTask.rejection_reason}

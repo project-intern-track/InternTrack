@@ -38,6 +38,8 @@ export const taskService = {
         due_date: string;
         priority: string;
         intern_ids: number[];
+        tech_stack_categories?: string[];
+        tools?: string[];
     }): Promise<Tasks> {
         const response = await apiClient.post<{ data: Tasks }>('/tasks', payload);
         return response.data.data;
@@ -50,6 +52,8 @@ export const taskService = {
         priority: string;
         status: string;
         intern_ids: number[];
+        tech_stack_categories?: string[] | null;
+        tools?: string[] | null;
     }>): Promise<Tasks> {
         const response = await apiClient.put<{ data: Tasks }>(`/tasks/${id}`, updates);
         return response.data.data;
@@ -63,5 +67,9 @@ export const taskService = {
     async rejectTask(id: number, rejection_reason: string): Promise<Tasks> {
         const response = await apiClient.put<{ data: Tasks }>(`/tasks/${id}/reject`, { rejection_reason });
         return response.data.data;
+    },
+
+    async deleteTask(id: number): Promise<void> {
+        await apiClient.delete(`/tasks/${id}`);
     },
 };

@@ -14,6 +14,8 @@ class Task extends Model
         'due_date',
         'priority',
         'status',
+        'tech_stack_categories',
+        'tools',
         'rejection_reason',
         'revision_category',
         'approved_by',
@@ -24,8 +26,10 @@ class Task extends Model
     protected function casts(): array
     {
         return [
-            'due_date'    => 'datetime',
-            'approved_at' => 'datetime',
+            'due_date'             => 'datetime',
+            'approved_at'          => 'datetime',
+            'tech_stack_categories' => 'array',
+            'tools'                 => 'array',
         ];
     }
 

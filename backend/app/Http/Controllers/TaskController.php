@@ -32,21 +32,27 @@ class TaskController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'title'        => 'required|string|max:255',
-            'description'  => 'nullable|string',
-            'due_date'     => 'required|date',
-            'priority'     => 'required|in:low,medium,high',
-            'intern_ids'   => 'required|array|min:1',
-            'intern_ids.*' => 'integer|exists:users,id',
+            'title'                  => 'required|string|max:255',
+            'description'            => 'nullable|string',
+            'due_date'               => 'required|date',
+            'priority'               => 'required|in:low,medium,high',
+            'intern_ids'             => 'required|array|min:1',
+            'intern_ids.*'           => 'integer|exists:users,id',
+            'tech_stack_categories'   => 'nullable|array',
+            'tech_stack_categories.*'=> 'string|max:255',
+            'tools'                  => 'nullable|array',
+            'tools.*'                 => 'string|max:255',
         ]);
 
         $task = Task::create([
-            'title'       => $validated['title'],
-            'description' => $validated['description'] ?? null,
-            'due_date'    => $validated['due_date'],
-            'priority'    => $validated['priority'],
-            'status'      => 'pending_approval',
-            'created_by'  => $request->user()->id,
+            'title'                  => $validated['title'],
+            'description'            => $validated['description'] ?? null,
+            'due_date'               => $validated['due_date'],
+            'priority'               => $validated['priority'],
+            'status'                 => 'pending_approval',
+            'tech_stack_categories'  => $validated['tech_stack_categories'] ?? null,
+            'tools'                  => $validated['tools'] ?? null,
+            'created_by'             => $request->user()->id,
         ]);
 
         $task->assignedInterns()->sync($validated['intern_ids']);
@@ -279,6 +285,17 @@ class TaskController extends Controller
         return response()->json(['data' => $this->formatTask($task)]);
     }
 
+    /**
+     * DELETE /api/tasks/{id}
+     * Admin: permanently delete (archive) a task.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $task = Task::findOrFail($id);
+        $task->delete();
+        return response()->json(['message' => 'Task deleted.']);
+    }
+
     // ── Private Helpers ─────────────────────────────────────────────────────
 
     private function markOverdueTasks(): void
@@ -303,6 +320,8 @@ class TaskController extends Controller
             'due_date'               => $task->due_date?->toISOString(),
             'priority'               => $task->priority,
             'status'                 => $task->status,
+            'tech_stack_categories'  => $task->tech_stack_categories,
+            'tools'                  => $task->tools,
             'rejection_reason'       => $task->rejection_reason,
             'revision_category'      => $task->revision_category,
             'approved_by'            => $task->approved_by,

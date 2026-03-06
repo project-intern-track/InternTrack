@@ -5,7 +5,6 @@ import type { Tasks, TaskStatus } from "../../types/database.types";
 type TabKey =
   | "all"
   | "not_started"
-  | "pending"
   | "in_progress"
   | "completed"
   | "overdue";
@@ -29,6 +28,8 @@ const ALL_TASKS_STATUS_ORDER: Record<TaskStatus, number> = {
   not_started: 3,
   rejected: 4,
   overdue: 5,
+  pending_approval: 6,
+  needs_revision: 7,
 };
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
@@ -38,6 +39,8 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
   completed: "Completed",
   rejected: "Rejected",
   overdue: "Overdue",
+  pending_approval: "Pending Approval",
+  needs_revision: "For Revision",
 };
 
 function getPriorityDot(priority: string): React.CSSProperties {
@@ -88,8 +91,9 @@ export default function TaskList() {
     useState<TaskStatus>("not_started");
   const [updating, setUpdating] = useState(false);
 
-  // View details modal
   const [detailTask, setDetailTask] = useState<Tasks | null>(null);
+  const [detailUpdating, setDetailUpdating] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const fetchTasks = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -132,19 +136,55 @@ export default function TaskList() {
       closeStatusModal();
       return;
     }
+    if (updating) return;
     setUpdating(true);
     try {
-      const updated = await taskService.updateStatus(
-        statusModalTask.id,
-        selectedStatus,
-      );
-      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      await taskService.updateStatus(statusModalTask.id, selectedStatus);
       closeStatusModal();
+      await fetchTasks();
     } catch (err) {
       console.error("Failed to update status:", err);
     } finally {
       setUpdating(false);
     }
+  };
+
+  const handleStartTask = async () => {
+    if (!detailTask || detailUpdating) return;
+    if (detailTask.status !== "not_started" && detailTask.status !== "pending")
+      return;
+    setDetailUpdating(true);
+    try {
+      await taskService.updateStatus(detailTask.id, "in_progress");
+      closeDetailModal();
+      await fetchTasks();
+    } catch (err) {
+      console.error("Failed to start task:", err);
+    } finally {
+      setDetailUpdating(false);
+    }
+  };
+
+  const handleFinishTask = async () => {
+    if (!detailTask || detailUpdating) return;
+    if (detailTask.status !== "in_progress" && detailTask.status !== "overdue")
+      return;
+    setDetailUpdating(true);
+    try {
+      await taskService.updateStatus(detailTask.id, "completed");
+      closeDetailModal();
+      await fetchTasks();
+    } catch (err) {
+      console.error("Failed to finish task:", err);
+    } finally {
+      setDetailUpdating(false);
+    }
+  };
+
+  const closeDetailModal = () => {
+    setDetailTask(null);
+    setSuccessMessage(null);
+    setDetailUpdating(false);
   };
 
   const grouped = useMemo(() => {
@@ -157,7 +197,6 @@ export default function TaskList() {
     return {
       all: allSorted,
       not_started: tasks.filter((t) => t.status === "not_started"),
-      pending: tasks.filter((t) => t.status === "pending"),
       in_progress: tasks.filter((t) => t.status === "in_progress"),
       completed: tasks.filter((t) => t.status === "completed"),
       overdue: tasks.filter(
@@ -182,7 +221,6 @@ export default function TaskList() {
               [
                 "all",
                 "not_started",
-                "pending",
                 "in_progress",
                 "completed",
                 "overdue",
@@ -191,7 +229,6 @@ export default function TaskList() {
               const labels: Record<TabKey, string> = {
                 all: "All Tasks",
                 not_started: "Not Started",
-                pending: "Pending",
                 in_progress: "In Progress",
                 completed: "Completed",
                 overdue: "Overdue",
@@ -293,7 +330,10 @@ export default function TaskList() {
 
                       <button
                         style={styles.detailButton}
-                        onClick={() => setDetailTask(task)}
+                        onClick={() => {
+                          setSuccessMessage(null);
+                          setDetailTask(task);
+                        }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = "#ff8a00";
                           e.currentTarget.style.color = "#fff";
@@ -316,7 +356,7 @@ export default function TaskList() {
 
         {/* View Details Modal */}
         {detailTask && (
-          <div style={styles.overlay} onClick={() => setDetailTask(null)}>
+          <div style={styles.overlay} onClick={closeDetailModal}>
             <div
               style={styles.detailModal}
               onClick={(e) => e.stopPropagation()}
@@ -336,7 +376,7 @@ export default function TaskList() {
                   </span>
                 </div>
                 <button
-                  onClick={() => setDetailTask(null)}
+                  onClick={closeDetailModal}
                   style={styles.closeBtn}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.color = "#ff4d4d";
@@ -397,12 +437,91 @@ export default function TaskList() {
                 </div>
               </div>
 
+              {detailTask.tools && detailTask.tools.length > 0 && (
+                <div style={{ marginBottom: "1rem" }}>
+                  <span style={styles.detailLabel}>Tools &amp; technologies:</span>
+                  <ul style={{ margin: "0.25rem 0 0", paddingLeft: "1.2rem" }}>
+                    {detailTask.tools.map((t) => (
+                      <li key={t} style={styles.detailBody}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {successMessage && (
+                <p
+                  style={{
+                    margin: "0 0 1rem",
+                    padding: "0.5rem 0.75rem",
+                    background: "#d1fae5",
+                    color: "#065f46",
+                    borderRadius: "8px",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  {successMessage}
+                </p>
+              )}
               <div style={styles.detailFooter}>
-                {canUpdateStatus(detailTask.status) && (
+                {(detailTask.status === "not_started" ||
+                  detailTask.status === "pending") && (
+                  <button
+                    style={{
+                      ...styles.updateButton,
+                      opacity: detailUpdating ? 0.7 : 1,
+                      cursor: detailUpdating ? "wait" : "pointer",
+                    }}
+                    onClick={handleStartTask}
+                    disabled={detailUpdating}
+                    onMouseEnter={(e) => {
+                      if (!detailUpdating) {
+                        e.currentTarget.style.background = "#ff6f00";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(255, 138, 0, 0.3)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#ff8a00";
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    {detailUpdating ? "Starting…" : "Start Task"}
+                  </button>
+                )}
+                {(detailTask.status === "in_progress" ||
+                  detailTask.status === "overdue") && (
+                  <button
+                    style={{
+                      ...styles.updateButton,
+                      opacity: detailUpdating ? 0.7 : 1,
+                      cursor: detailUpdating ? "wait" : "pointer",
+                    }}
+                    onClick={handleFinishTask}
+                    disabled={detailUpdating}
+                    onMouseEnter={(e) => {
+                      if (!detailUpdating) {
+                        e.currentTarget.style.background = "#ff6f00";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(255, 138, 0, 0.3)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#ff8a00";
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    {detailUpdating ? "Finishing…" : "Finish"}
+                  </button>
+                )}
+                {detailTask.status === "rejected" && canUpdateStatus(detailTask.status) && (
                   <button
                     style={styles.updateButton}
                     onClick={() => {
-                      setDetailTask(null);
+                      closeDetailModal();
                       openStatusModal(detailTask);
                     }}
                     onMouseEnter={(e) => {
@@ -421,7 +540,7 @@ export default function TaskList() {
                   </button>
                 )}
                 <button
-                  onClick={() => setDetailTask(null)}
+                  onClick={closeDetailModal}
                   style={styles.cancelBtn}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "#f3f4f6";

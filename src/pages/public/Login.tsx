@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, AlertCircle, Info, RefreshCw } from 'lucide-react';
 import { authService } from '../../services/authService';
-import '../../styles/auth.css';
+import { motion } from 'framer-motion';
 
 const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -141,80 +141,147 @@ const Login = () => {
     const formDisabled = isSubmitting || isLoading;
 
     return (
-        <div className="auth-page">
-            {/* Left half: hero image */}
-            <div className="auth-hero">
-                <img src="/heroimage.png" alt="Person typing on laptop" className="auth-hero-image" />
-            </div>
+        <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white overflow-hidden">
+            {/* Left: Hero image */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="hidden md:block relative overflow-hidden"
+            >
+                <img
+                    src="/heroimage.png"
+                    alt="Person typing on laptop"
+                    className="w-full h-full object-cover rounded-r-[2rem]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </motion.div>
 
-            {/* Right half: login form */}
-            <div className="auth-form-panel">
-                <div className="auth-form-inner">
-                    <div className="auth-mobile-header">
-                        <img src="/heroIcon.png" alt="InternTrack" className="auth-mobile-icon" />
-                        <div className="auth-mobile-wordmark" aria-label="InternTrack">
-                            <span className="auth-mobile-wordmark-intern">Intern</span>
-                            <span className="auth-mobile-wordmark-track">Track</span>
+            {/* Right: Form panel */}
+            <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="flex flex-col justify-center items-center p-6 md:p-12 overflow-y-auto bg-gradient-to-br from-gray-50 via-white to-gray-50"
+            >
+                <div className="w-full max-w-md">
+                    {/* Mobile header */}
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="md:hidden flex flex-col items-center gap-2 mb-8"
+                    >
+                        <img src="/heroIcon.png" alt="InternTrack" className="h-20 w-auto" />
+                        <div className="flex items-center gap-1 font-black text-2xl" aria-label="InternTrack">
+                            <span className="text-gray-800">Intern</span>
+                            <span className="text-orange">Track</span>
                         </div>
-                    </div>
+                    </motion.div>
+
+                    {/* Deactivated notice */}
                     {isDeactivated && (
-                        <div className="auth-error" id="deactivated-notice">
-                            <AlertCircle size={18} className="auth-error-alert-icon" />
-                            <div>Your account has been archived.</div>
-                        </div>
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-lg flex gap-3 items-start"
+                        >
+                            <AlertCircle size={18} className="text-danger flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-danger">Your account has been archived.</p>
+                        </motion.div>
                     )}
+
+                    {/* Error message */}
                     {error && (
-                        <div className="auth-error" id="login-error">
-                            <AlertCircle size={18} className="auth-error-alert-icon" />
-                            <div>{error}</div>
-                        </div>
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-lg flex gap-3 items-start"
+                        >
+                            <AlertCircle size={18} className="text-danger flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-danger">{error}</p>
+                        </motion.div>
                     )}
 
+                    {/* Resend confirmation info */}
                     {showResend && (
-                        <div className="auth-info-box" id="resend-confirmation-box">
-                            <Info size={18} className="auth-info-icon" />
-                            <div>
-                                <strong>Haven't confirmed your email?</strong>
-                                <p style={{ margin: '0.25rem 0 0.5rem', fontSize: '0.8125rem' }}>
-                                    Click below to get a new confirmation link.
-                                </p>
-                                {resendStatus === 'sent' && resendMessage ? (
-                                    <p className="auth-resend-success">{resendMessage}</p>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={handleResendConfirmation}
-                                        disabled={resendStatus === 'sending'}
-                                        className="auth-resend-btn"
-                                        id="resend-confirmation-btn"
-                                    >
-                                        {resendStatus === 'sending' ? (
-                                            <><Loader2 size={14} className="auth-spinner" /> Sending...</>
-                                        ) : (
-                                            <><RefreshCw size={14} /> Resend Confirmation Email</>
-                                        )}
-                                    </button>
-                                )}
-                                {resendStatus === 'error' && resendMessage && (
-                                    <p className="auth-resend-error">{resendMessage}</p>
-                                )}
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3"
+                        >
+                            <div className="flex gap-3 items-start">
+                                <Info size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm text-blue-900 font-medium mb-3">
+                                        Didn't receive a confirmation email, or it expired? Let us send it again.
+                                    </p>
+                                    {resendStatus === 'sent' && resendMessage ? (
+                                        <p className="text-sm text-green-700 font-medium">{resendMessage}</p>
+                                    ) : (
+                                        <div className="flex flex-col gap-2">
+                                            <input
+                                                type="email"
+                                                placeholder="Enter your email"
+                                                value={resendEmail}
+                                                onChange={(e) => setResendEmail(e.target.value)}
+                                                className="w-full px-3 py-2 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                            <button
+                                                onClick={handleResendConfirmation}
+                                                disabled={resendStatus === 'sending'}
+                                                className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition-colors disabled:opacity-60"
+                                                id="resend-confirmation-btn"
+                                            >
+                                                {resendStatus === 'sending' ? (
+                                                    <>
+                                                        <Loader2 size={14} className="animate-spin" />
+                                                        <span>Sending...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <RefreshCw size={14} />
+                                                        <span>Resend Email</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                            {resendStatus === 'error' && resendMessage && (
+                                <p className="text-sm text-red-700 font-medium">{resendMessage}</p>
+                            )}
+                        </motion.div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="auth-form" id="login-form" noValidate>
-                        <div className="auth-field">
-                            <label htmlFor="login-email" className="auth-label">Email</label>
-                            <div className={touched.email && fieldErrors.email ? 'auth-input-error' : ''}>
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="space-y-5" id="login-form" noValidate>
+                        {/* Email field */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="space-y-2"
+                        >
+                            <label htmlFor="login-email" className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                Email
+                            </label>
+                            <div className={`relative transition-all duration-200 ${touched.email && fieldErrors.email ? '' : ''}`}>
                                 <input
                                     id="login-email"
                                     type="email"
-                                    className="auth-input"
+                                    className="w-full px-4 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
                                     placeholder="Enter your email address"
                                     value={email}
                                     onChange={(e) => {
                                         setEmail(e.target.value);
-                                        if (touched.email) setFieldErrors((prev) => { const n = { ...prev }; delete n.email; return n; });
+                                        if (touched.email) setFieldErrors((prev) => {
+                                            const n = { ...prev };
+                                            delete n.email;
+                                            return n;
+                                        });
                                     }}
                                     onBlur={() => handleBlur('email')}
                                     disabled={formDisabled}
@@ -222,22 +289,40 @@ const Login = () => {
                                 />
                             </div>
                             {touched.email && fieldErrors.email && (
-                                <span className="auth-field-hint auth-field-hint-error">{fieldErrors.email}</span>
+                                <motion.span
+                                    initial={{ opacity: 0, y: -5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xs text-danger font-medium"
+                                >
+                                    {fieldErrors.email}
+                                </motion.span>
                             )}
-                        </div>
+                        </motion.div>
 
-                        <div className="auth-field">
-                            <label htmlFor="login-password" className="auth-label">Password</label>
-                            <div className={`auth-input-wrapper ${touched.password && fieldErrors.password ? 'auth-input-error' : ''}`}>
+                        {/* Password field */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="space-y-2"
+                        >
+                            <label htmlFor="login-password" className="block text-xs font-bold uppercase tracking-widest text-gray-600">
+                                Password
+                            </label>
+                            <div className={`relative transition-all duration-200 ${touched.password && fieldErrors.password ? '' : ''}`}>
                                 <input
                                     id="login-password"
                                     type={showPassword ? 'text' : 'password'}
-                                    className="auth-input"
+                                    className={`w-full px-4 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none pr-12 border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed`}
                                     placeholder="Enter your password"
                                     value={password}
                                     onChange={(e) => {
                                         setPassword(e.target.value);
-                                        if (touched.password) setFieldErrors((prev) => { const n = { ...prev }; delete n.password; return n; });
+                                        if (touched.password) setFieldErrors((prev) => {
+                                            const n = { ...prev };
+                                            delete n.password;
+                                            return n;
+                                        });
                                     }}
                                     onBlur={() => handleBlur('password')}
                                     disabled={formDisabled}
@@ -245,33 +330,82 @@ const Login = () => {
                                 />
                                 <button
                                     type="button"
-                                    className="auth-toggle-password"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors p-1"
                                     onClick={() => setShowPassword(!showPassword)}
                                     tabIndex={-1}
                                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                                 >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
                             {touched.password && fieldErrors.password && (
-                                <span className="auth-field-hint auth-field-hint-error">{fieldErrors.password}</span>
+                                <motion.span
+                                    initial={{ opacity: 0, y: -5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xs text-danger font-medium"
+                                >
+                                    {fieldErrors.password}
+                                </motion.span>
                             )}
-                        </div>
+                        </motion.div>
 
-                        <button type="submit" className="auth-submit-btn" disabled={formDisabled} id="login-submit">
-                            {formDisabled ? (<><Loader2 size={18} className="auth-spinner" /> Signing in...</>) : 'Login'}
-                        </button>
+                        {/* Login button */}
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="submit"
+                            className="w-full mt-8 px-4 py-3 bg-orange text-white font-bold rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            disabled={formDisabled}
+                            id="login-submit"
+                        >
+                            {formDisabled ? (
+                                <>
+                                    <Loader2 size={18} className="animate-spin" />
+                                    <span>Signing in...</span>
+                                </>
+                            ) : (
+                                'Login'
+                            )}
+                        </motion.button>
 
-                        <Link to="/forgot-password" className="auth-forgot-link" id="forgot-password-link">
-                            Forgot password?
-                        </Link>
+                        {/* Forgot password link */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6 }}
+                            className="text-center"
+                        >
+                            <Link
+                                to="/forgot-password"
+                                className="text-sm font-bold text-orange hover:opacity-80 transition-opacity"
+                                id="forgot-password-link"
+                            >
+                                Forgot password?
+                            </Link>
+                        </motion.div>
                     </form>
 
-                    <div className="auth-footer">
-                        <p>Don't have an account? <Link to="/signup" className="auth-link" id="signup-link">Sign Up here</Link></p>
-                    </div>
+                    {/* Footer */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.7 }}
+                        className="mt-8 text-center text-sm text-gray-600"
+                    >
+                        Don't have an account?{' '}
+                        <Link
+                            to="/signup"
+                            className="font-bold text-orange hover:text-orange transition-opacity"
+                            id="signup-link"
+                        >
+                            Sign Up here
+                        </Link>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };

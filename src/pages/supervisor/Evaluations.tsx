@@ -1,69 +1,110 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, ClipboardList, Search, Users } from 'lucide-react';
-
-export type Evaluation = {
-  id: string;
-  name: string;
-  role: string;
-  taskCompletion: number; 
-  competencyScore: string; 
-  overall: number;
-  remarks: string;
-};
-
-const sampleEvaluations: Evaluation[] = [
-  { id: '1', name: 'John Doe', role: 'Intern', taskCompletion: 8, competencyScore: '4.5/5 (95%)', overall: 95, remarks: 'Good work' },
-  { id: '2', name: 'Jane Smith', role: 'Intern', taskCompletion: 6, competencyScore: '4.0/5 (90%)', overall: 90, remarks: 'Needs improvement on deadlines' },
-  { id: '3', name: 'Mark Lee', role: 'Assistant', taskCompletion: 7, competencyScore: '4.2/5 (92%)', overall: 92, remarks: 'Well done' },
-];
+import { BarChart, ClipboardList, Search, Users, Edit, Trash } from 'lucide-react';
+import type { Evaluation } from '../../types/database.types';
+import { evaluationService } from '../../services/evaluationService';
 
 const Evaluations = () => {
-  const [evaluations] = useState<Evaluation[]>(sampleEvaluations);
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [remarksFilter, setRemarksFilter] = useState('');
+  const [internIdFilter, setInternIdFilter] = useState('');
+  const [supervisorIdFilter, setSupervisorIdFilter] = useState('');
 
-  const uniqueRemarks = Array.from(new Set(evaluations.map(e => e.remarks)));
+  useEffect(() => {
+    const fetchEvaluations = async () => {
+      try {
+        setLoading(true);
+        const data = await evaluationService.getEvaluations();
+        console.log('Fetched Evaluations:', data);
+        setEvaluations(Array.isArray(data) ? data : []);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch evaluations');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvaluations();
+  }, []);
+
+  const uniqueInternIds = Array.from(new Set(evaluations.map(e => e.intern_id).filter(Boolean)));
+  const uniqueSupervisorIds = Array.from(new Set(evaluations.map(e => e.supervisor_id).filter(Boolean)));
 
   const filteredEvaluations = evaluations.filter(e => {
     return (
-      e.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (roleFilter ? e.role === roleFilter : true) &&
-      (remarksFilter ? e.remarks === remarksFilter : true)
+      (String(e.intern_id).toLowerCase().includes(searchTerm.toLowerCase()) || 
+      String(e.supervisor_id).toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (internIdFilter ? e.intern_id === internIdFilter : true) &&
+      (supervisorIdFilter ? e.supervisor_id === supervisorIdFilter : true)
     );
   });
 
-  // Calculations
   const totalEvaluated = evaluations.length;
-  const averageCompletion = evaluations.length > 0
-    ? Math.round(evaluations.reduce((sum, e) => sum + e.taskCompletion, 0) / evaluations.length)
+  const averageScore = evaluations.length > 0
+    ? Math.round(evaluations.reduce((sum, e) => sum + e.score, 0) / evaluations.length)
     : 0;
-  const improvementTrend = totalEvaluated; // number of evaluated tasks
+  const excellentCount = evaluations.filter(e => e.score >= 80).length;
+
+  const handleDelete = async (id: string) => { // Updated from number to string
+    if (window.confirm('Are you sure you want to delete this evaluation?')) {
+      try {
+        await evaluationService.deleteEvaluation(id); 
+        setEvaluations(evaluations.filter(evaluation => evaluation.id !== id));
+      } catch (err: any) {
+        console.error('Delete failed:', err);
+      }
+    }
+  };
+
+  const handleEdit = (evaluation: Evaluation) => {
+    console.log('Edit:', evaluation);
+    // TODO: Open edit modal or navigate to edit page
+  };
 
   const summaryCards = [
     {
-      label: 'Total Interns Evaluated',
+      label: 'Total Evaluated',
       value: totalEvaluated,
       icon: Users,
       iconColor: 'text-blue-500',
       iconBg: 'bg-blue-500/10',
     },
     {
-      label: 'Average Task Completion',
-      value: averageCompletion,
+      label: 'Average Score',
+      value: averageScore,
       icon: ClipboardList,
       iconColor: 'text-orange-500',
       iconBg: 'bg-orange-500/10',
     },
     {
-      label: 'Improvement Trend',
-      value: improvementTrend,
+      label: 'Excellent Performers',
+      value: excellentCount,
       icon: BarChart,
       iconColor: 'text-green-500',
       iconBg: 'bg-green-500/10',
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p className="text-gray-500">Loading evaluations...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="rounded-lg bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-4 md:p-8">
@@ -105,7 +146,7 @@ const Evaluations = () => {
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name"
+              placeholder="Search by ID"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
@@ -113,28 +154,29 @@ const Evaluations = () => {
           </div>
 
           <div className="relative md:col-span-2">
-            <ClipboardList size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Users size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
-              value={roleFilter}
-              onChange={e => setRoleFilter(e.target.value)}
+              value={internIdFilter}
+              onChange={e => setInternIdFilter(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             >
-              <option value="">All Roles</option>
-              <option value="Intern">Intern</option>
-              <option value="Assistant">Assistant</option>
+              <option value="">All Interns</option>
+              {uniqueInternIds.map((id) => (
+                <option key={id} value={id}>{id}</option>
+              ))}
             </select>
           </div>
 
           <div className="relative md:col-span-2">
-            <BarChart size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <ClipboardList size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
-              value={remarksFilter}
-              onChange={e => setRemarksFilter(e.target.value)}
+              value={supervisorIdFilter}
+              onChange={e => setSupervisorIdFilter(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             >
-              <option value="">All Remarks</option>
-              {uniqueRemarks.map((remark) => (
-                <option key={remark} value={remark}>{remark}</option>
+              <option value="">All Supervisors</option>
+              {uniqueSupervisorIds.map((id) => (
+                <option key={id} value={id}>{id}</option>
               ))}
             </select>
           </div>
@@ -153,15 +195,15 @@ const Evaluations = () => {
         </div>
 
         <div className="overflow-x-auto px-8 py-6">
-          <table className="min-w-[900px] w-full text-left text-sm">
+          <table className="min-w-full w-full text-left text-sm">
             <thead>
               <tr className="border-b border-gray-200 dark:border-white/10">
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Name</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Role</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task Completion</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Competency Score</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Overall (%)</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Remarks</th>
+                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern ID</th>
+                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Supervisor ID</th>
+                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Score</th>
+                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Date</th>
+                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Feedback</th>
+                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
 
@@ -181,12 +223,25 @@ const Evaluations = () => {
                     transition={{ duration: 0.2, delay: idx * 0.04 }}
                     className="border-b border-gray-100 last:border-none dark:border-white/5"
                   >
-                    <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.name}</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.role}</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.taskCompletion}</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.competencyScore}</td>
-                    <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.overall}%</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.remarks}</td>
+                    <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.intern_id}</td>
+                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.supervisor_id}</td>
+                    <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.score}/100</td>
+                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.evaluation_date}</td>
+                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 truncate max-w-xs">{evaluation.feedback || '-'}</td>
+                    <td className="py-3 pr-4 flex gap-2">
+                      <button
+                        onClick={() => handleEdit(evaluation)}
+                        className="flex items-center gap-1 rounded-lg bg-blue-500/10 p-2 text-blue-600 hover:bg-blue-500/20 dark:text-blue-400"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(evaluation.id)}
+                        className="flex items-center gap-1 rounded-lg bg-red-500/10 p-2 text-red-600 hover:bg-red-500/20 dark:text-red-400"
+                      >
+                        <Trash size={16} />
+                      </button>
+                    </td>
                   </motion.tr>
                 ))
               )}

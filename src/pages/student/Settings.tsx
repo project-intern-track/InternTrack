@@ -19,7 +19,6 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
-    created_at: '',
   });
 
   // Original data for change detection
@@ -62,7 +61,7 @@ const Settings = () => {
       const { session, error } = await authService.getSession();
 
       if (session?.user) {
-        const userData = {  // ✅ Define userData first
+        const userData = {  
           id: session.user.id,
           name: session.user.user_metadata.full_name || '',
           email: session.user.email || '',

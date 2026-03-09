@@ -1,15 +1,11 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { UserCheck, Search, Filter, ChevronDown } from 'lucide-react';
+import { attendanceService } from '../../services/attendanceServices';
+import type { Attendance } from '../../types/database.types';
 import '../../index.css';
 
-interface AttendanceRecord {
-  id: string;
-  date: string;
-  time_in: string | null;
-  time_out: string | null;
-  rendered_hours: number | null;
-  credited_hours: number | null;
-  status: string;
+interface AttendanceRecord extends Omit<Attendance, 'id'> {
+  id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
   user: {
     full_name: string;
   };
@@ -38,157 +34,30 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState(todayDate);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(10);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
 
-  // sample data
+  // fetch real data
   useEffect(() => {
-      const sampleData: AttendanceRecord[] = [
-        {
-          id: '1',
-          date: '2026-02-09',
-          time_in: null,
-          time_out: null,
-          rendered_hours: null,
-          credited_hours: null,
-          status: 'no_log',
-          user: { full_name: 'Yuan Crispino' },
-        },
-        {
-          id: '2',
-          date: '2026-02-14',
-          time_in: '2026-02-09T08:00:00',
-          time_out: '2026-02-09T18:00:00',
-          rendered_hours: 9,
-          credited_hours: 8,
-          status: 'completed',
-          user: { full_name: 'Maria Letuzawa' },
-        },
-        {
-          id: '3',
-          date: '2026-02-09',
-          time_in: '2026-02-09T08:00:00',
-          time_out: '2026-02-09T18:00:00',
-          rendered_hours: 9,
-          credited_hours: 8,
-          status: 'completed',
-          user: { full_name: 'John Jones' },
-        },
-        {
-          id: '4',
-          date: '2026-02-09',
-          time_in: '2026-02-09T08:00:00',
-          time_out: '2026-02-09T18:00:00',
-          rendered_hours: 9,
-          credited_hours: 8,
-          status: 'completed',
-          user: { full_name: 'Sarah Geronimo' },
-        },
-        {
-          id: '5',
-          date: '2026-02-09',
-          time_in: '2026-02-09T08:00:00',
-          time_out: '2026-02-09T18:00:00',
-          rendered_hours: 9,
-          credited_hours: 8,
-          status: 'completed',
-          user: { full_name: 'Michael Jordan' },
-        },
-        {
-            id: '6',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Alex Honnold' },
-          },
-          {
-            id: '7',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Lebron James' },
-          },
-          {
-            id: '8',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Kween Yasmin' },
-          },
-          {
-            id: '9',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Diwata Pares' },
-          },
-          {
-            id: '10',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Mang Oka' },
-          },
-          {
-            id: '11',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Bronny James' },
-          },
-          {
-            id: '12',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Poison 13' },
-          },
-          {
-            id: '13',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Lanzeta Round3' },
-          },
-          {
-            id: '14',
-            date: '2026-02-09',
-            time_in: '2026-02-09T08:00:00',
-            time_out: '2026-02-09T18:00:00',
-            rendered_hours: 9,
-            credited_hours: 8,
-            status: 'completed',
-            user: { full_name: 'Dwayne Wade' },
-          },
-      ];
-      setAttendanceRecords(sampleData);
+    let mounted = true;
+    const loadLogs = async () => {
+      try {
+        setLoading(true);
+        const records = await attendanceService.getAttendance(); // Admin sees all records
+        if (mounted) {
+          setAttendanceRecords(records as unknown as AttendanceRecord[]);
+        }
+      } catch (err) {
+        console.error('Failed to load attendance records', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    loadLogs();
+    return () => { mounted = false; };
   }, []);
 
  
@@ -285,8 +154,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   }, [filteredRecords]);
 
   // Calculate stats from records
-  const completedRecords = attendanceRecords.filter((r) => r.status === 'completed');
-  const totalCreditedHours = completedRecords.reduce((sum, r) => sum + (r.credited_hours || 0), 0);
+  const completedRecords = attendanceRecords.filter((r) => r.status && r.status !== 'absent');
+  const totalCreditedHours = completedRecords.reduce((sum, r) => sum + (r.total_hours || 0), 0);
   const completedRecordsCount = completedRecords.length;
   
   
@@ -295,14 +164,23 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
   const calculatedStats: AttendanceStats = {
     completed: stats?.completed ?? completedRecords.length,
-    incomplete: stats?.incomplete ?? attendanceRecords.filter((r) => r.status === 'incomplete').length,
-    noLog: stats?.noLog ?? attendanceRecords.filter((r) => r.status === 'no_log').length,
+    incomplete: stats?.incomplete ?? attendanceRecords.filter((r) => r.status === 'late').length,
+    noLog: stats?.noLog ?? attendanceRecords.filter((r) => r.status === 'absent').length,
     avgHoursPerDay: stats?.avgHoursPerDay ?? Math.round(avgHoursPerDay * 10) / 10,
   };
 
   const formatTime = (timeString: string | null) => {
     if (!timeString) return '-';
+    // If it's just "HH:mm"
+    if (timeString.length === 5) {
+      const [h, m] = timeString.split(':');
+      const hours = parseInt(h, 10);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      return `${displayHours}:${m} ${ampm}`;
+    }
     const date = new Date(timeString);
+    if (isNaN(date.getTime())) return timeString;
     const hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -326,14 +204,19 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
+      case 'present':
       case 'completed':
-        return <span className="badge badge-success">Completed</span>;
+        return <span className="badge badge-success" style={{ padding: '4px 8px', borderRadius: '4px', background: '#dcfce7', color: '#166534', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Present</span>;
+      case 'late':
       case 'incomplete':
-        return <span className="badge badge-warning">Incomplete</span>;
+        return <span className="badge badge-warning" style={{ padding: '4px 8px', borderRadius: '4px', background: '#fef08a', color: '#854d0e', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Late</span>;
+      case 'absent':
       case 'no_log':
-        return <span className="badge badge-danger">No Log</span>;
+        return <span className="badge badge-danger" style={{ padding: '4px 8px', borderRadius: '4px', background: '#fee2e2', color: '#991b1b', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Absent</span>;
+      case 'excused':
+        return <span className="badge badge-info" style={{ padding: '4px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#075985', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Excused</span>;
       default:
-        return <span className="badge">{status}</span>;
+        return <span className="badge" style={{ padding: '4px 8px', borderRadius: '4px', background: '#f3f4f6', color: '#374151', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>{status}</span>;
     }
   };
 
@@ -1013,9 +896,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   style={{ width: '100%', backgroundColor: 'white', paddingRight: '2.5rem' }}
                 >
                   <option value="all">All Status</option>
-                  <option value="completed">Completed</option>
-                  <option value="incomplete">Incomplete</option>
-                  <option value="no_log">No Log</option>
+                  <option value="present">Present</option>
+                  <option value="late">Late</option>
+                  <option value="absent">Absent</option>
+                  <option value="excused">Excused</option>
                 </select>
                 <ChevronDown
                   size={16}
@@ -1060,11 +944,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                     <tr>
                       <th style={{ width: '20%' }}>NAME</th>
                       <th style={{ width: '12%' }}>DATE</th>
-                      <th style={{ width: '12%' }}>TIME IN</th>
-                      <th style={{ width: '12%' }}>TIME OUT</th>
-                      <th style={{ width: '14%' }}>RENDERED HOURS</th>
-                      <th style={{ width: '14%' }}>CREDITED HOURS</th>
-                      <th style={{ width: '16%' }}>STATUS</th>
+                      <th style={{ width: '15%' }}>TIME IN</th>
+                      <th style={{ width: '15%' }}>TIME OUT</th>
+                      <th style={{ width: '18%' }}>TOTAL HOURS</th>
+                      <th style={{ width: '20%' }}>STATUS</th>
                     </tr>
                   </thead>
                 </table>
@@ -1076,14 +959,13 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                       {paginatedRecords.map((record, index) => (
                         <tr key={`${record.id}-${record.date}-${index}`}>
                           <td style={{ width: '20%' }}>
-                            <strong>{record.user.full_name}</strong>
+                            <strong>{record.user?.full_name || 'Unknown User'}</strong>
                           </td>
                           <td style={{ width: '12%' }}>{formatDate(record.date)}</td>
-                          <td style={{ width: '12%' }}>{formatTime(record.time_in)}</td>
-                          <td style={{ width: '12%' }}>{formatTime(record.time_out)}</td>
-                          <td style={{ width: '14%' }}>{formatHours(record.rendered_hours)}</td>
-                          <td style={{ width: '14%' }}>{formatHours(record.credited_hours)}</td>
-                          <td style={{ width: '16%' }}>{getStatusBadge(record.status)}</td>
+                          <td style={{ width: '15%' }}>{formatTime(record.time_in)}</td>
+                          <td style={{ width: '15%' }}>{formatTime(record.time_out)}</td>
+                          <td style={{ width: '18%' }}>{formatHours(record.total_hours)}</td>
+                          <td style={{ width: '20%' }}>{getStatusBadge(record.status)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1113,12 +995,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                         <span className="attendance-mobile-record-value">{formatTime(record.time_out)}</span>
                       </div>
                       <div className="attendance-mobile-record-row">
-                        <span className="attendance-mobile-record-label">Rendered Hours</span>
-                        <span className="attendance-mobile-record-value">{formatHours(record.rendered_hours)}</span>
-                      </div>
-                      <div className="attendance-mobile-record-row">
-                        <span className="attendance-mobile-record-label">Credited Hours</span>
-                        <span className="attendance-mobile-record-value">{formatHours(record.credited_hours)}</span>
+                        <span className="attendance-mobile-record-label">Total Hours</span>
+                        <span className="attendance-mobile-record-value">{formatHours(record.total_hours)}</span>
                       </div>
                     </div>
                   </div>

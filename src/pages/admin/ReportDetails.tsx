@@ -1,100 +1,42 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { FileText, ArrowLeft, Calendar, CheckCircle, Clock, UserCheck, BarChart } from 'lucide-react';
-import { useState } from 'react';
-
-interface ReportDetailsProps {
-    name: string;
-    email: string;
-    role: string;
-    hours: string;
-    attendance: string;
-    status: string;
-    lastUpdate: string;
-}
-
-const mockReportData: { [key: string]: ReportDetailsProps & { ojtId: string; department: string; supervisor: string } } = {
-    'kevin-lim': {
-        name: 'Kevin Lim',
-        email: 'kevinlim@gmail.com',
-        role: 'Fullstack Developer',
-        hours: '400h',
-        attendance: '75%',
-        status: 'Active',
-        lastUpdate: '2 hours ago',
-        ojtId: '1234',
-        department: 'Information Technology',
-        supervisor: 'Mae Santos'
-    },
-    'alex-john-ramirez': {
-        name: 'Alex John Ramirez',
-        email: 'alexjohnramirez@email.com',
-        role: 'Frontend Developer',
-        hours: '300h',
-        attendance: '45%',
-        status: 'Active',
-        lastUpdate: '5 hours ago',
-        ojtId: '1235',
-        department: 'Information Technology',
-        supervisor: 'Mae Santos'
-    },
-    'bianca-louise-santos': {
-        name: 'Bianca Louise Santos',
-        email: 'bianca.santos@email.com',
-        role: 'UI/UX Designer',
-        hours: '450h',
-        attendance: '65%',
-        status: 'Active',
-        lastUpdate: '1 hour ago',
-        ojtId: '1236',
-        department: 'Design Department',
-        supervisor: 'Mae Santos'
-    },
-    'jewel-gonzales': {
-        name: 'Jewel Gonzales',
-        email: 'jewelgonzales@email.com',
-        role: 'Data Analyst',
-        hours: '486h',
-        attendance: '96%',
-        status: 'Active',
-        lastUpdate: '7 hours ago',
-        ojtId: '1237',
-        department: 'Data Science',
-        supervisor: 'Mae Santos'
-    },
-    'alex-wilson': {
-        name: 'Alex Wilson',
-        email: 'alex.w@email.com',
-        role: 'Mobile Dev',
-        hours: '450h',
-        attendance: '94%',
-        status: 'Active',
-        lastUpdate: '6 hours ago',
-        ojtId: '1238',
-        department: 'Information Technology',
-        supervisor: 'Mae Santos'
-    },
-    'lisa-brown': {
-        name: 'Lisa Brown',
-        email: 'lisabrown@email.com',
-        role: 'QA Tester',
-        hours: '300h',
-        attendance: '100%',
-        status: 'Completed',
-        lastUpdate: '1 week ago',
-        ojtId: '1239',
-        department: 'Quality Assurance',
-        supervisor: 'Mae Santos'
-    }
-};
+import { useState, useEffect } from 'react';
+import { apiClient } from '../../services/apiClient';
 
 const ReportDetails = () => {
     const { internId } = useParams<{ internId: string }>();
     const navigate = useNavigate();
     const [selectedTab, setSelectedTab] = useState('weekly');
 
-    const reportData = mockReportData[internId || ''];
+    const [profile, setProfile] = useState<any>(null);
+    const [weekly, setWeekly] = useState<any>(null);
+    const [monthly, setMonthly] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-    if (!reportData) {
+    useEffect(() => {
+        const fetchAll = async () => {
+            try {
+                setLoading(true);
+                const [profRes, weekRes, monthRes] = await Promise.all([
+                    apiClient.get(`/reports/interns/${internId}`),
+                    apiClient.get(`/reports/interns/${internId}/weekly`),
+                    apiClient.get(`/reports/interns/${internId}/monthly`)
+                ]);
+                setProfile(profRes.data.data);
+                setWeekly(weekRes.data.data);
+                setMonthly(monthRes.data.data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (internId) fetchAll();
+    }, [internId]);
+
+    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading report details...</div>;
+
+    if (!profile) {
         return (
             <div style={{ padding: '2rem', textAlign: 'center' }}>
                 <h2>Report not found</h2>
@@ -164,34 +106,34 @@ const ReportDetails = () => {
                             color: '#2b2a2a',
                             fontSize: '2rem'
                         }}>
-                            <span style={{ color: '#ff8800' }}>{reportData.name}</span>'s Report
+                            <span style={{ color: '#ff8800' }}>{profile.name}</span>'s Report
                         </h1>
                         <div style={{
                             display: 'flex',
                             gap: '2rem',
                             flexWrap: 'wrap'
                         }}>
-                            {reportData.ojtId && (
+                            {profile.ojtId && (
                                 <div style={{ textAlign: 'left' }}>
                                     <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>OJT ID</div>
                                     <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                        {reportData.ojtId}
+                                        {profile.ojtId}
                                     </div>
                                 </div>
                             )}
-                            {reportData.department && (
+                            {profile.department && (
                                 <div style={{ textAlign: 'left' }}>
                                     <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Department</div>
                                     <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                        {reportData.department}
+                                        {profile.department}
                                     </div>
                                 </div>
                             )}
-                            {reportData.supervisor && (
+                            {profile.supervisor && (
                                 <div style={{ textAlign: 'left' }}>
                                     <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Supervisor</div>
                                     <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                        {reportData.supervisor}
+                                        {profile.supervisor}
                                     </div>
                                 </div>
                             )}
@@ -213,24 +155,24 @@ const ReportDetails = () => {
                             color: 'white',
                             fontWeight: 'bold'
                         }}>
-                            {reportData.name.split(' ').map(n => n[0]).join('')}
+                            {profile.name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
                         <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600', marginBottom: '0.25rem', textAlign: 'center' }}>
-                            {reportData.name}
+                            {profile.name}
                         </div>
                         <div style={{ fontSize: '1rem', color: '#666', marginBottom: '0.5rem', textAlign: 'center' }}>
-                            {reportData.role}
+                            {profile.role}
                         </div>
                         <span style={{
-                            backgroundColor: reportData.status === 'Active' ? '#dcfce7' : '#dbeafe',
-                            color: reportData.status === 'Active' ? '#166534' : '#1e40af',
+                            backgroundColor: profile.status === 'Active' ? '#dcfce7' : '#dbeafe',
+                            color: profile.status === 'Active' ? '#166534' : '#1e40af',
                             fontSize: '0.9rem',
                             fontWeight: '500',
                             padding: '0.25rem 0.75rem',
                             borderRadius: '9999px',
                             display: 'inline-block'
                         }}>
-                            {reportData.status}
+                            {profile.status}
                         </span>
                     </div>
                 </div>
@@ -316,10 +258,10 @@ const ReportDetails = () => {
                     padding: '1.5rem',
                     border: '1px solid #e5e5e5'
                 }}>
-                    {selectedTab === 'weekly' && (
+                    {selectedTab === 'weekly' && weekly && (
                         <div>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
-                                Week 5: February 2 - 6, 2026
+                                {weekly.week_label}
                             </h3>
                             <div style={{
                                 display: 'flex',
@@ -329,13 +271,13 @@ const ReportDetails = () => {
                                 <div>
                                     <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Hours</div>
                                     <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                        38 hours
+                                        {weekly.total_hours} hours
                                     </div>
                                 </div>
                                 <div>
                                     <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Tasks</div>
                                     <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                        15 tasks
+                                        {weekly.total_tasks} tasks
                                     </div>
                                 </div>
                             </div>
@@ -348,108 +290,58 @@ const ReportDetails = () => {
                                     flexDirection: 'column',
                                     gap: '0.75rem'
                                 }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '0.75rem',
-                                        background: '#f9f7f4',
-                                        borderRadius: '6px',
-                                        border: '1px solid #e5e5e5'
-                                    }}>
-                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Monday</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
-                                            Code review and bug fixes for user dashboard
-                                        </div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>7h</div>
-                                    </div>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '0.75rem',
-                                        background: '#f9f7f4',
-                                        borderRadius: '6px',
-                                        border: '1px solid #e5e5e5'
-                                    }}>
-                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Tuesday</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
-                                            Feature development for mobile app
-                                        </div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
-                                    </div>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '0.75rem',
-                                        background: '#f9f7f4',
-                                        borderRadius: '6px',
-                                        border: '1px solid #e5e5e5'
-                                    }}>
-                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Wednesday</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
-                                            Database optimization and testing
-                                        </div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>7h</div>
-                                    </div>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '0.75rem',
-                                        background: '#f9f7f4',
-                                        borderRadius: '6px',
-                                        border: '1px solid #e5e5e5'
-                                    }}>
-                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Thursday</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
-                                            UI/UX improvements and documentation
-                                        </div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
-                                    </div>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '0.75rem',
-                                        background: '#f9f7f4',
-                                        borderRadius: '6px',
-                                        border: '1px solid #e5e5e5'
-                                    }}>
-                                        <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>Friday</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
-                                            Team meeting and project planning
-                                        </div>
-                                        <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>8h</div>
-                                    </div>
+                                    {weekly.daily_activities.length === 0 ? (
+                                        <div style={{ color: '#666', fontSize: '0.9rem', fontStyle: 'italic', padding: '1rem', background: '#f9f7f4', borderRadius: '6px' }}>No activities logged this week.</div>
+                                    ) : (
+                                        weekly.daily_activities.map((activity: any, idx: number) => (
+                                            <div key={idx} style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                padding: '0.75rem',
+                                                background: '#f9f7f4',
+                                                borderRadius: '6px',
+                                                border: '1px solid #e5e5e5'
+                                            }}>
+                                                <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>{activity.day}</div>
+                                                <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                                    {activity.description}
+                                                </div>
+                                                <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>{activity.hours}</div>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                             <div style={{ marginTop: '1.5rem' }}>
                                 <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
                                     Key Achievements
                                 </h4>
-                                <ul style={{ margin: '0', paddingLeft: '1.5rem', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                    <li style={{ marginBottom: '0.5rem' }}>Successfully deployed authentication system</li>
-                                    <li style={{ marginBottom: '0.5rem' }}>Improved database query performance by 40%</li>
-                                    <li style={{ marginBottom: '0.5rem' }}>Completed unit tests for new features</li>
-                                </ul>
+                                {weekly.achievements && weekly.achievements.length > 0 ? (
+                                    <ul style={{ margin: '0', paddingLeft: '1.5rem', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                        {weekly.achievements.map((ach: string, idx: number) => (
+                                            <li key={idx} style={{ marginBottom: '0.5rem' }}>{ach}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', fontStyle: 'italic' }}>No completed tasks this week.</p>
+                                )}
                             </div>
                             <div style={{ marginTop: '1.5rem' }}>
                                 <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
                                     Challenges
                                 </h4>
                                 <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                    Learning to optimize complex database queries
+                                    {weekly.challenges || 'No challenges reported.'}
                                 </p>
                             </div>
                         </div>
                     )}
                     
-                    {selectedTab === 'monthly' && (
+                    {selectedTab === 'monthly' && monthly && (
                         <div>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.5rem' }}>
-                                January 2026
+                                {monthly.month_year}
                             </h3>
                             <div style={{
                                 display: 'grid',
@@ -458,329 +350,111 @@ const ReportDetails = () => {
                                 marginBottom: '1rem'
                             }}>
                                 <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'space-between',
-                                    background: '#9DB8F133',
-                                    borderRadius: '8px',
-                                    padding: '1.5rem',
-                                    border: '1px solid #9DB8F133'
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                                    background: '#9DB8F133', borderRadius: '8px', padding: '1.5rem', border: '1px solid #9DB8F133'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
                                         <Clock size={24} color="#1C2DE9" style={{ marginRight: '0.5rem' }} />
                                         <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Total Hours</span>
                                     </div>
-                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>160</div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>{monthly.total_hours}</div>
                                 </div>
                                 <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'space-between',
-                                    background: '#C0E8BC33',
-                                    borderRadius: '8px',
-                                    padding: '1.5rem',
-                                    border: '1px solid #C0E8BC33'
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                                    background: '#C0E8BC33', borderRadius: '8px', padding: '1.5rem', border: '1px solid #C0E8BC33'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
                                         <CheckCircle size={24} color="#4ACE1E" style={{ marginRight: '0.5rem' }} />
                                         <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Task Completed</span>
                                     </div>
-                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>48</div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>{monthly.tasks_completed}</div>
                                 </div>
                                 <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'space-between',
-                                    background: '#D6A7EA33',
-                                    borderRadius: '8px',
-                                    padding: '1.5rem',
-                                    border: '1px solid #D6A7EA33'
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                                    background: '#D6A7EA33', borderRadius: '8px', padding: '1.5rem', border: '1px solid #D6A7EA33'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
                                         <UserCheck size={24} color="#BF27D0" style={{ marginRight: '0.5rem' }} />
                                         <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Attendance</span>
                                     </div>
-                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>92%</div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>{monthly.attendance_percentage}%</div>
                                 </div>
                                 <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'space-between',
-                                    background: '#FF880033',
-                                    borderRadius: '8px',
-                                    padding: '1.5rem',
-                                    border: '1px solid #FF880033'
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                                    background: '#FF880033', borderRadius: '8px', padding: '1.5rem', border: '1px solid #FF880033'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
                                         <FileText size={24} color="#ff8800" style={{ marginRight: '0.5rem' }} />
                                         <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Projects</span>
                                     </div>
-                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>3</div>
+                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>{monthly.projects_count}</div>
                                 </div>
                             </div>
                             <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem', fontWeight: '600' }}>
-                                    Monthly Overview
-                                </h4>
-                                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                    Completed major project milestones including authentication system implementation and database optimization. Strong progress in full-stack development skills.
-                                </p>
+                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem', fontWeight: '600' }}>Monthly Overview</h4>
+                                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>{monthly.overview}</p>
                             </div>
 
-                            <hr style={{
-                                border: 'none',
-                                borderTop: '2px solid #e5e5e5',
-                                margin: '2rem 0'
-                            }} />
+                            <hr style={{ border: 'none', borderTop: '2px solid #e5e5e5', margin: '2rem 0' }} />
 
                             <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
-                                    Skills Developed
-                                </h4>
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '1.5rem'
-                                }}>
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>React and Typescript</span>
-                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>85%</span>
-                                        </div>
-                                        <div style={{
-                                            width: '100%',
-                                            height: '8px',
-                                            backgroundColor: '#e5e5e5',
-                                            borderRadius: '4px',
-                                            overflow: 'hidden'
-                                        }}>
-                                            <div style={{
-                                                width: '85%',
-                                                height: '100%',
-                                                backgroundColor: '#ff8800',
-                                                borderRadius: '4px'
-                                            }} />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Node.js</span>
-                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>70%</span>
-                                        </div>
-                                        <div style={{
-                                            width: '100%',
-                                            height: '8px',
-                                            backgroundColor: '#e5e5e5',
-                                            borderRadius: '4px',
-                                            overflow: 'hidden'
-                                        }}>
-                                            <div style={{
-                                                width: '70%',
-                                                height: '100%',
-                                                backgroundColor: '#ff8800',
-                                                borderRadius: '4px'
-                                            }} />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Database Management</span>
-                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>85%</span>
-                                        </div>
-                                        <div style={{
-                                            width: '100%',
-                                            height: '8px',
-                                            backgroundColor: '#e5e5e5',
-                                            borderRadius: '4px',
-                                            overflow: 'hidden'
-                                        }}>
-                                            <div style={{
-                                                width: '85%',
-                                                height: '100%',
-                                                backgroundColor: '#ff8800',
-                                                borderRadius: '4px'
-                                            }} />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                            <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>API Integration</span>
-                                            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>65%</span>
-                                        </div>
-                                        <div style={{
-                                            width: '100%',
-                                            height: '8px',
-                                            backgroundColor: '#e5e5e5',
-                                            borderRadius: '4px',
-                                            overflow: 'hidden'
-                                        }}>
-                                            <div style={{
-                                                width: '65%',
-                                                height: '100%',
-                                                backgroundColor: '#ff8800',
-                                                borderRadius: '4px'
-                                            }} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <hr style={{
-                                border: 'none',
-                                borderTop: '2px solid #e5e5e5',
-                                margin: '2rem 0'
-                            }} />
-
-                            <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
-                                    Projects
-                                </h4>
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '1rem'
-                                }}>
-                                    <div style={{
-                                        background: '#64AACA12',
-                                        borderRadius: '8px',
-                                        padding: '1rem',
-                                        border: '1px solid #e5e5e5',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <div>
-                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
-                                                User Authentication System
-                                            </h5>
-                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
-                                                Designed and implemented secure authentication with JWT tokens
-                                            </p>
-                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
-                                                Role: Lead Developer
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>Skills Developed</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                    {monthly.skills && monthly.skills.length > 0 ? monthly.skills.map((skill: any, idx: number) => (
+                                        <div key={idx}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                                <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>{skill.skill_name}</span>
+                                                <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>{skill.proficiency}</span>
+                                            </div>
+                                            <div style={{ width: '100%', height: '8px', backgroundColor: '#e5e5e5', borderRadius: '4px', overflow: 'hidden' }}>
+                                                <div style={{ width: skill.proficiency, height: '100%', backgroundColor: '#ff8800', borderRadius: '4px' }} />
                                             </div>
                                         </div>
-                                        <span style={{
-                                            backgroundColor: '#dcfce7',
-                                            color: '#166534',
-                                            fontSize: '0.8rem',
-                                            fontWeight: '500',
-                                            padding: '0.25rem 0.75rem',
-                                            borderRadius: '9999px',
-                                            display: 'inline-block'
-                                        }}>
-                                            Completed
-                                        </span>
-                                    </div>
-                                    <div style={{
-                                        background: '#64AACA12',
-                                        borderRadius: '8px',
-                                        padding: '1rem',
-                                        border: '1px solid #e5e5e5',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <div>
-                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
-                                                Dashboard Analytics
-                                            </h5>
-                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
-                                                Building interactive data visualization components
-                                            </p>
-                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
-                                                Role: Frontend Developer
-                                            </div>
-                                        </div>
-                                        <span style={{
-                                            backgroundColor: '#dcfce7',
-                                            color: '#166534',
-                                            fontSize: '0.8rem',
-                                            fontWeight: '500',
-                                            padding: '0.25rem 0.75rem',
-                                            borderRadius: '9999px',
-                                            display: 'inline-block'
-                                        }}>
-                                            Completed
-                                        </span>
-                                    </div>
-                                    <div style={{
-                                        background: '#64AACA12',
-                                        borderRadius: '8px',
-                                        padding: '1rem',
-                                        border: '1px solid #e5e5e5',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <div>
-                                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
-                                                API Optimization
-                                            </h5>
-                                            <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>
-                                                Improved API response time by 40%
-                                            </p>
-                                            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>
-                                                Role: Backend Developer
-                                            </div>
-                                        </div>
-                                        <span style={{
-                                            backgroundColor: '#dcfce7',
-                                            color: '#166534',
-                                            fontSize: '0.8rem',
-                                            fontWeight: '500',
-                                            padding: '0.25rem 0.75rem',
-                                            borderRadius: '9999px',
-                                            display: 'inline-block'
-                                        }}>
-                                            Completed
-                                        </span>
-                                    </div>
+                                    )) : <p style={{ color: '#666', fontStyle: 'italic', fontSize: '0.9rem' }}>No skills reported this month.</p>}
                                 </div>
                             </div>
-                            <hr style={{
-                                border: 'none',
-                                borderTop: '2px solid #e5e5e5',
-                                margin: '2rem 0'
-                            }} />
+
+                            <hr style={{ border: 'none', borderTop: '2px solid #e5e5e5', margin: '2rem 0' }} />
+
                             <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>
-                                    Supervisor Feedback
-                                </h4>
-                                <div style={{
-                                    background: '#64AACA12',
-                                    borderRadius: '8px',
-                                    padding: '1.5rem',
-                                    border: '1px solid #e5e5e5'
-                                }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        marginBottom: '1rem'
-                                    }}>
-                                        <div style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>
-                                            Supervisor: Mae Santos
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>Projects</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    {monthly.projects && monthly.projects.length > 0 ? monthly.projects.map((proj: any, idx: number) => (
+                                        <div key={idx} style={{ background: '#64AACA12', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e5e5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>{proj.title}</h5>
+                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>{proj.description}</p>
+                                                <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>Role: {proj.role}</div>
+                                            </div>
+                                            <span style={{ backgroundColor: '#dcfce7', color: '#166534', fontSize: '0.8rem', fontWeight: '500', padding: '0.25rem 0.75rem', borderRadius: '9999px', display: 'inline-block' }}>{proj.status}</span>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
-                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
-                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
-                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>★</span>
-                                            <span style={{ color: '#ff8800', fontSize: '1.5rem' }}>☆</span>
-                                        </div>
-                                    </div>
-                                    <p style={{
-                                        margin: '0',
-                                        color: '#2b2a2a',
-                                        fontSize: '0.9rem',
-                                        lineHeight: '1.5',
-                                        fontStyle: 'italic',
-                                        textAlign: 'center'
-                                    }}>
-                                        "Excellent progress and strong technical skills. Shows great initiative in problem-solving and team collaboration. Keep up the outstanding work."
-                                    </p>
+                                    )) : <p style={{ color: '#666', fontStyle: 'italic', fontSize: '0.9rem' }}>No completed projects to display.</p>}
                                 </div>
+                            </div>
+
+                            <hr style={{ border: 'none', borderTop: '2px solid #e5e5e5', margin: '2rem 0' }} />
+                            
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>Supervisor Feedback</h4>
+                                {monthly.supervisor_feedback ? (
+                                    <div style={{ background: '#64AACA12', borderRadius: '8px', padding: '1.5rem', border: '1px solid #e5e5e5' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                            <div style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Supervisor: {monthly.supervisor_feedback.supervisor_name}</div>
+                                            <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                                {Array.from({ length: 5 }).map((_, i) => (
+                                                    <span key={i} style={{ color: '#ff8800', fontSize: '1.5rem' }}>
+                                                        {i < monthly.supervisor_feedback.rating ? '★' : '☆'}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <p style={{ margin: '0', color: '#2b2a2a', fontSize: '0.9rem', lineHeight: '1.5', fontStyle: 'italic', textAlign: 'center' }}>
+                                            "{monthly.supervisor_feedback.comment}"
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p style={{ color: '#666', fontStyle: 'italic', fontSize: '0.9rem' }}>No supervisor feedback available yet.</p>
+                                )}
                             </div>
                         </div>
                     )}
@@ -791,8 +465,10 @@ const ReportDetails = () => {
                                 Full Report
                             </h3>
                             <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                Comprehensive report covering all aspects of {reportData.name}'s OJT experience.
-                                Including detailed metrics, achievements, and areas for improvement under the supervision of {reportData.supervisor}.
+                                Comprehensive report covering all aspects of {profile.name}'s OJT experience.
+                                Including detailed metrics, achievements, and areas for improvement under the supervision of {profile.supervisor}.
+                                <br/><br/>
+                                <em>Full historical reporting export is ready for generating. For the most granular insights, check the Weekly and Monthly Breakdown tabs.</em>
                             </p>
                         </div>
                     )}

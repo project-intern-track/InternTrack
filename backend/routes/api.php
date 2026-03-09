@@ -6,6 +6,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\AttendanceController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -46,10 +48,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/auth/user',    [AuthController::class, 'user']);
 
     // User Data Endpoints
-    Route::get('/users/stats',            [UserController::class, 'stats']);
-    Route::get('/users/ojt-roles',        [UserController::class, 'ojtRoles']);
-    Route::get('/users/dashboard-stats',  [UserController::class, 'dashboardStats']);
-    Route::get('/users/interns/recent',   [UserController::class, 'recentInterns']);
+    Route::get('/users/stats',                        [UserController::class, 'stats']);
+    Route::get('/users/ojt-roles',                    [UserController::class, 'ojtRoles']);
+    Route::get('/users/dashboard-stats',              [UserController::class, 'dashboardStats']);
+    Route::get('/users/supervisor/dashboard-stats',   [UserController::class, 'supervisorDashboardStats']);
+    Route::get('/users/interns/recent',               [UserController::class, 'recentInterns']);
     
     Route::get('/users',                  [UserController::class, 'index']);
     Route::post('/users',                 [UserController::class, 'store']);
@@ -82,10 +85,25 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/reports/interns/{id}/monthly', [ReportController::class, 'monthly']);
 
 
+    // Feedback Routes (task-based, per-intern competency feedback)
+    Route::get('/feedback/tasks',                                        [FeedbackController::class, 'supervisorTasks']);
+    Route::post('/feedback/tasks/{taskId}/interns/{internId}',           [FeedbackController::class, 'submitFeedback']);
+    Route::get('/feedback/my-feedback',                                  [FeedbackController::class, 'myFeedback']);
+
     // Evaluation Routes
     Route::get('/evaluations',           [EvaluationController::class, 'index']);
     Route::post('/evaluations',          [EvaluationController::class, 'store']);
     Route::get('/evaluations/{id}',      [EvaluationController::class, 'show']);
     Route::put('/evaluations/{id}',      [EvaluationController::class, 'update']);
     Route::delete('/evaluations/{id}',   [EvaluationController::class, 'destroy']);
+
+    // Attendance Routes
+    Route::get('/attendance/today',      [AttendanceController::class, 'today']);
+    Route::get('/attendance/stats',      [AttendanceController::class, 'stats']);
+    Route::post('/attendance/clock-in',  [AttendanceController::class, 'clockIn']);
+    Route::post('/attendance/clock-out', [AttendanceController::class, 'clockOut']);
+    Route::post('/attendance/log',       [AttendanceController::class, 'log']);
+    Route::get('/attendance',            [AttendanceController::class, 'index']);
+    Route::post('/attendance',           [AttendanceController::class, 'store']);
+    Route::delete('/attendance/{id}',    [AttendanceController::class, 'destroy']);
 });

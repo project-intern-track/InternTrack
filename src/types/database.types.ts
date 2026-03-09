@@ -1,18 +1,24 @@
 // Aliases for database types
-export type UserRole = 'admin' | 'supervisor' | 'intern';
-export type TaskStatus = 'not_started' | 'in_progress' | 'pending' | 'completed' | 'rejected' | 'overdue' | 'pending_approval' | 'needs_revision';
-export type TaskPriority = 'low' | 'medium' | 'high';
-export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
-export type OJTType = 'required' | 'voluntary';
-export type UserStatus = 'active' | 'archived';
-export type AnnouncementPriority = 'low' | 'medium' | 'high';
-
+export type UserRole = "admin" | "supervisor" | "intern";
+export type TaskStatus =
+    | "not_started"
+    | "in_progress"
+    | "pending"
+    | "completed"
+    | "rejected"
+    | "overdue"
+    | "pending_approval"
+    | "needs_revision";
+export type TaskPriority = "low" | "medium" | "high";
+export type AttendanceStatus = "present" | "absent" | "late" | "excused";
+export type OJTType = "required" | "voluntary";
+export type UserStatus = "active" | "archived";
+export type AnnouncementPriority = "low" | "medium" | "high";
 
 // ===============
 // Database Tables
 // ===============
 export interface Users {
-
     id: string; // UUID, Primary Key (PK), references `auth.users.id`
     email: string; // Must Be Unique
     full_name: string;
@@ -52,33 +58,27 @@ export interface Tasks {
 }
 
 export interface Attendance {
-
-    id: string; // UUID, PK
-    user_id: string; //UUID, references 'users.id'
-    date: string; // ISO Date String
-    time_in: string; // ISO Date String
-    time_out: string; // ISO Date String
-    total_hours: number; // Float
+    id: string; // auto-increment (coerced to string for compatibility)
+    user_id: number; // FK → users.id
+    date: string; // YYYY-MM-DD
+    time_in: string; // HH:MM (24-h)
+    time_out: string | null; // HH:MM (24-h), null if still clocked in
+    total_hours: number; // float
     status: AttendanceStatus;
-    created_at: string; // ISO Date String, Default to current timestamp on creation
-
-
+    created_at: string;
 }
 
 export interface Announcement {
-
     id: string; // UUID, PK
     title: string;
     content: string;
     priority: AnnouncementPriority;
     created_by: string; // UUID, FK Reference to `users.id`
-    visibility: 'all' | UserRole; // Array of UserRoles that can see this announcement
+    visibility: "all" | UserRole; // Array of UserRoles that can see this announcement
     created_at: string; // ISO Date String, Default to current timestamp on creation
-
 }
 
 export interface Evaluation {
-
     id: string; //UUID, PK
     intern_id: number; //UUID, FK reference to 'users.id' where role = 'intern'
     intern_name?: string; // Not stored in DB, for frontend display only
@@ -91,4 +91,3 @@ export interface Evaluation {
     created_at: string; // ISO Date String, Default to current timestamp on creation
     updated_at: string; // ISO Date String, Default to current timestamp on update
 }
-

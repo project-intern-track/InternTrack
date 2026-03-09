@@ -1,25 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Calendar, Star } from 'lucide-react';
+import { feedbackService, type MyFeedbackPayload } from '../../services/feedbackService';
 
 type SkillScore = {
   key: string;
   label: string;
   score: number;
   maxScore: number; 
-};
-
-type FeedbackEntry = {
-  id: string | number;
-  competency: string;
-  rating: number; 
-  comment: string;
-  createdAt: string; 
-  reviewerName?: string; 
-};
-
-type PerformanceFeedbackPayload = {
-  skills: SkillScore[];
-  recentFeedback: FeedbackEntry[];
 };
 
 
@@ -90,63 +77,49 @@ const DEFAULT_SKILLS: SkillScore[] = [
   { key: 'technical_skills', label: 'Technical Skills', score: 0, maxScore: 5 },
   { key: 'communication', label: 'Communication', score: 0, maxScore: 5 },
   { key: 'teamwork', label: 'Team Work', score: 0, maxScore: 5 },
-  { key: 'problem_solving', label: 'Problem Solving', score: 0, maxScore: 5 },
-  { key: 'time_management', label: 'Time Management', score: 0, maxScore: 5 },
+
 ];
 
 export default function PerformanceFeedback() {
-  const mockData: PerformanceFeedbackPayload = {
-    skills: [
-      { key: 'technical_skills', label: 'Technical Skills', score: 4.2, maxScore: 5 },
-      { key: 'communication', label: 'Communication', score: 5, maxScore: 5 },
-      { key: 'teamwork', label: 'Team Work', score: 5, maxScore: 5 },
-      { key: 'problem_solving', label: 'Problem Solving', score: 3.8, maxScore: 5 },
-      { key: 'time_management', label: 'Time Management', score: 3.2, maxScore: 5 },
-    ],
-    recentFeedback: [
-      {
-        id: 'communication-2026-02-09',
-        competency: 'Communication',
-        rating: 5,
-        createdAt: '2026-02-09T00:00:00.000Z',
-        reviewerName: 'Yuan Crispino',
-        comment: 'Very good.',
-      },
-      {
-        id: 'technical_skills-2026-02-06',
-        competency: 'Technical Skills',
-        rating: 4,
-        createdAt: '2026-02-06T00:00:00.000Z',
-        reviewerName: 'Yuan Crispino',
-        comment: 'Great job!.',
-      },
-      {
-        id: 'teamwork-2026-02-05',
-        competency: 'Teamwork',
-        rating: 5,
-        createdAt: '2026-02-05T00:00:00.000Z',
-        reviewerName: 'Yuan Crispino',
-        comment: 'Collaborates well with cross-functional teams.',
-      },
-    ],
-  };
+  const [data, setData] = useState<MyFeedbackPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    feedbackService.getMyFeedback()
+      .then(setData)
+      .catch(err => console.error('Failed to fetch feedback:', err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const skills = useMemo(() => {
-    const fromData = mockData?.skills?.length ? mockData.skills : DEFAULT_SKILLS;
-    
-    return fromData.map((s) => {
+    const apiSkills = data?.skills ?? [];
+    const merged = DEFAULT_SKILLS.map(def => {
+      const found = apiSkills.find(s => s.key === def.key);
+      return found ?? def;
+    });
+    apiSkills.forEach(s => {
+      if (!merged.find(m => m.key === s.key)) merged.push(s);
+    });
+    return merged.map(s => {
       const maxScore = s.maxScore || 5;
       const score = clamp(Number(s.score ?? 0), 0, maxScore);
       const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
       return { ...s, maxScore, score, pct };
     });
-  }, [mockData]);
+  }, [data]);
 
   const recentFeedback = useMemo(() => {
-    const list = mockData?.recentFeedback ?? [];
-    // sort newest-first as a safety net.
+    const list = data?.recentFeedback ?? [];
     return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [mockData]);
+  }, [data]);
+
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', padding: '2rem', color: '#6b7280' }}>
+        Loading feedback...
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%' }}>

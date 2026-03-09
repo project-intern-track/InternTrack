@@ -1,8 +1,10 @@
 import { Search, Download } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../services/apiClient';
 
 interface InternCardProps {
+    id: number;
     name: string;
     email: string;
     role: string;
@@ -12,7 +14,7 @@ interface InternCardProps {
     lastUpdate: string;
 }
 
-const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }: InternCardProps) => {
+const InternCard = ({ id, name, email, role, hours, attendance, status, lastUpdate }: InternCardProps) => {
     const navigate = useNavigate();
 
     const getStatusStyle = (status: string) => {
@@ -30,8 +32,7 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
         return {};
     };
     const handleClick = () => {
-        const internId = name.toLowerCase().replace(/\s+/g, '-');
-        navigate(`/admin/reports/${internId}`);
+        navigate(`/admin/reports/${id}`);
     };
     return (
         <div style={{
@@ -93,67 +94,54 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
 const Reports = () => {
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [isExporting, setIsExporting] = useState(false);
 
-    const interns = [
-        {
-            name: 'Kevin Lim',
-            email: 'kevinlim@gmail.com',
-            role: 'Fullstack Developer',
-            hours: '400h',
-            attendance: '75%',
-            status: 'Active',
-            lastUpdate: '2 hours ago'
-        },
-        {
-            name: 'Alex John Ramirez',
-            email: 'alexjohnramirez@email.com',
-            role: 'Frontend Developer',
-            hours: '300h',
-            attendance: '45%',
-            status: 'Active',
-            lastUpdate: '5 hours ago'
-        },
-        {
-            name: 'Bianca Louise Santos',
-            email: 'bianca.santos@email.com',
-            role: 'UI/UX Designer',
-            hours: '450h',
-            attendance: '65%',
-            status: 'Active',
-            lastUpdate: '1 hour ago'
-        },
-        {
-            name: 'Jewel Gonzales',
-            email: 'jewelgonzales@email.com',
-            role: 'Data Analyst',
-            hours: '486h',
-            attendance: '96%',
-            status: 'Active',
-            lastUpdate: '7 hours ago'
-        },
-        {
-            name: 'Alex Wilson',
-            email: 'alex.w@email.com',
-            role: 'Mobile Dev',
-            hours: '450h',
-            attendance: '94%',
-            status: 'Active',
-            lastUpdate: '6 hours ago'
-        },
-        {
-            name: 'Lisa Brown',
-            email: 'lisabrown@email.com',
-            role: 'QA Tester',
-            hours: '300h',
-            attendance: '100%',
-            status: 'Completed',
-            lastUpdate: '1 week ago'
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
+            const response = await apiClient.get('/reports/interns/export', {
+                params: { status: filterStatus },
+                responseType: 'blob',
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `intern-reports-${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Export failed:', error);
+        } finally {
+            setIsExporting(false);
         }
-    ];
+    };
+
+    const [interns, setInterns] = useState<InternCardProps[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchReports();
+    }, []);
+
+    const fetchReports = async () => {
+        try {
+            setLoading(true);
+            const response = await apiClient.get('/reports/interns');
+            // The API returns an object 'data' containing the array
+            setInterns(response.data.data || []);
+        } catch (error) {
+            console.error('Failed to fetch reports:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const processedInterns = interns.map(intern => ({
         ...intern,
-        status: intern.attendance === '100%' ? 'Completed' : intern.status
+        status: intern.attendance === '100%' && intern.status === 'Active' ? 'Completed' : intern.status
     }));
 
     const filteredInterns = processedInterns.filter(intern => {
@@ -237,35 +225,45 @@ const Reports = () => {
                 </select>
 
                 {/* Export Button */}
-                <button className="btn btn-primary" style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    height: '40px',
-                    padding: '0 1.5rem',
-                    border: 'none',
-                    borderRadius: '8px',
-                    backgroundColor: '#ff8800',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '1rem'
-                }}>
+                <button
+                    onClick={handleExport}
+                    disabled={isExporting}
+                    className="btn btn-primary"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        height: '40px',
+                        padding: '0 1.5rem',
+                        border: 'none',
+                        borderRadius: '8px',
+                        backgroundColor: isExporting ? '#ccc' : '#ff8800',
+                        color: 'white',
+                        cursor: isExporting ? 'not-allowed' : 'pointer',
+                        fontSize: '1rem'
+                    }}>
                     <Download size={16} />
-                    Export All
+                    {isExporting ? 'Exporting...' : 'Export All'}
                 </button>
             </div>
 
             {/* Cards Section */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '1.5rem',
-                marginTop: '2rem'
-            }}>
-                {filteredInterns.map((intern, index) => (
-                    <InternCard key={index} {...intern} />
-                ))}
-            </div>
+            {loading ? (
+                <div style={{ marginTop: '2rem', textAlign: 'center', color: '#666' }}>Loading reports...</div>
+            ) : filteredInterns.length === 0 ? (
+                <div style={{ marginTop: '2rem', textAlign: 'center', color: '#666' }}>No interns found matching the filters.</div>
+            ) : (
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '1.5rem',
+                    marginTop: '2rem'
+                }}>
+                    {filteredInterns.map((intern, index) => (
+                        <InternCard key={intern.id || index} {...intern} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

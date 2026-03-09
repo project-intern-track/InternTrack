@@ -19,7 +19,6 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
-    created_at: '',
   });
 
   // Original data for change detection
@@ -62,7 +61,7 @@ const Settings = () => {
       const { session, error } = await authService.getSession();
 
       if (session?.user) {
-        const userData = {  // ✅ Define userData first
+        const userData = {  
           id: session.user.id,
           name: session.user.user_metadata.full_name || '',
           email: session.user.email || '',
@@ -345,7 +344,7 @@ const Settings = () => {
               </label>
               <input
                 type="text"
-                value={formData.created_at || '—'}
+                value={formData.required_hours || '—'}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />

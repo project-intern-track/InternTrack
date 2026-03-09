@@ -19,7 +19,6 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
-    created_at: '',
   });
 
   // Original data for change detection
@@ -33,7 +32,6 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
-    created_at: '',
   });
 
 
@@ -63,19 +61,20 @@ const Settings = () => {
       const { session, error } = await authService.getSession();
       if (error || !session?.user) { setProfileLoading(false); return; }
 
-      if (session?.user) {
-        const userData = {  
-          id: session.user.id,
-          name: session.user.user_metadata.full_name || '',
-          email: session.user.email || '',
-          role: session.user.user_metadata.role || '',
-          ojt_id: session.user.user_metadata.ojt_id || '',
-          start_date: session.user.user_metadata.start_date || '',
-          required_hours: session.user.user_metadata.required_hours || '',
-          ojt_type: session.user.user_metadata.ojt_type || '',
-          status: session.user.user_metadata.status || '',
-          created_at: session.user.created_at || '', // Added Created at If data is need in the profile Info
-
+      try {
+        // Load from Laravel API — this is the real source of truth
+        const res = await apiClient.get(`/users/${session.user.id}`);
+        const profile = res.data;
+        const userData = {
+          id: String(profile.id ?? session.user.id),
+          name: profile.full_name || '',
+          email: profile.email || session.user.email || '',
+          role: profile.role || '',
+          ojt_id: profile.ojt_id != null ? String(profile.ojt_id) : '',
+          start_date: profile.start_date || '',
+          required_hours: profile.required_hours != null ? String(profile.required_hours) : '',
+          ojt_type: profile.ojt_type || '',
+          status: profile.status || '',
         };
         setFormData(userData);
         setOriginalData(userData);

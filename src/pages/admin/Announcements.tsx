@@ -4,7 +4,8 @@ import {
     Filter,
     Plus,
     ChevronDown,
-    Loader2
+    Loader2,
+    X,
 } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import { announcementService } from '../../services/announcementService';
@@ -362,7 +363,32 @@ const Announcements = () => {
                     <div
                         className="announcement-modal-panel"
                         onClick={(e) => e.stopPropagation()}
+                        style={{ position: 'relative' }}
                     >
+                        {/* Top-right close button */}
+                        <button
+                            type="button"
+                            onClick={() => setSelectedAnnouncement(null)}
+                            aria-label="Close announcement"
+                            style={{
+                                position: 'absolute',
+                                top: '1rem',
+                                right: '1rem',
+                                width: 32,
+                                height: 32,
+                                borderRadius: '999px',
+                                border: 'none',
+                                backgroundColor: '#ff8c42',
+                                color: '#fff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                            }}
+                        >
+                            <X size={18} />
+                        </button>
                         <h2 style={{ color: '#ea580c', margin: '0 0 1rem', fontSize: '1.35rem', fontWeight: 700 }}>
                             {selectedAnnouncement.title}
                         </h2>
@@ -382,16 +408,6 @@ const Announcements = () => {
                                 <span style={{ fontWeight: 600, color: '#111827' }}>{formatDate(selectedAnnouncement.created_at)}</span>
                             </div>
                         </div>
-                        <div style={{ marginTop: '1.5rem' }}>
-                            <button
-                                type="button"
-                                className="btn btn-primary announcement-modal-btn"
-                                onClick={() => setSelectedAnnouncement(null)}
-                                style={{ backgroundColor: '#ff8c42', border: 'none' }}
-                            >
-                                Close
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}
@@ -405,7 +421,32 @@ const Announcements = () => {
                     <div
                         className="announcement-modal-create"
                         onClick={(e) => e.stopPropagation()}
+                        style={{ position: 'relative' }}
                     >
+                        {/* Top-right close button */}
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            aria-label="Close create announcement"
+                            style={{
+                                position: 'absolute',
+                                top: '1rem',
+                                right: '1rem',
+                                width: 32,
+                                height: 32,
+                                borderRadius: '999px',
+                                border: 'none',
+                                backgroundColor: '#ff8c42',
+                                color: '#fff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                            }}
+                        >
+                            <X size={18} />
+                        </button>
                         <div style={{ marginBottom: '2rem' }}>
                             <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Announcement Information</h2>
                         </div>
@@ -455,7 +496,6 @@ const Announcements = () => {
                                 className="btn announcement-modal-btn"
                                 onClick={() => {
                                     setFormData({ title: '', content: '', priority: 'low' });
-                                    setIsModalOpen(false);
                                 }}
                                 style={{ backgroundColor: 'white', color: '#ea580c', border: 'none' }}
                             >

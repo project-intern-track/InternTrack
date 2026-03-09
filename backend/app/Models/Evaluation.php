@@ -8,7 +8,10 @@ class Evaluation extends Model
 {
     protected $fillable = [
         'intern_id',
+        'intern_name',  // ← Add this
         'supervisor_id',
+        'task_completion',
+        'competency_score',
         'score',
         'feedback',
         'evaluation_date',

@@ -13,7 +13,7 @@ class EvaluationController extends Controller
     public function index()
     {
         try {
-            $evaluations = Evaluation::all();
+            $evaluations = Evaluation::with('intern:id,full_name')->get();
             return response()->json([
                 'success' => true,
                 'data' => $evaluations,
@@ -34,13 +34,11 @@ class EvaluationController extends Controller
     public function show($id)
     {
         try {
-            $evaluation = Evaluation::findOrFail($id);
+            $evaluation = Evaluation::with('intern:id,full_name')->findOrFail($id);
             return response()->json([
-                'user_id' => 'required|exists:users,id', 
-                'supervisor_id' => 'required|exists:users,id',
-                'score' => 'required|numeric|min:0|max:100',
-                'feedback' => 'nullable|string',
-                'evaluation_date' => 'required|date',
+                'success' => true,
+                'data' => $evaluation,
+                'message' => 'Evaluation retrieved successfully'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -58,18 +56,21 @@ class EvaluationController extends Controller
     {
         try {
             $validated = $request->validate([
-                'user_id' => 'required|exists:users,id',
-                'supervisor_id' => 'required|exists:users,id',
+                'intern_id' => 'required|numeric',
+                'supervisor_id' => 'required|numeric',
+                'task_completion' => 'nullable|numeric',
+                'competency_score' => 'nullable|string',
                 'score' => 'required|numeric|min:0|max:100',
                 'feedback' => 'nullable|string',
                 'evaluation_date' => 'required|date',
+                'intern_name' => 'nullable|string',
             ]);
 
             $evaluation = Evaluation::create($validated);
 
             return response()->json([
                 'success' => true,
-                'data' => $evaluation,
+                'data' => $evaluation->fresh(),  // ← Add this to refresh timestamps
                 'message' => 'Evaluation created successfully'
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -96,6 +97,8 @@ class EvaluationController extends Controller
             $evaluation = Evaluation::findOrFail($id);
 
             $validated = $request->validate([
+                'task_completion' => 'nullable|numeric',
+                'competency_score' => 'nullable|string',
                 'score' => 'nullable|numeric|min:0|max:100',
                 'feedback' => 'nullable|string',
                 'evaluation_date' => 'nullable|date',

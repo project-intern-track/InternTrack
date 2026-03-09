@@ -49,10 +49,14 @@ export const announcementSchema = z.object({
 });
 
 // Evaluation Schema (for creating new evaluations — excludes id & created_at)
+// Update Eval Zod Schema to match backend validation rules
 export const evaluationSchema = z.object({
-    intern_id: z.string().uuid("Invalid intern ID"),
-    supervisor_id: z.string().uuid("Invalid supervisor ID"),
-    score: z.number().min(1, "Score must be at least 1").max(10, "Score must be at most 10"),
-    feedback: z.string().min(1, "Feedback is required"),
-    evaluation_date: z.string().min(1, "Evaluation date is required"),
+  intern_id: z.number(),  
+  intern_name: z.string().optional(),
+  supervisor_id: z.number(), 
+  task_completion: z.number().optional(),
+  competency_score: z.string().optional(),
+  score: z.number(),
+  feedback: z.string().optional(),
+  evaluation_date: z.string(),
 });

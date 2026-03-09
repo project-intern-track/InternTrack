@@ -1,38 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, Eye, Edit, X, Pencil, Star } from 'lucide-react';
+import {
+  feedbackService,
+  type FeedbackTask,
+  type FeedbackTaskIntern,
+  type CompetencyRating,
+} from '../../services/feedbackService';
 
 const defaultCompetencies = [
   'Technical Skills',
   'Communication',
   'Teamwork',
-  ' Timeliness',
+  'Timeliness',
 ];
 
-type Intern = {
-  name: string;
-  role: string;
-  feedback?: string;
-};
-
-type FeedbackTask = {
-  id: string;
-  taskName: string;
-  taskDescription: string;
-  completionDate: string;
-  interns: Intern[];
-  status: 'Pending' | 'Submitted';
-};
-
-// Dummy static data
-const dummyTasks: FeedbackTask[] = [
-  { id: '1', taskName: 'Project Report', taskDescription: 'Submit a detailed project report covering all milestones.', completionDate: '2026-02-22', interns: [{ name: 'Alice Tan', role: 'Developer', feedback: 'Well done!' }], status: 'Submitted' },
-  { id: '2', taskName: 'Code Review', taskDescription: 'Review the assigned code repository for best practices.', completionDate: '2026-02-21', interns: [{ name: 'Bob Cruz', role: 'Developer' }], status: 'Pending' },
-  { id: '3', taskName: 'Presentation', taskDescription: 'Prepare a 10-minute presentation on the project progress.', completionDate: '2026-02-25', interns: [{ name: 'Jay Jay Tan', role: 'Frontend' }], status: 'Pending' },
-  { id: '4', taskName: 'Attendance Check', taskDescription: 'Mark attendance for the week and submit report.', completionDate: '2026-02-20', interns: [{ name: 'Mia Lopez', role: 'QA', feedback: 'All good' }], status: 'Submitted' },
-];
-
-// Star Rating Component
 type StarRatingProps = {
   rating: number;
   onChange: (val: number) => void;
@@ -55,15 +37,34 @@ const StarRating = ({ rating, onChange, max = 5 }: StarRatingProps) => (
 const FeedbackDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [tasks, setTasks] = useState<FeedbackTask[]>(dummyTasks);
+  const [tasks, setTasks] = useState<FeedbackTask[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<FeedbackTask | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [competencyModal, setCompetencyModal] = useState<{
-    taskId: string;
+    taskId: number;
+    internId: number;
     internIndex: number;
     internName: string;
     internRole: string;
-    evaluations: { competency: string; rating: number; comment: string }[];
+    evaluations: CompetencyRating[];
   } | null>(null);
+
+  const fetchTasks = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await feedbackService.getSupervisorTasks();
+      setTasks(data);
+    } catch (err) {
+      console.error('Failed to fetch feedback tasks:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const submittedCount = tasks.filter(t => t.status === 'Submitted').length;
   const pendingCount = tasks.filter(t => t.status === 'Pending').length;
@@ -74,57 +75,50 @@ const FeedbackDashboard = () => {
     return matchesSearch && matchesFilter;
   });
 
-
-  const saveFeedback = () => {
-    if (!selectedTask) return;
-    setTasks(prev =>
-      prev.map(t => (t.id === selectedTask.id ? { ...selectedTask, status: 'Submitted' } : t))
-    );
-    setSelectedTask(null);
-  };
-
   const updateEvaluation = (index: number, key: 'rating' | 'comment', value: number | string) => {
-  if (!competencyModal) return;
-
-  // Create a new array with updated row
-  const newEvaluations = competencyModal.evaluations.map((evalItem, idx) =>
-    idx === index
-      ? { ...evalItem, [key]: value } // create a new object for this row
-      : evalItem // keep other rows unchanged
-  );
-
-  // Update modal state
-  setCompetencyModal({
-    ...competencyModal,
-    evaluations: newEvaluations,
-  });
-};
-
-
-  const submitCompetencyFeedback = () => {
-    if (!competencyModal || !selectedTask) return;
-
-    const updatedTask = { ...selectedTask };
-    updatedTask.interns[competencyModal.internIndex].feedback = competencyModal.evaluations
-      .map(e => `${e.competency}: ${e.rating}★ ${e.comment}`).join('; ');
-
-    setTasks(prev =>
-      prev.map(t => (t.id === updatedTask.id ? updatedTask : t))
+    if (!competencyModal) return;
+    const newEvaluations = competencyModal.evaluations.map((evalItem, idx) =>
+      idx === index ? { ...evalItem, [key]: value } : evalItem
     );
-    setCompetencyModal(null);
-    setSelectedTask(updatedTask);
+    setCompetencyModal({ ...competencyModal, evaluations: newEvaluations });
   };
 
-  const saveDraftCompetency = () => {
-    setCompetencyModal(null);
+  const submitCompetencyFeedback = async () => {
+    if (!competencyModal || !selectedTask || submitting) return;
+    try {
+      setSubmitting(true);
+      await feedbackService.submitFeedback(
+        competencyModal.taskId,
+        competencyModal.internId,
+        competencyModal.evaluations,
+      );
+      setCompetencyModal(null);
+      setSelectedTask(null);
+      await fetchTasks();
+    } catch (err) {
+      console.error('Failed to submit feedback:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openCompetencyModal = (task: FeedbackTask, intern: FeedbackTaskIntern, idx: number) => {
+    const existing = intern.competency_ratings;
+    const evaluations: CompetencyRating[] = existing?.length
+      ? existing
+      : defaultCompetencies.map(c => ({ competency: c, rating: 0, comment: '' }));
+    setCompetencyModal({
+      taskId: task.id,
+      internId: intern.id,
+      internIndex: idx,
+      internName: intern.name,
+      internRole: intern.role,
+      evaluations,
+    });
   };
 
   const formatDate = (value: string) =>
-    new Date(value).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
     <div className="space-y-6 p-4 md:p-8">
@@ -176,7 +170,6 @@ const FeedbackDashboard = () => {
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             />
           </div>
-
           <div className="relative md:col-span-2">
             <Filter size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
@@ -199,73 +192,81 @@ const FeedbackDashboard = () => {
         className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
         <div className="overflow-x-auto px-8 py-6">
-          <table className="min-w-[880px] w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-white/10">
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task Name</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Completion Date</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Assigned Interns</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Status</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTasks.map((task, idx) => (
-                <motion.tr
-                  key={task.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: idx * 0.03 }}
-                  className="border-b border-gray-100 last:border-none dark:border-white/5"
-                >
-                  <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{task.taskName}</td>
-                  <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{formatDate(task.completionDate)}</td>
-                  <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">
-                    {task.interns.length} {task.interns.length > 1 ? 'interns' : 'intern'}
-                  </td>
-                  <td className="py-3 pr-4">
-                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                      task.status === 'Submitted'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300'
-                        : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-                    }`}>
-                      {task.status}
-                    </span>
-                  </td>
-                  <td className="py-3 pr-4">
-                    <div className="flex items-center gap-2">
-                      {task.status === 'Submitted' ? (
-                        <>
+          {loading ? (
+            <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+          ) : filteredTasks.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+              No completed tasks found.
+            </p>
+          ) : (
+            <table className="min-w-[880px] w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-white/10">
+                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task Name</th>
+                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Completion Date</th>
+                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Assigned Interns</th>
+                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTasks.map((task, idx) => (
+                  <motion.tr
+                    key={task.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: idx * 0.03 }}
+                    className="border-b border-gray-100 last:border-none dark:border-white/5"
+                  >
+                    <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{task.taskName}</td>
+                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{formatDate(task.completionDate)}</td>
+                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">
+                      {task.interns.length} {task.interns.length > 1 ? 'interns' : 'intern'}
+                    </td>
+                    <td className="py-3 pr-4">
+                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                        task.status === 'Submitted'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300'
+                          : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                      }`}>
+                        {task.status}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <div className="flex items-center gap-2">
+                        {task.status === 'Submitted' ? (
+                          <>
+                            <button
+                              className="rounded-md border border-gray-200 p-2 text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
+                              onClick={() => setSelectedTask(task)}
+                              title="View Feedback"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              className="rounded-md border border-gray-200 p-2 text-amber-600 transition hover:bg-amber-50 hover:text-amber-700 dark:border-white/10 dark:text-amber-300 dark:hover:bg-amber-500/10"
+                              onClick={() => setSelectedTask(task)}
+                              title="Edit Feedback"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          </>
+                        ) : (
                           <button
-                            className="rounded-md border border-gray-200 p-2 text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
+                            className="rounded-md border border-gray-200 p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:text-blue-300 dark:hover:bg-blue-500/10"
                             onClick={() => setSelectedTask(task)}
-                            title="View Feedback"
+                            title="Give Feedback"
                           >
-                            <Eye size={16} />
+                            <Edit size={16} />
                           </button>
-                          <button
-                            className="rounded-md border border-gray-200 p-2 text-amber-600 transition hover:bg-amber-50 hover:text-amber-700 dark:border-white/10 dark:text-amber-300 dark:hover:bg-amber-500/10"
-                            onClick={() => setSelectedTask(task)}
-                            title="Edit Feedback"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          className="rounded-md border border-gray-200 p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:text-blue-300 dark:hover:bg-blue-500/10"
-                          onClick={() => setSelectedTask(task)}
-                          title="Give Feedback"
-                        >
-                          <Edit size={16} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
+                        )}
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </motion.div>
 
@@ -285,7 +286,6 @@ const FeedbackDashboard = () => {
               <X size={20} />
             </button>
 
-            {/* Top Grid */}
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task Title</p>
@@ -297,17 +297,16 @@ const FeedbackDashboard = () => {
               </div>
             </div>
 
-            {/* Task Description */}
             <div className="mb-5">
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task Description</p>
               <textarea
-                defaultValue={selectedTask.taskDescription}
+                readOnly
+                value={selectedTask.taskDescription}
                 rows={3}
                 className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 outline-none dark:border-white/10 dark:bg-slate-900 dark:text-gray-200"
               />
             </div>
 
-            {/* Assigned Interns Table */}
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Assigned Interns</p>
             <table className="w-full border-collapse text-sm">
               <thead className="bg-primary text-primary-foreground">
@@ -319,25 +318,23 @@ const FeedbackDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {selectedTask.interns.map((i, idx) => (
-                  <tr key={idx} className="border-b border-gray-100 last:border-none dark:border-white/10">
-                    <td className="px-3 py-3 text-gray-800 dark:text-gray-200">{i.name}</td>
-                    <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{i.role}</td>
+                {selectedTask.interns.map((intern, idx) => (
+                  <tr key={intern.id} className="border-b border-gray-100 last:border-none dark:border-white/10">
+                    <td className="px-3 py-3 text-gray-800 dark:text-gray-200">{intern.name}</td>
+                    <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{intern.role}</td>
                     <td className="px-3 py-3">
-                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${i.feedback
-                        ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300'
-                        : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-                        }`}>
-                        {i.feedback ? 'Submitted' : 'Pending'}
+                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+                        intern.feedback_submitted
+                          ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300'
+                          : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                      }`}>
+                        {intern.feedback_submitted ? 'Submitted' : 'Pending'}
                       </span>
                     </td>
                     <td className="px-3 py-3">
                       <button
                         className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground transition-all hover:brightness-95"
-                        onClick={() => {
-                          const evaluations = defaultCompetencies.map(c => ({ competency: c, rating: 0, comment: '' }));
-                          setCompetencyModal({ taskId: selectedTask.id, internIndex: idx, internName: i.name, internRole: i.role, evaluations });
-                        }}
+                        onClick={() => openCompetencyModal(selectedTask, intern, idx)}
                       >
                         Give Feedback
                       </button>
@@ -349,10 +346,10 @@ const FeedbackDashboard = () => {
 
             <div className="mt-5 flex justify-end">
               <button
-                onClick={saveFeedback}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:brightness-95"
+                onClick={() => setSelectedTask(null)}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-white/15 dark:text-gray-200 dark:hover:bg-white/10"
               >
-                Submit
+                Close
               </button>
             </div>
           </motion.div>
@@ -391,7 +388,7 @@ const FeedbackDashboard = () => {
                   <tr key={idx} className="border-b border-gray-100 last:border-none dark:border-white/10">
                     <td className="px-3 py-3 text-gray-800 dark:text-gray-200">{e.competency}</td>
                     <td className="px-3 py-3">
-                      <StarRating rating={e.rating} onChange={(val) => updateEvaluation(idx, 'rating', val)} />
+                      <StarRating rating={e.rating} onChange={val => updateEvaluation(idx, 'rating', val)} />
                     </td>
                     <td className="px-3 py-3">
                       <input
@@ -409,22 +406,23 @@ const FeedbackDashboard = () => {
 
             <div className="mt-5 flex justify-end gap-2">
               <button
-                onClick={saveDraftCompetency}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/10"
+                onClick={() => setCompetencyModal(null)}
+                disabled={submitting}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 disabled:opacity-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/10"
               >
-                Save Draft
+                Cancel
               </button>
               <button
                 onClick={submitCompetencyFeedback}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:brightness-95"
+                disabled={submitting}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:brightness-95 disabled:opacity-50"
               >
-                Submit
+                {submitting ? 'Submitting...' : 'Submit'}
               </button>
             </div>
           </motion.div>
         </div>
       )}
-
     </div>
   );
 };

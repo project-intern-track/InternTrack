@@ -46,10 +46,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/auth/user',    [AuthController::class, 'user']);
 
     // User Data Endpoints
-    Route::get('/users/stats',            [UserController::class, 'stats']);
-    Route::get('/users/ojt-roles',        [UserController::class, 'ojtRoles']);
-    Route::get('/users/dashboard-stats',  [UserController::class, 'dashboardStats']);
-    Route::get('/users/interns/recent',   [UserController::class, 'recentInterns']);
+    Route::get('/users/stats',                        [UserController::class, 'stats']);
+    Route::get('/users/ojt-roles',                    [UserController::class, 'ojtRoles']);
+    Route::get('/users/dashboard-stats',              [UserController::class, 'dashboardStats']);
+    Route::get('/users/supervisor/dashboard-stats',   [UserController::class, 'supervisorDashboardStats']);
+    Route::get('/users/interns/recent',               [UserController::class, 'recentInterns']);
     
     Route::get('/users',                  [UserController::class, 'index']);
     Route::post('/users',                 [UserController::class, 'store']);

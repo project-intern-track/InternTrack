@@ -61,7 +61,10 @@ export const userService = {
                 params.append("sortDirection", filters.sortDirection);
             }
 
-            const response = await apiClient.get(`/users?${params.toString()}`, { signal: options?.signal });
+            const response = await apiClient.get(
+                `/users?${params.toString()}`,
+                { signal: options?.signal },
+            );
             return response.data as Users[];
         } catch (error: any) {
             throw new Error(
@@ -168,6 +171,32 @@ export const userService = {
         } catch (error: any) {
             throw new Error(
                 `Error Fetching Dashboard Stats: ${
+                    error.response?.data?.error || error.message
+                }`,
+            );
+        }
+    },
+
+    // Get stats for the Supervisor Dashboard
+    async getSupervisorDashboardStats(): Promise<{
+        totalInterns: number;
+        totalTasks: number;
+        pendingApproval: number;
+        approved: number;
+        needsRevision: number;
+        rejected: number;
+        topPerformer:
+            | { id: number; name: string; completed_tasks: number }
+            | null;
+    }> {
+        try {
+            const response = await apiClient.get(
+                "/users/supervisor/dashboard-stats",
+            );
+            return response.data;
+        } catch (error: any) {
+            throw new Error(
+                `Error Fetching Supervisor Dashboard Stats: ${
                     error.response?.data?.error || error.message
                 }`,
             );

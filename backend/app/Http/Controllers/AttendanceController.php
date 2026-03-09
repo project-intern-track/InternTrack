@@ -93,9 +93,7 @@ class AttendanceController extends Controller
 
         $totalHours = $this->computeHours($validated['time_in'], $validated['time_out']);
 
-        // Determine status: late if time_in > 08:30
-        $timeInMinutes = $this->toMinutes($validated['time_in']);
-        $status = ($timeInMinutes > (8 * 60 + 30)) ? 'late' : 'present';
+        $status = 'present';
 
         $attendance = Attendance::updateOrCreate(
             ['user_id' => $user->id, 'date' => $validated['date']],
@@ -147,8 +145,7 @@ class AttendanceController extends Controller
             ], 200);
         }
 
-        $timeInMinutes = $this->toMinutes($timeIn);
-        $status = ($timeInMinutes > (8 * 60 + 30)) ? 'late' : 'present';
+        $status = 'present';
 
         $attendance = Attendance::create([
             'user_id'     => $user->id,

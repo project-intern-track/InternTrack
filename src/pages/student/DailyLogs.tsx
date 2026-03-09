@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash, KeyRound } from 'lucide-react';
+import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash, Lock } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import type { Attendance } from '../../types/database.types';
 
@@ -379,7 +379,7 @@ const DailyLogs = () => {
                         {/* OJT ID field */}
                         <div>
                             <div className="tl-ojt-wrap">
-                                <KeyRound size={16} className="tl-ojt-icon" />
+                                <Lock size={16} className="tl-ojt-icon" />
                                 <input
                                     id="ojt-id-input"
                                     type="text"

@@ -69,7 +69,7 @@ const Settings = () => {
           email: session.user.email || '',
           role: session.user.user_metadata.role || '',
           ojt_id: session.user.user_metadata.ojt_id || '',
-          start_date: session.user.user_metadata.start_date || '',
+          start_date: session.user.created_at ? new Date(session.user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
           required_hours: session.user.user_metadata.required_hours || '',
           ojt_type: session.user.user_metadata.ojt_type || '',
           status: session.user.user_metadata.status || '',
@@ -276,30 +276,6 @@ const Settings = () => {
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                ID
-              </label>
-              <input
-                type="text"
-                defaultValue={formData.id}
-                disabled
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Status
-              </label>
-              <input
-                type="text"
-                defaultValue={formData.status ? formData.status.charAt(0).toUpperCase() + formData.status.slice(1) : 'Active'}
-                disabled
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
-              />
-            </div>
           </div>
 
           {/* RIGHT */}
@@ -319,35 +295,11 @@ const Settings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                OJT Type
-              </label>
-              <input
-                type="text"
-                defaultValue={formData.ojt_type.charAt(0).toUpperCase() + formData.ojt_type.slice(1)}
-                disabled
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 DATE STARTED
               </label>
               <input
                 type="text"
                 defaultValue={formData.start_date}
-                disabled
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                REQUIRED HOURS
-              </label>
-              <input
-                type="text"
-                defaultValue={formData.required_hours}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />

@@ -6,6 +6,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\AttendanceController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -89,4 +90,14 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/evaluations/{id}',      [EvaluationController::class, 'show']);
     Route::put('/evaluations/{id}',      [EvaluationController::class, 'update']);
     Route::delete('/evaluations/{id}',   [EvaluationController::class, 'destroy']);
+
+    // Attendance Routes
+    Route::get('/attendance/today',      [AttendanceController::class, 'today']);
+    Route::get('/attendance/stats',      [AttendanceController::class, 'stats']);
+    Route::post('/attendance/clock-in',  [AttendanceController::class, 'clockIn']);
+    Route::post('/attendance/clock-out', [AttendanceController::class, 'clockOut']);
+    Route::post('/attendance/log',       [AttendanceController::class, 'log']);
+    Route::get('/attendance',            [AttendanceController::class, 'index']);
+    Route::post('/attendance',           [AttendanceController::class, 'store']);
+    Route::delete('/attendance/{id}',    [AttendanceController::class, 'destroy']);
 });

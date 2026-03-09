@@ -10,7 +10,6 @@ import type { Tasks } from '../../types/database.types';
 // ============================
 // Types
 // ============================
-type TaskStatus = Tasks['status'];
 
 interface DashboardStats {
   totalInterns: number;
@@ -388,9 +387,10 @@ const SupervisorDashboard = () => {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => {
+                  formatter={(value: number | undefined) => {
+                    const v = value ?? 0;
                     if (totalPie === 0) return ['0%', 'Share'];
-                    return [`${((value / totalPie) * 100).toFixed(0)}% (${value})`, 'Tasks'];
+                    return [`${((v / totalPie) * 100).toFixed(0)}% (${v})`, 'Tasks'];
                   }}
                 />
               </PieChart>

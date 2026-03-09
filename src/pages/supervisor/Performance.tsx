@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/userServices';
 import { taskService } from '../../services/taskServices';
 import PageLoader from '../../components/PageLoader';
-import type { Users as UserType } from '../../types/database.types';
+
 import type { Tasks } from '../../types/database.types';
 
 interface InternPerformanceRow {

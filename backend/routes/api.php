@@ -6,6 +6,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\AttendanceController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -83,6 +84,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/reports/interns/{id}/weekly',  [ReportController::class, 'weekly']);
     Route::get('/reports/interns/{id}/monthly', [ReportController::class, 'monthly']);
 
+
+    // Feedback Routes (task-based, per-intern competency feedback)
+    Route::get('/feedback/tasks',                                        [FeedbackController::class, 'supervisorTasks']);
+    Route::post('/feedback/tasks/{taskId}/interns/{internId}',           [FeedbackController::class, 'submitFeedback']);
+    Route::get('/feedback/my-feedback',                                  [FeedbackController::class, 'myFeedback']);
 
     // Evaluation Routes
     Route::get('/evaluations',           [EvaluationController::class, 'index']);

@@ -1,6 +1,6 @@
-import { Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import NotificationDropdown from './NotificationDropdown';
 
 const TopBar = () => {
     const { user } = useAuth();
@@ -14,20 +14,8 @@ const TopBar = () => {
 
             {/* Right side - user info and notifications */}
             <div className="flex items-center gap-4">
-                {/* Notification Button */}
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors relative"
-                    aria-label="Notifications"
-                >
-                    <Bell size={20} className="text-gray-600 dark:text-gray-400" />
-                    <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full"
-                    />
-                </motion.button>
+                {/* Notification Bell */}
+                <NotificationDropdown />
 
                 {/* Divider */}
                 <div className="h-6 w-px bg-gray-200 dark:bg-white/10" />

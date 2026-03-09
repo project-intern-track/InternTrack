@@ -1,6 +1,7 @@
 import { Search, Download } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../services/apiClient';
 
 interface InternCardProps {
     name: string;
@@ -93,6 +94,30 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
 const Reports = () => {
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
+            const response = await apiClient.get('/reports/interns/export', {
+                params: { status: filterStatus },
+                responseType: 'blob',
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `intern-reports-${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Export failed:', error);
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     const interns = [
         {
@@ -237,21 +262,25 @@ const Reports = () => {
                 </select>
 
                 {/* Export Button */}
-                <button className="btn btn-primary" style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    height: '40px',
-                    padding: '0 1.5rem',
-                    border: 'none',
-                    borderRadius: '8px',
-                    backgroundColor: '#ff8800',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '1rem'
-                }}>
+                <button
+                    onClick={handleExport}
+                    disabled={isExporting}
+                    className="btn btn-primary"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        height: '40px',
+                        padding: '0 1.5rem',
+                        border: 'none',
+                        borderRadius: '8px',
+                        backgroundColor: isExporting ? '#ccc' : '#ff8800',
+                        color: 'white',
+                        cursor: isExporting ? 'not-allowed' : 'pointer',
+                        fontSize: '1rem'
+                    }}>
                     <Download size={16} />
-                    Export All
+                    {isExporting ? 'Exporting...' : 'Export All'}
                 </button>
             </div>
 

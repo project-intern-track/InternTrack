@@ -5,6 +5,7 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\EvaluationController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -79,4 +80,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/reports/interns/{id}',         [ReportController::class, 'show']);
     Route::get('/reports/interns/{id}/weekly',  [ReportController::class, 'weekly']);
     Route::get('/reports/interns/{id}/monthly', [ReportController::class, 'monthly']);
+
+
+    // Evaluation Routes
+    Route::get('/evaluations',           [EvaluationController::class, 'index']);
+    Route::post('/evaluations',          [EvaluationController::class, 'store']);
+    Route::get('/evaluations/{id}',      [EvaluationController::class, 'show']);
+    Route::put('/evaluations/{id}',      [EvaluationController::class, 'update']);
+    Route::delete('/evaluations/{id}',   [EvaluationController::class, 'destroy']);
 });

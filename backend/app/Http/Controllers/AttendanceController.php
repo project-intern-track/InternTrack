@@ -116,14 +116,35 @@ class AttendanceController extends Controller
     // ──────────────────────────────────────────────────────────────────────────
     public function clockIn(Request $request)
     {
-        $user = Auth::user();
+        $user  = Auth::user();
         $today = Carbon::now()->toDateString();
         $timeIn = Carbon::now()->format('H:i');
 
-        // Check if already clocked in today
+        // ── OJT ID verification ─────────────────────────────────────────────
+        $request->validate([
+            'ojt_id' => 'required',
+        ]);
+
+        $storedOjtId = $user->ojt_id; // integer or null
+
+        // If this user has no OJT ID assigned yet, skip verification
+        if ($storedOjtId !== null) {
+            // Compare as integers so "1102" === 1102
+            $submittedOjtId = intval(trim((string) $request->input('ojt_id')));
+            if ($submittedOjtId <= 0 || $submittedOjtId !== (int) $storedOjtId) {
+                return response()->json([
+                    'message' => "Invalid OJT ID. Your OJT ID is a number shown on your Settings page.",
+                ], 422);
+            }
+        }
+
+        // ── Already clocked in today? ────────────────────────────────────────
         $existing = Attendance::where('user_id', $user->id)->where('date', $today)->first();
         if ($existing) {
-            return response()->json(['message' => 'Already clocked in today.', 'data' => $existing], 200);
+            return response()->json([
+                'message' => 'Already clocked in today.',
+                'data'    => $existing,
+            ], 200);
         }
 
         $timeInMinutes = $this->toMinutes($timeIn);
@@ -138,7 +159,7 @@ class AttendanceController extends Controller
             'status'      => $status,
         ]);
 
-        return response()->json($attendance, 201);
+        return response()->json(['data' => $attendance], 201);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -148,26 +169,51 @@ class AttendanceController extends Controller
     public function clockOut(Request $request)
     {
         $user = Auth::user();
-        $today = Carbon::now()->toDateString();
-        $timeOut = Carbon::now()->format('H:i');
+        $now  = Carbon::now();
 
+        // Find the most-recent open session for this user (no time_out yet)
         $attendance = Attendance::where('user_id', $user->id)
-            ->where('date', $today)
+            ->whereNull('time_out')
+            ->orderBy('date', 'desc')
             ->first();
 
         if (!$attendance) {
-            return response()->json(['message' => 'No clock-in record found for today.'], 404);
+            // Maybe already clocked out — return today's record if it exists
+            $today   = $now->toDateString();
+            $todayRec = Attendance::where('user_id', $user->id)->where('date', $today)->first();
+            return response()->json([
+                'message' => 'Already clocked out or no active session found.',
+                'data'    => $todayRec,
+            ], 200);
         }
 
-        if ($attendance->time_out) {
-            return response()->json(['message' => 'Already clocked out today.', 'data' => $attendance], 200);
+        // ── Cross-midnight: session started on a prior day ──────────────────
+        $sessionDate   = Carbon::parse($attendance->date);
+        $isCrossMidnight = !$sessionDate->isSameDay($now);
+
+        if ($isCrossMidnight) {
+            // Cap to 8 hours from clock-in and set time_out to time_in + 8 h
+            $timeInMinutes  = $this->toMinutes($attendance->time_in);
+            $cappedMinutes  = $timeInMinutes + 480; // 8 * 60
+            $cappedHour     = intdiv($cappedMinutes, 60) % 24;
+            $cappedMin      = $cappedMinutes % 60;
+            $timeOut        = sprintf('%02d:%02d', $cappedHour, $cappedMin);
+            $totalHours     = 8.0;
+        } else {
+            $timeOut       = $now->format('H:i');
+            $rawHours      = $this->computeHours($attendance->time_in, $timeOut);
+            $totalHours    = min((float)$rawHours, 8.0); // cap at 8 h
         }
 
         $attendance->time_out    = $timeOut;
-        $attendance->total_hours = $this->computeHours($attendance->time_in, $timeOut);
+        $attendance->total_hours = $totalHours;
         $attendance->save();
 
-        return response()->json($attendance);
+        return response()->json([
+            'data'        => $attendance,
+            'capped'      => $totalHours >= 8.0,
+            'cross_midnight' => $isCrossMidnight,
+        ]);
     }
 
     // ──────────────────────────────────────────────────────────────────────────

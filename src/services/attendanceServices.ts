@@ -8,6 +8,12 @@ export interface AttendanceStats {
     total_entries: number;
 }
 
+export interface ClockOutResult {
+    data: Attendance;
+    capped: boolean;
+    cross_midnight: boolean;
+}
+
 export const attendanceService = {
     /** Get all attendance records for the authenticated user (or all, for admin/supervisor). */
     async getAttendance(
@@ -41,16 +47,26 @@ export const attendanceService = {
         return response.data;
     },
 
-    /** Clock in for today — records current server time as time_in. */
-    async clockIn(): Promise<Attendance> {
-        const response = await apiClient.post("/attendance/clock-in");
+    /** Clock in for today. Requires the intern's OJT ID for verification. */
+    async clockIn(ojtId: string): Promise<Attendance> {
+        const response = await apiClient.post("/attendance/clock-in", {
+            ojt_id: ojtId,
+        });
+        // Backend returns { data: Attendance } or { message, data: Attendance }
         return response.data?.data ?? response.data;
     },
 
-    /** Clock out for today — records current server time as time_out and computes hours. */
-    async clockOut(): Promise<Attendance> {
+    /** Clock out — records current server time, caps at 8 h, handles cross-midnight. */
+    async clockOut(): Promise<ClockOutResult> {
         const response = await apiClient.post("/attendance/clock-out");
-        return response.data?.data ?? response.data;
+        // Backend returns { data, capped, cross_midnight }
+        if (
+            response.data && "data" in response.data &&
+            "capped" in response.data
+        ) {
+            return response.data as ClockOutResult;
+        }
+        return { data: response.data, capped: false, cross_midnight: false };
     },
 
     /** Admin / Supervisor: manually store an attendance record for any user. */

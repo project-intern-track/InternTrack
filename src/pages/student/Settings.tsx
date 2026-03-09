@@ -59,27 +59,31 @@ const Settings = () => {
   useEffect(() => {
     const loadProfile = async () => {
       const { session, error } = await authService.getSession();
+      if (error || !session?.user) { setProfileLoading(false); return; }
 
-      if (session?.user) {
-        const userData = {  
-          id: session.user.id,
-          name: session.user.user_metadata.full_name || '',
-          email: session.user.email || '',
-          role: session.user.user_metadata.role || '',
-          ojt_id: session.user.user_metadata.ojt_id || '',
-          start_date: session.user.user_metadata.start_date || '',
-          required_hours: session.user.user_metadata.required_hours || '',
-          ojt_type: session.user.user_metadata.ojt_type || '',
-          status: session.user.user_metadata.status || '',
+      try {
+        // Load from Laravel API — this is the real source of truth
+        const res = await apiClient.get(`/users/${session.user.id}`);
+        const profile = res.data;
+        const userData = {
+          id: String(profile.id ?? session.user.id),
+          name: profile.full_name || '',
+          email: profile.email || session.user.email || '',
+          role: profile.role || '',
+          ojt_id: profile.ojt_id != null ? String(profile.ojt_id) : '',
+          start_date: profile.start_date || '',
+          required_hours: profile.required_hours != null ? String(profile.required_hours) : '',
+          ojt_type: profile.ojt_type || '',
+          status: profile.status || '',
         };
         setFormData(userData);
         setOriginalData(userData);
-      } else if (error) {
-        console.error("Fetch failed:", error);
+      } catch (e) {
+        console.error('Failed to load profile:', e);
+      } finally {
+        setProfileLoading(false);
       }
-      setProfileLoading(false);
     };
-
     loadProfile();
   }, []);
 
@@ -276,13 +280,14 @@ const Settings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                ID
+                OJT ID
               </label>
               <input
                 type="text"
-                defaultValue={formData.id}
+                value={formData.ojt_id || '—'}
                 disabled
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed font-mono tracking-wider"
+                title="Use this ID in the Time Log to clock in and out"
               />
             </div>
 
@@ -328,11 +333,17 @@ const Settings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                DATE STARTED
+                Date Started
               </label>
               <input
                 type="text"
-                defaultValue={formData.start_date}
+                value={
+                  formData.start_date
+                    ? new Date(formData.start_date).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                      })
+                    : '—'
+                }
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />

@@ -231,4 +231,68 @@ class UserController extends Controller
 
         return response()->json($interns);
     }
+
+    /**
+     * GET /api/users/supervisor/dashboard-stats
+     * Aggregated stats for the supervisor dashboard (no new tables required).
+     */
+    public function supervisorDashboardStats(Request $request)
+    {
+        // ── Intern count ────────────────────────────────────────────────────
+        $totalInterns = User::where('role', 'intern')->count();
+
+        // ── Task status breakdown (supervisor lifecycle) ─────────────────────
+        $supervisorStatuses = [
+            'pending_approval',
+            'not_started',
+            'in_progress',
+            'pending',
+            'completed',
+            'needs_revision',
+            'rejected',
+            'overdue',
+        ];
+
+        $taskCounts = \App\Models\Task::whereIn('status', $supervisorStatuses)
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $pendingApproval = $taskCounts->get('pending_approval', 0);
+        $approved        = ($taskCounts->get('not_started', 0)
+                          + $taskCounts->get('in_progress', 0)
+                          + $taskCounts->get('pending', 0)
+                          + $taskCounts->get('completed', 0)
+                          + $taskCounts->get('overdue', 0));
+        $needsRevision   = $taskCounts->get('needs_revision', 0);
+        $rejected        = $taskCounts->get('rejected', 0);
+        $totalTasks      = $pendingApproval + $approved + $needsRevision + $rejected;
+
+        // ── Top performer: intern with the most completed tasks ───────────────
+        $topPerformer = User::where('role', 'intern')
+            ->withCount(['assignedTasks as completed_tasks_count' => function ($q) {
+                $q->where('status', 'completed');
+            }])
+            ->orderByDesc('completed_tasks_count')
+            ->first();
+
+        $topPerformerData = null;
+        if ($topPerformer && $topPerformer->completed_tasks_count > 0) {
+            $topPerformerData = [
+                'id'             => $topPerformer->id,
+                'name'           => $topPerformer->full_name,
+                'completed_tasks'=> $topPerformer->completed_tasks_count,
+            ];
+        }
+
+        return response()->json([
+            'totalInterns'    => $totalInterns,
+            'totalTasks'      => $totalTasks,
+            'pendingApproval' => $pendingApproval,
+            'approved'        => $approved,
+            'needsRevision'   => $needsRevision,
+            'rejected'        => $rejected,
+            'topPerformer'    => $topPerformerData,
+        ]);
+    }
 }

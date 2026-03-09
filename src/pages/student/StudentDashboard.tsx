@@ -17,7 +17,6 @@ import { attendanceService } from "../../services/attendanceServices";
 import type {
   Announcement,
   Tasks,
-  Attendance,
   Users,
 } from "../../types/database.types";
 import PageLoader from "../../components/PageLoader";
@@ -41,12 +40,12 @@ const StudentDashboard: React.FC = () => {
 
       try {
         // Parallel fetching
-        const [announcementsData, profileData, tasksData, attendanceData] =
+        const [announcementsData, profileData, tasksData, attendanceStats] =
           await Promise.all([
             announcementService.getAnnouncements(),
             userService.getProfile(user.id),
             taskService.getMyTasks(),
-            attendanceService.getAttendance(),
+            attendanceService.getStats(),  // pre-aggregated from backend ✅
           ]);
 
         // Process Announcements
@@ -66,12 +65,8 @@ const StudentDashboard: React.FC = () => {
           (t) => t.status === "completed",
         ).length;
 
-        // Attendance Stats (RLS filters attendance for this user)
-        const myAttendance = (attendanceData as Attendance[]) || [];
-        const hoursLogged = myAttendance.reduce(
-          (sum, record) => sum + (record.total_hours || 0),
-          0,
-        );
+        // Attendance Stats from backend aggregation
+        const hoursLogged = attendanceStats?.total_hours ?? 0;
 
         // Days Remaining (Assuming 8 hours per day)
         const hoursRemaining = Math.max(0, targetHours - hoursLogged);
@@ -79,12 +74,14 @@ const StudentDashboard: React.FC = () => {
 
         setStats({
           tasksCompleted: tasksCompleted || 0,
-          hoursLogged: Math.round(hoursLogged * 10) / 10, // Round to 1 decimal
+          hoursLogged: Math.round(hoursLogged * 10) / 10,
           targetHours,
           daysRemaining,
         });
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
+        // still set stats with zeros so page renders
+        setStats({ tasksCompleted: 0, hoursLogged: 0, targetHours: 400, daysRemaining: 50 });
       }
     };
 

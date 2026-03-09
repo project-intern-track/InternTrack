@@ -1,44 +1,30 @@
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, ClipboardList, Star, Users } from 'lucide-react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-
-type PendingTask = {
-  intern: string;
-  task: string;
-  due_date: string;
-  status: 'excellent' | 'very good' | 'satisfactory' | 'needs improvement' | 'poor';
-};
-
-type PerformanceSummary = {
-  excellent: number;
-  veryGood: number;
-  satisfactory: number;
-  needsImprovement: number;
-  poor: number;
-};
+import { useAuth } from '../../context/AuthContext';
+import { userService } from '../../services/userServices';
+import { taskService } from '../../services/taskServices';
+import type { Tasks } from '../../types/database.types';
 
 // ============================
-// Dummy Static Data
+// Types
 // ============================
-const dummyTasks: PendingTask[] = [
-  { intern: 'Juan Dela Cruz', task: 'Weekly Report', due_date: '2026-02-22', status: 'excellent' },
-  { intern: 'Maria Santos', task: 'UI Prototype', due_date: '2026-02-23', status: 'very good' },
-  { intern: 'Carlo Reyes', task: 'Database Schema', due_date: '2026-02-20', status: 'satisfactory' },
-  { intern: 'Angela Lim', task: 'API Integration', due_date: '2026-02-21', status: 'needs improvement' },
-  { intern: 'Carlo Reyes', task: 'Frontend Fixes', due_date: '2026-02-19', status: 'poor' },
-  { intern: 'Juan Dela Cruz', task: 'Unit Testing', due_date: '2026-02-24', status: 'very good' },
-  { intern: 'Angela Lim', task: 'Documentation', due_date: '2026-02-25', status: 'excellent' },
-];
 
-const summaryKeyToStatus: Record<keyof PerformanceSummary, PendingTask['status']> = {
-  excellent: 'excellent',
-  veryGood: 'very good',
-  satisfactory: 'satisfactory',
-  needsImprovement: 'needs improvement',
-  poor: 'poor',
-};
+interface DashboardStats {
+  totalInterns: number;
+  totalTasks: number;
+  pendingApproval: number;
+  approved: number;
+  needsRevision: number;
+  rejected: number;
+  topPerformer: { id: number; name: string; completed_tasks: number } | null;
+}
 
-const statusStyles: Record<PendingTask['status'], { pill: string; soft: string; text: string }> = {
+// ============================
+// Style Maps
+// ============================
+const statusStyles: Record<string, { pill: string; soft: string; text: string }> = {
   excellent: {
     pill: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
     soft: 'bg-green-50 dark:bg-green-500/10',
@@ -54,130 +40,162 @@ const statusStyles: Record<PendingTask['status'], { pill: string; soft: string; 
     soft: 'bg-amber-50 dark:bg-amber-500/10',
     text: 'text-amber-700 dark:text-amber-300',
   },
-  'needs improvement': {
-    pill: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
-    soft: 'bg-orange-50 dark:bg-orange-500/10',
-    text: 'text-orange-700 dark:text-orange-300',
+  pending_approval: {
+    pill: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
+    soft: 'bg-sky-50 dark:bg-sky-500/10',
+    text: 'text-sky-700 dark:text-sky-300',
   },
-  poor: {
+  needs_revision: {
+    pill: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+    soft: 'bg-amber-50 dark:bg-amber-500/10',
+    text: 'text-amber-700 dark:text-amber-300',
+  },
+  rejected: {
     pill: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
     soft: 'bg-red-50 dark:bg-red-500/10',
     text: 'text-red-700 dark:text-red-300',
   },
+  completed: {
+    pill: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
+    soft: 'bg-green-50 dark:bg-green-500/10',
+    text: 'text-green-700 dark:text-green-300',
+  },
+  not_started: {
+    pill: 'bg-gray-100 text-gray-700 dark:bg-gray-500/15 dark:text-gray-300',
+    soft: 'bg-gray-50 dark:bg-gray-500/10',
+    text: 'text-gray-700 dark:text-gray-300',
+  },
+  in_progress: {
+    pill: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
+    soft: 'bg-blue-50 dark:bg-blue-500/10',
+    text: 'text-blue-700 dark:text-blue-300',
+  },
+  overdue: {
+    pill: 'bg-red-200 text-red-800 dark:bg-red-600/15 dark:text-red-400',
+    soft: 'bg-red-50 dark:bg-red-500/10',
+    text: 'text-red-800 dark:text-red-400',
+  },
+  pending: {
+    pill: 'bg-gray-100 text-gray-700 dark:bg-gray-500/15 dark:text-gray-300',
+    soft: 'bg-gray-50 dark:bg-gray-500/10',
+    text: 'text-gray-700 dark:text-gray-300',
+  },
 };
 
-const statusChartColors: Record<PendingTask['status'], string> = {
-  excellent: 'hsl(var(--success))',
-  'very good': 'hsl(var(--secondary))',
-  satisfactory: 'hsl(var(--warning))',
-  'needs improvement': 'hsl(var(--primary))',
-  poor: 'hsl(var(--danger))',
+const fallbackStyle = {
+  pill: 'bg-gray-100 text-gray-700 dark:bg-gray-500/15 dark:text-gray-300',
+  soft: 'bg-gray-50 dark:bg-gray-500/10',
+  text: 'text-gray-700 dark:text-gray-300',
+};
+
+const chartColors: Record<string, string> = {
+  'Pending Approval': 'hsl(var(--secondary))',
+  'Approved': 'hsl(var(--success))',
+  'Needs Revision': 'hsl(var(--warning))',
+  'Rejected': 'hsl(var(--danger))',
 };
 
 // ============================
-// Helper Functions
+// Helpers
 // ============================
-const computeSummary = (tasks: PendingTask[]): PerformanceSummary => {
-  const summary: PerformanceSummary = {
-    excellent: 0,
-    veryGood: 0,
-    satisfactory: 0,
-    needsImprovement: 0,
-    poor: 0,
-  };
-  tasks.forEach(t => {
-    switch (t.status) {
-      case 'excellent':
-        summary.excellent++;
-        break;
-      case 'very good':
-        summary.veryGood++;
-        break;
-      case 'satisfactory':
-        summary.satisfactory++;
-        break;
-      case 'needs improvement':
-        summary.needsImprovement++;
-        break;
-      case 'poor':
-        summary.poor++;
-        break;
-    }
+const formatDueDate = (isoDate: string | undefined) => {
+  if (!isoDate) return '—';
+  return new Date(isoDate).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   });
-  return summary;
 };
 
-// Compute top performing intern and score out of 100
-const computeTopIntern = (tasks: PendingTask[]): { name: string; score: number } => {
-  const internScores: Record<string, number[]> = {};
-  tasks.forEach(t => {
-    if (!internScores[t.intern]) internScores[t.intern] = [];
-    // Count excellent & very good as 100 points, satisfactory 75, needs improvement 50, poor 25
-    let points = 0;
-    switch (t.status) {
-      case 'excellent':
-        points = 100;
-        break;
-      case 'very good':
-        points = 85;
-        break;
-      case 'satisfactory':
-        points = 70;
-        break;
-      case 'needs improvement':
-        points = 50;
-        break;
-      case 'poor':
-        points = 25;
-        break;
-    }
-    internScores[t.intern].push(points);
-  });
-
-  let bestName = 'N/A';
-  let bestScore = 0;
-
-  Object.entries(internScores).forEach(([name, scores]) => {
-    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-    if (avg > bestScore) {
-      bestScore = avg;
-      bestName = name;
-    }
-  });
-
-  return { name: bestName, score: Math.round(bestScore) };
-};
+const formatStatus = (status: string) =>
+  status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 // ============================
 // Main Component
 // ============================
 const SupervisorDashboard = () => {
-  const supervisorName = 'Test Supervisor';
+  const { user } = useAuth();
 
-  const pendingTasks = dummyTasks;
-  const summary = computeSummary(dummyTasks);
-  const topInternData = computeTopIntern(dummyTasks);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentTasks, setRecentTasks] = useState<Tasks[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const total = Object.values(summary).reduce((acc, v) => acc + v, 0);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [statsData, tasksData] = await Promise.all([
+        userService.getSupervisorDashboardStats(),
+        taskService.getSupervisorTasks(),
+      ]);
+      setStats(statsData);
+      // Show the 7 most-recent tasks in the pending-tasks table
+      setRecentTasks(tasksData.slice(0, 7));
+    } catch (err: any) {
+      setError(err.message ?? 'Failed to load dashboard data.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const pieData = [
-    { name: 'Excellent', value: summary.excellent },
-    { name: 'Very Good', value: summary.veryGood },
-    { name: 'Satisfactory', value: summary.satisfactory },
-    { name: 'Needs Improvement', value: summary.needsImprovement },
-    { name: 'Poor', value: summary.poor },
-  ];
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const summaryRows = Object.entries(summary) as [keyof PerformanceSummary, number][];
+  // ── Computed values ──────────────────────────────────────────────────────
+  const pieData = stats
+    ? [
+        { name: 'Pending Approval', value: stats.pendingApproval },
+        { name: 'Approved', value: stats.approved },
+        { name: 'Needs Revision', value: stats.needsRevision },
+        { name: 'Rejected', value: stats.rejected },
+      ]
+    : [];
 
-  const formatDueDate = (isoDate: string) => new Date(isoDate).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  const totalPie = pieData.reduce((acc, d) => acc + d.value, 0);
+
+  const summaryRows = stats
+    ? [
+        { label: 'Pending Approval', value: stats.pendingApproval, colorClass: 'text-sky-600 dark:text-sky-300', soft: 'bg-sky-50 dark:bg-sky-500/10' },
+        { label: 'Approved', value: stats.approved, colorClass: 'text-green-600 dark:text-green-300', soft: 'bg-green-50 dark:bg-green-500/10' },
+        { label: 'Needs Revision', value: stats.needsRevision, colorClass: 'text-amber-600 dark:text-amber-300', soft: 'bg-amber-50 dark:bg-amber-500/10' },
+        { label: 'Rejected', value: stats.rejected, colorClass: 'text-red-600 dark:text-red-300', soft: 'bg-red-50 dark:bg-red-500/10' },
+      ]
+    : [];
+
+  // ── Loading / Error states ────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading dashboard…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-8 text-center dark:border-red-400/20 dark:bg-red-500/10">
+          <p className="font-bold text-red-700 dark:text-red-300">Failed to load dashboard</p>
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <button
+            onClick={fetchData}
+            className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -186,35 +204,40 @@ const SupervisorDashboard = () => {
       >
         <div>
           <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
-            Welcome back, {supervisorName}
+            Welcome back, {user?.name ?? 'Supervisor'}
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Supervisor Dashboard Overview</p>
         </div>
-        <div className="hidden rounded-xl border border-gray-200 bg-white px-4 py-2 text-right shadow-sm dark:border-white/5 dark:bg-slate-900/50 md:block">
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Top Intern</p>
-          <p className="text-sm font-bold text-primary">{topInternData.name} ({topInternData.score}/100)</p>
-        </div>
+        {stats?.topPerformer && (
+          <div className="hidden rounded-xl border border-gray-200 bg-white px-4 py-2 text-right shadow-sm dark:border-white/5 dark:bg-slate-900/50 md:block">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Top Intern</p>
+            <p className="text-sm font-bold text-primary">
+              {stats.topPerformer.name} ({stats.topPerformer.completed_tasks} completed)
+            </p>
+          </div>
+        )}
       </motion.div>
 
+      {/* ── Stat Cards ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {[
           {
             label: 'Pending Tasks',
-            value: pendingTasks.length,
+            value: stats?.pendingApproval ?? 0,
             icon: ClipboardList,
             iconColor: 'text-orange-500',
             iconBg: 'bg-orange-500/10',
           },
           {
-            label: 'Unique Interns',
-            value: new Set(pendingTasks.map(task => task.intern)).size,
+            label: 'Total Interns',
+            value: stats?.totalInterns ?? 0,
             icon: Users,
             iconColor: 'text-blue-500',
             iconBg: 'bg-blue-500/10',
           },
           {
             label: 'Top Score',
-            value: topInternData.score,
+            value: stats?.topPerformer ? `${stats.topPerformer.completed_tasks} tasks` : '—',
             icon: Star,
             iconColor: 'text-green-500',
             iconBg: 'bg-green-500/10',
@@ -236,7 +259,9 @@ const SupervisorDashboard = () => {
         ))}
       </div>
 
+      {/* ── Recent Tasks Table + Top Performer ─────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Tasks Table */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -245,45 +270,54 @@ const SupervisorDashboard = () => {
         >
           <div className="flex items-center gap-3 border-b border-gray-200 px-6 py-5 dark:border-white/5">
             <ClipboardList className="text-primary" size={20} />
-            <h2 className="text-xl font-black text-gray-800 dark:text-white">Pending Tasks</h2>
+            <h2 className="text-xl font-black text-gray-800 dark:text-white">Recent Tasks</h2>
           </div>
-          {/* overflow-x-auto + 0 horizontal padding so table scrolls freely on mobile */}
           <div className="overflow-x-auto">
             <div className="px-6 py-5">
-              <table className="w-full text-left text-sm" style={{ minWidth: '480px' }}>
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-white/5">
-                    <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '130px' }}>Intern</th>
-                    <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '140px' }}>Task</th>
-                    <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '100px' }}>Due Date</th>
-                    <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '130px' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pendingTasks.map((task, index) => (
-                    <motion.tr
-                      key={`${task.intern}-${task.task}-${task.due_date}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.03 * index, duration: 0.25 }}
-                      className="border-b border-gray-100 last:border-none dark:border-white/5"
-                    >
-                      <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">{task.intern}</td>
-                      <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">{task.task}</td>
-                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap">{formatDueDate(task.due_date)}</td>
-                      <td className="py-3">
-                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize whitespace-nowrap ${statusStyles[task.status].pill}`}>
-                          {task.status}
-                        </span>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
+              {recentTasks.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No tasks found.</p>
+              ) : (
+                <table className="w-full text-left text-sm" style={{ minWidth: '480px' }}>
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-white/5">
+                      <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '120px' }}>Intern(s)</th>
+                      <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '140px' }}>Task</th>
+                      <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '100px' }}>Due Date</th>
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '130px' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentTasks.map((task, index) => {
+                      const style = statusStyles[task.status] ?? fallbackStyle;
+                      const internNames = task.assigned_interns?.map((i) => i.full_name).join(', ')
+                        || (task.assigned_interns_count ? `${task.assigned_interns_count} intern(s)` : '—');
+                      return (
+                        <motion.tr
+                          key={task.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.03 * index, duration: 0.25 }}
+                          className="border-b border-gray-100 last:border-none dark:border-white/5"
+                        >
+                          <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">{internNames}</td>
+                          <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">{task.title}</td>
+                          <td className="py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap">{formatDueDate(task.due_date)}</td>
+                          <td className="py-3">
+                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize whitespace-nowrap ${style.pill}`}>
+                              {formatStatus(task.status)}
+                            </span>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </motion.div>
 
+        {/* Top Performer Card */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -294,23 +328,32 @@ const SupervisorDashboard = () => {
             <Star className="text-primary" size={20} />
             <h2 className="text-xl font-black text-gray-800 dark:text-white">Top Performing Intern</h2>
           </div>
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-white/5 dark:bg-white/5">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern Name</p>
-            <p className="mt-1 text-xl font-black text-gray-900 dark:text-white">{topInternData.name}</p>
-            <div className="mt-4 flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-foreground">
-              <p className="text-sm font-bold">Performance Score</p>
-              <p className="text-lg font-black">{topInternData.score}/100</p>
+          {stats?.topPerformer ? (
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-white/5 dark:bg-white/5">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern Name</p>
+              <p className="mt-1 text-xl font-black text-gray-900 dark:text-white">{stats.topPerformer.name}</p>
+              <div className="mt-4 flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-foreground">
+                <p className="text-sm font-bold">Completed Tasks</p>
+                <p className="text-lg font-black">{stats.topPerformer.completed_tasks}</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500 dark:border-white/5 dark:bg-white/5 dark:text-gray-400">
+              No completed tasks recorded yet.
+            </div>
+          )}
           <div className="mt-5 space-y-2">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Quick Insight</p>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              Strong momentum in the top tier with consistent Excellent and Very Good ratings.
+              {stats?.topPerformer
+                ? `${stats.topPerformer.name} leads with the most completed tasks.`
+                : 'Track task completion to identify your top performers.'}
             </p>
           </div>
         </motion.div>
       </div>
 
+      {/* ── Performance Distribution ────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -319,7 +362,7 @@ const SupervisorDashboard = () => {
       >
         <div className="mb-6 flex items-center gap-3">
           <BarChart className="text-primary" size={20} />
-          <h2 className="text-xl font-black text-gray-800 dark:text-white">Overall Performance Distribution</h2>
+          <h2 className="text-xl font-black text-gray-800 dark:text-white">Task Status Distribution</h2>
         </div>
 
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
@@ -334,26 +377,20 @@ const SupervisorDashboard = () => {
                   cy="50%"
                   outerRadius={120}
                   label={({ value }) => {
-                    if (!value || total === 0) return '0%';
-                    return `${((value / total) * 100).toFixed(0)}%`;
+                    if (!value || totalPie === 0) return '0%';
+                    return `${((value / totalPie) * 100).toFixed(0)}%`;
                   }}
                   labelLine={false}
                 >
-                  {pieData.map((entry) => {
-                    const status = summaryKeyToStatus[
-                      entry.name === 'Very Good'
-                        ? 'veryGood'
-                        : entry.name === 'Needs Improvement'
-                          ? 'needsImprovement'
-                          : entry.name.toLowerCase() as keyof PerformanceSummary
-                    ];
-                    return <Cell key={entry.name} fill={statusChartColors[status]} />;
-                  })}
+                  {pieData.map((entry) => (
+                    <Cell key={entry.name} fill={chartColors[entry.name] ?? '#94a3b8'} />
+                  ))}
                 </Pie>
                 <Tooltip
                   formatter={(value: number | undefined) => {
-                    if (total === 0 || value === undefined) return ['0%', 'Share'];
-                    return [`${((value / total) * 100).toFixed(0)}%`, 'Share'];
+                    const v = value ?? 0;
+                    if (totalPie === 0) return ['0%', 'Share'];
+                    return [`${((v / totalPie) * 100).toFixed(0)}% (${v})`, 'Tasks'];
                   }}
                 />
               </PieChart>
@@ -363,24 +400,25 @@ const SupervisorDashboard = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 pb-2">
               <Users className="text-primary" size={16} />
-              <h3 className="text-base font-black text-gray-800 dark:text-white">Performance Summary</h3>
+              <h3 className="text-base font-black text-gray-800 dark:text-white">Status Summary</h3>
             </div>
-            {summaryRows.map(([key, value], index) => {
-              const status = summaryKeyToStatus[key];
-              const percent = total === 0 ? 0 : Math.round((value / total) * 100);
-              const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-
+            {summaryRows.map((row, index) => {
+              const percent = stats && stats.totalTasks > 0
+                ? Math.round((row.value / stats.totalTasks) * 100)
+                : 0;
               return (
                 <motion.div
-                  key={key}
+                  key={row.label}
                   initial={{ opacity: 0, x: 12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 * index, duration: 0.25 }}
-                  className={`rounded-xl border border-gray-200 px-4 py-3 dark:border-white/5 ${statusStyles[status].soft}`}
+                  className={`rounded-xl border border-gray-200 px-4 py-3 dark:border-white/5 ${row.soft}`}
                 >
                   <div className="flex items-center justify-between">
-                    <p className={`text-sm font-bold ${statusStyles[status].text}`}>{label}</p>
-                    <p className="text-sm font-black text-gray-900 dark:text-white">{value} ({percent}%)</p>
+                    <p className={`text-sm font-bold ${row.colorClass}`}>{row.label}</p>
+                    <p className="text-sm font-black text-gray-900 dark:text-white">
+                      {row.value} ({percent}%)
+                    </p>
                   </div>
                 </motion.div>
               );

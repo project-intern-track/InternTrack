@@ -19,6 +19,7 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
+    created_at: '',
   });
 
   // Original data for change detection
@@ -32,6 +33,8 @@ const Settings = () => {
     required_hours: '',
     ojt_type: '',
     status: '',
+    created_at: '',
+
   });
 
 
@@ -71,6 +74,7 @@ const Settings = () => {
           required_hours: session.user.user_metadata.required_hours || '',
           ojt_type: session.user.user_metadata.ojt_type || '',
           status: session.user.user_metadata.status || '',
+          created_at: session.user.created_at || '', // Added Created at If data is need in the profile Info
         };
         setFormData(userData);
         setOriginalData(userData);

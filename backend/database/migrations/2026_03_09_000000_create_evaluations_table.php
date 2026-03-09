@@ -11,11 +11,13 @@ return new class extends Migration
         Schema::create('evaluations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('intern_id')->constrained('users')->onDelete('cascade');
+            $table->string('intern_name'); // Not stored in DB, for frontend display only
             $table->foreignId('supervisor_id')->constrained('users')->onDelete('cascade');
-            $table->integer('score')->min(1)->max(100);
+            $table->integer('task_completion')->nullable();
+            $table->string('competency_score')->nullable();
+            $table->integer('score');
             $table->text('feedback')->nullable();
             $table->date('evaluation_date')->default(now());
-            $table->string('term')->nullable();
             $table->timestamps();
         });
     }

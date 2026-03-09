@@ -80,12 +80,15 @@ export interface Announcement {
 export interface Evaluation {
 
     id: string; //UUID, PK
-    intern_id: string; //UUID, FK reference to 'users.id' where role = 'intern'
-    supervisor_id: string; // UUID, FK reference to 'users.id' where role = 'supervisor'
+    intern_id: number; //UUID, FK reference to 'users.id' where role = 'intern'
+    intern_name?: string; // Not stored in DB, for frontend display only
+    supervisor_id: number; // UUID, FK reference to 'users.id' where role = 'supervisor'
+    task_completion?: number; // Int Range from 1-10 or 1-5
+    competency_score?: string; // e.g. "4.5/5 (90%)"
     score: number; // Int Range from 1-10 or 1-5
     feedback: string;
     evaluation_date: string; // ISO Date String
     created_at: string; // ISO Date String, Default to current timestamp on creation
-
+    updated_at: string; // ISO Date String, Default to current timestamp on update
 }
 

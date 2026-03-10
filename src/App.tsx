@@ -52,15 +52,35 @@ import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminManageAdmins from "./pages/admin/ManageAdmins";
 
 
-import { Briefcase } from "lucide-react";
-
 // ========================
-// Loading Screen
+// Loading Screen — skeleton matching real DashboardLayout colors exactly
 // ========================
 const LoadingScreen = () => (
-  <div className="auth-loading-screen">
-    <div className="auth-loading-logo">
-      <Briefcase size={28} />
+  <div className="flex min-h-screen bg-gray-50">
+    {/* Sidebar — matches bg-slate-900 from DashboardLayout */}
+    <div className="hidden lg:flex w-72 flex-col bg-[#0a0a0a] h-screen sticky top-0 p-5 gap-3 rounded-tr-[25px] rounded-br-[25px]">
+      <div className="h-10 w-36 rounded-lg bg-white/10 mb-4 animate-pulse" />
+      {[...Array(7)].map((_, i) => (
+        <div key={i} className="h-9 rounded-lg bg-white/10 animate-pulse" style={{ opacity: 1 - i * 0.1 }} />
+      ))}
+    </div>
+    {/* Main area */}
+    <div className="flex-1 flex flex-col">
+      {/* TopBar — matches bg-white + border-b border-gray-200 */}
+      <div className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-end gap-3">
+        <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+        <div className="h-8 w-28 rounded-lg bg-gray-200 animate-pulse" />
+      </div>
+      {/* Content — matches bg-gray-50 with gray-200 skeleton cards */}
+      <div className="flex-1 bg-gray-50 p-8 flex flex-col gap-5">
+        <div className="h-8 w-48 rounded-lg bg-gray-200 animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-28 rounded-2xl bg-gray-200 animate-pulse" />
+          ))}
+        </div>
+        <div className="h-64 rounded-2xl bg-gray-200 animate-pulse" />
+      </div>
     </div>
   </div>
 );

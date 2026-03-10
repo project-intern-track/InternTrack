@@ -1396,7 +1396,6 @@ textarea,
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -1798,7 +1797,7 @@ textarea,
 /* ── Mobile overrides for modals (≤ 480px) ── */
 @media (max-width: 480px) {
   .announcement-modal-overlay {
-    padding: 0.75rem;   /* tighter on very small phones */
+    padding: 0.75rem; /* tighter on very small phones */
     align-items: center;
   }
 
@@ -1999,7 +1998,9 @@ textarea,
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .notification-empty-icon {
@@ -2045,7 +2046,7 @@ textarea,
   display: flex;
   align-items: flex-start;
   gap: 0.625rem;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
 }
 
 .notification-unread-dot {
@@ -2087,6 +2088,7 @@ textarea,
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin: 0;
@@ -2129,15 +2131,37 @@ textarea,
   border: 1px solid hsl(var(--success) / 0.2);
 }
 
-/* ── Responsive: full-width on narrow screens ── */
-@media (max-width: 480px) {
+/* ── Responsive: compact right-anchored popover on mobile & tablet ── */
+@media (max-width: 768px) {
   .notification-panel {
-    position: fixed;
-    top: 64px;
+    /* Stays anchored to bell — narrow card, not full-width */
+    position: absolute;
+    top: calc(100% + 8px);
     right: 0;
-    left: 0;
-    width: 100%;
-    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
-    max-height: calc(100dvh - 64px);
+    left: auto;
+    width: min(320px, calc(100vw - 16px));
+    max-height: min(480px, calc(100dvh - 100px));
+    border-radius: 1rem;
+    box-shadow:
+      0 12px 32px -4px rgba(0, 0, 0, 0.2),
+      0 4px 12px -2px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Comfortable touch targets */
+  .notification-item-inner {
+    padding: 0.875rem 1rem;
+    gap: 0.75rem;
+  }
+
+  /* Title wraps instead of truncating */
+  .notification-item-title {
+    font-size: 0.875rem;
+    white-space: normal;
+  }
+
+  /* Show a little more content */
+  .notification-item-content {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
   }
 }

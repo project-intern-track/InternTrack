@@ -141,30 +141,13 @@ const Login = () => {
     const formDisabled = isSubmitting || isLoading;
 
     return (
-        <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white overflow-hidden">
-            {/* Left: Hero image */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                className="hidden md:block relative overflow-hidden"
-            >
-                <img
-                    src="/heroimage.png"
-                    alt="Person typing on laptop"
-                    className="w-full h-full object-cover rounded-r-[2rem]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            </motion.div>
-
-            {/* Right: Form panel */}
-            <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="flex flex-col justify-center items-center p-6 md:p-12 overflow-y-auto bg-gradient-to-br from-gray-50 via-white to-gray-50"
-            >
-                <div className="w-full max-w-md">
+        <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col justify-center items-center p-6 md:p-12 overflow-y-auto bg-gradient-to-br from-gray-50 via-white to-gray-50"
+        >
+            <div className="w-full max-w-md">
                     {/* Mobile header */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
@@ -350,26 +333,29 @@ const Login = () => {
                         </motion.div>
 
                         {/* Login button */}
-                        <motion.button
+                        <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            type="submit"
-                            className="w-full mt-8 px-4 py-3 bg-orange text-white font-bold rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            disabled={formDisabled}
-                            id="login-submit"
                         >
-                            {formDisabled ? (
-                                <>
-                                    <Loader2 size={18} className="animate-spin" />
-                                    <span>Signing in...</span>
-                                </>
-                            ) : (
-                                'Login'
-                            )}
-                        </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                className="w-full mt-8 px-4 py-3 bg-orange text-white font-bold rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                disabled={formDisabled}
+                                id="login-submit"
+                            >
+                                {formDisabled ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        <span>Signing in...</span>
+                                    </>
+                                ) : (
+                                    'Login'
+                                )}
+                            </motion.button>
+                        </motion.div>
 
                         {/* Forgot password link */}
                         <motion.div
@@ -404,9 +390,8 @@ const Login = () => {
                             Sign Up here
                         </Link>
                     </motion.div>
-                </div>
-            </motion.div>
-        </div>
+            </div>
+        </motion.div>
     );
 };
 

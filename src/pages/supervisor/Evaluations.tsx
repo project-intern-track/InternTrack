@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { BarChart, ClipboardList, Search, Users, Edit, Trash, X } from 'lucide-react';
 import type { Evaluation } from '../../types/database.types';
 import { evaluationService } from '../../services/evaluationService';
+import { authService } from '../../services/authService';
 
 const Evaluations = () => {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -32,12 +33,19 @@ const Evaluations = () => {
   useEffect(() => {
     // Get Supervisor Data for Auto-filling Supervisor ID in Create Form
     const fetchCurrentUser = async () => {
-      try {
-        // Temporary: Use hardcoded supervisor ID
-        // TODO: Fix auth middleware later
-        setCurrentUser({ id: '2' });
-      } catch (err) {
+      try{
+        const { session, error } = await authService.getSession();
+        
+        if (session?.user?.id) {
+          setCurrentUser({id: session.user.id});
+          
+        } else {
+          console.error('No user session found', error);
+
+        }
+      } catch (err: any) {
         console.error('Failed to fetch current user:', err);
+
       }
     };
 

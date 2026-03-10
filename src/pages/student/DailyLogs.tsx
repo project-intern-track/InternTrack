@@ -169,10 +169,6 @@ const DailyLogs = () => {
 
     // ── Clock Out ─────────────────────────────────────────────────────────
     const handleClockOut = async () => {
-        if (!ojtIdInput.trim()) {
-            setError('Please enter your OJT ID before clocking out.');
-            return;
-        }
         setActing(true);
         setError(null);
         setNotice(null);
@@ -383,16 +379,25 @@ const DailyLogs = () => {
                                 <input
                                     id="ojt-id-input"
                                     type="text"
-                                    className="tl-ojt-input"
+                                    className={`tl-ojt-input${(isClockedIn || isClockedOut || isExpired) ? ' tl-ojt-locked' : ''}`}
                                     placeholder="Enter OJT ID"
                                     value={ojtIdInput}
                                     onChange={e => { setOjtIdInput(e.target.value); setError(null); }}
                                     maxLength={20}
                                     autoComplete="off"
+                                    disabled={isClockedIn || isClockedOut || isExpired}
+                                    title={
+                                        isClockedIn  ? 'OJT ID is locked while you are clocked in' :
+                                        isClockedOut ? 'Session already completed for today' :
+                                        isExpired    ? 'Complete the expired session first' :
+                                        undefined
+                                    }
                                 />
                             </div>
                             <p className="tl-ojt-hint">
-                                {isClockedOut
+                                {isClockedIn
+                                    ? 'OJT ID is locked while your session is active.'
+                                    : isClockedOut
                                     ? 'Session complete for today. You may check your entry below.'
                                     : 'Enter your OJT ID to clock in and out.'}
                             </p>
@@ -479,7 +484,7 @@ const DailyLogs = () => {
                             <button
                                 className="tl-btn tl-btn-in"
                                 onClick={handleClockIn}
-                                disabled={acting || !ojtIdOk}
+                                disabled={acting || !ojtIdOk || !isIdle}
                                 title={clockInBlockReason ?? 'Clock in for today'}
                             >
                                 {acting && isIdle
@@ -492,9 +497,8 @@ const DailyLogs = () => {
                             <button
                                 className={`tl-btn ${isExpired ? 'tl-btn-exp' : 'tl-btn-out'}`}
                                 onClick={handleClockOut}
-                                disabled={acting || !ojtIdOk || (isClockedIn && elapsed < MAX_HOURS * 3600)}
+                                disabled={acting || isIdle || isClockedOut || (isClockedIn && elapsed < MAX_HOURS * 3600)}
                                 title={
-                                    !ojtIdOk     ? 'Enter your OJT ID first' :
                                     isIdle       ? 'You have not clocked in yet' :
                                     isClockedOut ? 'Already completed today' :
                                     isExpired    ? 'Force clock-out (session from previous day)' :

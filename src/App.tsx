@@ -50,6 +50,7 @@ import ReportDetails from "./pages/admin/ReportDetails";
 import AdminSettings from "./pages/admin/Settings";
 import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminManageAdmins from "./pages/admin/ManageAdmins";
+import Notifications from "./pages/shared/Notifications";
 
 
 // ========================
@@ -218,6 +219,7 @@ function AppRoutes() {
           <Route path="reports" element={<StudentReports />} />
           <Route path="announcements/:type" element={<StudentAnnouncements />} />
           <Route path="settings" element={<StudentSettings />} />
+          <Route path="notifications" element={<Notifications />} />
         </Route>
 
         {/* Supervisor Routes */}
@@ -240,6 +242,7 @@ function AppRoutes() {
           <Route path="Evaluations" element={<Evaluations />} />
           <Route path="FeedbackDashboard" element={<FeedbackDashboard />} />
           <Route path="settings" element={<SupervisorSettings />} />
+          <Route path="notifications" element={<Notifications />} />
         </Route>
 
         {/* Admin Routes */}
@@ -261,6 +264,7 @@ function AppRoutes() {
           <Route path="reports/:internId" element={<ReportDetails />} />
           <Route path="announcements" element={<AdminAnnouncements />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="notifications" element={<Notifications />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

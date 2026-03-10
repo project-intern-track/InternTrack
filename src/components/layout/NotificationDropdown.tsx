@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, X, Megaphone, AlertCircle, Info, CheckCircle, Loader2 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Bell, X, Megaphone, AlertCircle, Info, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { announcementService } from '../../services/announcementService';
 import type { Announcement } from '../../types/database.types';
@@ -39,6 +40,27 @@ function timeAgo(iso: string): string {
     if (m > 0) return `${m}m ago`;
     return 'Just now';
 }
+
+// ─── ViewAllLink ──────────────────────────────────────────────────────────────
+// Derives the notifications path from the current URL prefix (intern / supervisor / admin)
+const ViewAllLink = ({ onClose }: { onClose: () => void }) => {
+    const { pathname } = useLocation();
+    const prefix = pathname.startsWith('/admin')
+        ? '/admin'
+        : pathname.startsWith('/supervisor')
+          ? '/supervisor'
+          : '/intern';
+    return (
+        <Link
+            to={`${prefix}/notifications`}
+            className="notification-view-all"
+            onClick={onClose}
+        >
+            View all notifications
+            <ArrowRight size={13} />
+        </Link>
+    );
+};
 
 // ─── component ────────────────────────────────────────────────────────────────
 
@@ -254,6 +276,9 @@ const NotificationDropdown = () => {
                                 </ul>
                             )}
                         </div>
+
+                        {/* View all footer link */}
+                        <ViewAllLink onClose={() => setOpen(false)} />
                     </motion.div>
                 )}
             </AnimatePresence>

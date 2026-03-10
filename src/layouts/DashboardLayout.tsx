@@ -4,6 +4,7 @@ import { Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/layout/Sidebar';
 import TopBar from '../components/layout/TopBar';
+import NotificationDropdown from '../components/layout/NotificationDropdown';
 
 const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,6 +56,10 @@ const DashboardLayout = () => {
                         <Menu size={24} className="text-gray-700 dark:text-gray-300" />
                     </motion.button>
                     <h1 className="text-xl font-black text-gray-900 dark:text-white">InternTrack</h1>
+                    {/* Notification bell — always visible on mobile */}
+                    <div className="ml-auto">
+                        <NotificationDropdown />
+                    </div>
                 </div>
 
                 <TopBar />

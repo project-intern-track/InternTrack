@@ -42,6 +42,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                     { to: '/intern/tasks', label: 'Task List' },
                     { to: '/intern/logs', label: 'Time Log' },
                     { to: '/intern/feedback', label: 'Performance Feedback' },
+                    { to: '/intern/notifications', label: 'Notifications' },
                     { to: '/intern/settings', label: 'Settings' },
                 ];
             case 'supervisor':
@@ -50,6 +51,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                     { to: '/supervisor/SupervisorApprovals', label: 'Approve Tasks' },
                     { to: '/supervisor/Evaluations', label: 'Evaluations' },
                     { to: '/supervisor/FeedbackDashboard', label: 'Feedback' },
+                    { to: '/supervisor/notifications', label: 'Notifications' },
                     { to: '/supervisor/settings', label: 'Settings' },
                 ];
             case 'admin':
@@ -62,6 +64,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
                     { to: '/admin/manage-supervisors', label: 'Manage Supervisors' },
                     { to: '/admin/reports', label: 'Reports' },
                     { to: '/admin/announcements', label: 'Announcements' },
+                    { to: '/admin/notifications', label: 'Notifications' },
                     { to: '/admin/settings', label: 'Settings' },
                 ];
             default:

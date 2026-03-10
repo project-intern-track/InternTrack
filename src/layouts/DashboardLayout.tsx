@@ -11,7 +11,7 @@ const DashboardLayout = () => {
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950">
             {/* Desktop Sidebar */}
-            <div className="hidden lg:block w-72 sticky top-0 h-screen bg-slate-900 dark:bg-black border-r border-white/5">
+            <div className="hidden lg:block w-72 sticky top-0 h-screen bg-[#0a0a0a] rounded-tr-[25px] rounded-br-[25px]">
                 <Sidebar isOpen={true} onClose={() => setSidebarOpen(false)} />
             </div>
 

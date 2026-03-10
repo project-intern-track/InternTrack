@@ -14,6 +14,7 @@ import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import VerifyEmail from "./pages/public/VerifyEmail";
 import DashboardLayout from "./layouts/DashboardLayout";
+import PublicLayout from "./layouts/PublicLayout";
 
 // Student/Intern Pages
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -61,7 +62,6 @@ const LoadingScreen = () => (
     <div className="auth-loading-logo">
       <Briefcase size={28} />
     </div>
-    <div className="auth-loading-text">Loading InternTrack...</div>
   </div>
 );
 
@@ -166,32 +166,19 @@ function AppRoutes() {
     <>
       <PasswordRecoveryRedirect />
       <Routes>
-        {/* Public routes */}
+        {/* Public routes — share the hero image via PublicLayout */}
         <Route
-          path="/"
           element={
             <PublicRoute>
-              <Login />
+              <PublicLayout />
             </PublicRoute>
           }
-        />
-        <Route
-          path="/signup"
-          element={
-            <PublicRoute>
-              <Signup />
-            </PublicRoute>
-          }
-        />
+        >
+          <Route path="/" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route
-          path="/forgot-password"
-          element={
-            <PublicRoute>
-              <ForgotPassword />
-            </PublicRoute>
-          }
-        />
         <Route path="/reset-password" element={<ResetPasswordWrapper />} />
 
         {/* Intern Routes */}

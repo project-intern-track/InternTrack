@@ -310,26 +310,29 @@ const ResetPassword = () => {
                         </motion.div>
 
                         {/* Submit button */}
-                        <motion.button
+                        <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.6 }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            type="submit"
-                            className="w-full mt-8 px-4 py-3 bg-orange text-white font-bold rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            disabled={isSubmitting}
-                            id="reset-submit"
                         >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 size={18} className="animate-spin" />
-                                    <span>Updating...</span>
-                                </>
-                            ) : (
-                                'Update Password'
-                            )}
-                        </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit"
+                                className="w-full mt-8 px-4 py-3 bg-orange text-white font-bold rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                disabled={isSubmitting}
+                                id="reset-submit"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        <span>Updating...</span>
+                                    </>
+                                ) : (
+                                    'Update Password'
+                                )}
+                            </motion.button>
+                        </motion.div>
                     </form>
                 </div>
             </motion.div>

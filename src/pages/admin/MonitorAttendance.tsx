@@ -841,7 +841,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   aria-label="Select date to filter attendance records"
                   aria-disabled={dateFilter === 'all'}
                   style={{ 
-                    width: '100%', 
+                    width: '100%',
+                    minWidth: '0', // prevents flex overflow
                     backgroundColor: dateFilter === 'all' ? '#f5f5f5' : 'white',
                     cursor: dateFilter === 'all' ? 'not-allowed' : 'text',
                     flex: '1'

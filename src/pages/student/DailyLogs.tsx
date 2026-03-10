@@ -492,12 +492,13 @@ const DailyLogs = () => {
                             <button
                                 className={`tl-btn ${isExpired ? 'tl-btn-exp' : 'tl-btn-out'}`}
                                 onClick={handleClockOut}
-                                disabled={acting || !ojtIdOk}
+                                disabled={acting || !ojtIdOk || (isClockedIn && elapsed < MAX_HOURS * 3600)}
                                 title={
                                     !ojtIdOk     ? 'Enter your OJT ID first' :
                                     isIdle       ? 'You have not clocked in yet' :
                                     isClockedOut ? 'Already completed today' :
                                     isExpired    ? 'Force clock-out (session from previous day)' :
+                                    (isClockedIn && elapsed < MAX_HOURS * 3600) ? `Must complete 8 hours (Elapsed: ${formatElapsed(elapsed)})` :
                                     'Clock out now'
                                 }
                             >

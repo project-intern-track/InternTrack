@@ -121,7 +121,7 @@ class TaskController extends Controller
             ->update(['status' => 'overdue']);
 
         $tasks = $user->assignedTasks()
-            ->whereNotIn('status', ['pending_approval', 'needs_revision'])
+            ->whereNotIn('status', ['pending_approval', 'needs_revision', 'rejected'])
             ->with('creator:id,full_name')
             ->orderByDesc('created_at')
             ->get()
@@ -143,6 +143,12 @@ class TaskController extends Controller
         $task = Task::whereHas('assignedInterns', function ($q) use ($request) {
             $q->where('users.id', $request->user()->id);
         })->findOrFail($id);
+
+        if ($task->status === 'rejected') {
+            return response()->json([
+                'error' => 'Rejected tasks cannot be updated.',
+            ], 403);
+        }
 
         $task->update(['status' => $validated['status']]);
 

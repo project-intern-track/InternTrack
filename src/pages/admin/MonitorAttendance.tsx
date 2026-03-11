@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { UserCheck, Search, Filter, ChevronDown } from 'lucide-react';
+import { UserCheck, Search, Filter, ChevronDown, Download, Plus } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
-import type { Attendance } from '../../types/database.types';
+import { userService } from '../../services/userServices';
+import type { Attendance, Users } from '../../types/database.types';
 import '../../index.css';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
@@ -39,6 +40,70 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [recordsPerPage] = useState(10);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
+
+  // Manual Entry State
+  const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
+  const [interns, setInterns] = useState<Users[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [manualEntryForm, setManualEntryForm] = useState({
+    user_id: '',
+    date: todayDate,
+    time_in: '',
+    time_out: '',
+    status: 'present'
+  });
+
+  useEffect(() => {
+    if (isManualEntryOpen && interns.length === 0) {
+      userService.fetchInterns().then(setInterns).catch(console.error);
+    }
+  }, [isManualEntryOpen, interns.length]);
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      await attendanceService.store(manualEntryForm as any);
+      setIsManualEntryOpen(false);
+      // Refresh attendances
+      const records = await attendanceService.getAttendance();
+      setAttendanceRecords(records as unknown as AttendanceRecord[]);
+      setManualEntryForm({
+         user_id: '', date: todayDate, time_in: '', time_out: '', status: 'present'
+      });
+    } catch (err: any) {
+      setSubmitError(err.message || 'Failed to submit entry');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleExport = () => {
+    if (filteredRecords.length === 0) return;
+
+    const headers = ['Name', 'Date', 'Time In', 'Time Out', 'Total Hours', 'Status'];
+    const rows = filteredRecords.map(r => [
+      `"${r.user.full_name}"`,
+      formatDate(r.date),
+      r.time_in ? formatTime(r.time_in) : '',
+      r.time_out ? formatTime(r.time_out) : '',
+      r.total_hours || 0,
+      r.status
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Attendance_Export_${todayDate}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // fetch real data
   useEffect(() => {
@@ -743,8 +808,50 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       `}</style>
       <div className="attendance-container">
         {/* Header */}
-        <div className="attendance-header" style={{ marginBottom: '2rem' }}>
+        <div className="attendance-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <h1>Monitor Attendance</h1>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              onClick={() => setIsManualEntryOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.625rem 1rem',
+                backgroundColor: 'white',
+                color: 'hsl(var(--orange))',
+                border: '2px solid hsl(var(--orange))',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <Plus size={18} />
+              Add Manual Entry
+            </button>
+            <button
+              onClick={handleExport}
+              disabled={filteredRecords.length === 0}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.625rem 1rem',
+                backgroundColor: 'hsl(var(--orange))',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: filteredRecords.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: filteredRecords.length === 0 ? 0.6 : 1,
+                transition: 'all 0.2s'
+              }}
+            >
+              <Download size={18} />
+              Export
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -1037,6 +1144,107 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           )}
         </div>
       </div>
+
+      {/* Manual Entry Modal */}
+      {isManualEntryOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: 'white', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '500px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', maxHeight: '90vh', overflowY: 'auto'
+          }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111827' }}>Add Manual Entry</h2>
+            {submitError && <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', fontSize: '0.875rem' }}>{submitError}</div>}
+            <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Intern</label>
+                <select 
+                  className="select" 
+                  value={manualEntryForm.user_id} 
+                  onChange={e => setManualEntryForm({...manualEntryForm, user_id: e.target.value})}
+                  required
+                  style={{ width: '100%' }}
+                >
+                  <option value="">Select an intern...</option>
+                  {interns.map(intern => (
+                    <option key={intern.id} value={intern.id}>{intern.full_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Date</label>
+                <input 
+                  type="date" 
+                  className="input" 
+                  value={manualEntryForm.date} 
+                  onChange={e => setManualEntryForm({...manualEntryForm, date: e.target.value})}
+                  required
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Time In</label>
+                  <input 
+                    type="time" 
+                    className="input" 
+                    value={manualEntryForm.time_in} 
+                    onChange={e => setManualEntryForm({...manualEntryForm, time_in: e.target.value})}
+                    required
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Time Out (Optional)</label>
+                  <input 
+                    type="time" 
+                    className="input" 
+                    value={manualEntryForm.time_out} 
+                    onChange={e => setManualEntryForm({...manualEntryForm, time_out: e.target.value})}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Status</label>
+                <select 
+                  className="select" 
+                  value={manualEntryForm.status} 
+                  onChange={e => setManualEntryForm({...manualEntryForm, status: e.target.value})}
+                  style={{ width: '100%' }}
+                >
+                  <option value="present">Present</option>
+                  <option value="late">Late</option>
+                  <option value="absent">Absent</option>
+                  <option value="excused">Excused</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsManualEntryOpen(false)}
+                  style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: 500, cursor: 'pointer' }}
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: 'hsl(var(--orange))', color: 'white', fontWeight: 500, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}
+                  disabled={submitting}
+                >
+                  {submitting ? 'Saving...' : 'Save Entry'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };

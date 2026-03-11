@@ -4,6 +4,7 @@ import { BarChart, ClipboardList, Search, Users, Edit, Trash, X } from 'lucide-r
 import type { Evaluation } from '../../types/database.types';
 import { evaluationService } from '../../services/evaluationService';
 import { authService } from '../../services/authService';
+import { userService } from '../../services/userServices';
 
 const Evaluations = () => {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -29,6 +30,7 @@ const Evaluations = () => {
     score: 0,
     feedback: '',
   });
+  const [allInterns, setAllInterns] = useState<any[]>([]); // For dropdowns
 
   useEffect(() => {
     // Get Supervisor Data for Auto-filling Supervisor ID in Create Form
@@ -49,6 +51,27 @@ const Evaluations = () => {
       }
     };
 
+    const fetchInterns = async () => {
+      try { 
+        // Get All Current Interns for Dropdowns (Create/Edit Forms)
+        const params = {role: 'intern'}; // Adjusted so only Role = Intern will be given back
+
+        const interns = await userService.fetchInterns(params);
+
+        console.log("What did the API return?", interns);
+
+
+        if (Array.isArray(interns)) {
+          setAllInterns(interns);
+        } else {
+          console.warn("API did not return an array. Check the structure:", interns);
+          setAllInterns([]);
+        }
+      } catch (err: any) {
+        console.error('Failed to fetch interns:', err);
+      };
+    };
+
     const fetchEvaluations = async () => {
       try {
         setLoading(true);
@@ -63,6 +86,7 @@ const Evaluations = () => {
       }
     };
 
+    fetchInterns();
     fetchCurrentUser();
     fetchEvaluations();
   }, []);
@@ -386,16 +410,19 @@ const Evaluations = () => {
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                   Select Intern
                 </label>
-                <select
-                  value={createFormData.intern_id}
-                  onChange={e => setCreateFormData({ ...createFormData, intern_id: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                >
-                  <option value="">Choose an intern...</option>
-                  {uniqueInternIds.map((id) => (
-                    <option key={id} value={id}>Intern {id}</option>
-                  ))}
-                </select>
+                  <select
+                    value={createFormData.intern_id}
+                    onChange={(e) => setCreateFormData({ ...createFormData, intern_id: e.target.value })}
+                    className="your-tailwind-classes-here"
+                  >
+                    <option value="">Select an intern...</option>
+                    {/* Mapping the state to options */}
+                    {allInterns.map((intern) => (
+                    <option key={intern.id} value={intern.id}>
+                        {intern.full_name || intern.name}
+                      </option>
+                    ))}
+                  </select>
               </div>
 
               <div>

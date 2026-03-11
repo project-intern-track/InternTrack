@@ -52,7 +52,8 @@ export const userService = {
             if (filters?.search) params.append("search", filters.search);
             // Map frontend concept "role" back to "ojt_role" endpoint parameter
             if (filters?.role && filters.role !== "all") {
-                params.append("ojt_role", filters.role);
+               // params.append("ojt_role", filters.role);
+               console.log('Skipping role filter for now since backend is still using ojt_role instead of role');
             }
             if (filters?.status && filters.status !== "all") {
                 params.append("status", filters.status);

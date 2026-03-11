@@ -17,6 +17,8 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        \Log::info('UserController index params:', $request->all());
+
         $query = User::query();
 
         if ($request->has('role') && $request->role !== 'all') {
@@ -53,6 +55,8 @@ class UserController extends Controller
             $direction = $request->dateSort === 'oldest' ? 'asc' : 'desc';
             $query->orderBy('created_at', $direction);
         }
+
+        \Log::info('Query being executed:', ['sql' => $query->toSql(), 'bindings' => $query->getBindings()]);
 
         // Return array of objects mimicking Supabase response
         return response()->json($query->get());

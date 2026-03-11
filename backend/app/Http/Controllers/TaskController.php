@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\SystemNotification;
 
 class TaskController extends Controller
 {
@@ -56,7 +58,15 @@ class TaskController extends Controller
         ]);
 
         $task->assignedInterns()->sync($validated['intern_ids']);
-        $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
+        $task->load(['assignedInterns.supervisor', 'creator:id,full_name']);
+
+        $interns = $task->assignedInterns;
+        Notification::send($interns, new SystemNotification('New Task Assigned', "You have been assigned to: {$task->title}", 'high'));
+        
+        $supervisors = $interns->pluck('supervisor')->filter()->unique();
+        if ($supervisors->isNotEmpty()) {
+            Notification::send($supervisors, new SystemNotification('Task Created', "A task was assigned to your intern: {$task->title}", 'medium'));
+        }
 
         return response()->json(['data' => $this->formatTask($task)], 201);
     }
@@ -142,7 +152,7 @@ class TaskController extends Controller
 
         $task = Task::whereHas('assignedInterns', function ($q) use ($request) {
             $q->where('users.id', $request->user()->id);
-        })->findOrFail($id);
+        })->with('assignedInterns.supervisor')->findOrFail($id);
 
         if ($task->status === 'rejected') {
             return response()->json([
@@ -151,6 +161,17 @@ class TaskController extends Controller
         }
 
         $task->update(['status' => $validated['status']]);
+
+        $statusText = str_replace('_', ' ', $validated['status']);
+        $supervisors = $task->assignedInterns->pluck('supervisor')->filter()->unique();
+        if ($supervisors->isNotEmpty()) {
+            Notification::send($supervisors, new SystemNotification('Task Status Updated', "Task '{$task->title}' marked as {$statusText}", 'medium'));
+        }
+
+        if (in_array($validated['status'], ['in_progress', 'completed'])) {
+            $admins = User::where('role', 'admin')->get();
+            Notification::send($admins, new SystemNotification("Task {$statusText}", "Task '{$task->title}' is now {$statusText}.", 'low'));
+        }
 
         return response()->json(['data' => $this->formatTask($task)]);
     }
@@ -178,6 +199,9 @@ class TaskController extends Controller
             'status'           => 'rejected',
             'rejection_reason' => $validated['rejection_reason'],
         ]);
+
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new SystemNotification('Task Rejected', "Task '{$task->title}' was rejected.", 'high'));
 
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
 
@@ -262,6 +286,9 @@ class TaskController extends Controller
             'rejection_reason' => $validated['rejection_reason'],
         ]);
 
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new SystemNotification('Task Rejected', "Task '{$task->title}' was rejected by supervisor.", 'high'));
+
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
 
         return response()->json(['data' => $this->formatTask($task)]);
@@ -292,6 +319,9 @@ class TaskController extends Controller
             'revision_category' => $validated['revision_category'],
         ]);
 
+        $admins = User::where('role', 'admin')->get();
+        Notification::send($admins, new SystemNotification('Task Revision', "Revision requested for task: '{$task->title}'", 'high'));
+
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
 
         return response()->json(['data' => $this->formatTask($task)]);
@@ -312,9 +342,22 @@ class TaskController extends Controller
 
     private function markOverdueTasks(): void
     {
-        Task::whereNotIn('status', ['completed', 'rejected', 'overdue'])
+        $overdueTasks = Task::whereNotIn('status', ['completed', 'rejected', 'overdue'])
             ->where('due_date', '<', Carbon::now())
-            ->update(['status' => 'overdue']);
+            ->with('assignedInterns.supervisor')
+            ->get();
+
+        if ($overdueTasks->isNotEmpty()) {
+            $admins = User::where('role', 'admin')->get();
+            foreach ($overdueTasks as $task) {
+                $supervisors = $task->assignedInterns->pluck('supervisor')->filter()->unique();
+                if ($supervisors->isNotEmpty()) {
+                    Notification::send($supervisors, new SystemNotification('Task Overdue', "Task '{$task->title}' is overdue.", 'high'));
+                }
+                Notification::send($admins, new SystemNotification('Task Overdue', "Task '{$task->title}' is overdue.", 'high'));
+            }
+            Task::whereIn('id', $overdueTasks->pluck('id'))->update(['status' => 'overdue']);
+        }
     }
 
     private function supervisorOwnsTask(User $supervisor, Task $task): bool

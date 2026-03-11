@@ -55,6 +55,10 @@ const DailyLogs = () => {
     const [elapsed, setElapsed] = useState(0);
     const [cappedBanner, setCappedBanner] = useState(false);
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 5;
+
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const dayCheckRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -231,6 +235,20 @@ const DailyLogs = () => {
         };
     }, [logs]);
 
+    const totalPages = Math.max(1, Math.ceil(logs.length / ITEMS_PER_PAGE));
+    
+    // Auto-correct out-of-bounds page
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [totalPages, currentPage]);
+
+    const paginatedLogs = useMemo(() => {
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        return logs.slice(start, start + ITEMS_PER_PAGE);
+    }, [logs, currentPage]);
+
     const progressPct = Math.min((elapsed / (MAX_HOURS * 3600)) * 100, 100);
     const isClockedIn  = sessionState === 'clocked_in';
     const isClockedOut = sessionState === 'clocked_out';
@@ -319,8 +337,9 @@ const DailyLogs = () => {
                 .tl-alert-err { background:#fee2e2;color:#991b1b; }
                 .tl-alert-notice { background:#fef3c7;color:#92400e; }
                 /* Entries */
-                .tl-entries { background:#fff;border:1px solid hsl(var(--border));border-radius:1.25rem;padding:1.5rem; }
-                .tl-entries-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem; }
+                .tl-entries { background:#fff;border:1px solid hsl(var(--border));border-radius:1.25rem;padding:1.5rem; display: flex; flex-direction: column; }
+                .tl-entries-list { flex: 1; display: flex; flex-direction: column; min-height: 400px; }
+                .tl-entries-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem; flex-shrink: 0; }
                 .tl-entries-title { font-size:1.0625rem;font-weight:700;color:hsl(var(--foreground));margin:0; }
                 .tl-refresh-btn { background:none;border:none;cursor:pointer;color:hsl(var(--orange));display:flex;align-items:center;gap:.25rem;font-size:.8125rem;font-weight:700;padding:.25rem .5rem;border-radius:.5rem; }
                 .tl-refresh-btn:hover { background:hsl(var(--orange)/.1); }
@@ -334,6 +353,13 @@ const DailyLogs = () => {
                 .tl-del-btn:hover { color:#ef4444;background:#fee2e2; }
                 .tl-empty { text-align:center;padding:2.5rem 1rem;color:hsl(var(--muted-foreground));font-size:.9375rem; }
                 .tl-divider { width:1px;background:hsl(var(--border)); }
+                /* Pagination */
+                .tl-pagination { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 1rem; border-top: 1px solid hsl(var(--border)); }
+                .tl-pag-info { font-size: .8125rem; color: hsl(var(--muted-foreground)); font-weight: 500; }
+                .tl-pag-controls { display: flex; gap: .5rem; }
+                .tl-pag-btn { background: #fff; border: 1px solid hsl(var(--border)); border-radius: .5rem; padding: .375rem .75rem; font-size: .8125rem; font-weight: 600; color: hsl(var(--foreground)); cursor: pointer; transition: all .15s; }
+                .tl-pag-btn:hover:not(:disabled) { background: hsl(var(--muted)); }
+                .tl-pag-btn:disabled { opacity: .5; cursor: not-allowed; }
                 @media(max-width:900px){ .tl-grid{grid-template-columns:1fr;} }
                 @media(max-width:600px){ .tl-stats{grid-template-columns:1fr 1fr;} }
             `}</style>
@@ -532,37 +558,64 @@ const DailyLogs = () => {
                         ) : logs.length === 0 ? (
                             <div className="tl-empty">No entries yet. Enter your OJT ID and clock in to start.</div>
                         ) : (
-                            logs.map((log, i) => {
-                                const isToday = log.date === getTodayStr();
-                                return (
-                                    <div key={log.id} className="tl-entry" style={{ animationDelay: `${i * 0.04}s` }}>
-                                        <div style={{ flex: 1 }}>
-                                            <div className="tl-entry-date">
-                                                <Calendar size={12}/>
-                                                {isToday ? 'Today — ' : ''}{formatDateLong(log.date)}
+                            <>
+                                <div className="tl-entries-list">
+                                    {paginatedLogs.map((log, i) => {
+                                        const isToday = log.date === getTodayStr();
+                                        return (
+                                            <div key={log.id} className="tl-entry" style={{ animationDelay: `${i * 0.04}s` }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <div className="tl-entry-date">
+                                                        <Calendar size={12}/>
+                                                        {isToday ? 'Today — ' : ''}{formatDateLong(log.date)}
+                                                    </div>
+                                                    <div className="tl-entry-times">
+                                                        {formatTimeFull(log.time_in)}
+                                                        {' → '}
+                                                        {log.time_out
+                                                            ? formatTimeFull(log.time_out)
+                                                            : <span style={{ color: 'hsl(var(--orange))' }}>In progress…</span>}
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '.375rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                                        <span className="tl-entry-badge">{log.total_hours} hrs</span>
+                                                        {log.status && log.status !== 'present' && (
+                                                            <span className="tl-entry-badge tl-entry-late" style={{ textTransform: 'capitalize' }}>
+                                                                {log.status}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <button className="tl-del-btn" onClick={() => handleDelete(log.id)} title="Delete">
+                                                    <Trash size={15}/>
+                                                </button>
                                             </div>
-                                            <div className="tl-entry-times">
-                                                {formatTimeFull(log.time_in)}
-                                                {' → '}
-                                                {log.time_out
-                                                    ? formatTimeFull(log.time_out)
-                                                    : <span style={{ color: 'hsl(var(--orange))' }}>In progress…</span>}
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '.375rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                                                <span className="tl-entry-badge">{log.total_hours} hrs</span>
-                                                {log.status && log.status !== 'present' && (
-                                                    <span className="tl-entry-badge tl-entry-late" style={{ textTransform: 'capitalize' }}>
-                                                        {log.status}
-                                                    </span>
-                                                )}
-                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                {totalPages > 1 && (
+                                    <div className="tl-pagination">
+                                        <div className="tl-pag-info">
+                                            Page {currentPage} of {totalPages}
                                         </div>
-                                        <button className="tl-del-btn" onClick={() => handleDelete(log.id)} title="Delete">
-                                            <Trash size={15}/>
-                                        </button>
+                                        <div className="tl-pag-controls">
+                                            <button 
+                                                className="tl-pag-btn" 
+                                                disabled={currentPage === 1} 
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            >
+                                                Prev
+                                            </button>
+                                            <button 
+                                                className="tl-pag-btn" 
+                                                disabled={currentPage >= totalPages} 
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
                                     </div>
-                                );
-                            })
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

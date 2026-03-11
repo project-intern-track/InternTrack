@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\SystemNotification;
 
 class UserController extends Controller
 {
@@ -100,7 +102,7 @@ class UserController extends Controller
             'email' => ['nullable', 'email', Rule::unique('users')->ignore($user->id)],
             'full_name' => ['nullable', 'string', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
             'role' => 'nullable|string',
-            'status' => 'nullable|in:active,archived',
+            'status' => 'nullable|in:active,archived,completed',
             'ojt_role' => 'nullable|string',
             'avatar_url' => 'nullable|url',
 
@@ -112,7 +114,13 @@ class UserController extends Controller
 
         unset($validated['current_password'], $validated['password_confirmation'], $validated['password']);
 
+        $oldStatus = $user->status;
         $user->update($validated);
+
+        if ($oldStatus !== 'completed' && $user->status === 'completed' && $user->role === 'intern') {
+            $admins = User::where('role', 'admin')->get();
+            Notification::send($admins, new SystemNotification('Internship Completed', "Intern {$user->full_name} has completed their internship.", 'high'));
+        }
 
 
         // Handle Password Update

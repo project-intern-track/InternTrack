@@ -33,7 +33,14 @@ export const attendanceService = {
     /** Get today's attendance record for the authenticated user (or null). */
     async getToday(): Promise<Attendance | null> {
         const response = await apiClient.get("/attendance/today");
-        return response.data ?? null;
+        const data = response.data;
+        if (
+            !data ||
+            (typeof data === "object" && Object.keys(data).length === 0)
+        ) {
+            return null;
+        }
+        return data;
     },
 
     /**

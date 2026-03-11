@@ -37,7 +37,7 @@ class ReportController extends Controller
 
         $data = $interns->map(function (User $intern) {
             $totalHours = Attendance::where('user_id', $intern->id)->sum('total_hours');
-            $requiredHours = $intern->required_hours ?: 486; // Fallback to common OJT requirement
+            $requiredHours = $intern->required_hours ?: 500; // Fallback to common OJT requirement
             
             // Calculate a basic completion percentage (just an estimate for UX)
             $attendancePercentage = min(100, round(($totalHours / max(1, $requiredHours)) * 100));
@@ -83,7 +83,7 @@ class ReportController extends Controller
 
             foreach ($interns as $intern) {
                 $totalHours = Attendance::where('user_id', $intern->id)->sum('total_hours');
-                $requiredHours = $intern->required_hours ?: 486;
+                $requiredHours = $intern->required_hours ?: 500;
                 $attendancePct = min(100, round(($totalHours / max(1, $requiredHours)) * 100));
 
                 $tasksCompleted = Task::whereHas('assignedInterns', function($q) use ($intern) {
@@ -206,8 +206,9 @@ class ReportController extends Controller
             
         $totalHours = $attendanceRecords->sum('total_hours');
         
-        // Approx 22 working days in a month. Limit to 100%.
-        $attendancePercentage = min(100, round(($attendanceRecords->count() / 22) * 100));
+        $overallTotalHours = Attendance::where('user_id', $id)->sum('total_hours');
+        $requiredHours = $intern->required_hours ?: 500;
+        $attendancePercentage = min(100, round(($overallTotalHours / max(1, $requiredHours)) * 100));
 
         $tasksThisMonth = Task::whereHas('assignedInterns', function($q) use ($id) {
                 $q->where('users.id', $id);

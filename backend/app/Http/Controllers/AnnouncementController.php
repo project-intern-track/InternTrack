@@ -11,14 +11,30 @@ class AnnouncementController extends Controller
     /**
      * GET /api/announcements
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $announcements = Announcement::with('creator:id,full_name')
             ->orderByDesc('created_at')
             ->get()
             ->map(fn ($a) => $this->formatAnnouncement($a));
 
-        return response()->json(['data' => $announcements]);
+        $userNotifications = $request->user()->notifications->map(function ($n) {
+            return [
+                'id'         => (string) $n->id,
+                'title'      => $n->data['title'] ?? 'System Notification',
+                'content'    => $n->data['content'] ?? '',
+                'priority'   => $n->data['priority'] ?? 'low',
+                'created_by' => 'system',
+                'visibility' => 'specific',
+                'created_at' => $n->created_at->toIso8601String(),
+            ];
+        });
+
+        $merged = $announcements->concat($userNotifications)
+            ->sortByDesc('created_at')
+            ->values();
+
+        return response()->json(['data' => $merged]);
     }
 
     /**

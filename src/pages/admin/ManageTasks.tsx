@@ -181,7 +181,13 @@ const TOOLS_BY_CATEGORY: Record<(typeof TECH_STACK_CATEGORIES)[number], string[]
 
 const ManageTasks = () => {
     const [search, setSearch] = useState('');
-    const [dueDateFilter, setDueDateFilter] = useState('All Due Date');
+    const [dueDateFilter, setDueDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month' | 'custom'>('today');
+    const [customDueStart, setCustomDueStart] = useState('');
+    const [customDueEnd, setCustomDueEnd] = useState('');
+    const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
+    const [customDraftStart, setCustomDraftStart] = useState('');
+    const [customDraftEnd, setCustomDraftEnd] = useState('');
+    const [lastNonCustomDueFilter, setLastNonCustomDueFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month'>('today');
     const [priorityFilter, setPriorityFilter] = useState('All Priority');
     const [statusFilter, setStatusFilter] = useState('All Status');
 
@@ -429,6 +435,28 @@ const ManageTasks = () => {
         handleClear();
     };
 
+    const openCustomRangeModal = () => {
+        const todayIso = new Date().toISOString().slice(0, 10);
+        setCustomDraftStart(customDueStart || todayIso);
+        setCustomDraftEnd(customDueEnd || customDueStart || todayIso);
+        setIsCustomRangeOpen(true);
+    };
+
+    const closeCustomRangeModal = () => {
+        // If user cancels before ever applying a range, revert the dropdown back to the last preset.
+        if (!customDueStart) {
+            setDueDateFilter(lastNonCustomDueFilter);
+        }
+        setIsCustomRangeOpen(false);
+    };
+
+    const applyCustomRange = () => {
+        setCustomDueStart(customDraftStart);
+        setCustomDueEnd(customDraftEnd || customDraftStart);
+        setDueDateFilter('custom');
+        setIsCustomRangeOpen(false);
+    };
+
     const openCreateModal = () => {
         handleClear();
         setIsModalOpen(true);
@@ -514,21 +542,29 @@ const ManageTasks = () => {
         try { return new Date(dueDateString); } catch { return null; }
     };
 
-    const isToday = (date: Date): boolean => {
-        const today = new Date();
-        return date.toDateString() === today.toDateString();
+    const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+    const endOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+
+    const isSameDay = (a: Date, b: Date): boolean =>
+        a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+    const getWeekRange = (baseDate: Date) => {
+        // Monday–Sunday (local time)
+        const d = startOfDay(baseDate);
+        const day = d.getDay(); // 0=Sun ... 6=Sat
+        const mondayOffset = day === 0 ? -6 : 1 - day;
+        const monday = new Date(d);
+        monday.setDate(d.getDate() + mondayOffset);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        return { start: startOfDay(monday), end: endOfDay(sunday) };
     };
 
-    const availableDueDates = useMemo(() => {
-        const dateSet = new Set<string>();
-        tasks.forEach(task => {
-            const d = new Date(task.due_date);
-            if (!isNaN(d.getTime())) {
-                dateSet.add(d.toLocaleDateString('en-US'));
-            }
-        });
-        return Array.from(dateSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    }, [tasks]);
+    const getMonthRange = (baseDate: Date) => {
+        const start = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1, 0, 0, 0, 0);
+        const end = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0, 23, 59, 59, 999);
+        return { start, end };
+    };
 
     const availableTools = useMemo(() => {
         const tools = TOOLS_BY_CATEGORY[techCategory] ?? [];
@@ -572,15 +608,43 @@ const ManageTasks = () => {
             const matchesStatus = statusFilter === 'All Status' ||
                 getStatusLabel(task.status) === statusFilter;
 
+            const now = new Date();
+            const todayStart = startOfDay(now);
+            const tomorrow = new Date(todayStart);
+            tomorrow.setDate(todayStart.getDate() + 1);
+            const tomorrowStart = startOfDay(tomorrow);
+            const tomorrowEnd = endOfDay(tomorrow);
+
+            const taskDue = parseDueDate(task.due_date);
             let matchesDueDate = true;
-            if (dueDateFilter !== 'All Due Date') {
-                const taskDueDate = parseDueDate(task.due_date);
-                if (!taskDueDate) {
+
+            if (dueDateFilter !== 'all') {
+                if (!taskDue) {
                     matchesDueDate = false;
-                } else if (dueDateFilter === 'Today') {
-                    matchesDueDate = isToday(taskDueDate);
-                } else {
-                    matchesDueDate = taskDueDate.toLocaleDateString('en-US') === dueDateFilter;
+                } else if (dueDateFilter === 'today') {
+                    matchesDueDate = isSameDay(taskDue, now);
+                } else if (dueDateFilter === 'tomorrow') {
+                    matchesDueDate = taskDue >= tomorrowStart && taskDue <= tomorrowEnd;
+                } else if (dueDateFilter === 'overdue') {
+                    matchesDueDate = task.status !== 'completed' && taskDue < todayStart;
+                } else if (dueDateFilter === 'this_week') {
+                    const { start, end } = getWeekRange(now);
+                    matchesDueDate = taskDue >= start && taskDue <= end;
+                } else if (dueDateFilter === 'this_month') {
+                    const { start, end } = getMonthRange(now);
+                    matchesDueDate = taskDue >= start && taskDue <= end;
+                } else if (dueDateFilter === 'custom') {
+                    // Allow selecting either a single day (start only) or a date range.
+                    // If start is missing, we don't filter (keeps UX forgiving).
+                    if (!customDueStart) {
+                        matchesDueDate = true;
+                    } else {
+                        const start = startOfDay(new Date(`${customDueStart}T00:00:00`));
+                        const end = customDueEnd
+                            ? endOfDay(new Date(`${customDueEnd}T00:00:00`))
+                            : endOfDay(new Date(`${customDueStart}T00:00:00`));
+                        matchesDueDate = taskDue >= start && taskDue <= end;
+                    }
                 }
             }
 
@@ -598,7 +662,7 @@ const ManageTasks = () => {
 
             return aDate.getTime() - bDate.getTime();
         });
-    }, [tasks, search, priorityFilter, statusFilter, dueDateFilter]);
+    }, [tasks, search, priorityFilter, statusFilter, dueDateFilter, customDueStart, customDueEnd]);
 
     return (
         <div>
@@ -698,6 +762,13 @@ const ManageTasks = () => {
                     justify-content: flex-end;
                     margin-top: 1.5rem;
                 }
+
+                .manage-tasks-filter-section {
+                    margin-bottom: 1.5rem;
+                    padding: 1.25rem;
+                    background-color: #e9e6e1;
+                    border-radius: 8px;
+                }
                 
                 
                 @media (max-width: 768px) {
@@ -734,36 +805,139 @@ const ManageTasks = () => {
                 </div>
             </div>
 
-            <div className="row manage-tasks-filter-row" style={{ padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#f5f5dc', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <div className="manage-tasks-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Filter size={20} style={{ color: '#333' }} />
-                    <span style={{ fontWeight: 500, color: '#333' }}>Filters:</span>
+            <div className="card manage-tasks-filter-section">
+                <div
+                    className="row manage-tasks-filter-row"
+                    style={{ gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}
+                >
+                    <div className="manage-tasks-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Filter size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
+                        <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Filters:</span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '1rem', flex: 1, flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                            <select
+                                className="select"
+                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
+                                value={dueDateFilter}
+                                onChange={(e) => {
+                                    const raw = e.target.value as typeof dueDateFilter;
+                                    if (raw === 'custom') {
+                                        if (dueDateFilter !== 'custom') {
+                                            setLastNonCustomDueFilter(dueDateFilter);
+                                        }
+                                        setDueDateFilter('custom');
+                                        openCustomRangeModal();
+                                        return;
+                                    }
+                                    setLastNonCustomDueFilter(raw);
+                                    setDueDateFilter(raw);
+                                }}
+                            >
+                                <option value="all">All</option>
+                                <option value="today">Today</option>
+                                <option value="tomorrow">Tomorrow</option>
+                                <option value="overdue">Overdue</option>
+                                <option value="this_week">This Week</option>
+                                <option value="this_month">This Month</option>
+                                <option value="custom">Custom Range…</option>
+                            </select>
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                            <select
+                                className="select"
+                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
+                                value={priorityFilter}
+                                onChange={(e) => setPriorityFilter(e.target.value)}
+                            >
+                                <option>All Priority</option>
+                                <option>High</option>
+                                <option>Medium</option>
+                                <option>Low</option>
+                            </select>
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                            <select
+                                className="select"
+                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option>All Status</option>
+                                <option>For checking</option>
+                                <option>For revision</option>
+                                <option>Not Started</option>
+                                <option>In Progress</option>
+                                <option>Pending</option>
+                                <option>Completed</option>
+                                <option>Overdue</option>
+                                <option>Rejected</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <select className="select" style={{ backgroundColor: '#fff', border: '1px solid #ccc', minWidth: '150px' }}
-                    value={dueDateFilter} onChange={(e) => setDueDateFilter(e.target.value)}>
-                    <option>All Due Date</option>
-                    <option>Today</option>
-                    {availableDueDates.map(date => <option key={date} value={date}>{date}</option>)}
-                </select>
-                <select className="select" style={{ backgroundColor: '#fff', border: '1px solid #ccc', minWidth: '150px' }}
-                    value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
-                    <option>All Priority</option>
-                    <option>High</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                </select>
-                <select className="select" style={{ backgroundColor: '#fff', border: '1px solid #ccc', minWidth: '150px' }}
-                    value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                    <option>All Status</option>
-                    <option>For checking</option>
-                    <option>For revision</option>
-                    <option>Not Started</option>
-                    <option>In Progress</option>
-                    <option>Pending</option>
-                    <option>Completed</option>
-                    <option>Overdue</option>
-                    <option>Rejected</option>
-                </select>
+
+                {dueDateFilter === 'custom' && customDueStart && (
+                    <div
+                        style={{
+                            marginTop: '0.75rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.4rem 0.75rem',
+                            borderRadius: '999px',
+                            backgroundColor: '#fff',
+                            border: '1px solid #d1d5db',
+                            fontSize: '0.85rem',
+                            color: '#111827',
+                        }}
+                    >
+                        <span style={{ fontWeight: 700, color: '#374151' }}>Custom:</span>
+                        <span>
+                            {customDueStart}
+                            {customDueEnd && customDueEnd !== customDueStart ? ` → ${customDueEnd}` : ''}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => openCustomRangeModal()}
+                            style={{
+                                border: 'none',
+                                backgroundColor: 'transparent',
+                                color: 'hsl(var(--orange))',
+                                cursor: 'pointer',
+                                fontWeight: 800,
+                                padding: 0,
+                                marginLeft: '0.35rem',
+                            }}
+                            title="Edit custom range"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setCustomDueStart('');
+                                setCustomDueEnd('');
+                                setDueDateFilter(lastNonCustomDueFilter);
+                            }}
+                            style={{
+                                border: 'none',
+                                backgroundColor: 'transparent',
+                                color: '#6b7280',
+                                cursor: 'pointer',
+                                fontWeight: 700,
+                                padding: 0,
+                                marginLeft: '0.25rem',
+                            }}
+                            title="Clear custom range"
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="grid-3" style={{ marginTop: '2rem' }}>
@@ -1342,6 +1516,123 @@ const ManageTasks = () => {
                                 }}>
                                 {assigning && <Loader2 size={16} className="spinner" style={{ flexShrink: 0 }} />}
                                 {assigning ? 'Assigning...' : 'Assign'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Range Modal */}
+            {isCustomRangeOpen && (
+                <div
+                    className="modal-overlay"
+                    onClick={closeCustomRangeModal}
+                    style={{ zIndex: 1200 }}
+                >
+                    <div
+                        className="modal"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            width: '92%',
+                            maxWidth: 520,
+                            padding: '1.25rem 1.25rem 1.1rem',
+                            borderRadius: '16px',
+                            backgroundColor: '#fff',
+                            boxShadow: '0 30px 60px rgba(0,0,0,0.25)',
+                        }}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                            <div>
+                                <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#111827' }}>Custom due date range</div>
+                                <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.15rem' }}>
+                                    Select a specific date or date range to filter tasks.
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={closeCustomRangeModal}
+                                aria-label="Close"
+                                style={{
+                                    background: 'hsl(var(--orange))',
+                                    border: 'none',
+                                    borderRadius: '999px',
+                                    width: 36,
+                                    height: 36,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#fff',
+                                    fontWeight: 900,
+                                    boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                                }}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginTop: '1.1rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#374151' }}>Start date</label>
+                                <input
+                                    type="date"
+                                    className="input"
+                                    value={customDraftStart}
+                                    onChange={(e) => {
+                                        const next = e.target.value;
+                                        setCustomDraftStart(next);
+                                        setCustomDraftEnd((prev) => (prev && prev < next ? next : prev));
+                                    }}
+                                    style={{ backgroundColor: '#fff' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#374151' }}>End date</label>
+                                <input
+                                    type="date"
+                                    className="input"
+                                    value={customDraftEnd}
+                                    min={customDraftStart || undefined}
+                                    onChange={(e) => setCustomDraftEnd(e.target.value)}
+                                    style={{ backgroundColor: '#fff' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginTop: '1.25rem' }}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setCustomDraftStart('');
+                                    setCustomDraftEnd('');
+                                }}
+                                style={{
+                                    padding: '0.6rem 1rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid #e5e7eb',
+                                    backgroundColor: '#fff',
+                                    cursor: 'pointer',
+                                    fontWeight: 700,
+                                    color: '#374151',
+                                }}
+                            >
+                                Clear
+                            </button>
+                            <button
+                                type="button"
+                                onClick={applyCustomRange}
+                                disabled={!customDraftStart}
+                                style={{
+                                    padding: '0.6rem 1rem',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    backgroundColor: customDraftStart ? 'hsl(var(--orange))' : '#fca5a5',
+                                    color: '#fff',
+                                    cursor: customDraftStart ? 'pointer' : 'not-allowed',
+                                    fontWeight: 800,
+                                }}
+                            >
+                                Apply
                             </button>
                         </div>
                     </div>

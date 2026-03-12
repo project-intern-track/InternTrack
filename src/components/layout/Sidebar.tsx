@@ -127,12 +127,14 @@ const Sidebar = ({ isOpen = true, onClose, collapsed = false, onToggleCollapse }
             {/* Header */}
             <div
                 className={`flex items-center border-b border-white/10 h-16 flex-shrink-0 transition-all duration-300 ${
-                    collapsed ? 'justify-center px-0' : 'px-5 gap-3'
+                    collapsed ? 'justify-center px-0' : 'px-4 gap-2.5'
                 }`}
             >
-                <div className="w-8 h-8 min-w-[32px] bg-gradient-to-br from-[#FF8800] to-orange-600 rounded-lg flex items-center justify-center text-white font-black text-sm select-none flex-shrink-0">
-                    IT
-                </div>
+                <img
+                    src="/heroIcon.png"
+                    alt="InternTrack"
+                    className="w-9 h-9 min-w-[36px] object-contain flex-shrink-0"
+                />
                 <AnimatePresence initial={false}>
                     {!collapsed && (
                         <motion.span
@@ -187,23 +189,23 @@ const Sidebar = ({ isOpen = true, onClose, collapsed = false, onToggleCollapse }
                                             onClick={onClose}
                                             title={collapsed ? link.label : undefined}
                                             className={({ isActive }) =>
-                                                `flex items-center rounded-xl transition-all duration-200 relative border-l-2 group
-                                                ${collapsed ? 'justify-center px-0 py-2.5 -ml-px' : 'px-3 py-2.5 gap-3 -ml-px'}
+                                                `flex items-center rounded-xl transition-all duration-200 group
+                                                ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5 gap-3'}
                                                 ${
                                                     isActive
-                                                        ? 'bg-[#FF8800]/10 border-[#FF8800]'
-                                                        : 'border-transparent hover:bg-white/5'
+                                                        ? 'bg-[#FF8800] shadow-[0_0_16px_rgba(255,136,0,0.25)]'
+                                                        : 'hover:bg-white/5'
                                                 }`
                                             }
                                         >
                                             {({ isActive }) => (
                                                 <>
                                                     <Icon
-                                                        size={20}
+                                                        size={18}
                                                         className={`flex-shrink-0 transition-colors ${
                                                             isActive
-                                                                ? 'text-[#FF8800]'
-                                                                : 'text-white/50 group-hover:text-white/80'
+                                                                ? 'text-white'
+                                                                : 'text-white/45 group-hover:text-white/80'
                                                         }`}
                                                     />
                                                     <AnimatePresence initial={false}>
@@ -217,7 +219,7 @@ const Sidebar = ({ isOpen = true, onClose, collapsed = false, onToggleCollapse }
                                                                 className={`text-sm whitespace-nowrap overflow-hidden transition-colors ${
                                                                     isActive
                                                                         ? 'text-white font-semibold'
-                                                                        : 'text-white/60 font-medium group-hover:text-white'
+                                                                        : 'text-white/55 font-medium group-hover:text-white'
                                                                 }`}
                                                             >
                                                                 {link.label}
@@ -235,8 +237,38 @@ const Sidebar = ({ isOpen = true, onClose, collapsed = false, onToggleCollapse }
                 ))}
             </nav>
 
-            {/* Footer: logout + user profile */}
+            {/* Footer: collapse toggle + logout + user profile */}
             <div className="border-t border-white/10 p-3 space-y-1 flex-shrink-0">
+                {/* Desktop collapse toggle — lives in the footer */}
+                {onToggleCollapse && (
+                    <motion.button
+                        whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={onToggleCollapse}
+                        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                        className={`w-full hidden lg:flex items-center rounded-xl px-3 py-2.5 text-white/40 hover:text-white/80 transition-colors ${
+                            collapsed ? 'justify-center' : 'gap-3'
+                        }`}
+                    >
+                        {collapsed ? <ChevronRight size={16} /> : (
+                            <>
+                                <ChevronLeft size={16} />
+                                <AnimatePresence initial={false}>
+                                    <motion.span
+                                        key="collapse-lbl"
+                                        initial={{ opacity: 0, width: 0 }}
+                                        animate={{ opacity: 1, width: 'auto' }}
+                                        exit={{ opacity: 0, width: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="text-xs font-medium whitespace-nowrap overflow-hidden"
+                                    >
+                                        Collapse
+                                    </motion.span>
+                                </AnimatePresence>
+                            </>
+                        )}
+                    </motion.button>
+                )}
                 <button
                     onClick={handleLogout}
                     disabled={isLoggingOut}
@@ -291,18 +323,6 @@ const Sidebar = ({ isOpen = true, onClose, collapsed = false, onToggleCollapse }
                 </div>
             </div>
 
-            {/* Desktop collapse toggle */}
-            {onToggleCollapse && (
-                <motion.button
-                    whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={onToggleCollapse}
-                    className="absolute -right-3 top-[72px] w-6 h-6 bg-[#1c1c1c] border border-white/10 rounded-full items-center justify-center text-white/50 hover:text-white hover:bg-[#2a2a2a] transition-colors shadow-lg hidden lg:flex z-10"
-                    aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                >
-                    {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-                </motion.button>
-            )}
         </div>
     );
 };

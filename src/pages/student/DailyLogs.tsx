@@ -57,7 +57,7 @@ const DailyLogs = () => {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 5;
+    const ITEMS_PER_PAGE = 4;
 
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const dayCheckRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -338,7 +338,7 @@ const DailyLogs = () => {
                 .tl-alert-notice { background:#fef3c7;color:#92400e; }
                 /* Entries */
                 .tl-entries { background:#fff;border:1px solid hsl(var(--border));border-radius:1.25rem;padding:1.5rem; display: flex; flex-direction: column; }
-                .tl-entries-list { flex: 1; display: flex; flex-direction: column; min-height: 400px; }
+                .tl-entries-list { flex: 1; display: flex; flex-direction: column; min-height: 320px; }
                 .tl-entries-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem; flex-shrink: 0; }
                 .tl-entries-title { font-size:1.0625rem;font-weight:700;color:hsl(var(--foreground));margin:0; }
                 .tl-refresh-btn { background:none;border:none;cursor:pointer;color:hsl(var(--orange));display:flex;align-items:center;gap:.25rem;font-size:.8125rem;font-weight:700;padding:.25rem .5rem;border-radius:.5rem; }
@@ -574,7 +574,9 @@ const DailyLogs = () => {
                                                         {' → '}
                                                         {log.time_out
                                                             ? formatTimeFull(log.time_out)
-                                                            : <span style={{ color: 'hsl(var(--orange))' }}>In progress…</span>}
+                                                            : isToday 
+                                                                ? <span style={{ color: 'hsl(var(--orange))' }}>In progress…</span>
+                                                                : <span style={{ color: '#ef4444' }}>Missing Clock-Out</span>}
                                                     </div>
                                                     <div style={{ display: 'flex', gap: '.375rem', flexWrap: 'wrap', alignItems: 'center' }}>
                                                         <span className="tl-entry-badge">{log.total_hours} hrs</span>

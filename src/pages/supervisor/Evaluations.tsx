@@ -5,6 +5,7 @@ import type { Evaluation } from '../../types/database.types';
 import { evaluationService } from '../../services/evaluationService';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userServices';
+import { feedbackService } from '../../services/feedbackService';
 
 const Evaluations = () => {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -31,6 +32,30 @@ const Evaluations = () => {
     feedback: '',
   });
   const [allInterns, setAllInterns] = useState<any[]>([]); // For dropdowns
+
+
+  const handleInternSelect = async (internId: string) => {
+    try {
+      const scoreData = await feedbackService.getInternFinalScore(Number(internId));
+      setCreateFormData({
+        intern_id: internId,
+        task_completion: scoreData.avgTaskCompletion,
+        competency_score: scoreData.avgCompetency,
+        score: scoreData.finalScore,
+        feedback: '',
+      })
+    } catch (err) {
+      console.log('Error Message: ', err);
+      // If fetch fails, just set intern_id and let supervisor fill in rest manually
+      setCreateFormData({
+        intern_id: internId,
+        task_completion: 0,
+        competency_score: '',
+        score: 0,
+        feedback: '',
+      })
+    }
+  };
 
   useEffect(() => {
     // Get Supervisor Data for Auto-filling Supervisor ID in Create Form
@@ -412,8 +437,8 @@ const Evaluations = () => {
                 </label>
                   <select
                     value={createFormData.intern_id}
-                    onChange={(e) => setCreateFormData({ ...createFormData, intern_id: e.target.value })}
-                    className="your-tailwind-classes-here"
+                    onChange={(e) => handleInternSelect(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                   >
                     <option value="">Select an intern...</option>
                     {/* Mapping the state to options */}
@@ -519,16 +544,15 @@ const Evaluations = () => {
             </div>
 
             <div className="space-y-4">
+              {/*READ ONLY FIELDS*/}
               <div>
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                   Task Completion
                 </label>
                 <input
                   type="number"
-                  min="0"
-                  max="10"
                   value={formData.task_completion}
-                  onChange={e => setFormData({ ...formData, task_completion: Number(e.target.value) })}
+                  readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
@@ -539,9 +563,8 @@ const Evaluations = () => {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., 4.5/5"
                   value={formData.competency_score}
-                  onChange={e => setFormData({ ...formData, competency_score: e.target.value })}
+                  readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
@@ -555,12 +578,13 @@ const Evaluations = () => {
                   min="0"
                   max="100"
                   value={formData.score}
-                  onChange={e => setFormData({ ...formData, score: Number(e.target.value) })}
+                  readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
               <div>
+                {/**Updateable Feedback */}
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                   Feedback
                 </label>

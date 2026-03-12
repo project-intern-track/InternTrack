@@ -147,4 +147,46 @@ class FeedbackController extends Controller
             'status'          => $allSubmitted ? 'Submitted' : 'Pending',
         ];
     }
+
+
+
+    // Function for Getting the Final Score of an intern
+    public function getInternFinalScore($internId): JsonResponse
+    {
+        $feedback = TaskFeedback::where('intern_id', $internId)->get();
+
+        if ($feedback->isEmpty()) {
+            return response()->json([
+                'data' => [
+                    'avgTaskCompletion' => 0,
+                    'avgCompetencyScore' => '0/5',
+                    'finalScore' => 0,
+                ]
+            ]);
+        }
+
+        // Flatten Competency Score
+        $allRatings = [];
+        foreach ($feedback as $fb) {  
+            foreach ($fb->competency_ratings as $rating) {
+                $allRatings[] = (int) $rating['rating'];
+            }
+        } 
+
+        // Average Computation
+        $avgCompetency = !empty($allRatings)
+            ? array_sum($allRatings) / count($allRatings)
+            : 0;
+
+        // 100 point scale
+        $finalScore = round(($avgCompetency / 5) * 100);
+
+        return response()->json([
+            'data' => [
+                'avgTaskCompletion' => round($avgCompetency),
+                'avgCompetency' => number_format($avgCompetency, 1) . '/5',
+                'finalScore' => $finalScore,
+            ]
+        ]);
+    }
 }

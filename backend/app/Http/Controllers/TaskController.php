@@ -203,6 +203,16 @@ class TaskController extends Controller
         $admins = User::where('role', 'admin')->get();
         Notification::send($admins, new SystemNotification('Task Rejected', "Task '{$task->title}' was rejected.", 'high'));
 
+        $interns = $task->assignedInterns;
+        if ($interns->isNotEmpty()) {
+            Notification::send($interns, new SystemNotification('Task Rejected', "Your task '{$task->title}' was rejected. Reason: {$validated['rejection_reason']}", 'high'));
+            
+            $supervisors = $interns->pluck('supervisor')->filter()->unique();
+            if ($supervisors->isNotEmpty()) {
+                Notification::send($supervisors, new SystemNotification('Task Rejected', "Task '{$task->title}' assigned to your intern was rejected.", 'high'));
+            }
+        }
+
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
 
         return response()->json(['data' => $this->formatTask($task)]);
@@ -258,6 +268,16 @@ class TaskController extends Controller
             'approved_at' => Carbon::now(),
         ]);
 
+        $interns = $task->assignedInterns;
+        if ($interns->isNotEmpty()) {
+            Notification::send($interns, new SystemNotification('Task Approved', "Your task '{$task->title}' has been approved by a supervisor.", 'medium'));
+        }
+
+        $admins = User::where('role', 'admin')->get();
+        if ($admins->isNotEmpty()) {
+            Notification::send($admins, new SystemNotification('Task Approved', "Task '{$task->title}' was approved by a supervisor.", 'low'));
+        }
+
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
 
         return response()->json(['data' => $this->formatTask($task)]);
@@ -288,6 +308,11 @@ class TaskController extends Controller
 
         $admins = User::where('role', 'admin')->get();
         Notification::send($admins, new SystemNotification('Task Rejected', "Task '{$task->title}' was rejected by supervisor.", 'high'));
+
+        $interns = $task->assignedInterns;
+        if ($interns->isNotEmpty()) {
+            Notification::send($interns, new SystemNotification('Task Rejected', "Your task '{$task->title}' was rejected by a supervisor. Reason: {$validated['rejection_reason']}", 'high'));
+        }
 
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
 

@@ -9,6 +9,7 @@ declare module 'lucide-react' {
     }
 
     type Icon = FC<IconProps>;
+    export type LucideIcon = Icon;
 
     // Layout icons
     export const LayoutDashboard: Icon;
@@ -25,6 +26,7 @@ declare module 'lucide-react' {
     export const UserPlus: Icon;
     export const UserCheck: Icon;
     export const ShieldCheck: Icon;
+    export const Shield: Icon;
 
     // Misc icons
     export const Briefcase: Icon;
@@ -47,13 +49,17 @@ declare module 'lucide-react' {
 
     // Task/Content icons
     export const ClipboardList: Icon;
+    export const ClipboardCheck: Icon;
     export const CheckCircle: Icon;
     export const Clock: Icon;
     export const Calendar: Icon;
+    export const CalendarCheck: Icon;
+    export const CalendarDays: Icon;
     export const FileText: Icon;
     export const Megaphone: Icon;
     export const Star: Icon;
     export const BarChart: Icon;
+    export const BarChart3: Icon;
     export const Home: Icon;
     export const Mail: Icon;
     export const Lock: Icon;
@@ -63,6 +69,11 @@ declare module 'lucide-react' {
     export const ArrowRight: Icon;
     export const ArrowLeft: Icon;
     export const RefreshCw: Icon;
+
+    // Navigation/UI icons
+    export const ListTodo: Icon;
+    export const MessageSquare: Icon;
+    export const Target: Icon;
 
     // Allow any other icon export
     const icons: Record<string, Icon>;

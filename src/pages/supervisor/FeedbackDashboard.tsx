@@ -3,10 +3,25 @@ import { motion } from 'framer-motion';
 import { Search, Filter, Eye, Edit, X, Pencil, Star } from 'lucide-react';
 import {
   feedbackService,
-  type FeedbackTask,
-  type FeedbackTaskIntern,
   type CompetencyRating,
 } from '../../services/feedbackService';
+
+type FeedbackTaskIntern = {
+  id: number;
+  name: string;
+  role: string;
+  feedback_submitted: boolean;
+  competency_ratings: CompetencyRating[];
+};
+
+type FeedbackTask = {
+  id: number;
+  taskName: string;
+  taskDescription: string;
+  completionDate: string;
+  status: string;
+  interns: FeedbackTaskIntern[];
+};
 
 const defaultCompetencies = [
   'Technical Skills',
@@ -54,7 +69,7 @@ const FeedbackDashboard = () => {
     try {
       setLoading(true);
       const data = await feedbackService.getSupervisorTasks();
-      setTasks(data);
+      setTasks(data as unknown as FeedbackTask[]);
     } catch (err) {
       console.error('Failed to fetch feedback tasks:', err);
     } finally {
@@ -318,7 +333,7 @@ const FeedbackDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {selectedTask.interns.map((intern, idx) => (
+                {selectedTask.interns.map((intern: FeedbackTaskIntern, idx: number) => (
                   <tr key={intern.id} className="border-b border-gray-100 last:border-none dark:border-white/10">
                     <td className="px-3 py-3 text-gray-800 dark:text-gray-200">{intern.name}</td>
                     <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{intern.role}</td>

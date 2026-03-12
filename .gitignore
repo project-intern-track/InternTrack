@@ -31,3 +31,6 @@ dist-ssr
 
 # Supabase CLI (local cache only — migrations are tracked)
 supabase/.temp/
+LOVABLE_REDESIGN_PROMPT.md
+package-lock.json
+package.json

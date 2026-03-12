@@ -21,18 +21,17 @@ function formatDate(dateStr: string): string {
 }
 
 function Stars({ rating, max = 5 }: { rating: number; max?: number }) {
-  const r = clamp(Math.round(rating * 2) / 2, 0, max); // allow halves in the future
+  const r = clamp(Math.round(rating * 2) / 2, 0, max);
   return (
-    <div style={{ display: 'flex', gap: '0.25rem' }} aria-label={`${r} out of ${max} stars`}>
+    <div className="flex gap-1" aria-label={`${r} out of ${max} stars`}>
       {Array.from({ length: max }, (_, i) => i + 1).map((star) => {
         const filled = star <= r;
         return (
           <Star
             key={star}
-            size={18}
+            size={16}
             fill={filled ? '#f5b301' : 'none'}
             color={filled ? '#f5b301' : '#d1d5db'}
-            style={{ flexShrink: 0 }}
             aria-hidden="true"
           />
         );
@@ -44,29 +43,22 @@ function Stars({ rating, max = 5 }: { rating: number; max?: number }) {
 function SkillBar({ label, valuePct }: { label: string; valuePct: number }) {
   const pct = clamp(valuePct, 0, 100);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      <div style={{ fontWeight: 700, color: '#111827' }}>{label}</div>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{label}</span>
+        <span className="text-sm font-bold text-[#FF8800]">{Math.round(pct)}%</span>
+      </div>
       <div
         role="progressbar"
         aria-label={label}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(pct)}
-        style={{
-          height: 12,
-          borderRadius: 999,
-          background: '#6b6b6b',
-          overflow: 'hidden',
-          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.18)',
-        }}
+        className="h-2.5 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden"
       >
         <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            borderRadius: 999,
-            background: 'linear-gradient(180deg, #ffa726 0%, #ff8c42 100%)',
-          }}
+          className="h-full rounded-full bg-gradient-to-r from-[#FF8800] to-orange-400 transition-all duration-700"
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>
@@ -113,78 +105,65 @@ export default function PerformanceFeedback() {
     return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [data]);
 
+
   if (loading) {
     return (
-      <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', padding: '2rem', color: '#6b7280' }}>
-        Loading feedback...
-      </div>
+      <div className="p-6 text-gray-400">Loading feedback…</div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%' }}>
-      <div style={{ marginBottom: '1.25rem' }}>
-        <h1 style={{ color: '#ff8c42', marginBottom: '0.25rem' }}>Performance Feedback</h1>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+          Performance Feedback
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Your skill ratings and supervisor evaluations
+        </p>
       </div>
 
-      <div className="grid-2" style={{ alignItems: 'start' }}>
-        {/* skills overview*/}
-        <section className="card" aria-label="Skills Overview">
-          <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1rem' }}>Skills Overview</div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        {/* Skills Overview */}
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6" aria-label="Skills Overview">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5">Skills Overview</h2>
+          <div className="space-y-5">
             {skills.map((s) => (
               <SkillBar key={s.key} label={s.label} valuePct={(s as SkillScore & { pct: number }).pct} />
             ))}
           </div>
         </section>
 
-        {/* recent feedback */}
-        <section className="card" aria-label="Recent Feedback">
-          <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1rem' }}>Recent Feedback</div>
+        {/* Recent Feedback */}
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6" aria-label="Recent Feedback">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5">Recent Feedback</h2>
 
           {recentFeedback.length === 0 && (
-            <div style={{ padding: '1rem', color: '#6b7280' }}>
-              No feedback yet. Once your supervisor submits evaluations, they’ll appear here.
+            <div className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
+              No feedback yet. Once your supervisor submits evaluations, they&apos;ll appear here.
             </div>
           )}
 
           {recentFeedback.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="space-y-3">
               {recentFeedback.map((fb) => (
                 <article
                   key={fb.id}
-                  style={{
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: 12,
-                    padding: '1rem',
-                    background: '#fff',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                  }}
+                  className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-800/30 transition-all"
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div
-                      style={{
-                        fontWeight: 800,
-                        color: '#2563eb',
-                        fontSize: '1.05rem',
-                        lineHeight: 1.2,
-                      }}
-                    >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <span className="font-bold text-gray-900 dark:text-white text-sm leading-snug">
                       {fb.competency}
-                    </div>
+                    </span>
                     <Stars rating={fb.rating} />
                   </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', color: '#6b7280' }}>
-                    <Calendar size={16} />
-                    <span style={{ fontSize: '0.9rem' }}>
-                      {formatDate(fb.createdAt)}
-                      {fb.reviewerName ? ` by ${fb.reviewerName}` : ''}
-                    </span>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 mb-2.5">
+                    <Calendar size={12} />
+                    {formatDate(fb.createdAt)}
+                    {fb.reviewerName ? ` · ${fb.reviewerName}` : ''}
                   </div>
-
-                  <p style={{ marginTop: '0.75rem', marginBottom: 0, color: '#111827', lineHeight: 1.5 }}>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed m-0">
                     {fb.comment}
                   </p>
                 </article>

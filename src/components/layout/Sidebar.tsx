@@ -6,8 +6,8 @@ import {
     ClipboardCheck, FileText, MessageSquare,
     Users, CalendarCheck, Shield, UserCheck, BarChart3, Megaphone,
     LogOut, Loader2, X, ChevronLeft, ChevronRight,
-    type LucideIcon,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 
 interface SidebarProps {
@@ -28,7 +28,7 @@ interface NavSection {
     links: NavLink[];
 }
 
-const Sidebar = ({ isOpen = true, onClose, collapsed = false, onToggleCollapse }: SidebarProps) => {
+const Sidebar = ({ isOpen: _isOpen = true, onClose, collapsed = false, onToggleCollapse }: SidebarProps) => {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
     const [isLoggingOut, setIsLoggingOut] = useState(false);

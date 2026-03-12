@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ChevronRight } from "lucide-react";
 import { taskService } from "../../services/taskServices";
 import type { Tasks, TaskStatus } from "../../types/database.types";
 
@@ -45,24 +47,29 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
   needs_revision: "For Revision",
 };
 
-function getPriorityDot(priority: string): React.CSSProperties {
-  const colors: Record<string, string> = {
-    high: "#ff4d4d",
-    medium: "#f5a623",
-    low: "#4da6ff",
-  };
-  return { color: colors[priority] ?? "#888" };
+function getPriorityColor(priority: string): string {
+  if (priority === "high") return "text-red-500";
+  if (priority === "medium") return "text-amber-500";
+  if (priority === "low") return "text-blue-400";
+  return "text-gray-400";
 }
 
-function getPillStyle(status: TaskStatus): React.CSSProperties {
-  if (status === "in_progress") return { background: "#f5f0a6", color: "#333" };
-  if (status === "completed") return { background: "#bcd8ff", color: "#333" };
-  if (status === "overdue") return { background: "#ffc2c2", color: "#333" };
-  if (status === "pending") return { background: "#ffe5b4", color: "#333" };
-  if (status === "rejected") return { background: "#f8d7da", color: "#842029" };
-  if (status === "pending_approval") return { background: "#fff3cd", color: "#856404" };
-  if (status === "needs_revision") return { background: "#f8d7da", color: "#842029" };
-  return { background: "#e5e7eb", color: "#333" };
+function getPriorityBar(priority: string): string {
+  if (priority === "high") return "bg-red-500";
+  if (priority === "medium") return "bg-amber-500";
+  if (priority === "low") return "bg-blue-400";
+  return "bg-gray-300";
+}
+
+function getPillClass(status: TaskStatus): string {
+  if (status === "in_progress") return "bg-yellow-100 text-yellow-800";
+  if (status === "completed") return "bg-blue-100 text-blue-800";
+  if (status === "overdue") return "bg-red-100 text-red-700";
+  if (status === "pending") return "bg-orange-100 text-orange-700";
+  if (status === "rejected") return "bg-red-100 text-red-800";
+  if (status === "pending_approval") return "bg-yellow-100 text-yellow-800";
+  if (status === "needs_revision") return "bg-rose-100 text-rose-800";
+  return "bg-gray-100 text-gray-600";
 }
 
 function fmt(date: string): string {
@@ -213,845 +220,300 @@ export default function TaskList() {
 
   const list = grouped[tab];
 
+  const TAB_LABELS: Record<TabKey, string> = {
+    all: "All Tasks",
+    not_started: "Not Started",
+    in_progress: "In Progress",
+    completed: "Completed",
+    overdue: "Overdue",
+  };
+
   return (
-    <>
-      <style>{keyframesCSS}</style>
-      <div style={styles.page}>
-        <h1 style={styles.title}>Task List</h1>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+          Task List
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Track and manage your assigned tasks
+        </p>
+      </div>
 
-        <div style={styles.panel}>
-          <div style={styles.tabs}>
-            {(
-              [
-                "all",
-                "not_started",
-                "in_progress",
-                "completed",
-                "overdue",
-              ] as TabKey[]
-            ).map((key) => {
-              const labels: Record<TabKey, string> = {
-                all: "All Tasks",
-                not_started: "Not Started",
-                in_progress: "In Progress",
-                completed: "Completed",
-                overdue: "Overdue",
-              };
-              return (
-                <button
-                  key={key}
-                  style={{
-                    ...styles.tab,
-                    ...(tab === key ? styles.activeTab : {}),
-                  }}
-                  onClick={() => setTab(key)}
-                  onMouseEnter={(e) => {
-                    if (tab !== key) {
-                      e.currentTarget.style.background = "#ffecd9";
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (tab !== key) {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.transform = "translateY(0)";
-                    }
-                  }}
-                >
-                  {labels[key]} ({grouped[key].length})
-                </button>
-              );
-            })}
+      {/* Tab Bar */}
+      <div className="flex flex-wrap gap-2">
+        {(["all", "not_started", "in_progress", "completed", "overdue"] as TabKey[]).map((key) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+              tab === key
+                ? "bg-[#FF8800] text-white shadow-[0_0_12px_rgba(255,136,0,0.3)]"
+                : "bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-white/10"
+            }`}
+          >
+            {TAB_LABELS[key]}
+            <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === key ? "bg-white/20" : "bg-gray-200 dark:bg-white/10"}`}>
+              {grouped[key].length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Task Cards */}
+      <div className="space-y-3">
+        {loading && (
+          <div className="text-center py-16 text-gray-400">Loading tasks…</div>
+        )}
+        {!loading && list.length === 0 && (
+          <div className="text-center py-16 text-gray-400 bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5">
+            No tasks available.
           </div>
+        )}
 
-          <div style={styles.list}>
-            {loading && <div style={styles.empty}>Loading tasks…</div>}
-            {!loading && list.length === 0 && (
-              <div style={styles.empty}>No tasks available.</div>
-            )}
+        {!loading && list.map((task, index) => (
+          <motion.div
+            key={task.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.04 }}
+            className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex"
+          >
+            {/* Priority bar */}
+            <div className={`w-1.5 shrink-0 ${getPriorityBar(task.priority)}`} />
 
-            {!loading &&
-              list.map((task, index) => (
-                <div
-                  key={task.id}
-                  style={{
-                    ...styles.card,
-                    animationDelay: `${index * 0.05}s`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-4px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 8px 24px rgba(255, 138, 0, 0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow =
-                      "0 2px 8px rgba(0, 0, 0, 0.08)";
-                  }}
-                >
-                  <div style={styles.cardTop}>
-                    <h2 style={styles.cardTitle}>{task.title}</h2>
-                    <div
-                      style={{
-                        ...styles.priority,
-                        ...getPriorityDot(task.priority),
-                      }}
-                    >
-                      ●{" "}
-                      {task.priority.charAt(0).toUpperCase() +
-                        task.priority.slice(1)}{" "}
-                      Priority
-                    </div>
-                  </div>
+            <div className="flex-1 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="font-bold text-gray-900 dark:text-white text-base leading-snug">
+                  {task.title}
+                </h2>
+                <span className={`text-xs font-bold whitespace-nowrap ${getPriorityColor(task.priority)}`}>
+                  ● {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                </span>
+              </div>
 
-                  {/* Clamp description to 2 lines on card */}
-                  <p style={styles.description}>{task.description}</p>
+              <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                {task.description}
+              </p>
 
-                  {task.status === "rejected" && task.rejection_reason && (
-                    <div style={styles.rejectionBanner}>
-                      <span style={styles.rejectionLabel}>
-                        Rejection Reason:{" "}
-                      </span>
-                      {task.rejection_reason}
-                    </div>
-                  )}
-
-                  <div style={styles.cardBottom}>
-                    <div style={{ fontSize: "13px" }}>
-                      <span style={styles.muted}>Date Created:</span>{" "}
-                      {fmt(task.created_at)}
-                      {"  "}
-                      <span style={styles.muted}>Due:</span>{" "}
-                      {fmt(task.due_date)}
-                    </div>
-
-                    <div style={styles.actions}>
-                      <span
-                        style={{ ...styles.pill, ...getPillStyle(task.status) }}
-                      >
-                        {STATUS_LABEL[task.status]}
-                      </span>
-
-                      <button
-                        style={styles.detailButton}
-                        onClick={() => {
-                          setSuccessMessage(null);
-                          setDetailTask(task);
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#ff8a00";
-                          e.currentTarget.style.color = "#fff";
-                          e.currentTarget.style.transform = "scale(1.05)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#fff";
-                          e.currentTarget.style.color = "#ff8a00";
-                          e.currentTarget.style.transform = "scale(1)";
-                        }}
-                      >
-                        View Details
-                      </button>
-                    </div>
-                  </div>
+              {task.status === "rejected" && task.rejection_reason && (
+                <div className="mt-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg text-sm text-red-700 dark:text-red-400">
+                  <span className="font-bold">Rejection Reason: </span>
+                  {task.rejection_reason}
                 </div>
-              ))}
-          </div>
-        </div>
+              )}
 
-        {/* View Details Modal */}
+              <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
+                <div className="text-xs text-gray-400 dark:text-gray-500 space-x-3">
+                  <span><span className="font-semibold">Created:</span> {fmt(task.created_at)}</span>
+                  <span><span className="font-semibold">Due:</span> {fmt(task.due_date)}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${getPillClass(task.status)}`}>
+                    {STATUS_LABEL[task.status]}
+                  </span>
+                  <button
+                    onClick={() => { setSuccessMessage(null); setDetailTask(task); }}
+                    className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full border border-[#FF8800] text-[#FF8800] hover:bg-[#FF8800] hover:text-white transition-all duration-200"
+                  >
+                    View Details <ChevronRight size={12} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Detail Modal */}
+      <AnimatePresence>
         {detailTask && (
-          <div style={styles.overlay} onClick={closeDetailModal}>
-            <div
-              style={styles.detailModal}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={closeDetailModal}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={styles.detailHeader}>
-                <div>
-                  <h2 style={styles.detailTitle}>{detailTask.title}</h2>
-                  <span
-                    style={{
-                      ...styles.pill,
-                      ...getPillStyle(detailTask.status),
-                      marginTop: "6px",
-                      display: "inline-block",
-                    }}
-                  >
-                    {STATUS_LABEL[detailTask.status]}
-                  </span>
-                </div>
-                <button
-                  onClick={closeDetailModal}
-                  style={styles.closeBtn}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#ff4d4d";
-                    e.currentTarget.style.transform = "rotate(90deg)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#6b7280";
-                    e.currentTarget.style.transform = "rotate(0deg)";
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div style={styles.detailSection}>
-                <span style={styles.detailLabel}>Description</span>
-                <p style={{ ...styles.detailBody, whiteSpace: "pre-wrap" }}>
-                  {detailTask.description || "No description provided."}
-                </p>
-              </div>
-
-              {detailTask.status === "rejected" &&
-                detailTask.rejection_reason && (
-                  <div
-                    style={{ ...styles.rejectionBanner, marginBottom: "1rem" }}
-                  >
-                    <span style={styles.rejectionLabel}>
-                      Rejection Reason:{" "}
+              <div className="p-6">
+                {/* Modal Header */}
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div>
+                    <h2 className="text-xl font-black text-gray-900 dark:text-white leading-tight">
+                      {detailTask.title}
+                    </h2>
+                    <span className={`inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full ${getPillClass(detailTask.status)}`}>
+                      {STATUS_LABEL[detailTask.status]}
                     </span>
+                  </div>
+                  <button
+                    onClick={closeDetailModal}
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Description */}
+                <div className="mb-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Description</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {detailTask.description || "No description provided."}
+                  </p>
+                </div>
+
+                {detailTask.status === "rejected" && detailTask.rejection_reason && (
+                  <div className="mb-4 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl text-sm text-red-700 dark:text-red-400">
+                    <span className="font-bold">Rejection Reason: </span>
                     {detailTask.rejection_reason}
                   </div>
                 )}
 
-              <div style={styles.detailGrid}>
-                <div>
-                  <span style={styles.detailLabel}>Priority</span>
-                  <p
-                    style={{
-                      ...styles.detailBody,
-                      ...getPriorityDot(detailTask.priority),
-                      fontWeight: 700,
-                    }}
-                  >
-                    ●{" "}
-                    {detailTask.priority.charAt(0).toUpperCase() +
-                      detailTask.priority.slice(1)}
-                  </p>
+                {/* Meta Grid */}
+                <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl mb-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Priority</p>
+                    <p className={`text-sm font-bold ${getPriorityColor(detailTask.priority)}`}>
+                      ● {detailTask.priority.charAt(0).toUpperCase() + detailTask.priority.slice(1)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Created</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{fmt(detailTask.created_at)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Due Date</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{fmtDateTime(detailTask.due_date)}</p>
+                  </div>
                 </div>
-                <div>
-                  <span style={styles.detailLabel}>Date Created</span>
-                  <p style={styles.detailBody}>{fmt(detailTask.created_at)}</p>
-                </div>
-                <div>
-                  <span style={styles.detailLabel}>Due Date</span>
-                  <p style={styles.detailBody}>
-                    {fmtDateTime(detailTask.due_date)}
-                  </p>
-                </div>
-              </div>
 
-              {detailTask.tools && detailTask.tools.length > 0 && (
-                <div style={{ marginBottom: "1rem" }}>
-                  <span style={styles.detailLabel}>Tools &amp; technologies:</span>
-                  <ul style={{ margin: "0.25rem 0 0", paddingLeft: "1.2rem" }}>
-                    {detailTask.tools.map((t) => (
-                      <li key={t} style={styles.detailBody}>{t}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {successMessage && (
-                <p
-                  style={{
-                    margin: "0 0 1rem",
-                    padding: "0.5rem 0.75rem",
-                    background: "#d1fae5",
-                    color: "#065f46",
-                    borderRadius: "8px",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  {successMessage}
-                </p>
-              )}
-              <div style={styles.detailFooter}>
-                {(detailTask.status === "not_started" ||
-                  detailTask.status === "pending") && (
-                  <button
-                    style={{
-                      ...styles.updateButton,
-                      opacity: detailUpdating ? 0.7 : 1,
-                      cursor: detailUpdating ? "wait" : "pointer",
-                    }}
-                    onClick={handleStartTask}
-                    disabled={detailUpdating}
-                    onMouseEnter={(e) => {
-                      if (!detailUpdating) {
-                        e.currentTarget.style.background = "#ff6f00";
-                        e.currentTarget.style.transform = "scale(1.05)";
-                        e.currentTarget.style.boxShadow =
-                          "0 4px 12px rgba(255, 138, 0, 0.3)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "#ff8a00";
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    {detailUpdating ? "Starting…" : "Start Task"}
-                  </button>
+                {detailTask.tools && detailTask.tools.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Tools &amp; Technologies</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {detailTask.tools.map((t) => (
+                        <span key={t} className="px-2.5 py-1 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
-                {(detailTask.status === "in_progress" ||
-                  detailTask.status === "overdue") && (
-                  <button
-                    style={{
-                      ...styles.updateButton,
-                      opacity: detailUpdating ? 0.7 : 1,
-                      cursor: detailUpdating ? "wait" : "pointer",
-                    }}
-                    onClick={handleFinishTask}
-                    disabled={detailUpdating}
-                    onMouseEnter={(e) => {
-                      if (!detailUpdating) {
-                        e.currentTarget.style.background = "#ff6f00";
-                        e.currentTarget.style.transform = "scale(1.05)";
-                        e.currentTarget.style.boxShadow =
-                          "0 4px 12px rgba(255, 138, 0, 0.3)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "#ff8a00";
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    {detailUpdating ? "Finishing…" : "Finish"}
-                  </button>
-                )}
-                {detailTask.status === "rejected" && canUpdateStatus(detailTask.status) && (
-                  <button
-                    style={styles.updateButton}
-                    onClick={() => {
-                      closeDetailModal();
-                      openStatusModal(detailTask);
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#ff6f00";
-                      e.currentTarget.style.transform = "scale(1.05)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(255, 138, 0, 0.3)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "#ff8a00";
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    Update Status
-                  </button>
-                )}
-                <button
-                  onClick={closeDetailModal}
-                  style={styles.cancelBtn}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#f3f4f6";
-                    e.currentTarget.style.borderColor = "#9ca3af";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#fff";
-                    e.currentTarget.style.borderColor = "#ddd";
-                  }}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Status Update Modal */}
-        {statusModalTask && (
-          <div style={styles.overlay} onClick={closeStatusModal}>
-            <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-              <h2 style={styles.modalTitle}>Update Task Status</h2>
-              <p style={styles.modalTaskName}>{statusModalTask.title}</p>
+                {successMessage && (
+                  <div className="mb-4 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-xl text-sm text-green-700 dark:text-green-400">
+                    {successMessage}
+                  </div>
+                )}
 
-              <div style={styles.statusOptions}>
-                {UPDATABLE_STATUSES.map((status) => (
-                  <label
-                    key={status}
-                    style={{
-                      ...styles.statusOption,
-                      ...(selectedStatus === status
-                        ? styles.statusOptionActive
-                        : {}),
-                    }}
-                    onMouseEnter={(e) => {
-                      if (selectedStatus !== status) {
-                        e.currentTarget.style.background = "#fef9f3";
-                        e.currentTarget.style.borderColor = "#ffd19a";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedStatus !== status) {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.borderColor = "transparent";
-                      }
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="status"
-                      value={status}
-                      checked={selectedStatus === status}
-                      onChange={() => setSelectedStatus(status)}
-                      style={{ display: "none" }}
-                    />
-                    <span
-                      style={{ ...styles.statusDot, ...getPillStyle(status) }}
+                {/* Footer Actions */}
+                <div className="flex justify-end gap-2 pt-2">
+                  {(detailTask.status === "not_started" || detailTask.status === "pending") && (
+                    <button
+                      onClick={handleStartTask}
+                      disabled={detailUpdating}
+                      className="px-5 py-2 rounded-xl bg-[#FF8800] text-white text-sm font-bold hover:bg-orange-600 disabled:opacity-60 transition-all duration-200 hover:shadow-[0_4px_12px_rgba(255,136,0,0.35)]"
                     >
+                      {detailUpdating ? "Starting…" : "Start Task"}
+                    </button>
+                  )}
+                  {(detailTask.status === "in_progress" || detailTask.status === "overdue") && (
+                    <button
+                      onClick={handleFinishTask}
+                      disabled={detailUpdating}
+                      className="px-5 py-2 rounded-xl bg-[#FF8800] text-white text-sm font-bold hover:bg-orange-600 disabled:opacity-60 transition-all duration-200 hover:shadow-[0_4px_12px_rgba(255,136,0,0.35)]"
+                    >
+                      {detailUpdating ? "Finishing…" : "Finish"}
+                    </button>
+                  )}
+                  {detailTask.status === "rejected" && canUpdateStatus(detailTask.status) && (
+                    <button
+                      onClick={() => { closeDetailModal(); openStatusModal(detailTask); }}
+                      className="px-5 py-2 rounded-xl bg-[#FF8800] text-white text-sm font-bold hover:bg-orange-600 transition-all duration-200"
+                    >
+                      Update Status
+                    </button>
+                  )}
+                  <button
+                    onClick={closeDetailModal}
+                    className="px-5 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-all duration-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Status Update Modal */}
+      <AnimatePresence>
+        {statusModalTask && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={closeStatusModal}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl w-full max-w-sm p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-xl font-black text-[#FF8800] mb-1">Update Task Status</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{statusModalTask.title}</p>
+
+              <div className="space-y-2 mb-6">
+                {UPDATABLE_STATUSES.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setSelectedStatus(status)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${
+                      selectedStatus === status
+                        ? "border-[#FF8800] bg-orange-50 dark:bg-orange-900/20 scale-[1.02]"
+                        : "border-transparent hover:border-orange-200 dark:hover:border-orange-800/30 hover:bg-orange-50/50 dark:hover:bg-orange-900/10"
+                    }`}
+                  >
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getPillClass(status)}`}>
                       {STATUS_LABEL[status]}
                     </span>
-                  </label>
+                  </button>
                 ))}
               </div>
 
-              <div style={styles.modalActions}>
+              <div className="flex justify-end gap-2">
                 <button
                   onClick={closeStatusModal}
-                  style={styles.cancelBtn}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#f3f4f6";
-                    e.currentTarget.style.borderColor = "#9ca3af";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#fff";
-                    e.currentTarget.style.borderColor = "#ddd";
-                  }}
+                  className="px-5 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleStatusSave}
-                  style={{ ...styles.saveBtn, opacity: updating ? 0.7 : 1 }}
                   disabled={updating}
-                  onMouseEnter={(e) => {
-                    if (!updating) {
-                      e.currentTarget.style.background = "#ff6f00";
-                      e.currentTarget.style.transform = "scale(1.05)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(255, 138, 0, 0.3)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!updating) {
-                      e.currentTarget.style.background = "#ff8a00";
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }
-                  }}
+                  className="px-5 py-2 rounded-xl bg-[#FF8800] text-white text-sm font-bold hover:bg-orange-600 disabled:opacity-60 transition-all duration-200 hover:shadow-[0_4px_12px_rgba(255,136,0,0.3)]"
                 >
                   {updating ? "Saving…" : "Save"}
                 </button>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
-    </>
+      </AnimatePresence>
+    </div>
   );
 }
-
-const keyframesCSS = `
-@keyframes fadeSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-`;
-
-const styles: Record<string, React.CSSProperties> = {
-  page: { padding: "20px" },
-
-  title: {
-    color: "#ff7a00",
-    fontSize: "26px",
-    fontWeight: 800,
-    marginBottom: "14px",
-    animation: "slideDown 0.4s ease",
-  },
-
-  panel: {
-    background: "#efeae4",
-    borderRadius: "16px",
-    padding: "16px",
-    animation: "fadeIn 0.5s ease",
-  },
-
-  /* =====================
-       TABS
-    ===================== */
-  tabs: {
-    display: "flex",
-    gap: "10px",
-    marginBottom: "12px",
-    flexWrap: "wrap",
-  },
-
-  tab: {
-    border: "none",
-    background: "transparent",
-    padding: "8px 12px",
-    borderRadius: "12px",
-    cursor: "pointer",
-    fontWeight: 600,
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-
-  activeTab: {
-    background: "#ffcf96",
-    boxShadow: "0 4px 12px rgba(255, 138, 0, 0.2)",
-    transform: "translateY(-2px)",
-  },
-
-  /* =====================
-       LIST & CARDS
-    ===================== */
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-
-  card: {
-    background: "#fff",
-    borderRadius: "14px",
-    border: "2px solid #ff8a00",
-    padding: "14px",
-    transition:
-      "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    animation: "fadeSlideIn 0.4s ease backwards",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
-    cursor: "pointer",
-  },
-
-  cardTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "12px",
-  },
-
-  cardTitle: {
-    margin: 0,
-    fontSize: "16px",
-    fontWeight: 900,
-    flex: 1,
-    wordBreak: "break-word",
-    transition: "color 0.2s ease",
-  },
-
-  priority: {
-    fontSize: "12px",
-    fontWeight: 700,
-    whiteSpace: "nowrap",
-    transition: "all 0.3s ease",
-  },
-
-  description: {
-    marginTop: "8px",
-    marginBottom: "12px",
-    color: "#555",
-    lineHeight: 1.5,
-    fontSize: "13px",
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-    transition: "color 0.2s ease",
-  },
-
-  cardBottom: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: "8px",
-  },
-
-  muted: {
-    opacity: 0.7,
-    fontWeight: 700,
-  },
-
-  actions: {
-    display: "flex",
-    gap: "8px",
-    alignItems: "center",
-    flexWrap: "wrap",
-  },
-
-  pill: {
-    padding: "5px 10px",
-    borderRadius: "999px",
-    fontWeight: 700,
-    fontSize: "12px",
-    transition: "all 0.3s ease",
-  },
-
-  /* =====================
-       BUTTONS
-    ===================== */
-  detailButton: {
-    padding: "6px 14px",
-    borderRadius: "999px",
-    border: "1px solid #ff8a00",
-    background: "#fff",
-    color: "#ff8a00",
-    fontWeight: 700,
-    cursor: "pointer",
-    fontSize: "12px",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-
-  updateButton: {
-    padding: "6px 14px",
-    borderRadius: "999px",
-    border: "none",
-    background: "#ff8a00",
-    color: "#fff",
-    fontWeight: 700,
-    cursor: "pointer",
-    fontSize: "12px",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-
-  cancelBtn: {
-    padding: "8px 20px",
-    borderRadius: "8px",
-    border: "1px solid #ddd",
-    background: "#fff",
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-
-  saveBtn: {
-    padding: "8px 20px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#ff8a00",
-    color: "#fff",
-    fontWeight: 700,
-    cursor: "pointer",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-
-  /* =====================
-       EMPTY & BANNERS
-    ===================== */
-  empty: {
-    padding: "20px",
-    textAlign: "center",
-    opacity: 0.7,
-    animation: "fadeIn 0.5s ease",
-  },
-
-  rejectionBanner: {
-    background: "#fff5f5",
-    border: "1px solid #fca5a5",
-    borderRadius: "8px",
-    padding: "8px 12px",
-    marginBottom: "10px",
-    fontSize: "13px",
-    color: "#7f1d1d",
-    animation: "fadeSlideIn 0.4s ease",
-  },
-
-  rejectionLabel: {
-    fontWeight: 700,
-    color: "#991b1b",
-  },
-
-  /* =====================
-       MODALS
-    ===================== */
-  overlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-    padding: "1rem",
-    animation: "fadeIn 0.3s ease",
-    backdropFilter: "blur(2px)",
-  },
-
-  modal: {
-    background: "#fff",
-    borderRadius: "16px",
-    padding: "2rem",
-    width: "100%",
-    maxWidth: "420px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-    animation: "scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-
-  modalTitle: {
-    margin: "0 0 4px",
-    fontSize: "1.25rem",
-    fontWeight: 800,
-    color: "#ff7a00",
-  },
-
-  modalTaskName: {
-    margin: "0 0 1.5rem",
-    color: "#555",
-    fontSize: "0.9rem",
-  },
-
-  statusOptions: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    marginBottom: "1.5rem",
-  },
-
-  statusOption: {
-    display: "flex",
-    alignItems: "center",
-    padding: "10px 14px",
-    borderRadius: "10px",
-    border: "2px solid transparent",
-    cursor: "pointer",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-
-  statusOptionActive: {
-    border: "2px solid #ff8a00",
-    background: "#fff8f0",
-    transform: "scale(1.02)",
-    boxShadow: "0 2px 8px rgba(255, 138, 0, 0.1)",
-  },
-
-  statusDot: {
-    padding: "4px 12px",
-    borderRadius: "999px",
-    fontWeight: 700,
-    fontSize: "13px",
-    transition: "all 0.3s ease",
-  },
-
-  modalActions: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "10px",
-  },
-
-  /* =====================
-       DETAIL MODAL
-    ===================== */
-  detailModal: {
-    background: "#fff",
-    borderRadius: "16px",
-    padding: "2rem",
-    width: "100%",
-    maxWidth: "660px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-    maxHeight: "90vh",
-    overflowY: "auto",
-    animation: "scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-
-  detailHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: "1.5rem",
-    gap: "1rem",
-  },
-
-  detailTitle: {
-    margin: 0,
-    fontSize: "1.3rem",
-    fontWeight: 900,
-    color: "#111",
-    wordBreak: "break-word",
-  },
-
-  detailSection: { marginBottom: "1.25rem" },
-
-  detailLabel: {
-    fontSize: "0.7rem",
-    fontWeight: 700,
-    textTransform: "uppercase",
-    color: "#9ca3af",
-    display: "block",
-    marginBottom: "4px",
-  },
-
-  detailBody: {
-    margin: 0,
-    color: "#374151",
-    lineHeight: 1.6,
-    fontSize: "0.9rem",
-    wordBreak: "break-word",
-  },
-
-  detailGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "1rem",
-    padding: "1rem",
-    backgroundColor: "#f9fafb",
-    borderRadius: "12px",
-    marginBottom: "1.5rem",
-    transition: "background-color 0.3s ease",
-  },
-
-  detailFooter: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "10px",
-  },
-
-  closeBtn: {
-    background: "transparent",
-    border: "none",
-    fontSize: "18px",
-    cursor: "pointer",
-    color: "#6b7280",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  },
-};

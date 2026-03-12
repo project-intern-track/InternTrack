@@ -206,9 +206,9 @@ const Settings = () => {
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div className="max-w-[2000px] mx-auto p-4 space-y-6 relative">
+    <div className="max-w-4xl mx-auto p-6 space-y-6 relative">
       {successPopup && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-success text-white px-8 py-4 rounded-lg shadow-lg z-50 flex items-center gap-4 font-bold">
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-green-600 text-white px-8 py-3.5 rounded-xl shadow-lg z-50 flex items-center gap-4 font-bold text-sm">
           {successPopup}
           <button onClick={() => setSuccessPopup('')} className="bg-transparent border-none text-white cursor-pointer text-xl hover:text-white/80 transition-colors">&times;</button>
         </div>
@@ -217,16 +217,13 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 mb-6"
       >
-        <div>
-          <h1 className="text-3xl font-bold text-primary dark:text-primary mb-1">
-            Settings
-          </h1>
-          <p className="text-muted-foreground dark:text-gray-400">
-            Manage your profile and account preferences.
-          </p>
-        </div>
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+          Settings
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Manage your profile and account preferences.
+        </p>
       </motion.div>
 
       {/* PROFILE INFORMATION */}
@@ -241,12 +238,10 @@ const Settings = () => {
         </h2>
 
         <div className="flex justify-center mb-8">
-          <div className="p-3 rounded-full bg-white border-[3px] border-gray-800 dark:border-gray-300">
-            <User 
-              size={100} 
-              className="text-gray-700 dark:text-gray-300" 
-              strokeWidth={1.5} 
-            />
+          <div className="w-24 h-24 rounded-2xl bg-[#FF8800] flex items-center justify-center shadow-[0_0_20px_rgba(255,136,0,0.25)]">
+            <span className="text-3xl font-black text-white select-none">
+              {formData.name ? formData.name.trim().charAt(0).toUpperCase() : <User size={40} />}
+            </span>
           </div>
         </div>
 

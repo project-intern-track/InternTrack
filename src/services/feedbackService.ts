@@ -60,4 +60,24 @@ export const feedbackService = {
     const res = await apiClient.get('/feedback/my-feedback');
     return res.data.data;
   },
+
+
+  async getInternFinalScore(internId: number): Promise<{
+      avgTaskCompletion: number;
+      avgCompetency: string;
+      finalScore: number;
+  }> {
+      try {
+          const response = await apiClient.get(`/feedback/interns/${internId}/final-score`);
+          return response.data.data;
+      } catch (error) {
+          console.error('Error getting intern final score:', error);
+          return {
+              avgTaskCompletion: 0,
+              avgCompetency: '0/5',
+              finalScore: 0
+          };
+      }
+  },
+
 };

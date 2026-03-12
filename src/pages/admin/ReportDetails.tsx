@@ -232,7 +232,7 @@ const ReportDetails = () => {
                     </div>
                 </div>
             </div>
-            
+
             {/* Report Tabs Container */}
             <div style={{
                 background: '#F9F7F4',
@@ -442,7 +442,7 @@ const ReportDetails = () => {
                             </div>
                         </div>
                     )}
-                    
+
                     {selectedTab === 'monthly' && (
                         <div>
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.5rem' }}>
@@ -837,7 +837,7 @@ const ReportDetails = () => {
                                     borderTop: '1px solid #e0e0e0',
                                     margin: '0 0 2rem 0'
                                 }} />
-                                
+
                                 <div style={{ marginBottom: '2rem' }}>
                                     <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.3rem', fontWeight: '600' }}>
                                         INTERN INFORMATION

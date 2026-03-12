@@ -169,27 +169,75 @@ const Reports = () => {
     });
 
     return (
-        <div>
+        <div className="reports-page">
+            <style>{`
+                .reports-page {
+                    width: 100%;
+                    box-sizing: border-box;
+                    padding: 1.5rem;
+                    overflow-x: hidden;
+                }
+                .reports-filters {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 1rem;
+                    align-items: center;
+                    margin-top: 2rem;
+                    padding: 1rem;
+                    background-color: #F9F7F4;
+                    border-radius: 12px;
+                    border: 1px solid #777777;
+                    box-sizing: border-box;
+                    width: 100%;
+                }
+                .reports-search {
+                    position: relative;
+                    flex: 1 1 280px;
+                    min-width: 220px;
+                }
+                .reports-select {
+                    flex: 0 1 200px;
+                    min-width: 160px;
+                }
+                .reports-export {
+                    flex: 0 0 auto;
+                    min-width: 160px;
+                }
+                .reports-grid {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 1.5rem;
+                    margin-top: 2rem;
+                }
+                @media (min-width: 640px) {
+                    .reports-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                    }
+                }
+                @media (min-width: 1024px) {
+                    .reports-grid {
+                        grid-template-columns: repeat(3, minmax(0, 1fr));
+                    }
+                }
+                @media (max-width: 480px) {
+                    .reports-search,
+                    .reports-select,
+                    .reports-export {
+                        flex: 1 1 100%;
+                        min-width: 100%;
+                    }
+                    .reports-export {
+                        justify-content: center;
+                    }
+                }
+            `}</style>
             <h1 style={{ color: '#ff8800', fontSize: '2rem', margin: 0 }}>Reports Section</h1>
             <h2 style={{ fontSize: '1.2rem', margin: '0.5rem 0', color: '#2b2a2a' }}>Weekly/Monthly Summaries</h2>
 
             {/* Filter and Search Container */}
-            <div style={{
-                display: 'flex',
-                gap: '1rem',
-                alignItems: 'center',
-                marginTop: '2rem',
-                padding: '1rem',
-                backgroundColor: '#F9F7F4',
-                borderRadius: '12px',
-                border: '1px solid #777777'
-            }}>
+            <div className="reports-filters">
                 {/* Search Bar */}
-                <div style={{
-                    position: 'relative',
-                    flex: '1',
-                    minWidth: '200px'
-                }}>
+                <div className="reports-search">
                     <Search
                         size={20}
                         style={{
@@ -221,6 +269,7 @@ const Reports = () => {
                 <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
+                    className="reports-select"
                     style={{
                         height: '40px',
                         padding: '0 1rem',
@@ -237,7 +286,7 @@ const Reports = () => {
                 </select>
 
                 {/* Export Button */}
-                <button className="btn btn-primary" style={{
+                <button className="btn btn-primary reports-export" style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
@@ -256,12 +305,7 @@ const Reports = () => {
             </div>
 
             {/* Cards Section */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '1.5rem',
-                marginTop: '2rem'
-            }}>
+            <div className="reports-grid">
                 {filteredInterns.map((intern, index) => (
                     <InternCard key={index} {...intern} />
                 ))}

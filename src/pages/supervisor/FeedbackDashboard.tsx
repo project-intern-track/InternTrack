@@ -281,7 +281,7 @@ const FeedbackDashboard = () => {
           >
             <button
               onClick={() => setSelectedTask(null)}
-              className="absolute right-4 top-4 rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+              className="absolute right-2 top-2 rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
             >
               <X size={20} />
             </button>

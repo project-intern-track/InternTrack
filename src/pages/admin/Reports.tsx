@@ -34,7 +34,7 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
         navigate(`/admin/reports/${internId}`);
     };
     return (
-        <div style={{
+        <div className="intern-card" style={{
             background: '#F9F7F4',
             borderRadius: '12px',
             padding: '1.5rem',
@@ -53,9 +53,9 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
                 e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
             }}>
             {/* Header */}
-            <div style={{ marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e5e5' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <h3 style={{ margin: '0', color: '#2b2a2a', fontSize: '1.1rem', fontWeight: '600' }}>{name}</h3>
+            <div className="intern-card-header" style={{ marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e5e5' }}>
+                <div className="intern-card-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <h3 className="intern-card-name" style={{ margin: '0', color: '#2b2a2a', fontSize: '1.1rem', fontWeight: '600' }}>{name}</h3>
                     <span style={{
                         ...getStatusStyle(status),
                         fontSize: '0.875rem',
@@ -64,22 +64,22 @@ const InternCard = ({ name, email, role, hours, attendance, status, lastUpdate }
                         borderRadius: '9999px'
                     }}>{status}</span>
                 </div>
-                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>{email}</p>
+                <p className="intern-card-email" style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>{email}</p>
             </div>
 
             {/* Main Content */}
-            <div style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <div className="intern-card-body" style={{ marginBottom: '1rem' }}>
+                <div className="intern-card-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                     <span style={{ color: '#666', fontSize: '0.9rem' }}>Role:</span>
-                    <span style={{ color: '#2b2a2a', fontSize: '0.9rem', fontWeight: '500' }}>{role}</span>
+                    <span className="intern-card-value" style={{ color: '#2b2a2a', fontSize: '0.9rem', fontWeight: '500' }}>{role}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div className="intern-card-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                     <span style={{ color: '#666', fontSize: '0.9rem' }}>Hours:</span>
-                    <span style={{ color: '#2b2a2a', fontSize: '0.9rem', fontWeight: '500' }}>{hours}</span>
+                    <span className="intern-card-value" style={{ color: '#2b2a2a', fontSize: '0.9rem', fontWeight: '500' }}>{hours}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className="intern-card-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#666', fontSize: '0.9rem' }}>Attendance:</span>
-                    <span style={{ color: '#2b2a2a', fontSize: '0.9rem', fontWeight: '500' }}>{attendance}</span>
+                    <span className="intern-card-value" style={{ color: '#2b2a2a', fontSize: '0.9rem', fontWeight: '500' }}>{attendance}</span>
                 </div>
             </div>
 
@@ -205,19 +205,24 @@ const Reports = () => {
                 }
                 .reports-grid {
                     display: grid;
-                    grid-template-columns: 1fr;
+                    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
                     gap: 1.5rem;
                     margin-top: 2rem;
                 }
-                @media (min-width: 640px) {
-                    .reports-grid {
-                        grid-template-columns: repeat(2, minmax(0, 1fr));
-                    }
+                .intern-card,
+                .intern-card * {
+                    min-width: 0;
                 }
-                @media (min-width: 1024px) {
-                    .reports-grid {
-                        grid-template-columns: repeat(3, minmax(0, 1fr));
-                    }
+                .intern-card-header-row,
+                .intern-card-row {
+                    gap: 0.75rem;
+                    flex-wrap: wrap;
+                }
+                .intern-card-name,
+                .intern-card-email,
+                .intern-card-value {
+                    overflow-wrap: anywhere;
+                    word-break: break-word;
                 }
                 @media (max-width: 480px) {
                     .reports-search,
@@ -228,6 +233,10 @@ const Reports = () => {
                     }
                     .reports-export {
                         justify-content: center;
+                    }
+                    .intern-card-row {
+                        flex-direction: column;
+                        align-items: flex-start;
                     }
                 }
             `}</style>

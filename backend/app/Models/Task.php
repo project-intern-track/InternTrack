@@ -35,7 +35,7 @@ class Task extends Model
 
     public function assignedInterns()
     {
-        return $this->belongsToMany(User::class, 'task_user');
+        return $this->belongsToMany(User::class, 'task_user')->withPivot('intern_status');
     }
 
     public function creator()

@@ -181,7 +181,7 @@ const TOOLS_BY_CATEGORY: Record<(typeof TECH_STACK_CATEGORIES)[number], string[]
 
 const ManageTasks = () => {
     const [search, setSearch] = useState('');
-    const [dueDateFilter, setDueDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month' | 'custom'>('today');
+    const [dueDateFilter, setDueDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month' | 'custom'>('all');
     const [customDueStart, setCustomDueStart] = useState('');
     const [customDueEnd, setCustomDueEnd] = useState('');
     const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);

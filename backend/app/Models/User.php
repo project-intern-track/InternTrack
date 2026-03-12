@@ -76,7 +76,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function assignedTasks()
     {
-        return $this->belongsToMany(\App\Models\Task::class, 'task_user');
+        return $this->belongsToMany(\App\Models\Task::class, 'task_user')->withPivot('intern_status');
     }
 
     public function attendance()

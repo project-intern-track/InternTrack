@@ -72,4 +72,14 @@ export const taskService = {
     async deleteTask(id: number): Promise<void> {
         await apiClient.delete(`/tasks/${id}`);
     },
+
+    async getTaskProgress(id: number): Promise<{ id: number; full_name: string; avatar_url: string | null; intern_status: string }[]> {
+        const response = await apiClient.get(`/tasks/${id}/progress`);
+        return response.data.data;
+    },
+
+    async finalizeTask(id: number): Promise<Tasks> {
+        const response = await apiClient.post<{ data: Tasks }>(`/tasks/${id}/finalize`);
+        return response.data.data;
+    },
 };

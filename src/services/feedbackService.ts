@@ -6,21 +6,16 @@ export type CompetencyRating = {
   comment: string;
 };
 
-export type FeedbackTaskIntern = {
-  id: number;
-  name: string;
-  role: string;
-  feedback_submitted: boolean;
-  competency_ratings?: CompetencyRating[];
-};
-
-export type FeedbackTask = {
-  id: number;
+export type FeedbackRow = {
+  taskId: number;
   taskName: string;
   taskDescription: string;
   completionDate: string;
-  interns: FeedbackTaskIntern[];
-  status: 'Pending' | 'Submitted';
+  internId: number;
+  internName: string;
+  internRole: string;
+  feedbackSubmitted: boolean;
+  competencyRatings?: CompetencyRating[];
 };
 
 export type SkillScore = {
@@ -45,7 +40,7 @@ export type MyFeedbackPayload = {
 };
 
 export const feedbackService = {
-  async getSupervisorTasks(): Promise<FeedbackTask[]> {
+  async getSupervisorTasks(): Promise<FeedbackRow[]> {
     const res = await apiClient.get('/feedback/tasks');
     return res.data.data;
   },

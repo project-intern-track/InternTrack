@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, ClipboardList, Star, Users } from 'lucide-react';
+import { BarChart, ClipboardList, Star, Users, Eye, X } from 'lucide-react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/userServices';
@@ -120,6 +120,7 @@ const SupervisorDashboard = () => {
   const [recentTasks, setRecentTasks] = useState<Tasks[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [detailTask, setDetailTask] = useState<Tasks | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -277,13 +278,14 @@ const SupervisorDashboard = () => {
               {recentTasks.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">No tasks found.</p>
               ) : (
-                <table className="w-full text-left text-sm" style={{ minWidth: '480px' }}>
+                <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-white/5">
-                      <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '120px' }}>Intern(s)</th>
-                      <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '140px' }}>Task</th>
-                      <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '100px' }}>Due Date</th>
-                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400" style={{ minWidth: '130px' }}>Status</th>
+                      <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Intern(s)</th>
+                      <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task</th>
+                      <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Due Date</th>
+                      <th className="hidden pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Status</th>
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:hidden">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -299,13 +301,22 @@ const SupervisorDashboard = () => {
                           transition={{ delay: 0.03 * index, duration: 0.25 }}
                           className="border-b border-gray-100 last:border-none dark:border-white/5"
                         >
-                          <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">{internNames}</td>
-                          <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">{task.title}</td>
-                          <td className="py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap">{formatDueDate(task.due_date)}</td>
-                          <td className="py-3">
+                          <td className="hidden py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap lg:table-cell">{internNames}</td>
+                          <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{task.title}</td>
+                          <td className="hidden py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap lg:table-cell">{formatDueDate(task.due_date)}</td>
+                          <td className="hidden py-3 lg:table-cell">
                             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize whitespace-nowrap ${style.pill}`}>
                               {formatStatus(task.status)}
                             </span>
+                          </td>
+                          <td className="py-3 lg:hidden">
+                            <button
+                              onClick={() => setDetailTask(task)}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-white transition-transform hover:scale-105 active:scale-95"
+                            >
+                              <Eye size={14} />
+                              View Details
+                            </button>
                           </td>
                         </motion.tr>
                       );
@@ -426,6 +437,78 @@ const SupervisorDashboard = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* ── Task Detail Modal (mobile) ───────────────────────────────────────── */}
+      {detailTask && (() => {
+        const style = statusStyles[detailTask.status] ?? fallbackStyle;
+        const internNames = detailTask.assigned_interns?.map((i) => i.full_name).join(', ')
+          || (detailTask.assigned_interns_count ? `${detailTask.assigned_interns_count} intern(s)` : '—');
+        return (
+          <div
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
+            onClick={() => setDetailTask(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setDetailTask(null)}
+                className="absolute right-4 top-4 rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                aria-label="Close modal"
+              >
+                <X size={18} />
+              </button>
+
+              <h2 className="mb-5 text-xl font-black text-gray-900 dark:text-white">{detailTask.title}</h2>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern(s)</label>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{internNames}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Due Date</label>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{formatDueDate(detailTask.due_date)}</p>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Priority</label>
+                    <p className="text-sm font-semibold capitalize text-gray-900 dark:text-gray-100">{detailTask.priority}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Status</label>
+                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize ${style.pill}`}>
+                    {formatStatus(detailTask.status)}
+                  </span>
+                </div>
+
+                {detailTask.description && (
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Description</label>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{detailTask.description}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setDetailTask(null)}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/10"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

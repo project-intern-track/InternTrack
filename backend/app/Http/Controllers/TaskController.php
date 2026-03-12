@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\TaskFeedback;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -118,13 +119,13 @@ class TaskController extends Controller
 
     /**
      * GET /api/tasks/my-tasks
-     * Intern: returns their own assigned tasks. Auto-marks overdue before returning.
+     * Intern: returns assigned tasks using their personal pivot status as the display status.
      */
     public function myTasks(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        // Auto-mark overdue only for this intern's tasks
+        // Auto-mark overdue on the task level (global status)
         Task::whereHas('assignedInterns', fn($q) => $q->where('users.id', $user->id))
             ->whereNotIn('status', ['completed', 'rejected', 'overdue'])
             ->where('due_date', '<', Carbon::now())
@@ -135,14 +136,28 @@ class TaskController extends Controller
             ->with('creator:id,full_name')
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn($task) => $this->formatTask($task));
+            ->map(function ($task) {
+                $formatted = $this->formatTask($task);
+                // Use the intern's own pivot status instead of the global task status
+                $internStatus = $task->pivot->intern_status ?? 'not_started';
+                // If task is globally overdue and intern hasn't completed → overdue
+                if ($task->status === 'overdue' && $internStatus !== 'completed') {
+                    $internStatus = 'overdue';
+                }
+                // If task is globally completed → completed (supervisor finalized)
+                if ($task->status === 'completed') {
+                    $internStatus = 'completed';
+                }
+                $formatted['status'] = $internStatus;
+                return $formatted;
+            });
 
         return response()->json(['data' => $tasks]);
     }
 
     /**
      * PUT /api/tasks/{id}/status
-     * Intern updates their task status (cannot set rejected/overdue).
+     * Intern updates their personal pivot status. Does NOT mark the whole task completed.
      */
     public function updateStatus(Request $request, int $id): JsonResponse
     {
@@ -150,17 +165,35 @@ class TaskController extends Controller
             'status' => 'required|in:not_started,in_progress,pending,completed',
         ]);
 
-        $task = Task::whereHas('assignedInterns', function ($q) use ($request) {
-            $q->where('users.id', $request->user()->id);
-        })->with('assignedInterns.supervisor')->findOrFail($id);
+        $user = $request->user();
 
-        if ($task->status === 'rejected') {
-            return response()->json([
-                'error' => 'Rejected tasks cannot be updated.',
-            ], 403);
+        $task = Task::whereHas('assignedInterns', fn($q) => $q->where('users.id', $user->id))
+            ->with(['assignedInterns' => fn($q) => $q->withPivot('intern_status'),
+                    'assignedInterns.supervisor'])
+            ->findOrFail($id);
+
+        if (in_array($task->status, ['rejected', 'completed'])) {
+            return response()->json(['error' => 'Task cannot be updated.'], 403);
         }
 
-        $task->update(['status' => $validated['status']]);
+        // Update only this intern's personal status in the pivot
+        $task->assignedInterns()->updateExistingPivot($user->id, ['intern_status' => $validated['status']]);
+
+        // When any intern starts, move task global status to in_progress for supervisor visibility
+        if ($validated['status'] === 'in_progress' && in_array($task->status, ['not_started', 'pending'])) {
+            $task->update(['status' => 'in_progress']);
+        }
+
+        // Auto-complete task when ALL assigned interns have marked their status as completed
+        if ($validated['status'] === 'completed') {
+            $task->load(['assignedInterns' => fn($q) => $q->withPivot('intern_status')]);
+            $allDone = $task->assignedInterns->every(
+                fn($i) => ($i->pivot->intern_status ?? 'not_started') === 'completed'
+            );
+            if ($allDone) {
+                $task->update(['status' => 'completed']);
+            }
+        }
 
         $statusText = str_replace('_', ' ', $validated['status']);
         $supervisors = $task->assignedInterns->pluck('supervisor')->filter()->unique();
@@ -168,11 +201,73 @@ class TaskController extends Controller
             Notification::send($supervisors, new SystemNotification('Task Status Updated', "Task '{$task->title}' marked as {$statusText}", 'medium'));
         }
 
-        if (in_array($validated['status'], ['in_progress', 'completed'])) {
+        if ($validated['status'] === 'in_progress') {
             $admins = User::where('role', 'admin')->get();
-            Notification::send($admins, new SystemNotification("Task {$statusText}", "Task '{$task->title}' is now {$statusText}.", 'low'));
+            Notification::send($admins, new SystemNotification('Task In Progress', "Task '{$task->title}' is now in progress.", 'low'));
         }
 
+        return response()->json(['data' => $this->formatTask($task->fresh(['assignedInterns', 'creator:id,full_name']))]);
+    }
+
+    /**
+     * GET /api/tasks/{id}/progress
+     * Supervisor: see per-intern progress on a specific task.
+     */
+    public function taskProgress(int $id): JsonResponse
+    {
+        $task = Task::with(['assignedInterns' => fn($q) => $q->withPivot('intern_status')])
+            ->findOrFail($id);
+
+        $progress = $task->assignedInterns->map(fn($intern) => [
+            'id'            => $intern->id,
+            'full_name'     => $intern->full_name,
+            'avatar_url'    => $intern->avatar_url,
+            'intern_status' => $intern->pivot->intern_status ?? 'not_started',
+        ]);
+
+        return response()->json(['data' => $progress->values()]);
+    }
+
+    /**
+     * POST /api/tasks/{id}/finalize
+     * Supervisor finalizes the task:
+     *   - Interns who completed → appear on feedback page for normal grading
+     *   - Interns still in progress → auto-assigned 1/5 with default messages
+     */
+    public function finalizeTask(Request $request, int $id): JsonResponse
+    {
+        $task = Task::with(['assignedInterns' => fn($q) => $q->withPivot('intern_status')])
+            ->findOrFail($id);
+
+        $supervisor = $request->user();
+
+        $task->update(['status' => 'completed']);
+
+        $competencies = ['Technical Skills', 'Communication', 'Teamwork', 'Timeliness'];
+        $defaultComments = [
+            'Technical Skills' => 'Task was not completed on time.',
+            'Communication'    => 'Did not provide timely updates on progress.',
+            'Teamwork'         => 'Did not complete assigned responsibilities.',
+            'Timeliness'       => 'Failed to complete the task within the deadline.',
+        ];
+
+        foreach ($task->assignedInterns as $intern) {
+            $internStatus = $intern->pivot->intern_status ?? 'not_started';
+            if ($internStatus !== 'completed') {
+                $autoRatings = array_map(fn($c) => [
+                    'competency' => $c,
+                    'rating'     => 1,
+                    'comment'    => $defaultComments[$c],
+                ], $competencies);
+
+                TaskFeedback::updateOrCreate(
+                    ['task_id' => $task->id, 'intern_id' => $intern->id],
+                    ['supervisor_id' => $supervisor->id, 'competency_ratings' => $autoRatings]
+                );
+            }
+        }
+
+        $task->load(['assignedInterns', 'creator:id,full_name']);
         return response()->json(['data' => $this->formatTask($task)]);
     }
 
@@ -383,7 +478,11 @@ class TaskController extends Controller
             'approved_at'            => $task->approved_at?->toISOString(),
             'created_by'             => $task->created_by,
             'created_at'             => $task->created_at?->toISOString(),
-            'assigned_interns'       => $task->assignedInterns ?? [],
+            'assigned_interns'       => $task->assignedInterns?->map(fn($i) => [
+                'id'         => $i->id,
+                'full_name'  => $i->full_name,
+                'avatar_url' => $i->avatar_url,
+            ]) ?? [],
             'assigned_interns_count' => $task->assignedInterns?->count() ?? 0,
             'creator'                => $task->creator ? [
                 'id'        => $task->creator->id,

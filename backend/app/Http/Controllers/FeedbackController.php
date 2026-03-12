@@ -9,16 +9,38 @@ use Illuminate\Http\Request;
 
 class FeedbackController extends Controller
 {
+
     public function supervisorTasks(Request $request): JsonResponse
     {
+        $supervisor = $request->user();
+
         $tasks = Task::where('status', 'completed')
+            ->where('approved_by', $supervisor->id)
             ->whereHas('assignedInterns')
             ->with('assignedInterns')
             ->orderByDesc('updated_at')
-            ->get()
-            ->map(fn($task) => $this->formatFeedbackTask($task));
+            ->get();
 
-        return response()->json(['data' => $tasks->values()]);
+        $rows = [];
+        foreach ($tasks as $task) {
+            $feedbacks = TaskFeedback::where('task_id', $task->id)->get()->keyBy('intern_id');
+            foreach ($task->assignedInterns as $intern) {
+                $fb = $feedbacks->get($intern->id);
+                $rows[] = [
+                    'taskId'            => $task->id,
+                    'taskName'          => $task->title,
+                    'taskDescription'   => $task->description ?? '',
+                    'completionDate'    => $task->updated_at->toISOString(),
+                    'internId'          => $intern->id,
+                    'internName'        => $intern->full_name,
+                    'internRole'        => $intern->ojt_role ?? 'Intern',
+                    'feedbackSubmitted' => $fb !== null,
+                    'competencyRatings' => $fb?->competency_ratings,
+                ];
+            }
+        }
+
+        return response()->json(['data' => $rows]);
     }
 
     public function submitFeedback(Request $request, int $taskId, int $internId): JsonResponse

@@ -4,6 +4,13 @@ import { AlertCircle, CheckCircle, X } from 'lucide-react';
 import { taskService } from '../../services/taskServices';
 import type { Tasks } from '../../types/database.types';
 
+type InternProgress = {
+  id: number;
+  full_name: string;
+  avatar_url: string | null;
+  intern_status: string;
+};
+
 type ActiveTab = 'review' | 'approved' | 'Needs Revision' | 'Rejected';
 
 const REVISION_CATEGORIES = [
@@ -47,6 +54,12 @@ const SupervisorApprovals = () => {
   
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
+  // Progress modal state
+  const [progressTask, setProgressTask] = useState<Tasks | null>(null);
+  const [progressData, setProgressData] = useState<InternProgress[]>([]);
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
+
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
@@ -76,14 +89,31 @@ const SupervisorApprovals = () => {
     { key: 'Rejected', label: 'Rejected', count: rejectedCount },
   ];
 
-  const filteredTasks =
-    activeTab === 'review'
-      ? tasks.filter(t => t.status === 'pending_approval')
-      : activeTab === 'approved'
-      ? tasks.filter(t => ['not_started', 'in_progress', 'pending', 'completed', 'overdue'].includes(t.status))
-      : activeTab === 'Needs Revision'
-      ? tasks.filter(t => t.status === 'needs_revision')
-      : tasks.filter(t => t.status === 'rejected');
+  const STATUS_SORT_ORDER: Record<string, number> = {
+    in_progress: 0,
+    not_started: 1,
+    pending: 2,
+    overdue: 3,
+    completed: 4,
+  };
+
+  const filteredTasks = (() => {
+    const list =
+      activeTab === 'review'
+        ? tasks.filter(t => t.status === 'pending_approval')
+        : activeTab === 'approved'
+        ? tasks.filter(t => ['not_started', 'in_progress', 'pending', 'completed', 'overdue'].includes(t.status))
+        : activeTab === 'Needs Revision'
+        ? tasks.filter(t => t.status === 'needs_revision')
+        : tasks.filter(t => t.status === 'rejected');
+
+    if (activeTab === 'approved') {
+      return [...list].sort(
+        (a, b) => (STATUS_SORT_ORDER[a.status] ?? 99) - (STATUS_SORT_ORDER[b.status] ?? 99)
+      );
+    }
+    return list;
+  })();
 
   const openRevisionModal = (task: Tasks) => {
     setSelectedTask(task);
@@ -127,6 +157,40 @@ const SupervisorApprovals = () => {
       alert('Failed to reject task.');
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const openProgressModal = async (task: Tasks) => {
+    setProgressTask(task);
+    setProgressData([]);
+    setProgressLoading(true);
+    try {
+      const data = await taskService.getTaskProgress(task.id);
+      setProgressData(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setProgressLoading(false);
+    }
+  };
+
+  const closeProgressModal = () => {
+    setProgressTask(null);
+    setProgressData([]);
+  };
+
+  const handleFinalize = async () => {
+    if (!progressTask || finalizing) return;
+    setFinalizing(true);
+    try {
+      await taskService.finalizeTask(progressTask.id);
+      await fetchTasks();
+      closeProgressModal();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to finalize task.');
+    } finally {
+      setFinalizing(false);
     }
   };
 
@@ -264,9 +328,19 @@ const SupervisorApprovals = () => {
                   </div>
                 ) : (
                   <div className="mt-4 space-y-3">
-                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${statusBadgeStyles[task.status] || 'bg-gray-100 text-gray-800'}`}>
-                      {task.status.replace('_', ' ').toUpperCase()}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${statusBadgeStyles[task.status] || 'bg-gray-100 text-gray-800'}`}>
+                        {task.status.replace('_', ' ').toUpperCase()}
+                      </span>
+                      {['in_progress', 'not_started'].includes(task.status) && (
+                        <button
+                          onClick={() => openProgressModal(task)}
+                          className="rounded-lg bg-primary px-3 py-1 text-xs font-bold text-primary-foreground transition-all hover:brightness-95"
+                        >
+                          View Details
+                        </button>
+                      )}
+                    </div>
 
                     {task.rejection_reason && (
                       <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-500/10">
@@ -288,7 +362,74 @@ const SupervisorApprovals = () => {
         </div>
       </motion.div>
 
-      {/* ================= MODAL POP-UP ================= */}
+      {/* ================= PROGRESS MODAL ================= */}
+      {progressTask && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
+          >
+            <button
+              onClick={closeProgressModal}
+              className="absolute right-4 top-4 rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+            >
+              <X size={18} />
+            </button>
+
+            <h2 className="mb-1 text-xl font-black text-gray-900 dark:text-white">{progressTask.title}</h2>
+            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">Assigned Interns Progress</p>
+
+            {progressLoading ? (
+              <p className="py-4 text-center text-sm text-gray-500">Loading...</p>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  {progressData.map(intern => (
+                    <div key={intern.id} className="flex items-center justify-between rounded-xl border border-gray-100 px-4 py-3 dark:border-white/10">
+                      <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{intern.full_name}</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusBadgeStyles[intern.intern_status] || 'bg-gray-100 text-gray-700'}`}>
+                        {intern.intern_status.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {progressData.length > 0 && (
+                  <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+                    <span className="font-semibold text-green-600 dark:text-green-400">
+                      {progressData.filter(i => i.intern_status === 'completed').length} completed
+                    </span>
+                    {' · '}
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">
+                      {progressData.filter(i => i.intern_status !== 'completed').length} will be auto-graded 1/5
+                    </span>
+                  </div>
+                )}
+
+                <div className="mt-5 flex justify-end gap-2">
+                  <button
+                    onClick={closeProgressModal}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/10"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleFinalize}
+                    disabled={finalizing}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:brightness-95 disabled:opacity-50"
+                  >
+                    {finalizing ? 'Finalizing...' : 'Finalize Task'}
+                  </button>
+                </div>
+              </>
+            )}
+          </motion.div>
+        </div>
+      )}
+
+      {/* ================= REVISION MODAL ================= */}
       {showModal && selectedTask && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
           <motion.div

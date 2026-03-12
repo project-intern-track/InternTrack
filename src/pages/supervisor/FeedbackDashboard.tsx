@@ -121,7 +121,7 @@ const FeedbackDashboard = () => {
     new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="space-y-6 p-4 md:p-8">
+    <div className="space-y-0 p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}

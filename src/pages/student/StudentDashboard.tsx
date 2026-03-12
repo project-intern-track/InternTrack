@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import {
   CheckCircle,
   Clock,
-  BarChart,
   Megaphone,
   Calendar,
   FileText,
   X,
+  Target,
+  CalendarDays,
+  ListTodo,
+  Star,
 } from "lucide-react";
 import { announcementService } from "../../services/announcementService";
 import { userService } from "../../services/userServices";
@@ -160,219 +164,418 @@ const StudentDashboard: React.FC = () => {
   // Show loading spinner while data is being fetched
   if (!stats) return <PageLoader message="Loading dashboard..." />;
 
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const progressPercent = Math.min(1, stats.hoursLogged / stats.targetHours);
+  const RING_R = 52;
+  const RING_C = 2 * Math.PI * RING_R;
+  const strokeOffset = RING_C * (1 - progressPercent);
+  const hoursRemaining = Math.max(0, stats.targetHours - stats.hoursLogged);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-6 md:p-8">
-      {/* Page Header */}
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-4 md:p-6 lg:p-8 space-y-6">
+      {/* Welcome Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-8"
+        transition={{ duration: 0.4 }}
       >
-        <h1 className="text-4xl font-black text-gray-900 dark:text-white">
-          Welcome back, <span className="text-primary">{user?.name}</span>!
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+          {getGreeting()},{" "}
+          <span className="text-primary">{user?.name?.split(" ")[0]}</span> 👋
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Here's your internship progress at a glance
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {today} · Internship Overview
         </p>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        {/* Tasks Completed Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0 }}
-          whileHover={{ y: -4 }}
-          className="bg-white dark:bg-slate-900/50 p-6 rounded-[2rem] border border-gray-200 dark:border-white/5 shadow-sm backdrop-blur-md"
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                Tasks Completed
-              </p>
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* ── LEFT COLUMN ── */}
+        <div className="lg:col-span-3 space-y-5">
+          {/* Stats 2×2 Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Tasks Completed */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              whileHover={{ y: -3 }}
+              className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-green-100 dark:bg-green-500/20 rounded-xl">
+                  <CheckCircle className="text-green-600 dark:text-green-400" size={20} />
+                </div>
+                <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-500/20 px-2 py-0.5 rounded-full">
+                  Done
+                </span>
+              </div>
               <motion.p
                 key={stats.tasksCompleted}
-                initial={{ scale: 0.8 }}
+                initial={{ scale: 0.85 }}
                 animate={{ scale: 1 }}
-                className="text-5xl font-black text-gray-900 dark:text-white mt-2"
+                className="text-4xl font-black text-gray-900 dark:text-white"
               >
                 {stats.tasksCompleted}
               </motion.p>
-            </div>
-            <motion.div
-              whileHover={{ rotate: 10, scale: 1.1 }}
-              className="p-3 bg-green-100 dark:bg-green-500/20 rounded-2xl"
-            >
-              <CheckCircle className="text-green-600 dark:text-green-400" size={24} />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
+                Tasks Completed
+              </p>
             </motion.div>
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Current status</p>
-        </motion.div>
 
-        {/* Hours Logged Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          whileHover={{ y: -4 }}
-          className="bg-white dark:bg-slate-900/50 p-6 rounded-[2rem] border border-gray-200 dark:border-white/5 shadow-sm backdrop-blur-md"
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+            {/* Hours Logged */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              whileHover={{ y: -3 }}
+              className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-xl">
+                  <Clock className="text-blue-600 dark:text-blue-400" size={20} />
+                </div>
+                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 px-2 py-0.5 rounded-full">
+                  hrs
+                </span>
+              </div>
+              <motion.p
+                key={stats.hoursLogged}
+                initial={{ scale: 0.85 }}
+                animate={{ scale: 1 }}
+                className="text-4xl font-black text-gray-900 dark:text-white"
+              >
+                {stats.hoursLogged}
+              </motion.p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
                 Hours Logged
               </p>
-              <motion.div
-                key={stats.hoursLogged}
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                className="flex items-baseline gap-2 mt-2"
-              >
-                <p className="text-5xl font-black text-gray-900 dark:text-white">
-                  {stats.hoursLogged}
-                </p>
-                <span className="text-xl font-bold text-gray-500 dark:text-gray-400">hrs</span>
-              </motion.div>
-            </div>
-            <motion.div
-              whileHover={{ rotate: -10, scale: 1.1 }}
-              className="p-3 bg-blue-100 dark:bg-blue-500/20 rounded-2xl"
-            >
-              <Clock className="text-blue-600 dark:text-blue-400" size={24} />
             </motion.div>
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Target: {stats.targetHours}h
-          </p>
-        </motion.div>
 
-        {/* Days Remaining Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          whileHover={{ y: -4 }}
-          className="bg-white dark:bg-slate-900/50 p-6 rounded-[2rem] border border-gray-200 dark:border-white/5 shadow-sm backdrop-blur-md"
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                Internship Days
+            {/* Required Hours */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              whileHover={{ y: -3 }}
+              className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-orange-100 dark:bg-orange-500/20 rounded-xl">
+                  <Target className="text-primary" size={20} />
+                </div>
+                <span className="text-xs font-semibold text-primary bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 rounded-full">
+                  Target
+                </span>
+              </div>
+              <motion.p
+                key={stats.targetHours}
+                initial={{ scale: 0.85 }}
+                animate={{ scale: 1 }}
+                className="text-4xl font-black text-gray-900 dark:text-white"
+              >
+                {stats.targetHours}
+              </motion.p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
+                Required Hours
               </p>
+            </motion.div>
+
+            {/* Days Remaining */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              whileHover={{ y: -3 }}
+              className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-500/20 rounded-xl">
+                  <CalendarDays className="text-purple-600 dark:text-purple-400" size={20} />
+                </div>
+                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/20 px-2 py-0.5 rounded-full">
+                  Left
+                </span>
+              </div>
               <motion.p
                 key={stats.daysRemaining}
-                initial={{ scale: 0.8 }}
+                initial={{ scale: 0.85 }}
                 animate={{ scale: 1 }}
-                className="text-5xl font-black text-gray-900 dark:text-white mt-2"
+                className="text-4xl font-black text-gray-900 dark:text-white"
               >
                 {stats.daysRemaining}
               </motion.p>
-            </div>
-            <motion.div
-              whileHover={{ rotate: 10, scale: 1.1 }}
-              className="p-3 bg-orange-100 dark:bg-orange-500/20 rounded-2xl"
-            >
-              <BarChart className="text-orange-600 dark:text-orange-400" size={24} />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
+                Days Remaining
+              </p>
             </motion.div>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Days remaining</p>
-        </motion.div>
-      </div>
 
-      {/* Announcements Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-primary/20 rounded-xl">
-            <Megaphone className="text-primary" size={24} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white">
-              Announcements
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Latest updates and reminders
-            </p>
-          </div>
-        </div>
-
-        {/* Announcements List */}
-        <div className="bg-white dark:bg-slate-900/50 rounded-[2rem] border border-gray-200 dark:border-white/5 shadow-sm backdrop-blur-md overflow-hidden">
-          <div className="max-h-[600px] overflow-y-auto">
-            {announcements.length === 0 ? (
-              <div className="flex items-center justify-center h-48 p-6">
-                <p className="text-gray-500 dark:text-gray-400">
-                  No announcements yet
+          {/* OJT Progress Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  OJT Hours Progress
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {stats.hoursLogged} of {stats.targetHours} hours completed
                 </p>
               </div>
-            ) : (
-              <div className="divide-y divide-gray-200 dark:divide-white/5">
-                {announcements.map((announcement, index) => {
-                  const styles = getPriorityStyles(announcement.priority);
-                  return (
-                    <motion.button
-                      key={announcement.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      whileHover={{ x: 4 }}
-                      onClick={() => setSelectedAnnouncement(announcement)}
-                      className={`w-full text-left p-6 transition-all hover:bg-gray-50 dark:hover:bg-slate-800/50 border-l-4 ${styles.border}`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          className={`p-3 rounded-xl flex-shrink-0 ${styles.bg}`}
-                        >
-                          <div className={styles.icon}>
-                            {getAnnouncementIcon(announcement.priority)}
-                          </div>
-                        </motion.div>
+              <span
+                className={`text-sm font-bold px-3 py-1 rounded-full ${
+                  progressPercent >= 1
+                    ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
+                    : progressPercent >= 0.5
+                    ? "bg-orange-100 text-primary dark:bg-orange-500/20"
+                    : "bg-gray-100 text-gray-600 dark:bg-gray-700/50 dark:text-gray-400"
+                }`}
+              >
+                {Math.round(progressPercent * 100)}%
+              </span>
+            </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className="text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400">
-                              {getAnnouncementTypeLabel(announcement.priority)}
-                            </span>
-                            {index < 2 && (
-                              <span className="px-2 py-1 text-xs font-bold text-white bg-primary rounded">
-                                NEW
-                              </span>
-                            )}
+            <div className="flex items-center gap-6">
+              {/* Donut ring */}
+              <div className="relative w-[120px] h-[120px] flex-shrink-0">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  {/* Track */}
+                  <circle
+                    cx="60" cy="60" r={RING_R}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    className="text-gray-100 dark:text-slate-700"
+                  />
+                  {/* Progress */}
+                  <circle
+                    cx="60" cy="60" r={RING_R}
+                    fill="none"
+                    stroke="#FF8800"
+                    strokeWidth="10"
+                    strokeLinecap="round"
+                    strokeDasharray={RING_C}
+                    strokeDashoffset={strokeOffset}
+                    transform="rotate(-90 60 60)"
+                    style={{ transition: "stroke-dashoffset 1.2s ease-in-out" }}
+                  />
+                </svg>
+                {/* Centered overlay text */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-xl font-black text-gray-900 dark:text-white leading-none">
+                    {Math.round(progressPercent * 100)}%
+                  </span>
+                  <span className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">
+                    completed
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress bars breakdown */}
+              <div className="flex-1 space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="text-gray-600 dark:text-gray-400">Logged so far</span>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {stats.hoursLogged}h
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercent * 100}%` }}
+                      transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+                      className="h-full bg-primary rounded-full"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="text-gray-600 dark:text-gray-400">Remaining</span>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {hoursRemaining.toFixed(1)}h
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(1 - progressPercent) * 100}%` }}
+                      transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+                      className="h-full bg-gray-300 dark:bg-slate-600 rounded-full"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  At 8 hrs/day · ~{stats.daysRemaining} working days remaining
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="grid grid-cols-3 gap-3"
+          >
+            {[
+              {
+                label: "Log Time",
+                icon: Clock,
+                to: "/intern/logs",
+                iconCls: "text-blue-600 dark:text-blue-400",
+                bgCls: "bg-blue-100 dark:bg-blue-500/20",
+              },
+              {
+                label: "My Tasks",
+                icon: ListTodo,
+                to: "/intern/tasks",
+                iconCls: "text-primary",
+                bgCls: "bg-orange-100 dark:bg-orange-500/20",
+              },
+              {
+                label: "Feedback",
+                icon: Star,
+                to: "/intern/feedback",
+                iconCls: "text-purple-600 dark:text-purple-400",
+                bgCls: "bg-purple-100 dark:bg-purple-500/20",
+              },
+            ].map((action) => {
+              const ActionIcon = action.icon;
+              return (
+                <Link key={action.to} to={action.to}>
+                  <motion.div
+                    whileHover={{ y: -3, scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-xl p-4 flex flex-col items-center gap-2 text-center cursor-pointer shadow-sm hover:shadow-md transition-all"
+                  >
+                    <div className={`p-2.5 rounded-xl ${action.bgCls}`}>
+                      <ActionIcon size={20} className={action.iconCls} />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                      {action.label}
+                    </span>
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </motion.div>
+        </div>
+
+        {/* ── RIGHT COLUMN: Announcements ── */}
+        <div className="lg:col-span-2">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm flex flex-col"
+            style={{ minHeight: 400 }}
+          >
+            {/* Card Header */}
+            <div className="flex items-center gap-3 p-5 border-b border-gray-100 dark:border-white/5 flex-shrink-0">
+              <div className="p-2 bg-orange-100 dark:bg-orange-500/20 rounded-xl">
+                <Megaphone className="text-primary" size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                  Announcements
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {announcements.length} update{announcements.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="overflow-y-auto flex-1" style={{ maxHeight: 520 }}>
+              {announcements.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-48 p-6 text-center">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-3">
+                    <Megaphone className="text-gray-400" size={22} />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    No announcements yet
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    Check back later for updates
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 dark:divide-white/5">
+                  {announcements.map((announcement, index) => {
+                    const styles = getPriorityStyles(announcement.priority);
+                    return (
+                      <motion.button
+                        key={announcement.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.04 }}
+                        onClick={() => setSelectedAnnouncement(announcement)}
+                        className={`w-full text-left p-4 transition-all hover:bg-gray-50 dark:hover:bg-slate-800/50 border-l-[3px] ${styles.border}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`p-2 rounded-xl flex-shrink-0 mt-0.5 ${styles.bg}`}
+                          >
+                            <div className={styles.icon}>
+                              {getAnnouncementIcon(announcement.priority)}
+                            </div>
                           </div>
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 break-words">
-                            {announcement.title}
-                          </h3>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-3">
-                            {announcement.content}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
-                            <div className="flex items-center gap-1">
-                              <Calendar size={14} />
-                              <span>{formatDateTime(announcement.created_at)}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                                {getAnnouncementTypeLabel(announcement.priority)}
+                              </span>
+                              {index < 2 && (
+                                <span className="px-1.5 py-0.5 text-[10px] font-bold text-white bg-primary rounded-full">
+                                  NEW
+                                </span>
+                              )}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <FileText size={14} />
-                              <span>View Details</span>
-                            </div>
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1 truncate">
+                              {announcement.title}
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                              {announcement.content}
+                            </p>
+                            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5 flex items-center gap-1">
+                              <Calendar size={10} />
+                              {formatDateTime(announcement.created_at)}
+                            </p>
                           </div>
                         </div>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Announcement Modal */}
+      {/* ── Announcement Detail Modal ── */}
       {selectedAnnouncement && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -386,14 +589,16 @@ const StudentDashboard: React.FC = () => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-slate-900 rounded-[2rem] border border-gray-200 dark:border-white/5 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
             {/* Modal Header */}
             <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-white/5 p-6 flex items-start justify-between">
               <div className="flex items-start gap-4 flex-1">
                 <motion.div
                   whileHover={{ scale: 1.1 }}
-                  className={`p-3 rounded-xl flex-shrink-0 ${getPriorityStyles(selectedAnnouncement.priority).bg}`}
+                  className={`p-3 rounded-xl flex-shrink-0 ${
+                    getPriorityStyles(selectedAnnouncement.priority).bg
+                  }`}
                 >
                   <div className={getPriorityStyles(selectedAnnouncement.priority).icon}>
                     {getAnnouncementIcon(selectedAnnouncement.priority)}
@@ -403,7 +608,7 @@ const StudentDashboard: React.FC = () => {
                   <p className="text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-400 mb-1">
                     {getAnnouncementTypeLabel(selectedAnnouncement.priority)}
                   </p>
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white">
+                  <h2 className="text-xl font-black text-gray-900 dark:text-white">
                     {selectedAnnouncement.title}
                   </h2>
                 </div>
@@ -417,13 +622,12 @@ const StudentDashboard: React.FC = () => {
               </motion.button>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-6 space-y-6">
+            {/* Modal Body */}
+            <div className="p-6 space-y-5">
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-base leading-relaxed">
                 {selectedAnnouncement.content}
               </p>
 
-              {/* Priority Info */}
               <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4 flex items-center gap-3">
                 <div
                   className={`w-3 h-3 rounded-full flex-shrink-0 ${
@@ -440,9 +644,8 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Posted Date */}
               <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4 flex items-center gap-3">
-                <Calendar className="text-gray-600 dark:text-gray-400" size={20} />
+                <Calendar className="text-gray-500 dark:text-gray-400 flex-shrink-0" size={18} />
                 <div>
                   <p className="text-xs font-bold uppercase text-gray-600 dark:text-gray-400">
                     Posted
@@ -455,10 +658,10 @@ const StudentDashboard: React.FC = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="bg-gray-50 dark:bg-slate-800/50 border-t border-gray-200 dark:border-white/5 p-6 flex gap-3 justify-end">
+            <div className="bg-gray-50 dark:bg-slate-800/50 border-t border-gray-200 dark:border-white/5 p-5 flex justify-end">
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => setSelectedAnnouncement(null)}
                 className="px-6 py-2 bg-primary text-white font-bold rounded-lg hover:bg-orange-600 transition-colors"
               >

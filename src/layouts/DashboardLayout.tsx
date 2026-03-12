@@ -8,13 +8,23 @@ import NotificationDropdown from '../components/layout/NotificationDropdown';
 
 const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950">
-            {/* Desktop Sidebar */}
-            <div className="hidden lg:block w-72 sticky top-0 h-screen bg-[#0a0a0a] rounded-tr-[25px] rounded-br-[25px]">
-                <Sidebar isOpen={true} onClose={() => setSidebarOpen(false)} />
-            </div>
+            {/* Desktop Sidebar — animated width */}
+            <motion.div
+                animate={{ width: sidebarCollapsed ? 72 : 260 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="hidden lg:block sticky top-0 h-screen bg-[#0a0a0a] rounded-tr-[25px] rounded-br-[25px] overflow-visible flex-shrink-0"
+            >
+                <Sidebar
+                    isOpen={true}
+                    onClose={() => setSidebarOpen(false)}
+                    collapsed={sidebarCollapsed}
+                    onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+                />
+            </motion.div>
 
             {/* Mobile Sidebar Overlay */}
             <AnimatePresence>
@@ -34,16 +44,20 @@ const DashboardLayout = () => {
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
                             transition={{ type: 'tween', duration: 0.3 }}
-                            className="fixed left-0 top-0 h-screen w-72 bg-slate-900 dark:bg-black z-40 overflow-y-auto border-r border-white/5"
+                            className="fixed left-0 top-0 h-screen w-[260px] bg-[#0a0a0a] z-40 rounded-tr-[25px] rounded-br-[25px]"
                         >
-                            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+                            <Sidebar
+                                isOpen={sidebarOpen}
+                                onClose={() => setSidebarOpen(false)}
+                                collapsed={false}
+                            />
                         </motion.div>
                     </>
                 )}
             </AnimatePresence>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col w-full lg:w-auto">
+            <div className="flex-1 flex flex-col min-w-0">
                 {/* Mobile Header */}
                 <div className="lg:hidden sticky top-0 z-20 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-white/5 h-16 flex items-center px-4 gap-3 backdrop-blur-md">
                     <motion.button
@@ -56,7 +70,6 @@ const DashboardLayout = () => {
                         <Menu size={24} className="text-gray-700 dark:text-gray-300" />
                     </motion.button>
                     <h1 className="text-xl font-black text-gray-900 dark:text-white">InternTrack</h1>
-                    {/* Notification bell — always visible on mobile */}
                     <div className="ml-auto">
                         <NotificationDropdown />
                     </div>

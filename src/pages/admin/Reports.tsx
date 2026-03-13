@@ -282,12 +282,20 @@ const Reports = () => {
                     style={{
                         height: '40px',
                         padding: '0 1rem',
+                        paddingRight: '2.5rem',
                         border: '1px solid #777777',
                         borderRadius: '8px',
                         outline: 'none',
                         fontSize: '1rem',
                         minWidth: '180px',
-                        backgroundColor: 'white'
+                        backgroundColor: 'white',
+                        appearance: 'none',
+                        WebkitAppearance: 'none',
+                        MozAppearance: 'none',
+                        backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 0.75rem center',
+                        backgroundSize: '16px'
                     }}>
                     <option value="all">All Status</option>
                     <option value="active">Active</option>

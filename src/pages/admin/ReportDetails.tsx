@@ -157,6 +157,27 @@ const ReportDetails = () => {
                         justify-content: center;
                     }
                 }
+                @media (max-width: 640px) {
+                    .report-details-download {
+                        padding: 0.5rem;
+                        width: 40px;
+                        height: 40px;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    .report-details-download-text {
+                        display: none;
+                    }
+                    .report-details-download-icon {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .report-details-download svg {
+                        display: block;
+                        color: #ffffff;
+                    }
+                }
             `}</style>
             {/* Header Container */}
             <div style={{
@@ -832,7 +853,7 @@ const ReportDetails = () => {
                                         Complete report ready for printing or download
                                     </p>
                                 </div>
-                                <button style={{
+                                <button className="report-details-download" style={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.5rem',
@@ -845,8 +866,10 @@ const ReportDetails = () => {
                                     fontSize: '0.9rem',
                                     fontWeight: '500'
                                 }}>
-                                    <Download size={16} />
-                                    Download Report
+                                    <span className="report-details-download-icon">
+                                        <Download size={18} />
+                                    </span>
+                                    <span className="report-details-download-text">Download Report</span>
                                 </button>
                             </div>
                             <div style={{

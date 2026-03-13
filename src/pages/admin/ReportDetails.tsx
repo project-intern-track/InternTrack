@@ -121,12 +121,46 @@ const ReportDetails = () => {
 
     return (
         <div style={{ padding: '1rem', maxWidth: '1000px', margin: '0 auto' }}>
+            <style>{`
+                .report-details-header {
+                    display: flex;
+                    justify-content: flex-start;
+                    align-items: center;
+                    gap: 1rem;
+                }
+                .report-details-profile {
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    flex-direction: column;
+                    margin-top: 0;
+                    flex: 0 0 auto;
+                }
+                .report-details-info {
+                    flex: 1 1 auto;
+                    min-width: 0;
+                }
+                @media (max-width: 640px) {
+                    .report-details-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                    }
+                }
+                @media (max-width: 640px) {
+                    .report-details-tabs {
+                        flex-direction: column;
+                        align-items: stretch;
+                        width: 100%;
+                    }
+                    .report-details-tabs button {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                }
+            `}</style>
             {/* Header Container */}
             <div style={{
-                background: '#F9F7F4',
-                borderRadius: '12px',
                 padding: '1.5rem',
-                border: '1px solid #e5e5e5',
                 marginBottom: '2rem'
             }}>
                 <div style={{
@@ -157,46 +191,12 @@ const ReportDetails = () => {
                 {/* Intern Information */}
                 <div style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    gap: '5rem'
+                    gap: '3rem'
                 }}>
-                    <div>
-                        <h1 style={{
-                            margin: '0 0 0.5rem 0',
-                            color: '#2b2a2a',
-                            fontSize: '2rem'
-                        }}>
-                            <span style={{ color: '#ff8800' }}>{reportData.name}</span>'s Report
-                        </h1>
-                        <div style={{
-                            display: 'flex',
-                            gap: '2rem',
-                            flexWrap: 'wrap'
-                        }}>
-                            <div style={{ textAlign: 'left' }}>
-                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>OJT ID</div>
-                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                    {reportData.ojtId}
-                                </div>
-                            </div>
-                            <div style={{ textAlign: 'left' }}>
-                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Department</div>
-                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                    {reportData.department}
-                                </div>
-                            </div>
-                            <div style={{ textAlign: 'left' }}>
-                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Supervisor</div>
-                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
-                                    {reportData.supervisor}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Profile Section */}
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', marginTop: '0', marginRight: '5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', marginTop: '0' }}>
                         <div style={{
                             width: '80px',
                             height: '80px',
@@ -230,6 +230,39 @@ const ReportDetails = () => {
                             {reportData.status}
                         </span>
                     </div>
+                    <div>
+                        <h1 style={{
+                            margin: '0 0 0.5rem 0',
+                            color: '#2b2a2a',
+                            fontSize: '2rem'
+                        }}>
+                            <span style={{ color: '#ff8800' }}>{reportData.name}</span>'s Report
+                        </h1>
+                        <div style={{
+                            display: 'flex',
+                            gap: '2rem',
+                            flexWrap: 'wrap'
+                        }}>
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>OJT ID</div>
+                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                    {reportData.ojtId}
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Department</div>
+                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                    {reportData.department}
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Supervisor</div>
+                                <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                    {reportData.supervisor}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -242,10 +275,11 @@ const ReportDetails = () => {
                 marginBottom: '2rem'
             }}>
                 {/* Tab Buttons */}
-                <div style={{
+                <div className="report-details-tabs" style={{
                     display: 'flex',
                     gap: '1rem',
-                    marginBottom: '1.5rem'
+                    marginBottom: '1.5rem',
+                    flexWrap: 'wrap'
                 }}>
                     <button
                         onClick={() => setSelectedTab('weekly')}

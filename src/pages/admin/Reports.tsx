@@ -206,6 +206,7 @@ const Reports = () => {
                 .reports-grid {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                    justify-content: start;
                     gap: 1.5rem;
                     margin-top: 2rem;
                 }

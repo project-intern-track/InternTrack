@@ -76,6 +76,69 @@ class AuthController extends Controller
     }
 
     /**
+     * POST /api/auth/register-supervisor
+     * Register a new supervisor account from admin side
+     * Auto sets role to Super Visor - Email Verified
+     * Sends Credentials to Email
+     */
+    public function registerSupervisor(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'full_name' => ['required', 'string', 'min:1', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
+            'email' => 'required|email|unique:users,email',
+            'password' => ['required', 'string', PasswordRule::min(8), 'confirmed']
+        ]);
+
+        // Avatar Auto-Generated URL
+        $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($validated['full_name']) . '&background=random';
+
+        // OJT ID Reference for Giving task, feedback and evaluation.
+        $lastOjtId = User::max('ojt_id') ?? 1100;
+
+        // Supervisor Account Details
+        $user = User::create([
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'full_name' => $validated['full_name'],
+            'role' => 'supervisor', // Auto-set to superviser Role
+            'ojt_role' => null,
+            'avatar_url' => $avatarUrl,
+            'status' => 'active', // Set to Active - User (Actual Member of the Company)
+            'ojt_id' => $lastOjtId + 1
+        ]);
+
+        // Email Auto set Verified by Admin
+        $user ->markEmailAsVerified();
+        
+        // Credentials to Email
+        try {
+            \Illuminate\Support\Facades\Mail::send('emails.supervisor-credentials', [
+                'full_name' => $user->full_name,
+                'email' => $user->email,
+                'password' => $validated['password'],
+                'login_url' => env('FRONTEND_URL') . '/login'
+            ], function ($message) use ($user) {
+                    $message->to($user->email)
+                        ->subject('Here Are Your Supervisor Credentials! - INTERNTRACK');
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed To Send Supervisor Credentials Email', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+
+        return response()->json([
+            'message' => 'Supervisor Account Created Successfuly, Credentails Has Been Sent to Email.',
+            'data' => $this->formatUser($user)
+        ], 201);
+    }
+
+
+
+    /**
      * POST /api/auth/login
      * Replaces: supabase.auth.signInWithPassword()
      */

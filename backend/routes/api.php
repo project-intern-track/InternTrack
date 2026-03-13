@@ -47,6 +47,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/user',    [AuthController::class, 'user']);
 
+    // ---ADMIN ONLY - Supervisor Registration
+    Route::post('/auth/register-supervisor', [AuthController::class, 'registerSupervisor']);
+
+
     // User Data Endpoints
     Route::get('/users/stats',                        [UserController::class, 'stats']);
     Route::get('/users/ojt-roles',                    [UserController::class, 'ojtRoles']);

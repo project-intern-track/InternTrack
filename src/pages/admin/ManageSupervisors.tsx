@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2 } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import SearchableSelect from '../../components/SearchableSelect';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
+import { authService } from '../../services/authService';
+
 
 // Shape of the edit form data (supervisor only needs name + email)
 interface EditFormData {
@@ -29,13 +31,28 @@ const ManageSupervisors = () => {
     // Stats state
     const [stats, setStats] = useState<{ totalSupervisors: number, activeSupervisors: number, archivedSupervisors: number } | null>(null);
 
-    // Add Supervisor Modal States
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [eligibleInterns, setEligibleInterns] = useState<Users[]>([]);
-    const [loadingInterns, setLoadingInterns] = useState(false);
-    const [selectedInternId, setSelectedInternId] = useState('');
-    const [confirmationStep, setConfirmationStep] = useState(false);
-    const [upgrading, setUpgrading] = useState(false);
+    // Sign up Form Data
+    interface signUpFormData {
+        full_name: string;
+        // role: string;
+        email: string;
+        password: string
+        password_confirmation: string
+
+    };
+
+    // Sign Up For Supervisor Modal States
+    const [signUpModalOpen, setSignUpModalOpen] = useState(false);
+    const [signUpForm, setSignUpForm] = useState<signUpFormData>({
+        full_name: '',
+        email: '',
+        password: '',
+        password_confirmation: ''
+    });
+    const [signUpError, setSignUpError] = useState<string | null>(null);
+    const [signUpLoading, setSignUpLoading] = useState(false)
+    const [signUpSuccess, setSignUpSuccess] = useState(false)
+
 
     // Edit Supervisor Modal States
     const [editingSupervisor, setEditingSupervisor] = useState<Users | null>(null);
@@ -89,19 +106,6 @@ const ManageSupervisors = () => {
         }
     };
 
-    // Load eligible interns for the modal
-    const loadEligibleInterns = async () => {
-        try {
-            setLoadingInterns(true);
-            const data = await userService.fetchInternsForSupervisorUpgrade();
-            setEligibleInterns(data);
-        } catch (err) {
-            console.error('Error loading eligible interns:', err);
-        } finally {
-            setLoadingInterns(false);
-        }
-    };
-
     // Initial load
     useEffect(() => {
         loadSupervisors();
@@ -133,36 +137,79 @@ const ManageSupervisors = () => {
         }
     };
 
-    const handleOpenAddModal = () => {
-        setIsAddModalOpen(true);
-        setConfirmationStep(false);
-        setSelectedInternId('');
-        loadEligibleInterns();
+
+    const handleSignUpModal = () => {
+        setSignUpModalOpen(true)
+        setSignUpForm({ full_name: '', email: '', password: '', password_confirmation: '' });
+        setSignUpError(null);
+        setSignUpSuccess(false);
     };
 
-    const handleCloseAddModal = () => {
-        setIsAddModalOpen(false);
-        setConfirmationStep(false);
-        setSelectedInternId('');
+    const handleCloseSignupModal =() => {
+        setSignUpModalOpen(false)
+        setSignUpForm({ full_name: '', email: '', password: '', password_confirmation: '' });
+        setSignUpError(null);
+        setSignUpSuccess(false);
+    }
+
+    const handleSignUpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const {name, value} = e.target;
+
+        if (name === 'full_name' && /\d/.test(value)) {
+            return;
+        }
+
+        setSignUpForm((prev) => ({ ...prev, [name]: value}));
+
     };
 
-    const handleContinue = () => {
-        if (!selectedInternId) return;
-        setConfirmationStep(true);
-    };
+    const handleSignUpSubmit = async () => {
+        if (!signUpForm.full_name.trim()) {
+            setSignUpError('Full Name is Required.');
+            return;
+        }
+            if (/\d/.test(signUpForm.full_name)) {
+        setSignUpError('Full name must not contain numeric characters.');
+        return;
+        }
+        if (!signUpForm.email.trim()) {
+            setSignUpError('Email is required.');
+            return;
+        }
+        if (!signUpForm.password) {
+            setSignUpError('Password is required.');
+            return;
+        }
+        if (signUpForm.password.length < 8) {
+            setSignUpError('Password must be at least 8 characters long.');
+            return;
+        }
+        if (signUpForm.password !== signUpForm.password_confirmation) {
+            setSignUpError('Passwords do not match.');
+            return;
+        }
 
-    const handleConfirmUpgrade = async () => {
-        if (!selectedInternId) return;
         try {
-            setUpgrading(true);
-            await userService.upgradeInternToSupervisor(selectedInternId);
-            handleCloseAddModal();
-            await loadSupervisors();
-            await loadStats();
+            setSignUpLoading(true);
+            setSignUpError(null);
+
+            await authService.registerSupervisor({
+                full_name: signUpForm.full_name.trim(),
+                email: signUpForm.email.trim(),
+                password: signUpForm.password,
+                password_confirmation: signUpForm.password_confirmation,
+            });
+
+            setSignUpSuccess(true);
+            setTimeout(() => {
+                handleCloseSignupModal();
+                loadSupervisors();
+                loadStats();
+            }, 2000);
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to upgrade user');
+            setSignUpError(err instanceof Error ? err.message : 'Failed to register supervisor.');
         } finally {
-            setUpgrading(false);
+            setSignUpLoading(false);
         }
     };
 
@@ -241,8 +288,6 @@ const ManageSupervisors = () => {
         });
     };
 
-    const selectedInternName = eligibleInterns.find(u => u.id === selectedInternId)?.full_name || 'Selected User';
-
     // Guard Check
     if (!supervisors || !stats) return <PageLoader message="Loading supervisors..." />;
 
@@ -258,7 +303,7 @@ const ManageSupervisors = () => {
             {/* Header Section */}
             <div className="manage-interns-header">
                 <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Supervisors</h1>
-                <button className="btn btn-primary" style={{ gap: '0.5rem' }} onClick={handleOpenAddModal}>
+                <button className="btn btn-primary" style={{ gap: '0.5rem' }} onClick={handleSignUpModal}>
                     <Plus size={18} /> Add Supervisor
                 </button>
             </div>
@@ -425,39 +470,100 @@ const ManageSupervisors = () => {
             )}
 
             {/* Add Supervisor Modal */}
-            {isAddModalOpen && (
-                <div className="modal-overlay" onClick={handleCloseAddModal}>
+            {signUpModalOpen && (
+                <div className="modal-overlay" onClick={handleCloseSignupModal}>
                     <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '500px' }}>
-                        <h2 style={{ color: '#ea580c' }}>{confirmationStep ? 'Confirm Supervisor Addition' : 'Add New Supervisor'}</h2>
-                        {!confirmationStep ? (
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Select Intern:</label>
-                                {loadingInterns ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666', fontSize: '0.875rem', padding: '0.625rem 0' }}>
-                                        <Loader2 size={16} className="spinner" /> Loading eligible users...
-                                    </div>
-                                ) : (
-                                    <SearchableSelect
-                                        options={eligibleInterns.map(i => ({ value: i.id, label: `${i.full_name} (${i.email})` }))}
-                                        value={selectedInternId}
-                                        onChange={setSelectedInternId}
-                                        placeholder="-- Choose an intern --"
-                                        maxVisible={10}
-                                    />
-                                )}
+                        <h2 style={{ color: '#ea580c' }}>Register New Supervisor</h2>
+
+                        {signUpSuccess && (
+                            <div style={{
+                                padding: '1rem',
+                                marginBottom: '1.5rem',
+                                backgroundColor: '#dcfce7',
+                                color: '#166534',
+                                borderRadius: '8px',
+                                border: '1px solid #86efac',
+                            }}>
+                                ✅ Registration successful! Credentials sent to {signUpForm.email}
                             </div>
-                        ) : (
-                            <p>Are you sure you want to upgrade <strong>{selectedInternName}</strong> to Supervisor?</p>
                         )}
+
+                        {signUpError && (
+                            <div style={{
+                                padding: '0.75rem 1rem',
+                                marginBottom: '1.5rem',
+                                backgroundColor: 'hsl(var(--danger) / 0.1)',
+                                color: 'hsl(var(--danger))',
+                                borderRadius: '8px',
+                                border: '1px solid hsl(var(--danger) / 0.2)',
+                                fontSize: '0.875rem',
+                            }}>
+                                {signUpError}
+                            </div>
+                        )}
+
+                        {!signUpSuccess && (
+                            <div>
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Full Name:</label>
+                                    <input
+                                        className="input"
+                                        name="full_name"
+                                        value={signUpForm.full_name}
+                                        onChange={handleSignUpChange}
+                                        placeholder="Enter full name"
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Email:</label>
+                                    <input
+                                        className="input"
+                                        name="email"
+                                        type="email"
+                                        value={signUpForm.email}
+                                        onChange={handleSignUpChange}
+                                        placeholder="Enter email"
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Password:</label>
+                                    <input
+                                        className="input"
+                                        name="password"
+                                        type="password"
+                                        value={signUpForm.password}
+                                        onChange={handleSignUpChange}
+                                        placeholder="Min 8 characters"
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Confirm Password:</label>
+                                    <input
+                                        className="input"
+                                        name="password_confirmation"
+                                        type="password"
+                                        value={signUpForm.password_confirmation}
+                                        onChange={handleSignUpChange}
+                                        placeholder="Confirm password"
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                            <button className="btn" onClick={!confirmationStep ? handleCloseAddModal : () => setConfirmationStep(false)}>
-                                {confirmationStep ? 'Back' : 'Cancel'}
+                            <button className="btn" onClick={handleCloseSignupModal} disabled={signUpLoading}>
+                                Cancel
                             </button>
-                            {!confirmationStep ? (
-                                <button className="btn btn-primary" onClick={handleContinue} disabled={!selectedInternId || loadingInterns}>Next</button>
-                            ) : (
-                                <button className="btn btn-primary" onClick={handleConfirmUpgrade} disabled={upgrading}>
-                                    {upgrading ? <Loader2 size={18} /> : 'Confirm Upgrade'}
+                            {!signUpSuccess && (
+                                <button className="btn btn-primary" onClick={handleSignUpSubmit} disabled={signUpLoading}>
+                                    {signUpLoading ? <Loader2 size={18} className="spinner" style={{ display: 'inline' }} /> : 'Register'}
                                 </button>
                             )}
                         </div>

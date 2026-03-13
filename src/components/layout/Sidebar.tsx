@@ -94,6 +94,7 @@ const Sidebar = ({ isOpen: _isOpen = true, onClose, collapsed = false, onToggleC
                             { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
                             { to: '/admin/interns', label: 'Manage Interns', icon: Users },
                             { to: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
+                            { to: '/admin/logs', label: 'My Time Log', icon: Clock },
                             { to: '/admin/tasks', label: 'Manage Tasks', icon: ListTodo },
                             { to: '/admin/manage-admins', label: 'Manage Admins', icon: Shield },
                             { to: '/admin/manage-supervisors', label: 'Supervisors', icon: UserCheck },

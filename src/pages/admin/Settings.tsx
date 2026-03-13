@@ -62,26 +62,31 @@ const Settings = () => {
   useEffect(() => {
     const loadProfile = async () => {
       const { session, error } = await authService.getSession();
+      if (error || !session?.user) { setProfileLoading(false); return; }
 
-      if (session?.user) {
-        const userData = {  
-          id: session.user.id,
-          name: session.user.user_metadata.full_name || '',
-          email: session.user.email || '',
-          role: session.user.user_metadata.role || '',
-          ojt_id: session.user.user_metadata.ojt_id || '',
-          start_date: session.user.created_at ? new Date(session.user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
-          required_hours: session.user.user_metadata.required_hours || '',
-          ojt_type: session.user.user_metadata.ojt_type || '',
-          status: session.user.user_metadata.status || '',
-          created_at: session.user.created_at || '', // Added Created at If data is need in the profile Info
+      try {
+        // Load from Laravel API — this is the real source of truth
+        const res = await apiClient.get(`/users/${session.user.id}`);
+        const profile = res.data;
+        const userData = {
+          id: String(profile.id ?? session.user.id),
+          name: profile.full_name || '',
+          email: profile.email || session.user.email || '',
+          role: profile.role || '',
+          ojt_id: profile.ojt_id != null ? String(profile.ojt_id) : '',
+          start_date: profile.start_date || '',
+          required_hours: profile.required_hours != null ? String(profile.required_hours) : '',
+          ojt_type: profile.ojt_type || '',
+          status: profile.status || '',
+          created_at: profile.created_at || session.user.created_at || '',
         };
         setFormData(userData);
         setOriginalData(userData);
-      } else if (error) {
-        console.error("Fetch failed:", error);
+      } catch (e) {
+        console.error('Failed to load profile:', e);
+      } finally {
+        setProfileLoading(false);
       }
-      setProfileLoading(false);
     };
 
     loadProfile();
@@ -241,12 +246,10 @@ const Settings = () => {
         </h2>
 
         <div className="flex justify-center mb-8">
-          <div className="p-3 rounded-full bg-white border-[3px] border-gray-800 dark:border-gray-300">
-            <User 
-              size={100} 
-              className="text-gray-700 dark:text-gray-300" 
-              strokeWidth={1.5} 
-            />
+          <div className="w-24 h-24 rounded-2xl bg-[#FF8800] flex items-center justify-center shadow-[0_0_20px_rgba(255,136,0,0.25)]">
+            <span className="text-3xl font-black text-white select-none">
+              {formData.name ? formData.name.trim().charAt(0).toUpperCase() : <User size={40} />}
+            </span>
           </div>
         </div>
 
@@ -272,7 +275,32 @@ const Settings = () => {
               </label>
               <input
                 type="text"
-                defaultValue={formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : 'Supervisor'}
+                defaultValue={formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : 'Admin'}
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                OJT ID
+              </label>
+              <input
+                type="text"
+                value={formData.ojt_id || '—'}
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed font-mono tracking-wider"
+                title="Use this ID in the Time Log to clock in and out"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </label>
+              <input
+                type="text"
+                defaultValue={formData.status ? formData.status.charAt(0).toUpperCase() + formData.status.slice(1) : 'Active'}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
@@ -296,11 +324,41 @@ const Settings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                DATE STARTED
+                OJT Type
               </label>
               <input
                 type="text"
-                defaultValue={formData.start_date}
+                defaultValue={formData.ojt_type ? formData.ojt_type.charAt(0).toUpperCase() + formData.ojt_type.slice(1) : '—'}
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date Started
+              </label>
+              <input
+                type="text"
+                value={
+                  formData.start_date
+                    ? new Date(formData.start_date).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                      })
+                    : '—'
+                }
+                disabled
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Required Hours
+              </label>
+              <input
+                type="text"
+                defaultValue={formData.required_hours || '—'}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />

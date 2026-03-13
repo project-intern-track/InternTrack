@@ -240,24 +240,40 @@ export default function TaskList() {
         </p>
       </div>
 
-      {/* Tab Bar */}
-      <div className="flex flex-wrap gap-2">
-        {(["all", "not_started", "in_progress", "completed", "overdue"] as TabKey[]).map((key) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-              tab === key
-                ? "bg-[#FF8800] text-white shadow-[0_0_12px_rgba(255,136,0,0.3)]"
-                : "bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-white/10"
-            }`}
-          >
-            {TAB_LABELS[key]}
-            <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === key ? "bg-white/20" : "bg-gray-200 dark:bg-white/10"}`}>
-              {grouped[key].length}
-            </span>
-          </button>
-        ))}
+      {/* Tab Bar — dropdown on mobile, buttons on md+ */}
+      <div>
+        {/* Mobile dropdown */}
+        <select
+          value={tab}
+          onChange={(e) => setTab(e.target.value as TabKey)}
+          className="md:hidden w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white outline-none focus:border-[#FF8800] focus:ring-2 focus:ring-[#FF8800]/20"
+        >
+          {(["all", "not_started", "in_progress", "completed", "overdue"] as TabKey[]).map((key) => (
+            <option key={key} value={key}>
+              {TAB_LABELS[key]} ({grouped[key].length})
+            </option>
+          ))}
+        </select>
+
+        {/* Desktop buttons */}
+        <div className="hidden md:flex flex-wrap gap-2">
+          {(["all", "not_started", "in_progress", "completed", "overdue"] as TabKey[]).map((key) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                tab === key
+                  ? "bg-[#FF8800] text-white shadow-[0_0_12px_rgba(255,136,0,0.3)]"
+                  : "bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-white/10"
+              }`}
+            >
+              {TAB_LABELS[key]}
+              <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === key ? "bg-white/20" : "bg-gray-200 dark:bg-white/10"}`}>
+                {grouped[key].length}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Task Cards */}

@@ -91,6 +91,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/feedback/tasks',                                        [FeedbackController::class, 'supervisorTasks']);
     Route::post('/feedback/tasks/{taskId}/interns/{internId}',           [FeedbackController::class, 'submitFeedback']);
     Route::get('/feedback/my-feedback',                                  [FeedbackController::class, 'myFeedback']);
+    Route::get('/feedback/interns/{internId}/final-score',               [FeedbackController::class, 'getInternFinalScore']);
 
     // Evaluation Routes
     Route::get('/evaluations',           [EvaluationController::class, 'index']);

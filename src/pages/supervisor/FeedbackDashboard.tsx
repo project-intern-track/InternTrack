@@ -201,6 +201,105 @@ const FeedbackDashboard = () => {
                       </span>
                     </td>
                     <td className="py-3 pr-4">
+                      <div className="flex items-center gap-2">
+                        {task.status === 'Submitted' ? (
+                          <>
+                            <button
+                              className="rounded-md border border-gray-200 p-2 text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
+                              onClick={() => setSelectedTask(task)}
+                              title="View Feedback"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              className="rounded-md border border-gray-200 p-2 text-amber-600 transition hover:bg-amber-50 hover:text-amber-700 dark:border-white/10 dark:text-amber-300 dark:hover:bg-amber-500/10"
+                              onClick={() => setSelectedTask(task)}
+                              title="Edit Feedback"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className="rounded-md border border-gray-200 p-2 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:text-blue-300 dark:hover:bg-blue-500/10"
+                            onClick={() => setSelectedTask(task)}
+                            title="Give Feedback"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Task Modal */}
+      {selectedTask && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="relative max-h-[90%] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-slate-900"
+          >
+            <button
+              onClick={() => setSelectedTask(null)}
+              className="absolute right-2 top-2 rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task Title</p>
+                <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">{selectedTask.taskName}</p>
+              </div>
+              <div className="md:text-right">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Completion Date</p>
+                <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">{formatDate(selectedTask.completionDate)}</p>
+              </div>
+            </div>
+
+            <div className="mb-5">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task Description</p>
+              <textarea
+                readOnly
+                value={selectedTask.taskDescription}
+                rows={3}
+                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 outline-none dark:border-white/10 dark:bg-slate-900 dark:text-gray-200"
+              />
+            </div>
+
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Assigned Interns</p>
+            <table className="w-full border-collapse text-sm">
+              <thead className="bg-primary text-primary-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left">Name</th>
+                  <th className="px-3 py-2 text-left">Role</th>
+                  <th className="px-3 py-2 text-left">Status</th>
+                  <th className="px-3 py-2 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedTask.interns.map((intern, idx) => (
+                  <tr key={intern.id} className="border-b border-gray-100 last:border-none dark:border-white/10">
+                    <td className="px-3 py-3 text-gray-800 dark:text-gray-200">{intern.name}</td>
+                    <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{intern.role}</td>
+                    <td className="px-3 py-3">
+                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+                        intern.feedback_submitted
+                          ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300'
+                          : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                      }`}>
+                        {intern.feedback_submitted ? 'Submitted' : 'Pending'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
                       <button
                         className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground transition-all hover:brightness-95"
                         onClick={() => openModal(row)}

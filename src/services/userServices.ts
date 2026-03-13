@@ -285,7 +285,17 @@ export const userService = {
             const response = await apiClient.get(
                 "/users?role=intern&status=active",
             );
-            return response.data as Users[];
+
+            const filteredRole = (response.data as Users[]).filter(user =>
+            
+                user.ojt_role === "IT Support" ||
+                user.ojt_role === "Project Manager" ||
+                user.ojt_role === "it_support" ||
+                user.ojt_role === "project_manager"
+
+            );
+
+            return filteredRole;
         } catch (error: any) {
             throw new Error(
                 `Error Fetching Interns for Upgrade: ${

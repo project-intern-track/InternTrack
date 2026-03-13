@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash, Lock } from 'lucide-react';
+import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash, Lock, X } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import type { Attendance } from '../../types/database.types';
 
@@ -54,10 +54,14 @@ const DailyLogs = () => {
     const [notice, setNotice] = useState<string | null>(null);
     const [elapsed, setElapsed] = useState(0);
     const [cappedBanner, setCappedBanner] = useState(false);
+    
+    // Modal state
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 5;
+    const ITEMS_PER_PAGE = 4;
 
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const dayCheckRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -194,19 +198,31 @@ const DailyLogs = () => {
     };
 
     // ── Delete entry ──────────────────────────────────────────────────────
-    const handleDelete = async (id: string) => {
-        if (!window.confirm('Delete this attendance record?')) return;
+    const handleDeleteClick = (id: string) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        setIsDeleting(true);
         try {
-            await attendanceService.deleteAttendance(id);
-            setLogs(prev => prev.filter(l => l.id !== id));
-            if (todayRecord?.id === id) {
+            await attendanceService.deleteAttendance(deleteId);
+            setLogs(prev => prev.filter(l => l.id !== deleteId));
+            if (todayRecord?.id === deleteId) {
                 setTodayRecord(null);
                 setSessionState('idle');
                 setElapsed(0);
             }
         } catch (err: any) {
             setError(err.message ?? 'Failed to delete record.');
+        } finally {
+            setIsDeleting(false);
+            setDeleteId(null);
         }
+    };
+
+    const cancelDelete = () => {
+        setDeleteId(null);
     };
 
     // ── Derived stats ──────────────────────────────────────────────────────
@@ -338,7 +354,7 @@ const DailyLogs = () => {
                 .tl-alert-notice { background:#fef3c7;color:#92400e; }
                 /* Entries */
                 .tl-entries { background:#fff;border:1px solid hsl(var(--border));border-radius:1.25rem;padding:1.5rem; display: flex; flex-direction: column; }
-                .tl-entries-list { flex: 1; display: flex; flex-direction: column; min-height: 400px; }
+                .tl-entries-list { flex: 1; display: flex; flex-direction: column; min-height: 320px; }
                 .tl-entries-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem; flex-shrink: 0; }
                 .tl-entries-title { font-size:1.0625rem;font-weight:700;color:hsl(var(--foreground));margin:0; }
                 .tl-refresh-btn { background:none;border:none;cursor:pointer;color:hsl(var(--orange));display:flex;align-items:center;gap:.25rem;font-size:.8125rem;font-weight:700;padding:.25rem .5rem;border-radius:.5rem; }
@@ -360,6 +376,22 @@ const DailyLogs = () => {
                 .tl-pag-btn { background: #fff; border: 1px solid hsl(var(--border)); border-radius: .5rem; padding: .375rem .75rem; font-size: .8125rem; font-weight: 600; color: hsl(var(--foreground)); cursor: pointer; transition: all .15s; }
                 .tl-pag-btn:hover:not(:disabled) { background: hsl(var(--muted)); }
                 .tl-pag-btn:disabled { opacity: .5; cursor: not-allowed; }
+                /* Modal */
+                .tl-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; animation: tl-fadein 0.2s ease both; backdrop-filter: blur(2px); }
+                .tl-modal { background: #fff; width: 100%; max-width: 400px; border-radius: 1.25rem; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 1.25rem; position: relative; }
+                .tl-modal-close { position: absolute; right: 1rem; top: 1rem; background: none; border: none; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 0.25rem; border-radius: 0.5rem; transition: background 0.15s; }
+                .tl-modal-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+                .tl-modal-header { display: flex; align-items: center; gap: 0.75rem; color: #ef4444; }
+                .tl-modal-icon { background: #fee2e2; padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+                .tl-modal-title { font-size: 1.125rem; font-weight: 700; color: hsl(var(--foreground)); margin: 0; }
+                .tl-modal-body { font-size: 0.9375rem; color: hsl(var(--muted-foreground)); line-height: 1.5; margin: 0; }
+                .tl-modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem; }
+                .tl-modal-btn { padding: 0.625rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none; }
+                .tl-modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+                .tl-modal-cancel { background: #f3f4f6; color: #4b5563; }
+                .tl-modal-cancel:hover:not(:disabled) { background: #e5e7eb; }
+                .tl-modal-confirm { background: #ef4444; color: #fff; display: flex; align-items: center; gap: 0.375rem; }
+                .tl-modal-confirm:hover:not(:disabled) { background: #dc2626; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); }
                 @media(max-width:900px){ .tl-grid{grid-template-columns:1fr;} }
                 @media(max-width:600px){ .tl-stats{grid-template-columns:1fr 1fr;} }
             `}</style>
@@ -574,7 +606,9 @@ const DailyLogs = () => {
                                                         {' → '}
                                                         {log.time_out
                                                             ? formatTimeFull(log.time_out)
-                                                            : <span style={{ color: 'hsl(var(--orange))' }}>In progress…</span>}
+                                                            : isToday 
+                                                                ? <span style={{ color: 'hsl(var(--orange))' }}>In progress…</span>
+                                                                : <span style={{ color: '#ef4444' }}>Missing Clock-Out</span>}
                                                     </div>
                                                     <div style={{ display: 'flex', gap: '.375rem', flexWrap: 'wrap', alignItems: 'center' }}>
                                                         <span className="tl-entry-badge">{log.total_hours} hrs</span>
@@ -585,7 +619,7 @@ const DailyLogs = () => {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <button className="tl-del-btn" onClick={() => handleDelete(log.id)} title="Delete">
+                                                <button className="tl-del-btn" onClick={() => handleDeleteClick(log.id)} title="Delete">
                                                     <Trash size={15}/>
                                                 </button>
                                             </div>
@@ -619,7 +653,35 @@ const DailyLogs = () => {
                         )}
                     </div>
                 </div>
-            </div>
+        </div>
+
+            {/* Custom Modal */}
+            {deleteId && (
+                <div className="tl-modal-overlay" onClick={cancelDelete}>
+                    <div className="tl-modal" onClick={e => e.stopPropagation()}>
+                        <button className="tl-modal-close" onClick={cancelDelete} disabled={isDeleting}>
+                            <X size={18} />
+                        </button>
+                        <div className="tl-modal-header">
+                            <div className="tl-modal-icon">
+                                <Trash size={24} />
+                            </div>
+                            <h3 className="tl-modal-title">Delete Record</h3>
+                        </div>
+                        <p className="tl-modal-body">
+                            Are you sure you want to delete this attendance record? This action cannot be undone.
+                        </p>
+                        <div className="tl-modal-footer">
+                            <button className="tl-modal-btn tl-modal-cancel" onClick={cancelDelete} disabled={isDeleting}>
+                                Cancel
+                            </button>
+                            <button className="tl-modal-btn tl-modal-confirm" onClick={confirmDelete} disabled={isDeleting}>
+                                {isDeleting ? <RefreshCw size={16} className="tl-spinning" /> : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

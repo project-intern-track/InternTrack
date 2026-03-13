@@ -122,24 +122,6 @@ const ReportDetails = () => {
     return (
         <div style={{ padding: '1rem', maxWidth: '1000px', margin: '0 auto' }}>
             <style>{`
-                .report-details-header {
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                    gap: 1rem;
-                }
-                .report-details-profile {
-                    display: flex;
-                    justify-content: center;
-                    align-items: flex-start;
-                    flex-direction: column;
-                    margin-top: 0;
-                    flex: 0 0 auto;
-                }
-                .report-details-info {
-                    flex: 1 1 auto;
-                    min-width: 0;
-                }
                 @media (max-width: 640px) {
                     .report-details-header {
                         flex-direction: column;
@@ -210,7 +192,7 @@ const ReportDetails = () => {
                 </div>
 
                 {/* Intern Information */}
-                <div style={{
+                <div className="report-details-header" style={{
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',

@@ -9,6 +9,7 @@ interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
   user: {
     full_name: string;
+    role?: string;
   };
 }
 
@@ -34,6 +35,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState(todayDate);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,9 +85,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const handleExport = () => {
     if (filteredRecords.length === 0) return;
 
-    const headers = ['Name', 'Date', 'Time In', 'Time Out', 'Total Hours', 'Status'];
+    const headers = ['Name', 'Role', 'Date', 'Time In', 'Time Out', 'Total Hours', 'Status'];
     const rows = filteredRecords.map(r => [
       `"${r.user.full_name}"`,
+      r.user.role ? r.user.role.charAt(0).toUpperCase() + r.user.role.slice(1) : 'Intern',
       formatDate(r.date),
       r.time_in ? formatTime(r.time_in) : '',
       r.time_out ? formatTime(r.time_out) : '',
@@ -144,20 +147,22 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     return uniqueRecords.filter((record) => {
       const searchTermLower = searchTerm.trim().toLowerCase();
       const matchesSearch = searchTermLower === '' || record.user.full_name.toLowerCase().includes(searchTermLower);
-      
+
       const matchesStatus = statusFilter === 'all' || record.status.toLowerCase() === statusFilter.toLowerCase();
-      
+
+      const matchesRole = roleFilter === 'all' || (record.user.role ?? 'intern').toLowerCase() === roleFilter.toLowerCase();
+
       //show all records
       const matchesDate = dateFilter === 'all' || record.date.trim() === dateFilter.trim();
 
-      return matchesSearch && matchesStatus && matchesDate;
+      return matchesSearch && matchesStatus && matchesRole && matchesDate;
     });
-  }, [uniqueRecords, searchTerm, statusFilter, dateFilter]);
+  }, [uniqueRecords, searchTerm, statusFilter, roleFilter, dateFilter]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, dateFilter]);
+  }, [searchTerm, statusFilter, roleFilter, dateFilter]);
 
   // Calculate pagination
   const totalRecords = filteredRecords.length;
@@ -267,8 +272,18 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
+  const getRoleBadge = (role?: string) => {
+    switch ((role ?? 'intern').toLowerCase()) {
+      case 'admin':
+        return <span style={{ padding: '4px 8px', borderRadius: '4px', background: '#ede9fe', color: '#5b21b6', fontWeight: 600, fontSize: '0.75rem' }}>Admin</span>;
+      case 'supervisor':
+        return <span style={{ padding: '4px 8px', borderRadius: '4px', background: '#ccfbf1', color: '#0f766e', fontWeight: 600, fontSize: '0.75rem' }}>Supervisor</span>;
+      default:
+        return <span style={{ padding: '4px 8px', borderRadius: '4px', background: '#dbeafe', color: '#1d4ed8', fontWeight: 600, fontSize: '0.75rem' }}>Intern</span>;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {    switch (status.toLowerCase()) {
       case 'present':
       case 'completed':
         return <span className="badge badge-success" style={{ padding: '4px 8px', borderRadius: '4px', background: '#dcfce7', color: '#166534', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Present</span>;
@@ -1021,6 +1036,36 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   }}
                 />
               </div>
+
+              <div style={{ position: 'relative', flex: '1', minWidth: '130px' }}>
+                <select
+                  className="select"
+                  value={roleFilter}
+                  onChange={(e) => {
+                    if (scrollContainerRef.current) {
+                      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+                    }
+                    setRoleFilter(e.target.value);
+                  }}
+                  style={{ width: '100%', backgroundColor: 'white', paddingRight: '2.5rem' }}
+                >
+                  <option value="all">All Roles</option>
+                  <option value="intern">Intern</option>
+                  <option value="admin">Admin</option>
+                  <option value="supervisor">Supervisor</option>
+                </select>
+                <ChevronDown
+                  size={16}
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    color: 'hsl(var(--muted-foreground))',
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1050,11 +1095,12 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 <table className="attendance-table-header">
                   <thead>
                     <tr>
-                      <th style={{ width: '20%' }}>NAME</th>
-                      <th style={{ width: '12%' }}>DATE</th>
-                      <th style={{ width: '15%' }}>TIME IN</th>
-                      <th style={{ width: '15%' }}>TIME OUT</th>
-                      <th style={{ width: '18%' }}>TOTAL HOURS</th>
+                      <th style={{ width: '18%' }}>NAME</th>
+                      <th style={{ width: '10%' }}>ROLE</th>
+                      <th style={{ width: '11%' }}>DATE</th>
+                      <th style={{ width: '13%' }}>TIME IN</th>
+                      <th style={{ width: '13%' }}>TIME OUT</th>
+                      <th style={{ width: '15%' }}>TOTAL HOURS</th>
                       <th style={{ width: '20%' }}>STATUS</th>
                     </tr>
                   </thead>
@@ -1066,13 +1112,14 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                     <tbody>
                       {paginatedRecords.map((record, index) => (
                         <tr key={`${record.id}-${record.date}-${index}`}>
-                          <td style={{ width: '20%' }}>
+                          <td style={{ width: '18%' }}>
                             <strong>{record.user?.full_name || 'Unknown User'}</strong>
                           </td>
-                          <td style={{ width: '12%' }}>{formatDate(record.date)}</td>
-                          <td style={{ width: '15%' }}>{formatTime(record.time_in)}</td>
-                          <td style={{ width: '15%' }}>{formatTime(record.time_out)}</td>
-                          <td style={{ width: '18%' }}>{formatHours(record.total_hours)}</td>
+                          <td style={{ width: '10%' }}>{getRoleBadge(record.user?.role)}</td>
+                          <td style={{ width: '11%' }}>{formatDate(record.date)}</td>
+                          <td style={{ width: '13%' }}>{formatTime(record.time_in)}</td>
+                          <td style={{ width: '13%' }}>{formatTime(record.time_out)}</td>
+                          <td style={{ width: '15%' }}>{formatHours(record.total_hours)}</td>
                           <td style={{ width: '20%' }}>{getStatusBadge(record.status)}</td>
                         </tr>
                       ))}
@@ -1090,6 +1137,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                       <div>{getStatusBadge(record.status)}</div>
                     </div>
                     <div className="attendance-mobile-record-details">
+                      <div className="attendance-mobile-record-row">
+                        <span className="attendance-mobile-record-label">Role</span>
+                        <span className="attendance-mobile-record-value">{getRoleBadge(record.user?.role)}</span>
+                      </div>
                       <div className="attendance-mobile-record-row">
                         <span className="attendance-mobile-record-label">Date</span>
                         <span className="attendance-mobile-record-value">{formatDate(record.date)}</span>

@@ -50,6 +50,7 @@ import ReportDetails from "./pages/admin/ReportDetails";
 import AdminSettings from "./pages/admin/Settings";
 import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminManageAdmins from "./pages/admin/ManageAdmins";
+import AdminDailyLogs from "./pages/admin/DailyLogs";
 import Notifications from "./pages/shared/Notifications";
 
 
@@ -262,6 +263,7 @@ function AppRoutes() {
           <Route path="manage-supervisors" element={<AdminManageSupervisors />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="reports/:internId" element={<ReportDetails />} />
+          <Route path="logs" element={<AdminDailyLogs />} />
           <Route path="announcements" element={<AdminAnnouncements />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="notifications" element={<Notifications />} />

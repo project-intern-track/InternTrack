@@ -72,6 +72,17 @@ export const authService = {
         }
     },
 
+    // Direct Signup of 
+    async registerSupervisor(data:{
+        full_name: string;
+        email: string;
+        password: string;
+        password_confirmation: string;
+    }): Promise<void> {
+        const response = await apiClient.post('/auth/register-supervisor', data);
+        return response.data;
+    },
+
     async signIn(email: string, password: string): Promise<AuthResult> {
         try {
             const response = await apiClient.post("/auth/login", {

@@ -18,6 +18,7 @@ const Evaluations = () => {
   const [supervisorIdFilter, setSupervisorIdFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingEvaluation, setEditingEvaluation] = useState<Evaluation | null>(null);
+  const [internMap, setInternMap] = useState<{ [key: number]: string}>({});
   const [formData, setFormData] = useState({
     task_completion: 0,
     competency_score: '',
@@ -70,11 +71,11 @@ const Evaluations = () => {
       }
     };
 
+    // All intern Data from Feedback
     const fetchInterns = async () => {
       try {
         const params = { role: 'intern' };
         const interns = await userService.fetchInterns(params);
-        console.log('What did the API return?', interns);
         if (Array.isArray(interns)) {
           setAllInterns(interns);
         } else {
@@ -86,11 +87,30 @@ const Evaluations = () => {
       }
     };
 
+    // All Intern Names For Map Guide in Table Data
+    const fetchInternName = async () => {
+      try {
+        const internName: { [key: number]: string } = {};
+
+        for (const intern of allInterns) {
+          internName[intern.id] = intern.full_name || intern.name || `Intern ${intern.id}`;
+        }
+
+        setInternMap(internName)
+      } catch (err){
+        console.error("Failed to Catch Intern Name", err);
+      }
+
+    if (allInterns.length > 0) {
+      fetchInternName();
+    }
+
+    };
+
     const fetchEvaluations = async () => {
       try {
         setLoading(true);
         const data = await evaluationService.getEvaluations();
-        console.log('Fetched Evaluations:', data);
         setEvaluations(Array.isArray(data) ? data : []);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch evaluations');
@@ -101,9 +121,27 @@ const Evaluations = () => {
     };
 
     fetchInterns();
+    fetchInternName();
     fetchCurrentUser();
     fetchEvaluations();
   }, []);
+
+  useEffect(() =>  {
+    if (allInterns.length > 0) {
+      try {
+      const internNames: { [key: number]: string} = {};
+
+      for (const intern of allInterns) {
+        internNames[intern.id] = intern.full_name || intern.name || `Intern ${intern.id}`;
+        }
+
+        setInternMap(internNames)
+      } catch (err){
+        console.error("Failed to Catch Intern Name", err);
+      }
+    }
+
+  }, [allInterns])
 
   const uniqueInternIds = Array.from(new Set(evaluations.map(e => e.intern_id).filter(Boolean)));
   const uniqueSupervisorIds = Array.from(new Set(evaluations.map(e => e.supervisor_id).filter(Boolean)));
@@ -126,6 +164,8 @@ const Evaluations = () => {
   const handleCreateEvaluation = async () => {
     if (!currentUser) return;
     try {
+      const selectedInternName = internMap[Number(createFormData.intern_id)] || 'Unknown Intern';
+
       const payload = {
         intern_id: Number(createFormData.intern_id),
         supervisor_id: Number(currentUser.id),
@@ -134,7 +174,7 @@ const Evaluations = () => {
         score: Number(createFormData.score),
         feedback: String(createFormData.feedback),
         evaluation_date: new Date().toISOString().split('T')[0],
-        intern_name: `Intern ${createFormData.intern_id}`,
+        intern_name: selectedInternName,
       };
       const newEvaluation = await evaluationService.createEvaluation(payload as any);
       setEvaluations([...evaluations, newEvaluation]);
@@ -155,15 +195,28 @@ const Evaluations = () => {
     });
   };
 
+  // Updated Handle Deletion
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this evaluation?')) {
-      try {
-        await evaluationService.deleteEvaluation(String(id));
-        setEvaluations(evaluations.filter(evaluation => Number(evaluation.id) !== Number(id)));
-      } catch (err: any) {
-        console.error('Delete failed:', err);
-      }
+    setDeleteConfirm(id);
+  };
+
+
+  const confirmDelete = async () => {
+    if (deleteConfirm === null) return;
+    try {
+      await evaluationService.deleteEvaluation(String(deleteConfirm));
+      setEvaluations(evaluations.filter(evaluation => Number(evaluation.id) !== Number(deleteConfirm)));
+      setDeleteConfirm(null);
+    } catch (err) {
+      console.error('Error Message: ', err);
+      alert('Failed to Delete Evaluation');
     }
+  };  
+
+  const cancelDelete = () => {
+    setDeleteConfirm(null);
   };
 
   const handleEdit = (evaluation: Evaluation) => {
@@ -512,6 +565,42 @@ const Evaluations = () => {
                 className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90"
               >
                 Save
+              </button>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm !== null && createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }} 
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
+          >
+            <div className="mb-4">
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white">Delete Evaluation</h3>
+            </div>
+
+            <p className="mb-6 text-gray-700 dark:text-gray-300">
+              Are you sure you want to delete this evaluation? This action cannot be undone.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 rounded-lg border border-gray-300 py-2 font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 rounded-lg bg-red-500 py-2 font-semibold text-white hover:bg-red-600"
+              >
+                Delete
               </button>
             </div>
           </motion.div>

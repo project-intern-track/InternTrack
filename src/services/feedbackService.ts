@@ -30,6 +30,7 @@ export type FeedbackEntry = {
   competency: string;
   rating: number;
   comment: string;
+  taskName?: string;
   createdAt: string;
   reviewerName?: string;
 };

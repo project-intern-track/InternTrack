@@ -158,6 +158,9 @@ export default function PerformanceFeedback() {
                     </span>
                     <Stars rating={fb.rating} />
                   </div>
+                  {fb.taskName && (
+                    <p className="text-xs font-semibold text-[#FF8800] mb-1.5">{fb.taskName}</p>
+                  )}
                   <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 mb-2.5">
                     <Calendar size={12} />
                     {formatDate(fb.createdAt)}

@@ -68,12 +68,12 @@ class FeedbackController extends Controller
         $intern = $request->user();
 
         $feedbacks = TaskFeedback::where('intern_id', $intern->id)
-            ->with('supervisor:id,full_name')
+            ->with(['supervisor:id,full_name', 'task:id,title'])
             ->orderByDesc('created_at')
             ->get();
 
         $competencyBuckets = [];
-        $latestPerCompetency = [];
+        $allFeedbackEntries = [];
 
         foreach ($feedbacks as $fb) {
             foreach ($fb->competency_ratings as $cr) {
@@ -84,17 +84,16 @@ class FeedbackController extends Controller
                 $competencyBuckets[$key]['label'] = $competency;
                 $competencyBuckets[$key]['ratings'][] = (int) $cr['rating'];
 
-                // Keep only the most recent entry per competency (feedbacks are ordered desc)
-                if (!isset($latestPerCompetency[$key])) {
-                    $latestPerCompetency[$key] = [
-                        'id'           => $fb->id . '-' . $key,
-                        'competency'   => $competency,
-                        'rating'       => (int) $cr['rating'],
-                        'comment'      => $cr['comment'] ?? '',
-                        'createdAt'    => $fb->created_at->toISOString(),
-                        'reviewerName' => $fb->supervisor?->full_name,
-                    ];
-                }
+                // Keep every entry from every task (chronological history)
+                $allFeedbackEntries[] = [
+                    'id'           => $fb->id . '-' . $key,
+                    'competency'   => $competency,
+                    'rating'       => (int) $cr['rating'],
+                    'comment'      => $cr['comment'] ?? '',
+                    'taskName'     => $fb->task?->title ?? '',
+                    'createdAt'    => $fb->created_at->toISOString(),
+                    'reviewerName' => $fb->supervisor?->full_name,
+                ];
             }
         }
 
@@ -108,13 +107,12 @@ class FeedbackController extends Controller
             ];
         }, array_keys($competencyBuckets), array_values($competencyBuckets));
 
-        $recentFeedback = array_values($latestPerCompetency);
-        usort($recentFeedback, fn($a, $b) => strcmp($b['createdAt'], $a['createdAt']));
+        usort($allFeedbackEntries, fn($a, $b) => strcmp($b['createdAt'], $a['createdAt']));
 
         return response()->json([
             'data' => [
                 'skills'         => array_values($skills),
-                'recentFeedback' => $recentFeedback,
+                'recentFeedback' => $allFeedbackEntries,
             ],
         ]);
     }

@@ -38,3 +38,6 @@ package.json
 # SSH deploy keys
 interntrack_deploy
 interntrack_deploy.pub
+
+# CI-generated production env (never commit)
+backend/backend.env

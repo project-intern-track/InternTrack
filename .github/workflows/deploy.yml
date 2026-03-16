@@ -52,7 +52,51 @@ jobs:
           sed -i "s|__DIR__.'/../vendor|__DIR__.'/../backend-app/vendor|g" dist/index.php
           sed -i "s|__DIR__.'/../bootstrap|__DIR__.'/../backend-app/bootstrap|g" dist/index.php
 
-      # ── DEPLOY: Backend (with vendor/) to backend-app/ ───────────────────
+      # ── ENV: Write .env in CI runner — no SSH heredoc indentation issues ─
+      # Secrets are passed as env vars so their values are never exposed in
+      # the workflow YAML. The output file is deployed alongside the backend.
+      - name: Create production .env
+        env:
+          V_APP_KEY: ${{ secrets.APP_KEY }}
+          V_DOMAIN: ${{ secrets.HOSTINGER_DOMAIN }}
+          V_DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          V_DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          V_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          V_MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          V_MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+        run: |
+          {
+            echo "APP_NAME=InternTrack"
+            echo "APP_ENV=production"
+            echo "APP_DEBUG=false"
+            echo "APP_KEY=${V_APP_KEY}"
+            echo "APP_URL=https://${V_DOMAIN}"
+            echo "APP_TIMEZONE=Asia/Manila"
+            echo ""
+            echo "DB_CONNECTION=mysql"
+            echo "DB_HOST=127.0.0.1"
+            echo "DB_PORT=3306"
+            echo "DB_DATABASE=${V_DB_DATABASE}"
+            echo "DB_USERNAME=${V_DB_USERNAME}"
+            echo "DB_PASSWORD=${V_DB_PASSWORD}"
+            echo ""
+            echo "SESSION_DRIVER=cookie"
+            echo "SANCTUM_STATEFUL_DOMAINS=${V_DOMAIN}"
+            echo "FRONTEND_URL=https://${V_DOMAIN}"
+            echo ""
+            echo "MAIL_MAILER=smtp"
+            echo "MAIL_HOST=smtp.gmail.com"
+            echo "MAIL_PORT=587"
+            echo "MAIL_USERNAME=${V_MAIL_USERNAME}"
+            echo "MAIL_PASSWORD=${V_MAIL_PASSWORD}"
+            echo "MAIL_FROM_ADDRESS=\"${V_MAIL_USERNAME}\""
+            echo "MAIL_FROM_NAME=InternTrack"
+            echo ""
+            echo "QUEUE_CONNECTION=database"
+            echo "CACHE_STORE=database"
+          } > backend/backend.env
+
+      # ── DEPLOY: Backend (with vendor/ and backend.env) to backend-app/ ───
       - name: Deploy Backend to Hostinger
         uses: easingthemes/ssh-deploy@main
         with:
@@ -65,7 +109,7 @@ jobs:
           TARGET: "/home/${{ secrets.HOSTINGER_SSH_USER }}/domains/${{ secrets.HOSTINGER_DOMAIN }}/backend-app/"
           EXCLUDE: "/node_modules/, .env, .git/, /storage/logs/*, /storage/framework/cache/*"
 
-      # ── DEPLOY: Frontend dist/ to public_html/ ───────────────────────────
+      # ── DEPLOY: Frontend dist/ (+ Laravel index.php) to public_html/ ─────
       - name: Deploy Frontend to public_html
         uses: easingthemes/ssh-deploy@main
         with:
@@ -78,7 +122,7 @@ jobs:
           TARGET: "/home/${{ secrets.HOSTINGER_SSH_USER }}/domains/${{ secrets.HOSTINGER_DOMAIN }}/public_html/"
           EXCLUDE: ".git/"
 
-      # ── POST-DEPLOY: Write .env + run artisan commands on server ─────────
+      # ── POST-DEPLOY: Activate .env + run artisan commands on server ───────
       - name: Configure and Finalize Laravel on Server
         uses: appleboy/ssh-action@master
         with:
@@ -96,40 +140,8 @@ jobs:
 
             cd $BACKEND_PATH
 
-            # Write production .env
-            cat > .env << ENVEOF
-            APP_NAME=InternTrack
-            APP_ENV=production
-            APP_DEBUG=false
-            APP_KEY=${{ secrets.APP_KEY }}
-            APP_URL=https://${{ secrets.HOSTINGER_DOMAIN }}
-            APP_TIMEZONE=Asia/Manila
-
-            DB_CONNECTION=mysql
-            DB_HOST=127.0.0.1
-            DB_PORT=3306
-            DB_DATABASE=${{ secrets.DB_DATABASE }}
-            DB_USERNAME=${{ secrets.DB_USERNAME }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-
-            SESSION_DRIVER=cookie
-            SANCTUM_STATEFUL_DOMAINS=${{ secrets.HOSTINGER_DOMAIN }}
-            FRONTEND_URL=https://${{ secrets.HOSTINGER_DOMAIN }}
-
-            MAIL_MAILER=smtp
-            MAIL_HOST=smtp.gmail.com
-            MAIL_PORT=587
-            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-            MAIL_FROM_ADDRESS="${{ secrets.MAIL_USERNAME }}"
-            MAIL_FROM_NAME="InternTrack"
-
-            QUEUE_CONNECTION=database
-            CACHE_STORE=database
-            ENVEOF
-
-            # Strip leading whitespace from each line caused by YAML indentation
-            sed -i 's/^[[:space:]]*//' .env
+            # Activate the .env written cleanly by the CI runner
+            mv backend.env .env
 
             # Optimize for production
             php artisan optimize:clear

@@ -19,10 +19,20 @@ class VerifyEmailNotification extends VerifyEmail
 
     protected function verificationUrl($notifiable): string
     {
-        // Force the signed URL to use APP_URL from config so it correctly
-        // points to localhost in local dev and the live domain in production,
-        // regardless of the current request context.
-        URL::forceRootUrl(config('app.url'));
+        // Determine the correct backend URL based on environment
+        $appUrl = config('app.url');
+
+        // If running on localhost, use the backend localhost URL
+        // If running on production, use the website/domain URL from config
+        if (app()->environment('local')) {
+            $appUrl = 'http://localhost:8000'; // Backend URL for local dev
+        } else {
+            // In production, use the APP_URL which should be the actual domain
+            $appUrl = config('app.url');
+        }
+
+        // Force the signed URL to use the determined URL
+        URL::forceRootUrl($appUrl);
 
         return URL::temporarySignedRoute(
             'verification.verify',

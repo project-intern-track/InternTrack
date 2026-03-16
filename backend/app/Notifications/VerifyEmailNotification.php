@@ -19,9 +19,12 @@ class VerifyEmailNotification extends VerifyEmail
 
     protected function verificationUrl($notifiable): string
     {
-        $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:5173'));
+        // Force the signed URL to use APP_URL from config so it correctly
+        // points to localhost in local dev and the live domain in production,
+        // regardless of the current request context.
+        URL::forceRootUrl(config('app.url'));
 
-        $signedUrl = URL::temporarySignedRoute(
+        return URL::temporarySignedRoute(
             'verification.verify',
             Carbon::now()->addMinutes(Config::get('auth.verification.expire', 1440)),
             [
@@ -29,11 +32,5 @@ class VerifyEmailNotification extends VerifyEmail
                 'hash' => sha1($notifiable->getEmailForVerification()),
             ]
         );
-
-        // Replace the Laravel API base URL with the frontend URL
-        // so the link in the email goes to the frontend /verify-email page,
-        // which then calls the Laravel signed route via a redirect.
-        // Actually we keep the Laravel API URL since the route handles redirect.
-        return $signedUrl;
     }
 }

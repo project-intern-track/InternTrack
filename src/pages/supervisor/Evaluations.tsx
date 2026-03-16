@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { BarChart, ClipboardList, Search, Users, Edit, Trash, X } from 'lucide-react';
 import type { Evaluation } from '../../types/database.types';
@@ -31,8 +32,7 @@ const Evaluations = () => {
     score: 0,
     feedback: '',
   });
-  const [allInterns, setAllInterns] = useState<any[]>([]); // For dropdowns
-
+  const [allInterns, setAllInterns] = useState<any[]>([]);
 
   const handleInternSelect = async (internId: string) => {
     try {
@@ -43,58 +43,47 @@ const Evaluations = () => {
         competency_score: scoreData.avgCompetency,
         score: scoreData.finalScore,
         feedback: '',
-      })
+      });
     } catch (err) {
       console.log('Error Message: ', err);
-      // If fetch fails, just set intern_id and let supervisor fill in rest manually
       setCreateFormData({
         intern_id: internId,
         task_completion: 0,
         competency_score: '',
         score: 0,
         feedback: '',
-      })
+      });
     }
   };
 
   useEffect(() => {
-    // Get Supervisor Data for Auto-filling Supervisor ID in Create Form
     const fetchCurrentUser = async () => {
-      try{
+      try {
         const { session, error } = await authService.getSession();
-        
         if (session?.user?.id) {
-          setCurrentUser({id: session.user.id});
-          
+          setCurrentUser({ id: session.user.id });
         } else {
           console.error('No user session found', error);
-
         }
       } catch (err: any) {
         console.error('Failed to fetch current user:', err);
-
       }
     };
 
     const fetchInterns = async () => {
-      try { 
-        // Get All Current Interns for Dropdowns (Create/Edit Forms)
-        const params = {role: 'intern'}; // Adjusted so only Role = Intern will be given back
-
+      try {
+        const params = { role: 'intern' };
         const interns = await userService.fetchInterns(params);
-
-        console.log("What did the API return?", interns);
-
-
+        console.log('What did the API return?', interns);
         if (Array.isArray(interns)) {
           setAllInterns(interns);
         } else {
-          console.warn("API did not return an array. Check the structure:", interns);
+          console.warn('API did not return an array. Check the structure:', interns);
           setAllInterns([]);
         }
       } catch (err: any) {
         console.error('Failed to fetch interns:', err);
-      };
+      }
     };
 
     const fetchEvaluations = async () => {
@@ -116,15 +105,13 @@ const Evaluations = () => {
     fetchEvaluations();
   }, []);
 
-
-
   const uniqueInternIds = Array.from(new Set(evaluations.map(e => e.intern_id).filter(Boolean)));
   const uniqueSupervisorIds = Array.from(new Set(evaluations.map(e => e.supervisor_id).filter(Boolean)));
 
   const filteredEvaluations = evaluations.filter(e => {
     return (
-      (String(e.intern_id).toLowerCase().includes(searchTerm.toLowerCase()) || 
-      String(e.supervisor_id).toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (String(e.intern_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(e.supervisor_id).toLowerCase().includes(searchTerm.toLowerCase())) &&
       (internIdFilter ? Number(e.intern_id) === Number(internIdFilter) : true) &&
       (supervisorIdFilter ? Number(e.supervisor_id) === Number(supervisorIdFilter) : true)
     );
@@ -138,21 +125,18 @@ const Evaluations = () => {
 
   const handleCreateEvaluation = async () => {
     if (!currentUser) return;
-
     try {
       const payload = {
-        intern_id: Number(createFormData.intern_id), // Needed to link the intern
-        supervisor_id: Number(currentUser.id),       // Needed to link the supervisor
+        intern_id: Number(createFormData.intern_id),
+        supervisor_id: Number(currentUser.id),
         task_completion: Number(createFormData.task_completion),
         competency_score: String(createFormData.competency_score),
         score: Number(createFormData.score),
         feedback: String(createFormData.feedback),
         evaluation_date: new Date().toISOString().split('T')[0],
-        intern_name: `Intern ${createFormData.intern_id}`, 
+        intern_name: `Intern ${createFormData.intern_id}`,
       };
-
       const newEvaluation = await evaluationService.createEvaluation(payload as any);
-      
       setEvaluations([...evaluations, newEvaluation]);
       setShowCreateModal(false);
     } catch (err: any) {
@@ -195,13 +179,10 @@ const Evaluations = () => {
 
   const handleSave = async () => {
     if (!editingEvaluation) return;
-
     try {
       await evaluationService.updateEvaluation(String(editingEvaluation.id), formData);
-      setEvaluations(evaluations.map(e => 
-        e.id === editingEvaluation.id 
-          ? { ...e, ...formData }
-          : e
+      setEvaluations(evaluations.map(e =>
+        e.id === editingEvaluation.id ? { ...e, ...formData } : e
       ));
       setShowModal(false);
       setEditingEvaluation(null);
@@ -217,27 +198,9 @@ const Evaluations = () => {
   };
 
   const summaryCards = [
-    {
-      label: 'Total Evaluated',
-      value: totalEvaluated,
-      icon: Users,
-      iconColor: 'text-blue-500',
-      iconBg: 'bg-blue-500/10',
-    },
-    {
-      label: 'Average Score',
-      value: averageScore,
-      icon: ClipboardList,
-      iconColor: 'text-orange-500',
-      iconBg: 'bg-orange-500/10',
-    },
-    {
-      label: 'Excellent Performers',
-      value: excellentCount,
-      icon: BarChart,
-      iconColor: 'text-green-500',
-      iconBg: 'bg-green-500/10',
-    },
+    { label: 'Total Evaluated',      value: totalEvaluated,  icon: Users,         iconColor: 'text-blue-500',   iconBg: 'bg-blue-500/10'   },
+    { label: 'Average Score',        value: averageScore,    icon: ClipboardList, iconColor: 'text-orange-500', iconBg: 'bg-orange-500/10' },
+    { label: 'Excellent Performers', value: excellentCount,  icon: BarChart,      iconColor: 'text-green-500',  iconBg: 'bg-green-500/10'  },
   ];
 
   if (loading) {
@@ -251,19 +214,15 @@ const Evaluations = () => {
   if (error) {
     return (
       <div className="p-8">
-        <div className="rounded-lg bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-          {error}
-        </div>
+        <div className="rounded-lg bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-0 p-4 md:p-8">
+    <div className="space-y-4 p-4 md:p-8">
       <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
+        initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
       >
         <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Evaluations</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage evaluations for interns here.</p>
@@ -273,8 +232,7 @@ const Evaluations = () => {
         {summaryCards.map((item, idx) => (
           <motion.div
             key={item.label}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.08, duration: 0.3 }}
             className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
           >
@@ -288,8 +246,7 @@ const Evaluations = () => {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.1 }}
         className="rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
@@ -297,47 +254,36 @@ const Evaluations = () => {
           <div className="relative md:col-span-2">
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              type="text"
-              placeholder="Search by ID"
-              value={searchTerm}
+              type="text" placeholder="Search by ID" value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             />
           </div>
-
           <div className="relative md:col-span-2">
             <Users size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
-              value={internIdFilter}
-              onChange={e => setInternIdFilter(e.target.value)}
+              value={internIdFilter} onChange={e => setInternIdFilter(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             >
               <option value="">All Interns</option>
-              {uniqueInternIds.map((id) => (
-                <option key={id} value={id}>{id}</option>
-              ))}
+              {uniqueInternIds.map(id => <option key={id} value={id}>{id}</option>)}
             </select>
           </div>
-
           <div className="relative md:col-span-2">
             <ClipboardList size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
-              value={supervisorIdFilter}
-              onChange={e => setSupervisorIdFilter(e.target.value)}
+              value={supervisorIdFilter} onChange={e => setSupervisorIdFilter(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             >
               <option value="">All Supervisors</option>
-              {uniqueSupervisorIds.map((id) => (
-                <option key={id} value={id}>{id}</option>
-              ))}
+              {uniqueSupervisorIds.map(id => <option key={id} value={id}>{id}</option>)}
             </select>
           </div>
         </div>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.15 }}
         className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
@@ -366,7 +312,6 @@ const Evaluations = () => {
                 <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
-
             <tbody>
               {filteredEvaluations.length === 0 ? (
                 <tr>
@@ -378,8 +323,7 @@ const Evaluations = () => {
                 filteredEvaluations.map((evaluation, idx) => (
                   <motion.tr
                     key={evaluation.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: idx * 0.04 }}
                     className="border-b border-gray-100 last:border-none dark:border-white/5"
                   >
@@ -410,13 +354,11 @@ const Evaluations = () => {
         </div>
       </motion.div>
 
-
       {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      {showCreateModal && createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
           >
@@ -432,69 +374,50 @@ const Evaluations = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Select Intern
-                </label>
-                  <select
-                    value={createFormData.intern_id}
-                    onChange={(e) => handleInternSelect(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                  >
-                    <option value="">Select an intern...</option>
-                    {/* Mapping the state to options */}
-                    {allInterns.map((intern) => (
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Intern</label>
+                <select
+                  value={createFormData.intern_id}
+                  onChange={e => handleInternSelect(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
+                >
+                  <option value="">Select an intern...</option>
+                  {allInterns.map(intern => (
                     <option key={intern.id} value={intern.id}>
-                        {intern.full_name || intern.name}
-                      </option>
-                    ))}
-                  </select>
+                      {intern.full_name || intern.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Task Completion
-                </label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Task Completion</label>
                 <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={createFormData.task_completion}
+                  type="number" min="0" max="10" value={createFormData.task_completion}
                   onChange={e => setCreateFormData({ ...createFormData, task_completion: Number(e.target.value) })}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Competency Score
-                </label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Competency Score</label>
                 <input
-                  type="text"
-                  placeholder="e.g., 4.5/5"
-                  value={createFormData.competency_score}
+                  type="text" placeholder="e.g., 4.5/5" value={createFormData.competency_score}
                   onChange={e => setCreateFormData({ ...createFormData, competency_score: e.target.value })}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Score (0-100)
-                </label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Score (0-100)</label>
                 <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={createFormData.score}
+                  type="number" min="0" max="100" value={createFormData.score}
                   onChange={e => setCreateFormData({ ...createFormData, score: Number(e.target.value) })}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Feedback
-                </label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Feedback</label>
                 <textarea
                   value={createFormData.feedback}
                   onChange={e => setCreateFormData({ ...createFormData, feedback: e.target.value })}
@@ -519,17 +442,15 @@ const Evaluations = () => {
               </button>
             </div>
           </motion.div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      
-
       {/* Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      {showModal && createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
           >
@@ -544,50 +465,32 @@ const Evaluations = () => {
             </div>
 
             <div className="space-y-4">
-              {/*READ ONLY FIELDS*/}
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Task Completion
-                </label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Task Completion</label>
                 <input
-                  type="number"
-                  value={formData.task_completion}
-                  readOnly
+                  type="number" value={formData.task_completion} readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Competency Score
-                </label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Competency Score</label>
                 <input
-                  type="text"
-                  value={formData.competency_score}
-                  readOnly
+                  type="text" value={formData.competency_score} readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Score (0-100)
-                </label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Score (0-100)</label>
                 <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.score}
-                  readOnly
+                  type="number" min="0" max="100" value={formData.score} readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
               <div>
-                {/**Updateable Feedback */}
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Feedback
-                </label>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Feedback</label>
                 <textarea
                   value={formData.feedback}
                   onChange={e => setFormData({ ...formData, feedback: e.target.value })}
@@ -612,7 +515,8 @@ const Evaluations = () => {
               </button>
             </div>
           </motion.div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

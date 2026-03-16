@@ -184,16 +184,7 @@ class TaskController extends Controller
             $task->update(['status' => 'in_progress']);
         }
 
-        // Auto-complete task when ALL assigned interns have marked their status as completed
-        if ($validated['status'] === 'completed') {
-            $task->load(['assignedInterns' => fn($q) => $q->withPivot('intern_status')]);
-            $allDone = $task->assignedInterns->every(
-                fn($i) => ($i->pivot->intern_status ?? 'not_started') === 'completed'
-            );
-            if ($allDone) {
-                $task->update(['status' => 'completed']);
-            }
-        }
+        // Task is only marked completed when supervisor finalizes it (finalizeTask), not when all interns finish
 
         $statusText = str_replace('_', ' ', $validated['status']);
         $supervisors = $task->assignedInterns->pluck('supervisor')->filter()->unique();

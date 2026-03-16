@@ -14,15 +14,17 @@ class SystemNotification extends Notification
     public $title;
     public $message;
     public $priority;
+    public $taskId;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($title, $message, $priority = 'low')
+    public function __construct($title, $message, $priority = 'low', $taskId = null)
     {
         $this->title = $title;
         $this->message = $message;
         $this->priority = $priority;
+        $this->taskId = $taskId;
     }
 
     /**
@@ -43,9 +45,10 @@ class SystemNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => $this->title,
+            'title'   => $this->title,
             'content' => $this->message,
             'priority' => $this->priority,
+            'task_id' => $this->taskId,
         ];
     }
 }

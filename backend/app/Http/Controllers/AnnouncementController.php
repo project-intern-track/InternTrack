@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,11 +20,19 @@ class AnnouncementController extends Controller
             ->map(fn ($a) => $this->formatAnnouncement($a));
 
         $userNotifications = $request->user()->notifications->map(function ($n) {
+            $taskId   = $n->data['task_id'] ?? null;
+            $priority = $n->data['priority'] ?? 'low';
+
+            if ($taskId) {
+                $task     = Task::find($taskId);
+                $priority = $task ? $task->priority : $priority;
+            }
+
             return [
                 'id'         => (string) $n->id,
                 'title'      => $n->data['title'] ?? 'System Notification',
                 'content'    => $n->data['content'] ?? '',
-                'priority'   => $n->data['priority'] ?? 'low',
+                'priority'   => $priority,
                 'created_by' => 'system',
                 'visibility' => 'specific',
                 'created_at' => $n->created_at->toIso8601String(),

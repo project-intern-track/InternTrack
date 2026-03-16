@@ -62,11 +62,11 @@ class TaskController extends Controller
         $task->load(['assignedInterns.supervisor', 'creator:id,full_name']);
 
         $interns = $task->assignedInterns;
-        Notification::send($interns, new SystemNotification('New Task Assigned', "You have been assigned to: {$task->title}", 'high'));
-        
+        Notification::send($interns, new SystemNotification('New Task Assigned', "You have been assigned to: {$task->title}", $task->priority, $task->id));
+
         $supervisors = $interns->pluck('supervisor')->filter()->unique();
         if ($supervisors->isNotEmpty()) {
-            Notification::send($supervisors, new SystemNotification('Task Created', "A task was assigned to your intern: {$task->title}", 'medium'));
+            Notification::send($supervisors, new SystemNotification('Task Created', "A task was assigned to your intern: {$task->title}", $task->priority, $task->id));
         }
 
         return response()->json(['data' => $this->formatTask($task)], 201);
@@ -189,12 +189,12 @@ class TaskController extends Controller
         $statusText = str_replace('_', ' ', $validated['status']);
         $supervisors = $task->assignedInterns->pluck('supervisor')->filter()->unique();
         if ($supervisors->isNotEmpty()) {
-            Notification::send($supervisors, new SystemNotification('Task Status Updated', "Task '{$task->title}' marked as {$statusText}", 'medium'));
+            Notification::send($supervisors, new SystemNotification('Task Status Updated', "Task '{$task->title}' marked as {$statusText}", $task->priority, $task->id));
         }
 
         if ($validated['status'] === 'in_progress') {
             $admins = User::where('role', 'admin')->get();
-            Notification::send($admins, new SystemNotification('Task In Progress', "Task '{$task->title}' is now in progress.", 'low'));
+            Notification::send($admins, new SystemNotification('Task In Progress', "Task '{$task->title}' is now in progress.", $task->priority, $task->id));
         }
 
         return response()->json(['data' => $this->formatTask($task->fresh(['assignedInterns', 'creator:id,full_name']))]);
@@ -287,15 +287,15 @@ class TaskController extends Controller
         ]);
 
         $admins = User::where('role', 'admin')->get();
-        Notification::send($admins, new SystemNotification('Task Rejected', "Task '{$task->title}' was rejected.", 'high'));
+        Notification::send($admins, new SystemNotification('Task Rejected', "Task '{$task->title}' was rejected.", $task->priority, $task->id));
 
         $interns = $task->assignedInterns;
         if ($interns->isNotEmpty()) {
-            Notification::send($interns, new SystemNotification('Task Rejected', "Your task '{$task->title}' was rejected. Reason: {$validated['rejection_reason']}", 'high'));
-            
+            Notification::send($interns, new SystemNotification('Task Rejected', "Your task '{$task->title}' was rejected. Reason: {$validated['rejection_reason']}", $task->priority, $task->id));
+
             $supervisors = $interns->pluck('supervisor')->filter()->unique();
             if ($supervisors->isNotEmpty()) {
-                Notification::send($supervisors, new SystemNotification('Task Rejected', "Task '{$task->title}' assigned to your intern was rejected.", 'high'));
+                Notification::send($supervisors, new SystemNotification('Task Rejected', "Task '{$task->title}' assigned to your intern was rejected.", $task->priority, $task->id));
             }
         }
 
@@ -356,12 +356,12 @@ class TaskController extends Controller
 
         $interns = $task->assignedInterns;
         if ($interns->isNotEmpty()) {
-            Notification::send($interns, new SystemNotification('Task Approved', "Your task '{$task->title}' has been approved by a supervisor.", 'medium'));
+            Notification::send($interns, new SystemNotification('Task Approved', "Your task '{$task->title}' has been approved by a supervisor.", $task->priority, $task->id));
         }
 
         $admins = User::where('role', 'admin')->get();
         if ($admins->isNotEmpty()) {
-            Notification::send($admins, new SystemNotification('Task Approved', "Task '{$task->title}' was approved by a supervisor.", 'low'));
+            Notification::send($admins, new SystemNotification('Task Approved', "Task '{$task->title}' was approved by a supervisor.", $task->priority, $task->id));
         }
 
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
@@ -393,11 +393,11 @@ class TaskController extends Controller
         ]);
 
         $admins = User::where('role', 'admin')->get();
-        Notification::send($admins, new SystemNotification('Task Rejected', "Task '{$task->title}' was rejected by supervisor.", 'high'));
+        Notification::send($admins, new SystemNotification('Task Rejected', "Task '{$task->title}' was rejected by supervisor.", $task->priority, $task->id));
 
         $interns = $task->assignedInterns;
         if ($interns->isNotEmpty()) {
-            Notification::send($interns, new SystemNotification('Task Rejected', "Your task '{$task->title}' was rejected by a supervisor. Reason: {$validated['rejection_reason']}", 'high'));
+            Notification::send($interns, new SystemNotification('Task Rejected', "Your task '{$task->title}' was rejected by a supervisor. Reason: {$validated['rejection_reason']}", $task->priority, $task->id));
         }
 
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
@@ -431,7 +431,7 @@ class TaskController extends Controller
         ]);
 
         $admins = User::where('role', 'admin')->get();
-        Notification::send($admins, new SystemNotification('Task Revision', "Revision requested for task: '{$task->title}'", 'high'));
+        Notification::send($admins, new SystemNotification('Task Revision', "Revision requested for task: '{$task->title}'", $task->priority, $task->id));
 
         $task->load(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name']);
 
@@ -463,9 +463,9 @@ class TaskController extends Controller
             foreach ($overdueTasks as $task) {
                 $supervisors = $task->assignedInterns->pluck('supervisor')->filter()->unique();
                 if ($supervisors->isNotEmpty()) {
-                    Notification::send($supervisors, new SystemNotification('Task Overdue', "Task '{$task->title}' is overdue.", 'high'));
+                    Notification::send($supervisors, new SystemNotification('Task Overdue', "Task '{$task->title}' is overdue.", $task->priority, $task->id));
                 }
-                Notification::send($admins, new SystemNotification('Task Overdue', "Task '{$task->title}' is overdue.", 'high'));
+                Notification::send($admins, new SystemNotification('Task Overdue', "Task '{$task->title}' is overdue.", $task->priority, $task->id));
             }
             Task::whereIn('id', $overdueTasks->pluck('id'))->update(['status' => 'overdue']);
         }

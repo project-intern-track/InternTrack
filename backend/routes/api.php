@@ -32,14 +32,18 @@ Route::get('/auth/verify-email/{id}/{hash}', function (Request $request) {
         return response()->json(['error' => 'Invalid verification link.'], 403);
     }
 
+    $frontendUrl = app()->environment('local')
+        ? env('FRONTEND_URL', 'http://localhost:5173')
+        : rtrim(env('FRONTEND_URL', config('app.url')), '/');
+
     if ($user->hasVerifiedEmail()) {
-        return redirect(env('FRONTEND_URL', 'http://localhost:5173') . '/?verified=1');
+        return redirect($frontendUrl . '/?verified=1');
     }
 
     $user->markEmailAsVerified();
     event(new Verified($user));
 
-    return redirect(env('FRONTEND_URL', 'http://localhost:5173') . '/?verified=1');
+    return redirect($frontendUrl . '/?verified=1');
 })->middleware('signed')->name('verification.verify');
 
 // ── Protected Routes (Sanctum token auth) ───

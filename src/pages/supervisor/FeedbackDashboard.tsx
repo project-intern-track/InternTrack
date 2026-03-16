@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Search, Filter, X, Star } from 'lucide-react';
 import {
@@ -101,7 +102,7 @@ const FeedbackDashboard = () => {
     new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="space-y-0 p-4 md:p-8">
+    <div className="space-y-4 p-4 md:p-8">
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
         <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Feedback</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -216,13 +217,13 @@ const FeedbackDashboard = () => {
         </div>
       </motion.div>
 
-      {/* Competency Modal */}
-      {competencyModal && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+      {/* Competency Modal — portaled to document.body to escape layout stacking context */}
+      {competencyModal && createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="relative max-h-[90%] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-slate-900"
+            className="relative max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-slate-900"
           >
             <button
               onClick={() => setCompetencyModal(null)}
@@ -241,7 +242,7 @@ const FeedbackDashboard = () => {
               Task: {competencyModal.row.taskName}
             </p>
 
-            <table className="mt-5 w-full bg-white text-sm dark:bg-transparent">
+            <table className="mt-5 w-full text-sm">
               <thead className="bg-primary text-primary-foreground">
                 <tr>
                   <th className="px-3 py-2 text-left">Competency</th>
@@ -286,7 +287,8 @@ const FeedbackDashboard = () => {
               </button>
             </div>
           </motion.div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

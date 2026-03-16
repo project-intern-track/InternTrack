@@ -34,3 +34,7 @@ supabase/.temp/
 LOVABLE_REDESIGN_PROMPT.md
 package-lock.json
 package.json
+
+# SSH deploy keys
+interntrack_deploy
+interntrack_deploy.pub

@@ -206,7 +206,7 @@ const AdminDashboard = () => {
     if (!stats) return <PageLoader message="Loading dashboard..." />;
 
     return (
-        <>
+        <div className="admin-page-shell">
 
             <h1 className="dashboard-welcome" style={{
                 animation: 'slideInFromTop 0.6s ease-out',
@@ -320,7 +320,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

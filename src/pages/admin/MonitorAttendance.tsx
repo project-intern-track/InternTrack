@@ -806,7 +806,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           }
         }
       `}</style>
-      <div className="attendance-container">
+      <div className="attendance-container admin-page-shell">
         {/* Header */}
         <div className="attendance-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <h1>Monitor Attendance</h1>

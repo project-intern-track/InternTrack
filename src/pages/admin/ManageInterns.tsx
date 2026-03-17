@@ -353,7 +353,7 @@ const ManageInterns = () => {
     if (!interns || !stats) return <PageLoader message="Loading interns..." />;
 
     return (
-        <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
+        <div className="admin-page-shell" style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
             {/* Header Section */}
             <div className="manage-interns-header">
                 <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Interns</h1>

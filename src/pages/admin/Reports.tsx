@@ -157,7 +157,7 @@ const Reports = () => {
     });
 
     return (
-        <div>
+        <div className="admin-page-shell">
             <h1 style={{ color: '#ff8800', fontSize: '2rem', margin: 0 }}>Reports Section</h1>
             <h2 style={{ fontSize: '1.2rem', margin: '0.5rem 0', color: '#2b2a2a' }}>Weekly/Monthly Summaries</h2>
 

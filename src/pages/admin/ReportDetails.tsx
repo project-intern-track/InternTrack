@@ -59,7 +59,7 @@ const ReportDetails = () => {
     }
 
     return (
-        <div style={{ padding: '1rem', maxWidth: '1000px', margin: '0 auto' }}>
+        <div className="admin-page-shell" style={{ padding: '1rem', maxWidth: '1000px', margin: '0 auto' }}>
             {/* Header Container */}
             <div style={{
                 background: '#F9F7F4',

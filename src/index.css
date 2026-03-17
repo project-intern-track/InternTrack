@@ -1397,6 +1397,7 @@ textarea,
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -1753,7 +1754,8 @@ textarea,
   z-index: 1000;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
-  padding: 1rem; /* ← the key fix: gives the panel breathing room */
+  padding: 1rem;
+  /* ← the key fix: gives the panel breathing room */
 }
 
 /* Detail / view modal panel */
@@ -1798,7 +1800,8 @@ textarea,
 /* ── Mobile overrides for modals (≤ 480px) ── */
 @media (max-width: 480px) {
   .announcement-modal-overlay {
-    padding: 0.75rem; /* tighter on very small phones */
+    padding: 0.75rem;
+    /* tighter on very small phones */
     align-items: center;
   }
 
@@ -2164,5 +2167,196 @@ textarea,
   .notification-item-content {
     -webkit-line-clamp: 3;
     line-clamp: 3;
+  }
+}
+
+/* Admin redesign layer: frontend-only visual polish */
+.admin-page-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0.25rem;
+}
+
+.admin-page-shell .manage-interns-header,
+.admin-page-shell .announcements-header,
+.admin-page-shell .attendance-header,
+.admin-page-shell .row-between {
+  margin-bottom: 1.5rem !important;
+  gap: 1rem;
+}
+
+.admin-page-shell h1,
+.admin-page-shell .dashboard-welcome {
+  margin: 0;
+  font-size: clamp(1.6rem, 2vw, 2.15rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+  color: #111827 !important;
+}
+
+.dark .admin-page-shell h1,
+.dark .admin-page-shell .dashboard-welcome {
+  color: #f3f4f6 !important;
+}
+
+.admin-page-shell .btn,
+.admin-page-shell button.btn {
+  border-radius: 0.7rem;
+  font-weight: 600;
+}
+
+.admin-page-shell .btn-primary {
+  background: linear-gradient(135deg, #ff8800, #e67a00) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 8px 20px rgba(255, 136, 0, 0.22);
+}
+
+.admin-page-shell .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(255, 136, 0, 0.26);
+}
+
+.admin-page-shell .stats-grid {
+  gap: 1rem;
+}
+
+.admin-page-shell .stat-card,
+.admin-page-shell .chart-card,
+.admin-page-shell .activity-card,
+.admin-page-shell .card,
+.admin-page-shell .table-container {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06) !important;
+  backdrop-filter: blur(10px);
+}
+
+.dark .admin-page-shell .stat-card,
+.dark .admin-page-shell .chart-card,
+.dark .admin-page-shell .activity-card,
+.dark .admin-page-shell .card,
+.dark .admin-page-shell .table-container {
+  background: rgba(17, 24, 39, 0.65) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-page-shell .stat-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  color: #6b7280 !important;
+}
+
+.admin-page-shell .stat-value {
+  font-size: clamp(1.8rem, 2.4vw, 2.35rem) !important;
+  font-weight: 800;
+  color: #111827 !important;
+}
+
+.dark .admin-page-shell .stat-value {
+  color: #f3f4f6 !important;
+}
+
+.admin-page-shell .manage-interns-filters,
+.admin-page-shell .announcements-filter-bar,
+.admin-page-shell .manage-tasks-filter-section,
+.admin-page-shell .attendance-filter-section {
+  border-radius: 0.95rem !important;
+  border: 1px solid #e5e7eb !important;
+  background: rgba(249, 250, 251, 0.95) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.dark .admin-page-shell .manage-interns-filters,
+.dark .admin-page-shell .announcements-filter-bar,
+.dark .admin-page-shell .manage-tasks-filter-section,
+.dark .admin-page-shell .attendance-filter-section {
+  background: rgba(31, 41, 55, 0.75) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-page-shell .input,
+.admin-page-shell .select,
+.admin-page-shell textarea {
+  border-radius: 0.7rem;
+  border-color: #d1d5db;
+  background: #fff;
+}
+
+.dark .admin-page-shell .input,
+.dark .admin-page-shell .select,
+.dark .admin-page-shell textarea {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.admin-page-shell .table-container table thead tr {
+  background: linear-gradient(135deg, #ff8800, #e67a00) !important;
+}
+
+.admin-page-shell .table-container table th {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-page-shell .table-container table td,
+.admin-page-shell .table-container table th {
+  border-bottom: 1px solid #edf0f3;
+}
+
+.dark .admin-page-shell .table-container table td,
+.dark .admin-page-shell .table-container table th {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.admin-page-shell .table-container table tbody tr:hover {
+  background: rgba(255, 136, 0, 0.05);
+}
+
+.admin-page-shell .modal,
+.admin-page-shell .edit-modal-panel,
+.admin-page-shell .announcement-modal-panel,
+.admin-page-shell .announcement-modal-create,
+.admin-page-shell .manage-interns-modal {
+  border-radius: 1rem !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.18) !important;
+}
+
+.dark .admin-page-shell .modal,
+.dark .admin-page-shell .edit-modal-panel,
+.dark .admin-page-shell .announcement-modal-panel,
+.dark .admin-page-shell .announcement-modal-create,
+.dark .admin-page-shell .manage-interns-modal {
+  background: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-page-shell .pagination-btn.active {
+  background: linear-gradient(135deg, #ff8800, #e67a00);
+  border-color: #ff8800;
+}
+
+@media (max-width: 768px) {
+  .admin-page-shell {
+    padding: 0;
+  }
+
+  .admin-page-shell .stats-grid,
+  .admin-page-shell .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-page-shell .manage-interns-header .btn,
+  .admin-page-shell .announcements-header .btn,
+  .admin-page-shell .attendance-header button {
+    width: 100%;
+    justify-content: center;
   }
 }

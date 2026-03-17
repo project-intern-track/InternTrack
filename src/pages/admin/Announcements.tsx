@@ -152,7 +152,7 @@ const Announcements = () => {
     if (!announcements) return <PageLoader message="Loading announcements..." />;
 
     return (
-        <div className="container" style={{ maxWidth: '100%', padding: '0' }}>
+        <div className="container admin-page-shell" style={{ maxWidth: '100%', padding: '0' }}>
             {/* Header */}
             <div className="announcements-header" style={{ marginBottom: '2rem' }}>
                 <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Announcements</h1>

@@ -152,14 +152,13 @@ const Announcements = () => {
     if (!announcements) return <PageLoader message="Loading announcements..." />;
 
     return (
-        <div className="container admin-page-shell" style={{ maxWidth: '100%', padding: '0' }}>
+        <div className="container admin-page-shell max-w-full p-0">
             {/* Header */}
-            <div className="announcements-header" style={{ marginBottom: '2rem' }}>
-                <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Announcements</h1>
+            <div className="announcements-header mb-8">
+                <h1 className="text-3xl font-bold text-orange-600 m-0">Announcements</h1>
                 <button
-                    className="btn btn-primary"
+                    className="btn btn-primary gap-2 bg-[#ff8c42] border-none shrink-0"
                     onClick={() => setIsModalOpen(true)}
-                    style={{ gap: '0.5rem', backgroundColor: '#ff8c42', border: 'none', flexShrink: 0 }}
                 >
                     <Plus size={18} />
                     Create Announcement
@@ -167,21 +166,13 @@ const Announcements = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="announcements-filter-bar" style={{
-                marginBottom: '2rem',
-                border: '1px solid #e5e5e5',
-                borderRadius: '8px',
-                padding: '0.75rem',
-                backgroundColor: '#F9F7F4',
-                gap: '1rem',
-            }}>
-                <div className="announcements-filter-search" style={{ position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', zIndex: 1 }} />
+            <div className="announcements-filter-bar mb-8 border border-slate-200 rounded-lg p-3 bg-[#F9F7F4] gap-4">
+                <div className="announcements-filter-search relative">
+                    <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-[1]" />
                     <input
                         type="text"
-                        className="input"
+                        className="input pl-12 w-full"
                         placeholder="Search announcements"
-                        style={{ paddingLeft: '3rem', width: '100%' }}
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
@@ -189,13 +180,12 @@ const Announcements = () => {
 
                 <div className="announcements-filter-label">
                     <Filter size={20} />
-                    <span style={{ fontWeight: 600 }}>Filters:</span>
+                    <span className="font-semibold">Filters:</span>
                 </div>
 
                 <div className="announcements-filter-select">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="select w-full"
                         value={dateCreatedFilter}
                         onChange={(e) => setDateCreatedFilter(e.target.value)}
                     >
@@ -205,13 +195,12 @@ const Announcements = () => {
                         <option value="this-month">This Month</option>
                         <option value="this-year">This Year</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
 
                 <div className="announcements-filter-select">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="select w-full"
                         value={priorityFilter}
                         onChange={(e) => setPriorityFilter(e.target.value)}
                     >
@@ -220,33 +209,15 @@ const Announcements = () => {
                         <option value="medium">Medium</option>
                         <option value="low">Low</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
             </div>
 
             {/* Content Grid / Empty State */}
             {filteredAnnouncements.length === 0 ? (
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '4rem 1rem',
-                    textAlign: 'center',
-                    minHeight: '320px',
-                }}>
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center min-h-[320px]">
                     {/* Icon illustration */}
-                    <div style={{
-                        width: '88px',
-                        height: '88px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #ff8c42 0%, #ffa726 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: '1.5rem',
-                        boxShadow: '0 8px 24px rgba(255,140,66,0.25)',
-                    }}>
+                    <div className="w-[88px] h-[88px] rounded-full bg-gradient-to-br from-[#ff8c42] to-[#ffa726] flex items-center justify-center mb-6 shadow-[0_8px_24px_rgba(255,140,66,0.25)]">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -254,25 +225,14 @@ const Announcements = () => {
                     </div>
 
                     {/* Heading */}
-                    <h2 style={{
-                        fontSize: '1.4rem',
-                        fontWeight: 700,
-                        color: '#111827',
-                        margin: '0 0 0.5rem',
-                    }}>
+                    <h2 className="text-[1.4rem] font-bold text-slate-900 m-0 mb-2">
                         {searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all'
                             ? 'No matching announcements'
                             : 'No announcements yet'}
                     </h2>
 
                     {/* Sub-text */}
-                    <p style={{
-                        fontSize: '0.9375rem',
-                        color: '#6b7280',
-                        maxWidth: '380px',
-                        margin: '0 0 1.75rem',
-                        lineHeight: 1.6,
-                    }}>
+                    <p className="text-[0.9375rem] text-slate-500 max-w-[380px] m-0 mb-7 leading-6">
                         {searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all'
                             ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
                             : 'Get started by creating your first announcement for your team.'}
@@ -281,9 +241,8 @@ const Announcements = () => {
                     {/* CTA — only shown when there are truly no announcements (not a filter miss) */}
                     {!(searchTerm || priorityFilter !== 'all' || dateCreatedFilter !== 'all') && (
                         <button
-                            className="btn btn-primary"
+                            className="btn btn-primary bg-[#ff8c42] border-none gap-2 px-6 py-2.5"
                             onClick={() => setIsModalOpen(true)}
-                            style={{ backgroundColor: '#ff8c42', border: 'none', gap: '0.5rem', padding: '0.625rem 1.5rem' }}
                         >
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -293,7 +252,7 @@ const Announcements = () => {
                     )}
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: '1.5rem' }}>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(400px,100%),1fr))] gap-6">
                     {filteredAnnouncements.map((announcement) => (
                         <div
                             key={announcement.id}
@@ -301,50 +260,38 @@ const Announcements = () => {
                             tabIndex={0}
                             onClick={() => setSelectedAnnouncement(announcement)}
                             onKeyDown={(e) => e.key === 'Enter' && setSelectedAnnouncement(announcement)}
-                            className="card"
-                            style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '200px', backgroundColor: '#F9F7F4', cursor: 'pointer' }}
+                            className="card p-6 flex flex-col h-full min-h-[200px] bg-[#F9F7F4] cursor-pointer"
                         >
-                            <div style={{ marginBottom: '1rem' }}>
-                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
+                            <div className="mb-4">
+                                <h3 className="m-0 text-[1.1rem] font-bold">
                                     {announcement.title}
                                 </h3>
                             </div>
-                    <div style={{ flex: 1, marginBottom: '2rem', minHeight: '4.5rem', overflow: 'hidden' }}>
-                                <p style={{
-                                    margin: 0,
-                                    color: '#1f2937',
-                                    lineHeight: 1.5,
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 3,
-                                    WebkitBoxOrient: 'vertical' as const,
-                                }}>
+                            <div className="flex-1 mb-8 min-h-[4.5rem] overflow-hidden">
+                                <p
+                                    className="m-0 text-slate-800 leading-6 overflow-hidden text-ellipsis"
+                                    style={{
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 3,
+                                        WebkitBoxOrient: 'vertical' as const,
+                                    }}
+                                >
                                     {announcement.content}
                                 </p>
                             </div>
-                            <div className="announcement-card-footer" style={{
-                                fontSize: '0.875rem',
-                                color: '#6b7280',
-                                marginTop: 'auto'
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div className="announcement-card-footer text-sm text-slate-500 mt-auto">
+                                <div className="flex items-center gap-2">
                                     <span>Priority:</span>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                        <div style={{
-                                            width: '10px',
-                                            height: '10px',
-                                            borderRadius: '50%',
-                                            backgroundColor: getPriorityColor(announcement.priority)
-                                        }} />
-                                        <span style={{ fontWeight: 600, color: '#111827' }}>
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getPriorityColor(announcement.priority) }} />
+                                        <span className="font-semibold text-slate-900">
                                             {getPriorityLabel(announcement.priority)}
                                         </span>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <div className="flex items-center gap-2">
                                     <span>Date Created:</span>
-                                    <span style={{ fontWeight: 600, color: '#111827' }}>
+                                    <span className="font-semibold text-slate-900">
                                         {formatDate(announcement.created_at)}
                                     </span>
                                 </div>
@@ -361,51 +308,35 @@ const Announcements = () => {
                     onClick={() => setSelectedAnnouncement(null)}
                 >
                     <div
-                        className="announcement-modal-panel"
+                        className="announcement-modal-panel relative"
                         onClick={(e) => e.stopPropagation()}
-                        style={{ position: 'relative' }}
                     >
                         {/* Top-right close button */}
                         <button
                             type="button"
                             onClick={() => setSelectedAnnouncement(null)}
                             aria-label="Close announcement"
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                width: 32,
-                                height: 32,
-                                borderRadius: '999px',
-                                border: 'none',
-                                backgroundColor: '#ff8c42',
-                                color: '#fff',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                            }}
+                            className="absolute top-4 right-4 w-8 h-8 rounded-full border-none bg-[#ff8c42] text-white flex items-center justify-center cursor-pointer shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
                         >
                             <X size={18} />
                         </button>
-                        <h2 style={{ color: '#ea580c', margin: '0 0 1rem', fontSize: '1.35rem', fontWeight: 700 }}>
+                        <h2 className="text-orange-600 m-0 mb-4 text-[1.35rem] font-bold">
                             {selectedAnnouncement.title}
                         </h2>
-                        <p style={{ margin: '0 0 1.5rem', color: '#1f2937', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}>
+                        <p className="m-0 mb-6 text-slate-800 leading-6 whitespace-pre-wrap break-words max-w-full">
                             {selectedAnnouncement.content}
                         </p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div className="flex justify-between items-center flex-wrap gap-4 text-sm text-slate-500">
+                            <div className="flex items-center gap-2">
                                 <span>Priority:</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                    <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: getPriorityColor(selectedAnnouncement.priority) }} />
-                                    <span style={{ fontWeight: 600, color: '#111827' }}>{getPriorityLabel(selectedAnnouncement.priority)}</span>
+                                <div className="flex items-center gap-1">
+                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getPriorityColor(selectedAnnouncement.priority) }} />
+                                    <span className="font-semibold text-slate-900">{getPriorityLabel(selectedAnnouncement.priority)}</span>
                                 </div>
                             </div>
                             <div>
                                 <span>Date Created: </span>
-                                <span style={{ fontWeight: 600, color: '#111827' }}>{formatDate(selectedAnnouncement.created_at)}</span>
+                                <span className="font-semibold text-slate-900">{formatDate(selectedAnnouncement.created_at)}</span>
                             </div>
                         </div>
                     </div>
@@ -419,67 +350,48 @@ const Announcements = () => {
                     onClick={() => setIsModalOpen(false)}
                 >
                     <div
-                        className="announcement-modal-create"
+                        className="announcement-modal-create relative"
                         onClick={(e) => e.stopPropagation()}
-                        style={{ position: 'relative' }}
                     >
                         {/* Top-right close button */}
                         <button
                             type="button"
                             onClick={() => setIsModalOpen(false)}
                             aria-label="Close create announcement"
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                width: 32,
-                                height: 32,
-                                borderRadius: '999px',
-                                border: 'none',
-                                backgroundColor: '#ff8c42',
-                                color: '#fff',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                            }}
+                            className="absolute top-4 right-4 w-8 h-8 rounded-full border-none bg-[#ff8c42] text-white flex items-center justify-center cursor-pointer shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
                         >
                             <X size={18} />
                         </button>
-                        <div style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Announcement Information</h2>
+                        <div className="mb-8">
+                            <h2 className="text-orange-600 m-0 text-2xl font-bold">Announcement Information</h2>
                         </div>
 
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Announcement Title:</label>
+                        <div className="mb-6">
+                            <label className="block font-semibold mb-2">Announcement Title:</label>
                             <input
                                 type="text"
-                                className="input"
+                                className="input w-full bg-white"
                                 placeholder="Enter task title"
                                 value={formData.title}
                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                style={{ width: '100%', backgroundColor: 'white' }}
                             />
                         </div>
 
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Announcement Description:</label>
+                        <div className="mb-6">
+                            <label className="block font-semibold mb-2">Announcement Description:</label>
                             <textarea
-                                className="input"
+                                className="input w-full h-[120px] resize-none bg-white"
                                 placeholder="Brief description of the task"
                                 value={formData.content}
                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                style={{ width: '100%', height: '120px', resize: 'none', backgroundColor: 'white', fontFamily: 'inherit' }}
                             />
                         </div>
 
-                        <div style={{ marginBottom: '2rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Priority:</label>
-                            <div style={{ position: 'relative' }}>
+                        <div className="mb-8">
+                            <label className="block font-semibold mb-2">Priority:</label>
+                            <div className="relative">
                                 <select
-                                    className="select"
-                                    style={{ width: '100%', backgroundColor: 'white' }}
+                                    className="select w-full bg-white"
                                     value={formData.priority}
                                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as AnnouncementPriority })}
                                 >
@@ -487,25 +399,23 @@ const Announcements = () => {
                                     <option value="medium">Medium</option>
                                     <option value="low">Low</option>
                                 </select>
-                                <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                             </div>
                         </div>
 
                         <div className="announcement-modal-actions">
                             <button
-                                className="btn announcement-modal-btn"
+                                className="btn announcement-modal-btn bg-white text-orange-600 border-none"
                                 onClick={() => {
                                     setFormData({ title: '', content: '', priority: 'low' });
                                 }}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none' }}
                             >
                                 Clear
                             </button>
                             <button
-                                className="btn btn-primary announcement-modal-btn"
+                                className="btn btn-primary announcement-modal-btn bg-[#ff8c42] border-none"
                                 onClick={handleCreate}
                                 disabled={submitting}
-                                style={{ backgroundColor: '#ff8c42', border: 'none' }}
                             >
                                 {submitting ? <Loader2 className="spinner" size={18} /> : 'Announce'}
                             </button>

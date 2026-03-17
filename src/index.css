@@ -2195,6 +2195,11 @@ textarea,
   color: #111827 !important;
 }
 
+.admin-page-shell .dashboard-welcome {
+  margin-top: 0.85rem;
+  margin-bottom: 1.1rem;
+}
+
 .dark .admin-page-shell h1,
 .dark .admin-page-shell .dashboard-welcome {
   color: #f3f4f6 !important;

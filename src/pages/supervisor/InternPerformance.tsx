@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { Users } from 'lucide-react';
 import { userService } from '../../services/userServices';
 import { taskService } from '../../services/taskServices';
 import type { Tasks } from '../../types/database.types';
@@ -108,46 +109,55 @@ const InternPerformance = () => {
     );
   }
 
+  const perfBadgeStyles: Record<string, string> = {
+    Excellent:         'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+    Good:             'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
+    Average:          'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+    'Needs Improvement': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+  };
+
   return (
-    <div className="max-w-[2000px] mx-auto p-4 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 mb-6"
+        transition={{ duration: 0.4, ease: 'easeOut' }}
       >
-        <div>
-          <h1 className="text-3xl font-bold text-primary dark:text-primary mb-1">
-            Intern Performance
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Overview of intern tasks and performance metrics.
-          </p>
-        </div>
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+          Intern Performance
+        </h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Overview of intern tasks and performance metrics.
+        </p>
       </motion.div>
 
       {/* Performance Table */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] shadow-sm overflow-hidden"
+        transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
+        className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50 overflow-hidden"
       >
+        <div className="flex items-center gap-3 border-b border-gray-200 px-8 py-6 dark:border-white/5">
+          <Users className="text-primary" size={20} />
+          <h2 className="text-xl font-black text-gray-800 dark:text-white">Performance Overview</h2>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-white/5">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Intern</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">OJT Role</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Completed Tasks</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">In Progress</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Performance Status</th>
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-white/5">
+                <th className="px-8 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern</th>
+                <th className="px-4 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">OJT Role</th>
+                <th className="px-4 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Completed</th>
+                <th className="px-4 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">In Progress</th>
+                <th className="px-4 pb-3 pt-5 pr-8 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
+            <tbody>
               {interns.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <td colSpan={5} className="px-8 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                     No intern data available.
                   </td>
                 </tr>
@@ -157,20 +167,20 @@ const InternPerformance = () => {
                   return (
                     <motion.tr
                       key={intern.id}
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.05 + index * 0.04 }}
-                      className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, delay: 0.03 * index, ease: 'easeOut' }}
+                      className="border-b border-gray-100 last:border-none hover:bg-gray-50 dark:border-white/5 dark:hover:bg-white/5 transition-colors"
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-8 py-4">
                         <div className="font-semibold text-gray-900 dark:text-white">{intern.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{intern.email}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{intern.email}</div>
                       </td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{intern.ojt_role}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100 font-semibold">{intern.completed_tasks}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{intern.in_progress_tasks}</td>
-                      <td className="px-6 py-4">
-                        <span className={`font-bold ${perf.color}`}>
+                      <td className="px-4 py-4 text-gray-700 dark:text-gray-300">{intern.ojt_role}</td>
+                      <td className="px-4 py-4 font-black text-gray-900 dark:text-white">{intern.completed_tasks}</td>
+                      <td className="px-4 py-4 text-gray-700 dark:text-gray-300">{intern.in_progress_tasks}</td>
+                      <td className="px-4 py-4 pr-8">
+                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${perfBadgeStyles[perf.label] ?? 'bg-gray-100 text-gray-700'}`}>
                           {perf.label}
                         </span>
                       </td>

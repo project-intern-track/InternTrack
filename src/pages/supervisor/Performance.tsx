@@ -17,7 +17,7 @@ interface InternPerformanceRow {
 }
 
 const Performance = () => {
-  const { user } = useAuth();
+  const { } = useAuth();
   const [interns, setInterns] = useState<InternPerformanceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,63 +92,63 @@ const Performance = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
+        transition={{ duration: 0.4, ease: 'easeOut' }}
       >
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white md:text-3xl">Intern Performance</h1>
-        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Intern Performance</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Track completed tasks and identify top-performing interns.
         </p>
-        {user && (
-          <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-            Signed in as <span className="font-semibold text-gray-900 dark:text-white">{user.name || 'Supervisor'}</span>
-          </p>
-        )}
       </motion.div>
 
+      {/* Stat Cards */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.1 }}
+        transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
         className="grid grid-cols-1 gap-4 md:grid-cols-3"
       >
-        <div className="rounded-[2rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
-          <div className="mb-2 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <Users size={16} /> Total Interns
+        <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
+            <Users size={22} className="text-blue-600 dark:text-blue-400" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{interns.length}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Total Interns</p>
+          <p className="mt-1 text-4xl font-black text-gray-900 dark:text-white">{interns.length}</p>
         </div>
 
-        <div className="rounded-[2rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
-          <div className="mb-2 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <ClipboardList size={16} /> Completed Tasks
+        <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-500/20">
+            <ClipboardList size={22} className="text-green-600 dark:text-green-400" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalCompletedTasks}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Completed Tasks</p>
+          <p className="mt-1 text-4xl font-black text-gray-900 dark:text-white">{totalCompletedTasks}</p>
         </div>
 
-        <div className="rounded-[2rem] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
-          <div className="mb-2 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <Star size={16} /> Avg. per Intern
+        <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-500/20">
+            <Star size={22} className="text-amber-500 dark:text-amber-400" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{averageCompletedTasks}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Avg. per Intern</p>
+          <p className="mt-1 text-4xl font-black text-gray-900 dark:text-white">{averageCompletedTasks}</p>
         </div>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.14, ease: 'easeOut' }}
+        className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50 overflow-hidden"
       >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Intern Ranking</h2>
-          <span className="text-sm text-gray-500 dark:text-gray-400">Sorted by completed tasks</span>
+        <div className="flex items-center gap-3 border-b border-gray-200 px-8 py-6 dark:border-white/5">
+          <Star className="text-primary" size={20} />
+          <h2 className="text-xl font-black text-gray-800 dark:text-white">Intern Ranking</h2>
+          <span className="ml-auto text-sm text-gray-500 dark:text-gray-400">Sorted by completed tasks</span>
         </div>
 
-        <div className="space-y-3">
+        <div className="p-6 space-y-3">
           {interns.length === 0 && (
             <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
               No intern performance data available.
@@ -160,9 +160,9 @@ const Performance = () => {
             return (
               <motion.div
                 key={intern.id}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.06 * index }}
+                transition={{ duration: 0.2, delay: 0.03 * index, ease: 'easeOut' }}
                 className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/5 dark:bg-white/5"
               >
                 <div className="mb-2 flex items-center justify-between gap-4">
@@ -181,7 +181,7 @@ const Performance = () => {
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.45, delay: 0.08 * index }}
+                    transition={{ duration: 0.55, delay: 0.18 + 0.04 * index, ease: 'easeOut' }}
                     className="h-full rounded-full bg-primary"
                   />
                 </div>

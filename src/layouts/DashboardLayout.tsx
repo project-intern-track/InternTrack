@@ -14,11 +14,10 @@ const DashboardLayout = () => {
 
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950">
-            {/* Desktop Sidebar — animated width */}
-            <motion.div
-                animate={{ width: sidebarCollapsed ? 72 : 260 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="hidden lg:block sticky top-0 h-screen bg-[#0a0a0a] rounded-tr-[25px] rounded-br-[25px] overflow-visible flex-shrink-0"
+            {/* Desktop Sidebar — CSS width transition (avoids reflow on framer-motion JS thread) */}
+            <div
+                style={{ width: sidebarCollapsed ? 72 : 260 }}
+                className="hidden lg:block sticky top-0 h-screen bg-[#0a0a0a] rounded-tr-[25px] rounded-br-[25px] overflow-visible flex-shrink-0 transition-[width] duration-300 ease-in-out"
             >
                 <Sidebar
                     isOpen={true}
@@ -26,7 +25,7 @@ const DashboardLayout = () => {
                     collapsed={sidebarCollapsed}
                     onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
                 />
-            </motion.div>
+            </div>
 
             {/* Mobile Sidebar Overlay */}
             <AnimatePresence>
@@ -80,14 +79,13 @@ const DashboardLayout = () => {
                 <TopBar />
 
                 <main className="flex-1 p-4 md:p-6 lg:p-8 w-full overflow-y-auto">
-                    <AnimatePresence mode="sync" initial={false}>
+                    <AnimatePresence mode="wait" initial={false}>
                         <motion.div
                             key={location.pathname}
                             initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -4 }}
                             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                            style={{ willChange: 'opacity, transform' }}
                         >
                             <Outlet />
                         </motion.div>

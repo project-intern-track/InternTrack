@@ -1384,7 +1384,7 @@ textarea:disabled {
   outline-offset: 2px;
 }
 
-/* Smooth transitions for interactive elements */
+/* Smooth transitions for interactive elements — specific properties only (transition:all causes jank) */
 button,
 a,
 .input,
@@ -1392,7 +1392,7 @@ a,
 textarea,
 .badge,
 .stat-card {
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Reduced motion preference */

@@ -62,10 +62,13 @@ const Login = () => {
     const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
     const [resendMessage, setResendMessage] = useState<string | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
-    // Persist deactivation flag in state so it survives the cleanup re-render.
+    // Persist flags in state so they survive the cleanup re-render.
     // Initialized once on mount from URL param or sessionStorage.
     const [isDeactivated] = useState(() =>
         searchParams.get('deactivated') === '1' || sessionStorage.getItem('account_deactivated') === '1'
+    );
+    const [isSessionExpired] = useState(() =>
+        sessionStorage.getItem('session_expired') === '1'
     );
 
     useEffect(() => {
@@ -74,11 +77,14 @@ const Login = () => {
             setError(getHashErrorMessage(hashParams.errorCode, hashParams.errorDescription));
             if (hashParams.errorCode === 'otp_expired') setShowResend(true);
         }
-        // Clean up the deactivated indicators from URL and sessionStorage
-        // (the message stays visible because isDeactivated is in React state)
+        // Clean up indicators from URL and sessionStorage
+        // (messages stay visible because the flags are in React state)
         if (isDeactivated) {
             sessionStorage.removeItem('account_deactivated');
             setSearchParams({}, { replace: true });
+        }
+        if (isSessionExpired) {
+            sessionStorage.removeItem('session_expired');
         }
     }, []);
 
@@ -161,6 +167,18 @@ const Login = () => {
                             <span className="text-orange">Track</span>
                         </div>
                     </motion.div>
+
+                    {/* Session expired notice */}
+                    {isSessionExpired && !isDeactivated && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-lg flex gap-3 items-start"
+                        >
+                            <AlertCircle size={18} className="text-danger flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-danger">Your session has expired due to inactivity or a connection issue. Please log in again.</p>
+                        </motion.div>
+                    )}
 
                     {/* Deactivated notice */}
                     {isDeactivated && (

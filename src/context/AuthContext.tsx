@@ -164,7 +164,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const userId = state.user.id;
 
         /**
-         * Force the user to the login page with a deactivated notice.
+         * Force the user to the login page with an account-archived notice.
          */
         const forceDeactivatedLogout = () => {
             if (!isMounted) return;
@@ -177,24 +177,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 isLoading: false,
                 isPasswordRecovery: false,
             });
-            // No window.location.href here — the setState above triggers
-            // <Navigate to="/" /> via ProtectedRoute, which is enough.
+        };
+
+        /**
+         * Force the user to the login page with a session-expired notice.
+         * Used for 401 / network-induced logouts that are NOT due to archival.
+         */
+        const forceSessionExpiredLogout = () => {
+            if (!isMounted) return;
+            localStorage.removeItem('auth_token');
+            clearLastKnownRole();
+            sessionStorage.setItem('session_expired', '1');
+            setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                isPasswordRecovery: false,
+            });
         };
 
         /**
          * Poll /auth/user to verify the session is still valid.
-         * If the token was revoked (401) or the user is archived (403), kick them out.
+         * Archived accounts trigger forceDeactivatedLogout; token errors trigger forceSessionExpiredLogout.
+         * Genuine network errors (no response) are ignored to avoid false logouts on brief blips.
          */
         const checkSession = async () => {
             try {
                 const { profile, error } = await authService.getUserProfile(userId);
                 if (!isMounted) return;
 
-                if (error || !profile || profile.status === 'archived') {
+                if (profile?.status === 'archived') {
                     forceDeactivatedLogout();
+                } else if (error || !profile) {
+                    forceSessionExpiredLogout();
                 }
             } catch {
-                // Network errors are ignored — we only act on definitive deactivation
+                // Thrown-exception network errors (DNS failure, timeout) — ignore.
             }
         };
 

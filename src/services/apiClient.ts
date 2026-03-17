@@ -34,16 +34,14 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Handle revoked tokens — when a user is archived, their tokens are deleted
-        // from the database, so subsequent API calls return 401.
-        // We clear the token and set a sessionStorage flag; AuthContext's polling
-        // will detect the invalid session and redirect via React Router.
+        // Handle expired/revoked tokens — clear the token and flag session expiry.
+        // AuthContext's polling will detect the cleared token and redirect.
         if (error.response?.status === 401) {
             const token = localStorage.getItem('auth_token');
             if (token) {
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('last_known_user_role');
-                sessionStorage.setItem('account_deactivated', '1');
+                sessionStorage.setItem('session_expired', '1');
             }
         }
 

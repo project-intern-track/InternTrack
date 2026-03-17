@@ -345,7 +345,8 @@ const AdminDailyLogs = () => {
                                         : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-white/10 focus:border-[#FF8800] focus:ring-2 focus:ring-[#FF8800]/15 text-gray-900 dark:text-white'}`}
                                 placeholder="Enter OJT ID"
                                 value={ojtIdInput}
-                                onChange={e => { setOjtIdInput(e.target.value); setError(null); }}
+                                onChange={e => { setOjtIdInput(e.target.value.replace(/\D/g, '')); setError(null); }}
+                                inputMode="numeric"
                                 maxLength={20}
                                 autoComplete="off"
                                 disabled={isClockedIn || isClockedOut || isExpired}

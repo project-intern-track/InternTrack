@@ -148,19 +148,25 @@ class ReportController extends Controller
         $now = Carbon::now();
         $weekStart = $now->copy()->startOfWeek();
         $weekEnd = $now->copy()->endOfWeek();
-        
+
+        // Calculate intern's week number relative to their OJT start date
+        $internStartWeek = $intern->start_date
+            ? Carbon::parse($intern->start_date)->startOfWeek()
+            : $weekStart->copy();
+        $weekNumber = (int) $internStartWeek->diffInWeeks($weekStart) + 1;
+
         $attendanceRecords = Attendance::where('user_id', $id)
             ->whereBetween('date', [$weekStart->toDateString(), $weekEnd->toDateString()])
             ->get();
-            
+
         $totalHours = $attendanceRecords->sum('total_hours');
-        
+
         $tasksThisWeek = Task::whereHas('assignedInterns', function($q) use ($id) {
                 $q->where('users.id', $id);
             })
             ->whereBetween('updated_at', [$weekStart, $weekEnd])
             ->get();
-            
+
         $completedTasks = $tasksThisWeek->where('status', 'completed');
 
         $dailyActivities = $attendanceRecords->map(function ($log) {
@@ -171,11 +177,11 @@ class ReportController extends Controller
             ];
         })->values();
 
-        $weekLabel = "Week " . $weekStart->weekOfYear . ": " . $weekStart->format('F j') . ' - ' . $weekEnd->format('j, Y');
+        $weekLabel = "Week " . $weekNumber . ": " . $weekStart->format('F j') . ' - ' . $weekEnd->format('j, Y');
 
         return response()->json([
             'data' => [
-                'id'               => $id . '_' . $weekStart->weekOfYear,
+                'id'               => $id . '_' . $weekNumber,
                 'week_label'       => $weekLabel,
                 'week_start'       => $weekStart->toDateString(),
                 'week_end'         => $weekEnd->toDateString(),

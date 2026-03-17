@@ -387,11 +387,11 @@ const ManageInterns = () => {
 
             {/* Search Bar */}
             <div className="mb-6">
-                <div className="input-group relative">
-                    <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <div className="input-group admin-search-wrap">
+                    <Search size={20} className="admin-search-icon" />
                     <input
                         type="text"
-                        className="input pl-12"
+                        className="input admin-search-input"
                         placeholder="Search by name, role, email, or OJT ID"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}

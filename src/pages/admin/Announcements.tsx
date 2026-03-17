@@ -167,11 +167,11 @@ const Announcements = () => {
 
             {/* Filter Bar */}
             <div className="announcements-filter-bar mb-8 border border-slate-200 rounded-lg p-3 bg-[#F9F7F4] gap-4">
-                <div className="announcements-filter-search relative">
-                    <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-[1]" />
+                <div className="announcements-filter-search admin-search-wrap">
+                    <Search size={20} className="admin-search-icon" />
                     <input
                         type="text"
-                        className="input pl-12 w-full"
+                        className="input admin-search-input w-full"
                         placeholder="Search announcements"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}

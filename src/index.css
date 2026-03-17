@@ -2406,6 +2406,28 @@ textarea,
   box-sizing: border-box;
 }
 
+/* Shared admin search input with leading icon */
+.admin-page-shell .admin-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.admin-page-shell .admin-search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.admin-page-shell .admin-search-input {
+  width: 100%;
+  padding-left: 3rem;
+  box-sizing: border-box;
+}
+
 .admin-page-shell .manage-tasks-filter-row {
   gap: 1rem;
   align-items: center;

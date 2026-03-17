@@ -34,105 +34,71 @@ const ReportDetails = () => {
         if (internId) fetchAll();
     }, [internId]);
 
-    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading report details...</div>;
+    if (loading) {
+        return (
+            <div className="admin-page-shell p-6">
+                <div className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-2xl p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                    Loading report details...
+                </div>
+            </div>
+        );
+    }
 
     if (!profile) {
         return (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <h2>Report not found</h2>
+            <div className="admin-page-shell p-6">
+                <div className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-2xl p-8 text-center">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Report not found</h2>
                 <button
                     onClick={() => navigate('/admin/reports')}
-                    style={{
-                        marginTop: '1rem',
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#ff8800',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer'
-                    }}
+                    className="btn btn-primary mt-4"
                 >
                     Back to Reports
                 </button>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="admin-page-shell" style={{ padding: '1rem', maxWidth: '1000px', margin: '0 auto' }}>
-            {/* Header Container */}
-            <div style={{
-                background: '#F9F7F4',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                border: '1px solid #e5e5e5',
-                marginBottom: '2rem'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                    marginBottom: '1rem'
-                }}>
+        <div className="admin-page-shell report-details-shell px-3 py-4 md:px-4 md:py-5">
+            <div className="report-details-card bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-2xl p-5 md:p-6 mb-6">
+                <div className="mb-4">
                     <button
                         onClick={() => navigate('/admin/reports')}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.5rem 1rem',
-                            backgroundColor: '#f3f4f6',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem'
-                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition"
                     >
                         <ArrowLeft size={16} />
                         Back to Reports
                     </button>
                 </div>
 
-                {/* Intern Information */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '5rem'
-                }}>
-                    <div>
-                        <h1 style={{
-                            margin: '0 0 0.5rem 0',
-                            color: '#2b2a2a',
-                            fontSize: '2rem'
-                        }}>
-                            <span style={{ color: '#ff8800' }}>{profile.name}</span>'s Report
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                    <div className="space-y-4">
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white m-0">
+                            <span className="text-primary">{profile.name}</span>&apos;s Report
                         </h1>
-                        <div style={{
-                            display: 'flex',
-                            gap: '2rem',
-                            flexWrap: 'wrap'
-                        }}>
+                        <div className="flex flex-wrap gap-6">
                             {profile.ojtId && (
-                                <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>OJT ID</div>
-                                    <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                <div>
+                                    <div className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-1">OJT ID</div>
+                                    <div className="text-base font-semibold text-gray-900 dark:text-white">
                                         {profile.ojtId}
                                     </div>
                                 </div>
                             )}
                             {profile.department && (
-                                <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Department</div>
-                                    <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                <div>
+                                    <div className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-1">Department</div>
+                                    <div className="text-base font-semibold text-gray-900 dark:text-white">
                                         {profile.department}
                                     </div>
                                 </div>
                             )}
                             {profile.supervisor && (
-                                <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '1rem', color: '#666', fontWeight: '500', marginBottom: '0.25rem' }}>Supervisor</div>
-                                    <div style={{ fontSize: '1.2rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                <div>
+                                    <div className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-1">Supervisor</div>
+                                    <div className="text-base font-semibold text-gray-900 dark:text-white">
                                         {profile.supervisor}
                                     </div>
                                 </div>
@@ -140,198 +106,110 @@ const ReportDetails = () => {
                         </div>
                     </div>
 
-                    {/* Profile Section */}
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', marginTop: '0', marginRight: '5rem' }}>
-                        <div style={{
-                            width: '80px',
-                            height: '80px',
-                            borderRadius: '50%',
-                            backgroundColor: '#ff8800',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginBottom: '0.75rem',
-                            fontSize: '2rem',
-                            color: 'white',
-                            fontWeight: 'bold'
-                        }}>
+                    <div className="self-start lg:self-center flex flex-col items-center min-w-[180px]">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center text-2xl font-bold shadow-md mb-3">
                             {profile.name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
-                        <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600', marginBottom: '0.25rem', textAlign: 'center' }}>
+                        <div className="text-base font-semibold text-gray-900 dark:text-white text-center mb-1">
                             {profile.name}
                         </div>
-                        <div style={{ fontSize: '1rem', color: '#666', marginBottom: '0.5rem', textAlign: 'center' }}>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">
                             {profile.role}
                         </div>
-                        <span style={{
-                            backgroundColor: profile.status === 'Active' ? '#dcfce7' : '#dbeafe',
-                            color: profile.status === 'Active' ? '#166534' : '#1e40af',
-                            fontSize: '0.9rem',
-                            fontWeight: '500',
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '9999px',
-                            display: 'inline-block'
-                        }}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${profile.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
                             {profile.status}
                         </span>
                     </div>
                 </div>
             </div>
-            
-            {/* Report Tabs Container */}
-            <div style={{
-                background: '#F9F7F4',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                border: '1px solid #e5e5e5',
-                marginBottom: '2rem'
-            }}>
-                {/* Tab Buttons */}
-                <div style={{
-                    display: 'flex',
-                    gap: '1rem',
-                    marginBottom: '1.5rem'
-                }}>
+
+            <div className="report-details-card bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-2xl p-5 md:p-6">
+                <div className="flex flex-wrap gap-3 mb-6">
                     <button
                         onClick={() => setSelectedTab('weekly')}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.75rem 1.5rem',
-                            backgroundColor: selectedTab === 'weekly' ? '#ff8800' : '#f3f4f6',
-                            color: selectedTab === 'weekly' ? 'white' : '#2b2a2a',
-                            border: selectedTab === 'weekly' ? '1px solid #ff8800' : '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            fontWeight: '500'
-                        }}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'weekly' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
                     >
                         <Calendar size={16} />
                         Weekly Summary
                     </button>
                     <button
                         onClick={() => setSelectedTab('monthly')}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.75rem 1.5rem',
-                            backgroundColor: selectedTab === 'monthly' ? '#ff8800' : '#f3f4f6',
-                            color: selectedTab === 'monthly' ? 'white' : '#2b2a2a',
-                            border: selectedTab === 'monthly' ? '1px solid #ff8800' : '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            fontWeight: '500'
-                        }}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'monthly' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
                     >
-                        <FileText className="text-[#0052cc]" size={20} />
+                        <FileText size={16} />
                         Monthly Summary
                     </button>
                     <button
                         onClick={() => setSelectedTab('full')}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.75rem 1.5rem',
-                            backgroundColor: selectedTab === 'full' ? '#ff8800' : '#f3f4f6',
-                            color: selectedTab === 'full' ? 'white' : '#2b2a2a',
-                            border: selectedTab === 'full' ? '1px solid #ff8800' : '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            fontWeight: '500'
-                        }}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'full' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
                     >
                         <BarChart size={16} />
                         Full Report
                     </button>
                 </div>
 
-                {/* Tab Content */}
-                <div style={{
-                    background: 'white',
-                    borderRadius: '8px',
-                    padding: '1.5rem',
-                    border: '1px solid #e5e5e5'
-                }}>
+                <div className="bg-gray-50 dark:bg-slate-900/40 border border-gray-200 dark:border-white/5 rounded-xl p-4 md:p-5">
                     {selectedTab === 'weekly' && weekly && (
-                        <div>
-                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
+                        <div className="space-y-6">
+                            <h3 className="m-0 text-lg font-bold text-gray-900 dark:text-white">
                                 {weekly.week_label}
                             </h3>
-                            <div style={{
-                                display: 'flex',
-                                gap: '2rem',
-                                marginBottom: '1rem'
-                            }}>
-                                <div>
-                                    <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Hours</div>
-                                    <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600' }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="rounded-lg border border-blue-100 bg-blue-50/80 dark:bg-blue-500/10 dark:border-blue-500/30 p-4">
+                                    <div className="text-xs uppercase font-bold tracking-wide text-blue-700 dark:text-blue-300">Total Hours</div>
+                                    <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">
                                         {weekly.total_hours} hours
                                     </div>
                                 </div>
-                                <div>
-                                    <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Tasks</div>
-                                    <div style={{ fontSize: '1.1rem', color: '#2b2a2a', fontWeight: '600' }}>
+                                <div className="rounded-lg border border-emerald-100 bg-emerald-50/80 dark:bg-emerald-500/10 dark:border-emerald-500/30 p-4">
+                                    <div className="text-xs uppercase font-bold tracking-wide text-emerald-700 dark:text-emerald-300">Total Tasks</div>
+                                    <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">
                                         {weekly.total_tasks} tasks
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ marginTop: '1.5rem' }}>
-                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+
+                            <div>
+                                <h4 className="m-0 mb-3 text-base font-semibold text-gray-900 dark:text-white">
                                     Daily Activities
                                 </h4>
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.75rem'
-                                }}>
+                                <div className="space-y-2.5">
                                     {weekly.daily_activities.length === 0 ? (
-                                        <div style={{ color: '#666', fontSize: '0.9rem', fontStyle: 'italic', padding: '1rem', background: '#f9f7f4', borderRadius: '6px' }}>No activities logged this week.</div>
+                                        <div className="text-sm italic text-gray-500 dark:text-gray-400 p-4 rounded-lg bg-gray-100 dark:bg-slate-800">No activities logged this week.</div>
                                     ) : (
                                         weekly.daily_activities.map((activity: any, idx: number) => (
-                                            <div key={idx} style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                padding: '0.75rem',
-                                                background: '#f9f7f4',
-                                                borderRadius: '6px',
-                                                border: '1px solid #e5e5e5'
-                                            }}>
-                                                <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>{activity.day}</div>
-                                                <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                            <div key={idx} className="grid grid-cols-1 md:grid-cols-[130px_1fr_110px] gap-2 md:gap-4 items-start md:items-center p-3 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800/70">
+                                                <div className="text-sm font-semibold text-gray-900 dark:text-white">{activity.day}</div>
+                                                <div className="text-sm text-gray-600 dark:text-gray-300">
                                                     {activity.description}
                                                 </div>
-                                                <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>{activity.hours}</div>
+                                                <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 md:text-right">{activity.hours}</div>
                                             </div>
                                         ))
                                     )}
                                 </div>
                             </div>
-                            <div style={{ marginTop: '1.5rem' }}>
-                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+
+                            <div>
+                                <h4 className="m-0 mb-3 text-base font-semibold text-gray-900 dark:text-white">
                                     Key Achievements
                                 </h4>
                                 {weekly.achievements && weekly.achievements.length > 0 ? (
-                                    <ul style={{ margin: '0', paddingLeft: '1.5rem', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    <ul className="pl-5 text-sm text-gray-600 dark:text-gray-300 leading-6 space-y-1">
                                         {weekly.achievements.map((ach: string, idx: number) => (
-                                            <li key={idx} style={{ marginBottom: '0.5rem' }}>{ach}</li>
+                                            <li key={idx}>{ach}</li>
                                         ))}
                                     </ul>
                                 ) : (
-                                    <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', fontStyle: 'italic' }}>No completed tasks this week.</p>
+                                    <p className="m-0 text-sm italic text-gray-500 dark:text-gray-400">No completed tasks this week.</p>
                                 )}
                             </div>
-                            <div style={{ marginTop: '1.5rem' }}>
-                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>
+
+                            <div>
+                                <h4 className="m-0 mb-3 text-base font-semibold text-gray-900 dark:text-white">
                                     Challenges
                                 </h4>
-                                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                <p className="m-0 text-sm text-gray-600 dark:text-gray-300 leading-6">
                                     {weekly.challenges || 'No challenges reported.'}
                                 </p>
                             </div>
@@ -339,132 +217,104 @@ const ReportDetails = () => {
                     )}
                     
                     {selectedTab === 'monthly' && monthly && (
-                        <div>
-                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.5rem' }}>
+                        <div className="space-y-8">
+                            <h3 className="m-0 text-xl font-bold text-gray-900 dark:text-white">
                                 {monthly.month_year}
                             </h3>
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                                gap: '1rem',
-                                marginBottom: '1rem'
-                            }}>
-                                <div style={{
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                                    background: '#9DB8F133', borderRadius: '8px', padding: '1.5rem', border: '1px solid #9DB8F133'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <Clock size={24} color="#1C2DE9" style={{ marginRight: '0.5rem' }} />
-                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Total Hours</span>
-                                    </div>
-                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>{monthly.total_hours}</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                                <div className="rounded-xl p-4 border border-blue-200/60 bg-blue-50/70 dark:bg-blue-500/10 dark:border-blue-500/30">
+                                    <div className="flex items-center gap-2 mb-2 text-blue-700 dark:text-blue-300 font-semibold text-sm"><Clock size={18} /> Total Hours</div>
+                                    <div className="text-2xl font-extrabold text-gray-900 dark:text-white">{monthly.total_hours}</div>
                                 </div>
-                                <div style={{
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                                    background: '#C0E8BC33', borderRadius: '8px', padding: '1.5rem', border: '1px solid #C0E8BC33'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <CheckCircle size={24} color="#4ACE1E" style={{ marginRight: '0.5rem' }} />
-                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Task Completed</span>
-                                    </div>
-                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>{monthly.tasks_completed}</div>
+                                <div className="rounded-xl p-4 border border-emerald-200/60 bg-emerald-50/70 dark:bg-emerald-500/10 dark:border-emerald-500/30">
+                                    <div className="flex items-center gap-2 mb-2 text-emerald-700 dark:text-emerald-300 font-semibold text-sm"><CheckCircle size={18} /> Task Completed</div>
+                                    <div className="text-2xl font-extrabold text-gray-900 dark:text-white">{monthly.tasks_completed}</div>
                                 </div>
-                                <div style={{
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                                    background: '#D6A7EA33', borderRadius: '8px', padding: '1.5rem', border: '1px solid #D6A7EA33'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <UserCheck size={24} color="#BF27D0" style={{ marginRight: '0.5rem' }} />
-                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Attendance</span>
-                                    </div>
-                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>{monthly.attendance_percentage}%</div>
+                                <div className="rounded-xl p-4 border border-violet-200/60 bg-violet-50/70 dark:bg-violet-500/10 dark:border-violet-500/30">
+                                    <div className="flex items-center gap-2 mb-2 text-violet-700 dark:text-violet-300 font-semibold text-sm"><UserCheck size={18} /> Attendance</div>
+                                    <div className="text-2xl font-extrabold text-gray-900 dark:text-white">{monthly.attendance_percentage}%</div>
                                 </div>
-                                <div style={{
-                                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                                    background: '#FF880033', borderRadius: '8px', padding: '1.5rem', border: '1px solid #FF880033'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <FileText size={24} color="#ff8800" style={{ marginRight: '0.5rem' }} />
-                                        <span style={{ fontSize: '1.2rem', color: '#000000', fontWeight: '500' }}>Projects</span>
-                                    </div>
-                                    <div style={{ fontSize: '1.8rem', color: '#000000', fontWeight: 'bold' }}>{monthly.projects_count}</div>
+                                <div className="rounded-xl p-4 border border-orange-200/60 bg-orange-50/70 dark:bg-orange-500/10 dark:border-orange-500/30">
+                                    <div className="flex items-center gap-2 mb-2 text-orange-700 dark:text-orange-300 font-semibold text-sm"><FileText size={18} /> Projects</div>
+                                    <div className="text-2xl font-extrabold text-gray-900 dark:text-white">{monthly.projects_count}</div>
                                 </div>
                             </div>
-                            <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem', fontWeight: '600' }}>Monthly Overview</h4>
-                                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>{monthly.overview}</p>
+
+                            <div>
+                                <h4 className="m-0 mb-3 text-lg font-semibold text-gray-900 dark:text-white">Monthly Overview</h4>
+                                <p className="m-0 text-sm text-gray-600 dark:text-gray-300 leading-6">{monthly.overview}</p>
                             </div>
 
-                            <hr style={{ border: 'none', borderTop: '2px solid #e5e5e5', margin: '2rem 0' }} />
+                            <hr className="border-0 border-t border-gray-200 dark:border-white/10" />
 
-                            <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>Skills Developed</h4>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div>
+                                <h4 className="m-0 mb-5 text-lg font-semibold text-gray-900 dark:text-white">Skills Developed</h4>
+                                <div className="space-y-4">
                                     {monthly.skills && monthly.skills.length > 0 ? monthly.skills.map((skill: any, idx: number) => (
                                         <div key={idx}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                                <span style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>{skill.skill_name}</span>
-                                                <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>{skill.proficiency}</span>
+                                            <div className="flex justify-between mb-2">
+                                                <span className="text-sm font-semibold text-gray-900 dark:text-white">{skill.skill_name}</span>
+                                                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{skill.proficiency}</span>
                                             </div>
-                                            <div style={{ width: '100%', height: '8px', backgroundColor: '#e5e5e5', borderRadius: '4px', overflow: 'hidden' }}>
-                                                <div style={{ width: skill.proficiency, height: '100%', backgroundColor: '#ff8800', borderRadius: '4px' }} />
+                                            <div className="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded overflow-hidden">
+                                                <div style={{ width: skill.proficiency, height: '100%', background: 'linear-gradient(90deg,#ff8800,#e67a00)', borderRadius: '4px' }} />
                                             </div>
                                         </div>
-                                    )) : <p style={{ color: '#666', fontStyle: 'italic', fontSize: '0.9rem' }}>No skills reported this month.</p>}
+                                    )) : <p className="text-sm italic text-gray-500 dark:text-gray-400">No skills reported this month.</p>}
                                 </div>
                             </div>
 
-                            <hr style={{ border: 'none', borderTop: '2px solid #e5e5e5', margin: '2rem 0' }} />
+                            <hr className="border-0 border-t border-gray-200 dark:border-white/10" />
 
-                            <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>Projects</h4>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                                <h4 className="m-0 mb-5 text-lg font-semibold text-gray-900 dark:text-white">Projects</h4>
+                                <div className="space-y-3">
                                     {monthly.projects && monthly.projects.length > 0 ? monthly.projects.map((proj: any, idx: number) => (
-                                        <div key={idx} style={{ background: '#64AACA12', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e5e5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div key={idx} className="bg-cyan-50/40 dark:bg-cyan-500/10 rounded-lg p-4 border border-gray-200 dark:border-white/10 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
                                             <div>
-                                                <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>{proj.title}</h5>
-                                                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>{proj.description}</p>
-                                                <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>Role: {proj.role}</div>
+                                                <h5 className="m-0 mb-1.5 text-base font-semibold text-gray-900 dark:text-white">{proj.title}</h5>
+                                                <p className="m-0 mb-2 text-sm text-gray-600 dark:text-gray-300 leading-6">{proj.description}</p>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Role: {proj.role}</div>
                                             </div>
-                                            <span style={{ backgroundColor: '#dcfce7', color: '#166534', fontSize: '0.8rem', fontWeight: '500', padding: '0.25rem 0.75rem', borderRadius: '9999px', display: 'inline-block' }}>{proj.status}</span>
+                                            <span className="inline-flex self-start md:self-auto bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full">{proj.status}</span>
                                         </div>
-                                    )) : <p style={{ color: '#666', fontStyle: 'italic', fontSize: '0.9rem' }}>No completed projects to display.</p>}
+                                    )) : <p className="text-sm italic text-gray-500 dark:text-gray-400">No completed projects to display.</p>}
                                 </div>
                             </div>
 
-                            <hr style={{ border: 'none', borderTop: '2px solid #e5e5e5', margin: '2rem 0' }} />
-                            
-                            <div style={{ marginTop: '2rem' }}>
-                                <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>Supervisor Feedback</h4>
+                            <hr className="border-0 border-t border-gray-200 dark:border-white/10" />
+
+                            <div>
+                                <h4 className="m-0 mb-5 text-lg font-semibold text-gray-900 dark:text-white">Supervisor Feedback</h4>
                                 {monthly.supervisor_feedback ? (
-                                    <div style={{ background: '#64AACA12', borderRadius: '8px', padding: '1.5rem', border: '1px solid #e5e5e5' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                            <div style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Supervisor: {monthly.supervisor_feedback.supervisor_name}</div>
-                                            <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                    <div className="bg-cyan-50/40 dark:bg-cyan-500/10 rounded-lg p-5 border border-gray-200 dark:border-white/10">
+                                        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
+                                            <div className="text-sm font-semibold text-gray-900 dark:text-white">Supervisor: {monthly.supervisor_feedback.supervisor_name}</div>
+                                            <div className="flex gap-1">
                                                 {Array.from({ length: 5 }).map((_, i) => (
-                                                    <span key={i} style={{ color: '#ff8800', fontSize: '1.5rem' }}>
+                                                    <span key={i} className="text-orange-500 text-xl">
                                                         {i < monthly.supervisor_feedback.rating ? '★' : '☆'}
                                                     </span>
                                                 ))}
                                             </div>
                                         </div>
-                                        <p style={{ margin: '0', color: '#2b2a2a', fontSize: '0.9rem', lineHeight: '1.5', fontStyle: 'italic', textAlign: 'center' }}>
+                                        <p className="m-0 text-sm text-gray-700 dark:text-gray-200 leading-6 italic md:text-center">
                                             "{monthly.supervisor_feedback.comment}"
                                         </p>
                                     </div>
                                 ) : (
-                                    <p style={{ color: '#666', fontStyle: 'italic', fontSize: '0.9rem' }}>No supervisor feedback available yet.</p>
+                                    <p className="text-sm italic text-gray-500 dark:text-gray-400">No supervisor feedback available yet.</p>
                                 )}
                             </div>
                         </div>
                     )}
 
                     {selectedTab === 'full' && (
-                        <div>
-                            <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
+                        <div className="space-y-3">
+                            <h3 className="m-0 text-lg font-bold text-gray-900 dark:text-white">
                                 Full Report
                             </h3>
-                            <p style={{ margin: '0', color: '#666', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                            <p className="m-0 text-sm text-gray-600 dark:text-gray-300 leading-6">
                                 Comprehensive report covering all aspects of {profile.name}'s OJT experience.
                                 Including detailed metrics, achievements, and areas for improvement under the supervision of {profile.supervisor}.
                                 <br/><br/>

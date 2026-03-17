@@ -2360,3 +2360,488 @@ textarea,
     justify-content: center;
   }
 }
+
+/* Focused redesign: Manage Tasks + Report Details */
+.admin-page-shell .manage-tasks-header {
+  margin-bottom: 1.25rem !important;
+}
+
+.admin-page-shell .manage-tasks-title {
+  color: hsl(var(--orange));
+  margin: 0;
+  font-size: 1.95rem;
+}
+
+.admin-page-shell .manage-tasks-create-btn {
+  font-size: 0.95rem;
+  padding-inline: 1.15rem;
+}
+
+.admin-page-shell .manage-tasks-search-wrap {
+  margin-top: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-page-shell .manage-tasks-search-group {
+  position: relative;
+  width: 100%;
+}
+
+.admin-page-shell .manage-tasks-search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: hsl(var(--muted-foreground));
+}
+
+.admin-page-shell .manage-tasks-search-input {
+  padding-left: 3rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-page-shell .manage-tasks-filter-row {
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-page-shell .manage-tasks-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.admin-page-shell .manage-tasks-filter-label span {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+
+.admin-page-shell .manage-tasks-filter-selects {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.admin-page-shell .manage-tasks-filter-col {
+  flex: 1;
+  min-width: 200px;
+}
+
+.admin-page-shell .manage-tasks-custom-chip {
+  margin-top: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  font-size: 0.85rem;
+  color: #111827;
+}
+
+.dark .admin-page-shell .manage-tasks-custom-chip {
+  background-color: rgba(15, 23, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e5e7eb;
+}
+
+.admin-page-shell .manage-tasks-custom-chip-label {
+  font-weight: 700;
+  color: #374151;
+}
+
+.dark .admin-page-shell .manage-tasks-custom-chip-label {
+  color: #d1d5db;
+}
+
+.admin-page-shell .manage-tasks-custom-chip-btn {
+  border: none;
+  background-color: transparent;
+  color: hsl(var(--orange));
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0;
+  margin-left: 0.35rem;
+}
+
+.admin-page-shell .manage-tasks-custom-chip-btn.clear {
+  color: #6b7280;
+  margin-left: 0.25rem;
+}
+
+.admin-page-shell .manage-tasks-grid {
+  margin-top: 1.5rem;
+}
+
+.admin-page-shell .manage-task-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.35rem;
+  border-radius: 0.95rem !important;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-page-shell .manage-task-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 26px rgba(2, 6, 23, 0.12) !important;
+}
+
+.admin-page-shell .manage-task-card-top {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-page-shell .manage-task-card-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  flex: 1;
+}
+
+.dark .admin-page-shell .manage-task-card-title {
+  color: #f3f4f6;
+}
+
+.admin-page-shell .manage-task-card-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+
+.dark .admin-page-shell .manage-task-card-description {
+  color: #cbd5e1;
+}
+
+.admin-page-shell .manage-task-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.admin-page-shell .manage-task-card-btn {
+  margin-top: auto;
+  font-size: 0.875rem;
+}
+
+.admin-page-shell .create-task-modal {
+  background-color: #f5f2ec !important;
+}
+
+.dark .admin-page-shell .create-task-modal {
+  background-color: #111827 !important;
+}
+
+.admin-page-shell .create-task-modal-content {
+  display: grid;
+  grid-template-columns: 1.05fr 1.05fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-page-shell .create-task-modal-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.admin-page-shell .create-task-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.report-details-shell .report-details-card {
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .admin-page-shell .manage-tasks-title {
+    font-size: 1.65rem;
+  }
+
+  .admin-page-shell .manage-tasks-filter-col {
+    min-width: 160px;
+  }
+
+  .admin-page-shell .create-task-modal-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Focused redesign: Reports list page */
+.admin-page-shell.reports-page-shell {
+  padding: 0.5rem;
+}
+
+.reports-header-block {
+  margin-bottom: 1rem;
+}
+
+.reports-title {
+  margin: 0;
+  color: hsl(var(--orange));
+  font-size: clamp(1.75rem, 2.2vw, 2.15rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.reports-subtitle {
+  margin: 0.35rem 0 0;
+  font-size: 1rem;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.dark .reports-subtitle {
+  color: #9ca3af;
+}
+
+.reports-filter-bar {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.75rem;
+  border-radius: 0.9rem;
+  border: 1px solid #d1d5db;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dark .reports-filter-bar {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.reports-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.reports-search-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+}
+
+.reports-search-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 0.85rem 0 2.7rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.65rem;
+  font-size: 0.95rem;
+  outline: none;
+  background-color: #fff;
+}
+
+.dark .reports-search-input {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+}
+
+.reports-status-select {
+  height: 40px;
+  min-width: 160px;
+  padding: 0 2.2rem 0 0.9rem;
+  border-radius: 0.65rem;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+  background-color: #fff;
+}
+
+.dark .reports-status-select {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+}
+
+.reports-export-btn {
+  height: 40px;
+  padding-inline: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.report-intern-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.1rem;
+  margin-top: 1.35rem;
+}
+
+.report-intern-card {
+  border: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 0.95rem;
+  padding: 1.1rem;
+  box-shadow: 0 8px 22px rgba(2, 6, 23, 0.07);
+  text-align: left;
+  width: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-intern-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(2, 6, 23, 0.13);
+}
+
+.dark .report-intern-card {
+  background: rgba(17, 24, 39, 0.66);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.report-card-header {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dark .report-card-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.report-card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.report-card-name {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #111827;
+  font-weight: 700;
+}
+
+.dark .report-card-name {
+  color: #f3f4f6;
+}
+
+.report-card-email {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.86rem;
+}
+
+.dark .report-card-email {
+  color: #9ca3af;
+}
+
+.report-status-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.26rem 0.7rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.report-status-badge.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.report-status-badge.completed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.report-card-meta {
+  margin-bottom: 0.8rem;
+}
+
+.report-card-meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.86rem;
+  color: #6b7280;
+}
+
+.dark .report-card-meta-row {
+  color: #9ca3af;
+}
+
+.report-card-meta-row strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.dark .report-card-meta-row strong {
+  color: #e5e7eb;
+}
+
+.report-card-footer {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.65rem;
+}
+
+.dark .report-card-footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.report-card-footer p {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.reports-empty-state {
+  margin-top: 1.35rem;
+  text-align: center;
+  color: #6b7280;
+  padding: 1.75rem;
+  border-radius: 0.9rem;
+  border: 1px dashed #d1d5db;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.dark .reports-empty-state {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(17, 24, 39, 0.45);
+  color: #9ca3af;
+}
+
+@media (max-width: 1024px) {
+  .report-intern-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .reports-filter-bar {
+    align-items: stretch;
+  }
+
+  .reports-search-wrap,
+  .reports-status-select,
+  .reports-export-btn {
+    width: 100%;
+  }
+
+  .report-intern-grid {
+    grid-template-columns: 1fr;
+  }
+}

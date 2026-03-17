@@ -788,18 +788,17 @@ const ManageTasks = () => {
             }
         `}</style>
 
-            <div className="row row-between" style={{ marginBottom: '2rem' }}>
-                <h1 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: '31px' }}>Manage Tasks</h1>
-                <button className="btn btn-primary" style={{ fontSize: '15px' }} onClick={openCreateModal}>
+            <div className="row row-between manage-tasks-header">
+                <h1 className="manage-tasks-title">Manage Tasks</h1>
+                <button className="btn btn-primary manage-tasks-create-btn" onClick={openCreateModal}>
                     + Create Task
                 </button>
             </div>
 
-            <div style={{ marginTop: '20px', marginBottom: '1.5rem' }}>
-                <div className="input-group" style={{ position: 'relative', width: '100%' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
-                    <input type="text" className="input" placeholder="Search Task"
-                        style={{ paddingLeft: '3rem', width: '100%', boxSizing: 'border-box' }}
+            <div className="manage-tasks-search-wrap">
+                <div className="input-group manage-tasks-search-group">
+                    <Search size={20} className="manage-tasks-search-icon" />
+                    <input type="text" className="input manage-tasks-search-input" placeholder="Search Task"
                         value={search} onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
@@ -808,18 +807,16 @@ const ManageTasks = () => {
             <div className="card manage-tasks-filter-section">
                 <div
                     className="row manage-tasks-filter-row"
-                    style={{ gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}
                 >
-                    <div className="manage-tasks-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Filter size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
-                        <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Filters:</span>
+                    <div className="manage-tasks-filter-label">
+                        <Filter size={20} />
+                        <span>Filters:</span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', flex: 1, flexWrap: 'wrap' }}>
-                        <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div className="manage-tasks-filter-selects">
+                        <div className="manage-tasks-filter-col">
                             <select
                                 className="select"
-                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
                                 value={dueDateFilter}
                                 onChange={(e) => {
                                     const raw = e.target.value as typeof dueDateFilter;
@@ -845,10 +842,9 @@ const ManageTasks = () => {
                             </select>
                         </div>
 
-                        <div style={{ flex: 1, minWidth: '200px' }}>
+                        <div className="manage-tasks-filter-col">
                             <select
                                 className="select"
-                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
                                 value={priorityFilter}
                                 onChange={(e) => setPriorityFilter(e.target.value)}
                             >
@@ -859,10 +855,9 @@ const ManageTasks = () => {
                             </select>
                         </div>
 
-                        <div style={{ flex: 1, minWidth: '200px' }}>
+                        <div className="manage-tasks-filter-col">
                             <select
                                 className="select"
-                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
@@ -882,20 +877,9 @@ const ManageTasks = () => {
 
                 {dueDateFilter === 'custom' && customDueStart && (
                     <div
-                        style={{
-                            marginTop: '0.75rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.4rem 0.75rem',
-                            borderRadius: '999px',
-                            backgroundColor: '#fff',
-                            border: '1px solid #d1d5db',
-                            fontSize: '0.85rem',
-                            color: '#111827',
-                        }}
+                        className="manage-tasks-custom-chip"
                     >
-                        <span style={{ fontWeight: 700, color: '#374151' }}>Custom:</span>
+                        <span className="manage-tasks-custom-chip-label">Custom:</span>
                         <span>
                             {customDueStart}
                             {customDueEnd && customDueEnd !== customDueStart ? ` → ${customDueEnd}` : ''}
@@ -903,15 +887,7 @@ const ManageTasks = () => {
                         <button
                             type="button"
                             onClick={() => openCustomRangeModal()}
-                            style={{
-                                border: 'none',
-                                backgroundColor: 'transparent',
-                                color: 'hsl(var(--orange))',
-                                cursor: 'pointer',
-                                fontWeight: 800,
-                                padding: 0,
-                                marginLeft: '0.35rem',
-                            }}
+                            className="manage-tasks-custom-chip-btn"
                             title="Edit custom range"
                         >
                             Edit
@@ -923,15 +899,7 @@ const ManageTasks = () => {
                                 setCustomDueEnd('');
                                 setDueDateFilter(lastNonCustomDueFilter);
                             }}
-                            style={{
-                                border: 'none',
-                                backgroundColor: 'transparent',
-                                color: '#6b7280',
-                                cursor: 'pointer',
-                                fontWeight: 700,
-                                padding: 0,
-                                marginLeft: '0.25rem',
-                            }}
+                            className="manage-tasks-custom-chip-btn clear"
                             title="Clear custom range"
                         >
                             ×
@@ -940,7 +908,7 @@ const ManageTasks = () => {
                 )}
             </div>
 
-            <div className="grid-3" style={{ marginTop: '2rem' }}>
+            <div className="grid-3 manage-tasks-grid">
                 {isLoadingTasks && tasks.length === 0 ? (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', paddingTop: '3rem', paddingBottom: '3rem' }}>
                         <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid hsl(var(--orange))', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
@@ -952,22 +920,19 @@ const ManageTasks = () => {
                             const priorityStyle = getPriorityStyle(task.priority);
                             const statusStyle = getStatusStyle(task.status);
                             return (
-                                <div key={task.id} className="card"
+                                <div key={task.id} className="card manage-task-card"
                                     onClick={() => handleViewDetail(task)}
-                                    style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'pointer' }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; }}
                                 >
-                                    <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-                                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#000', margin: 0, flex: 1 }}>{task.title}</h3>
+                                    <div className="manage-task-card-top">
+                                        <h3 className="manage-task-card-title">{task.title}</h3>
                                         <div style={{ display: 'inline-block', padding: '0.375rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: `1px solid ${priorityStyle.borderColor}`, whiteSpace: 'nowrap', ...priorityStyle }}>
                                             {getPriorityLabel(task.priority)}
                                         </div>
                                     </div>
-                                    <p style={{ fontSize: '0.875rem', color: '#666', lineHeight: '1.5', marginBottom: '1.5rem', flex: 1 }}>
+                                    <p className="manage-task-card-description">
                                         {task.description}
                                     </p>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                                    <div className="manage-task-card-meta">
                                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <span style={{ color: '#666' }}>Assigned to:</span>
                                             <span style={{ fontWeight: 600, color: '#000' }}>{task.assigned_interns_count} intern{task.assigned_interns_count !== 1 ? 's' : ''}</span>
@@ -998,7 +963,7 @@ const ManageTasks = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <button className="btn btn-primary" style={{ marginTop: 'auto', fontSize: '0.875rem' }}>View Details</button>
+                                    <button className="btn btn-primary manage-task-card-btn">View Details</button>
                                 </div>
                             );
                         })}
@@ -1013,7 +978,7 @@ const ManageTasks = () => {
             {isModalOpen && (
                 <div className="modal-overlay" onClick={closeModal}>
                     <div className="modal create-task-modal"
-                        style={{ backgroundColor: '#e8ddd0', maxWidth: '880px', width: '100%', padding: '1.25rem', margin: '0.75rem', position: 'relative' }}
+                        style={{ maxWidth: '900px', width: '100%', padding: '1.25rem', margin: '0.75rem', position: 'relative' }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1023,7 +988,7 @@ const ManageTasks = () => {
                             </button>
                         </div>
 
-                        <div className="create-task-modal-content" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.05fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                        <div className="create-task-modal-content">
                             <div>
                                 <div style={{ marginBottom: '1rem' }}>
                                     <label className="label" style={{ marginBottom: '0.5rem' }}><b>Task Title:</b></label>
@@ -1173,7 +1138,7 @@ const ManageTasks = () => {
                                 </div>
                             </div>
 
-                            <div className="create-task-modal-bottom" style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                            <div className="create-task-modal-bottom">
                                 <div style={{ marginBottom: '0.25rem' }}>
                                     {dueDateError && (
                                         <p style={{ marginBottom: '0.35rem', fontSize: '0.8rem', color: 'hsl(var(--danger))', fontWeight: 500 }}>
@@ -1496,7 +1461,7 @@ const ManageTasks = () => {
                             </div>
                         </div>
 
-                        <div className="create-task-modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+                        <div className="create-task-modal-actions">
                             <button onClick={handleClear}
                                 style={{ padding: '0.625rem 1.5rem', backgroundColor: '#fff', color: 'hsl(var(--orange))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: 500, fontSize: '0.875rem' }}>
                                 Clear

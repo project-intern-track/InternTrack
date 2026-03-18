@@ -327,13 +327,18 @@ const Reports = () => {
                     onChange={(e) => setFilterStatus(e.target.value)}
                     style={{
                         height: '40px',
-                        padding: '0 1rem',
+                        padding: '0 2.5rem 0 1rem',
                         border: '1px solid #777777',
                         borderRadius: '8px',
                         outline: 'none',
                         fontSize: '1rem',
                         minWidth: '180px',
-                        backgroundColor: 'white'
+                        backgroundColor: 'white',
+                        appearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.75rem center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: '1.25rem'
                     }}>
                     <option value="all">All Status</option>
                     <option value="active">Active</option>

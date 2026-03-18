@@ -60,6 +60,78 @@ const ReportDetails = () => {
 
     return (
         <div style={{ padding: '1rem', maxWidth: '1000px', margin: '0 auto' }}>
+            <style>{`
+                @media (max-width: 768px) {
+                    .header-content {
+                        flex-direction: column !important;
+                        align-items: center !important;
+                        gap: 0 !important;
+                    }
+                    .profile-section {
+                        margin-top: 1rem !important;
+                        margin-right: 0 !important;
+                        width: 100% !important;
+                    }
+                    .report-title {
+                        font-size: 1.5rem !important;
+                    }
+                    .info-grid {
+                        gap: 1rem !important;
+                        justify-content: center !important;
+                        text-align: center !important;
+                    }
+                    .tab-buttons {
+                        gap: 0.5rem !important;
+                    }
+                    .tab-button {
+                        flex: 1 1 100% !important;
+                        padding: 0.5rem 1rem !important;
+                        font-size: 0.8rem !important;
+                        justify-content: center !important;
+                        text-align: center !important;
+                    }
+                    .weekly-stats {
+                        flex-direction: column !important;
+                    }
+                    .activity-item {
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                        gap: 0.5rem !important;
+                    }
+                    .activity-description {
+                        text-align: left !important;
+                        order: 2 !important;
+                    }
+                    .activity-hours {
+                        order: 1 !important;
+                    }
+                    .monthly-grid {
+                        grid-template-columns: 1fr !important;
+                    }
+                    .project-card {
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                        gap: 0.75rem !important;
+                    }
+                    .supervisor-header {
+                        flex-direction: column !important;
+                        gap: 0.5rem !important;
+                        text-align: left !important;
+                    }
+                }
+                @media (min-width: 769px) and (max-width: 1024px) {
+                    .monthly-grid {
+                        grid-template-columns: repeat(2, 1fr) !important;
+                    }
+                    .tab-button {
+                        flex: 1 1 auto !important;
+                        padding: 0.75rem 1.5rem !important;
+                        font-size: 0.9rem !important;
+                        justify-content: center !important;
+                        text-align: center !important;
+                    }
+                }
+            `}</style>
             {/* Header Container */}
             <div style={{
                 background: '#F9F7F4',
@@ -94,21 +166,22 @@ const ReportDetails = () => {
                 </div>
 
                 {/* Intern Information */}
-                <div style={{
+                <div className="header-content" style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '5rem'
+                    justifyContent: 'space-around',
+                    alignItems: 'flex-start',
+                    gap: '2rem',
+                    flexDirection: 'row'
                 }}>
-                    <div>
-                        <h1 style={{
+                    <div style={{ minWidth: 0 }}>
+                        <h1 className="report-title" style={{
                             margin: '0 0 0.5rem 0',
                             color: '#2b2a2a',
                             fontSize: '2rem'
                         }}>
                             <span style={{ color: '#ff8800' }}>{profile.name}</span>'s Report
                         </h1>
-                        <div style={{
+                        <div className="info-grid" style={{
                             display: 'flex',
                             gap: '2rem',
                             flexWrap: 'wrap'
@@ -141,7 +214,14 @@ const ReportDetails = () => {
                     </div>
 
                     {/* Profile Section */}
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', marginTop: '0', marginRight: '5rem' }}>
+                    <div className="profile-section" style={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center', 
+                        flexDirection: 'column', 
+                        marginTop: '0',
+                        marginRight: '0'
+                    }}>
                         <div style={{
                             width: '80px',
                             height: '80px',
@@ -187,13 +267,15 @@ const ReportDetails = () => {
                 marginBottom: '2rem'
             }}>
                 {/* Tab Buttons */}
-                <div style={{
+                <div className="tab-buttons" style={{
                     display: 'flex',
-                    gap: '1rem',
-                    marginBottom: '1.5rem'
+                    gap: '0.5rem',
+                    marginBottom: '1.5rem',
+                    flexWrap: 'wrap'
                 }}>
                     <button
                         onClick={() => setSelectedTab('weekly')}
+                        className="tab-button"
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -205,7 +287,10 @@ const ReportDetails = () => {
                             borderRadius: '8px',
                             cursor: 'pointer',
                             fontSize: '0.9rem',
-                            fontWeight: '500'
+                            fontWeight: '500',
+                            flex: 'auto',
+                            justifyContent: 'center',
+                            textAlign: 'center'
                         }}
                     >
                         <Calendar size={16} />
@@ -213,6 +298,7 @@ const ReportDetails = () => {
                     </button>
                     <button
                         onClick={() => setSelectedTab('monthly')}
+                        className="tab-button"
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -224,7 +310,10 @@ const ReportDetails = () => {
                             borderRadius: '8px',
                             cursor: 'pointer',
                             fontSize: '0.9rem',
-                            fontWeight: '500'
+                            fontWeight: '500',
+                            flex: 'auto',
+                            justifyContent: 'center',
+                            textAlign: 'center'
                         }}
                     >
                         <FileText className="text-[#0052cc]" size={20} />
@@ -232,6 +321,7 @@ const ReportDetails = () => {
                     </button>
                     <button
                         onClick={() => setSelectedTab('full')}
+                        className="tab-button full"
                         style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -243,7 +333,10 @@ const ReportDetails = () => {
                             borderRadius: '8px',
                             cursor: 'pointer',
                             fontSize: '0.9rem',
-                            fontWeight: '500'
+                            fontWeight: '500',
+                            flex: 'auto',
+                            justifyContent: 'center',
+                            textAlign: 'center'
                         }}
                     >
                         <BarChart size={16} />
@@ -263,10 +356,11 @@ const ReportDetails = () => {
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.2rem' }}>
                                 {weekly.week_label}
                             </h3>
-                            <div style={{
+                            <div className="weekly-stats" style={{
                                 display: 'flex',
-                                gap: '2rem',
-                                marginBottom: '1rem'
+                                gap: '1rem',
+                                marginBottom: '1rem',
+                                flexDirection: 'row'
                             }}>
                                 <div>
                                     <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.1rem' }}>Total Hours</div>
@@ -294,20 +388,31 @@ const ReportDetails = () => {
                                         <div style={{ color: '#666', fontSize: '0.9rem', fontStyle: 'italic', padding: '1rem', background: '#f9f7f4', borderRadius: '6px' }}>No activities logged this week.</div>
                                     ) : (
                                         weekly.daily_activities.map((activity: any, idx: number) => (
-                                            <div key={idx} style={{
+                                            <div key={idx} className="activity-item" style={{
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
                                                 alignItems: 'center',
                                                 padding: '0.75rem',
                                                 background: '#f9f7f4',
                                                 borderRadius: '6px',
-                                                border: '1px solid #e5e5e5'
+                                                border: '1px solid #e5e5e5',
+                                                flexDirection: 'row',
+                                                gap: '0'
                                             }}>
                                                 <div style={{ fontSize: '0.9rem', color: '#2b2a2a', fontWeight: '500' }}>{activity.day}</div>
-                                                <div style={{ fontSize: '0.85rem', color: '#666', flex: 1, textAlign: 'center' }}>
+                                                <div className="activity-description" style={{ 
+                                                    fontSize: '0.85rem', 
+                                                    color: '#666', 
+                                                    flex: 1, 
+                                                    textAlign: 'center'
+                                                }}>
                                                     {activity.description}
                                                 </div>
-                                                <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: '500' }}>{activity.hours}</div>
+                                                <div className="activity-hours" style={{ 
+                                                    fontSize: '0.85rem', 
+                                                    color: '#666', 
+                                                    fontWeight: '500'
+                                                }}>{activity.hours}</div>
                                             </div>
                                         ))
                                     )}
@@ -343,7 +448,7 @@ const ReportDetails = () => {
                             <h3 style={{ margin: '0 0 1rem 0', color: '#2b2a2a', fontSize: '1.5rem' }}>
                                 {monthly.month_year}
                             </h3>
-                            <div style={{
+                            <div className="monthly-grid" style={{
                                 display: 'grid',
                                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                                 gap: '1rem',
@@ -420,7 +525,17 @@ const ReportDetails = () => {
                                 <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>Projects</h4>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     {monthly.projects && monthly.projects.length > 0 ? monthly.projects.map((proj: any, idx: number) => (
-                                        <div key={idx} style={{ background: '#64AACA12', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e5e5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div key={idx} className="project-card" style={{ 
+                                            background: '#64AACA12', 
+                                            borderRadius: '8px', 
+                                            padding: '1rem', 
+                                            border: '1px solid #e5e5e5', 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            flexDirection: 'row',
+                                            gap: '0'
+                                        }}>
                                             <div>
                                                 <h5 style={{ margin: '0 0 0.5rem 0', color: '#2b2a2a', fontSize: '1rem', fontWeight: '600' }}>{proj.title}</h5>
                                                 <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem', lineHeight: '1.4' }}>{proj.description}</p>
@@ -438,7 +553,15 @@ const ReportDetails = () => {
                                 <h4 style={{ margin: '0 0 1.5rem 0', color: '#2b2a2a', fontSize: '1.5rem', fontWeight: '600' }}>Supervisor Feedback</h4>
                                 {monthly.supervisor_feedback ? (
                                     <div style={{ background: '#64AACA12', borderRadius: '8px', padding: '1.5rem', border: '1px solid #e5e5e5' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                        <div className="supervisor-header" style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center', 
+                                            marginBottom: '1rem',
+                                            flexDirection: 'row',
+                                            gap: '0',
+                                            textAlign: 'center'
+                                        }}>
                                             <div style={{ fontSize: '1rem', color: '#2b2a2a', fontWeight: '500' }}>Supervisor: {monthly.supervisor_feedback.supervisor_name}</div>
                                             <div style={{ display: 'flex', gap: '0.25rem' }}>
                                                 {Array.from({ length: 5 }).map((_, i) => (

@@ -79,8 +79,19 @@ export const authService = {
         password: string;
         password_confirmation: string;
     }): Promise<void> {
-        const response = await apiClient.post('/auth/register-supervisor', data);
-        return response.data;
+        try {
+            const response = await apiClient.post('/auth/register-supervisor', data);
+            return response.data;
+        } catch (err: any) {
+            const validationErrors = err.response?.data?.errors;
+            const message = err.response?.data?.message || err.response?.data?.error || err.message;
+            if (validationErrors) {
+                // If Laravel returns validation errors array, pluck the first one
+                const firstError = Object.values(validationErrors)[0] as string[];
+                throw new Error(firstError[0] || message);
+            }
+            throw new Error(message);
+        }
     },
 
     async signIn(email: string, password: string): Promise<AuthResult> {

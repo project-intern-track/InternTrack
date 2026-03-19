@@ -117,7 +117,38 @@ _(This will start the Vite React server at `http://localhost:5173`)_
 
 ---
 
-## 🧪 Step 5: Test Accounts
+## 📧 Step 5: Email Configuration (Required for Verification and Supervisor Credentials)
+
+Supervisor account creation and email verification both depend on Laravel mail settings.
+
+Set these values in `backend/.env`:
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your-email@gmail.com
+MAIL_FROM_NAME="InternTrack"
+FRONTEND_URL=http://localhost:5173
+APP_URL=http://localhost:8000
+```
+
+After editing mail values, clear cached config:
+
+```bash
+cd e:\ecode\InternTrack\backend
+php artisan config:clear
+php artisan cache:clear
+```
+
+For production, set `FRONTEND_URL` and `APP_URL` to your real HTTPS domains and provide your production SMTP credentials.
+
+---
+
+## 🧪 Step 6: Test Accounts
 
 When you visit `http://localhost:5173`, use these pre-seeded accounts to test
 out the different dashboards:

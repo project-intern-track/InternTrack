@@ -14,8 +14,6 @@ const Evaluations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [internIdFilter, setInternIdFilter] = useState('');
-  const [supervisorIdFilter, setSupervisorIdFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingEvaluation, setEditingEvaluation] = useState<Evaluation | null>(null);
   const [internMap, setInternMap] = useState<{ [key: number]: string}>({});
@@ -143,15 +141,17 @@ const Evaluations = () => {
 
   }, [allInterns])
 
-  const uniqueInternIds = Array.from(new Set(evaluations.map(e => e.intern_id).filter(Boolean)));
-  const uniqueSupervisorIds = Array.from(new Set(evaluations.map(e => e.supervisor_id).filter(Boolean)));
-
   const filteredEvaluations = evaluations.filter(e => {
+    const internName = internMap[Number(e.intern_id)] || e.intern_name || '';
+    const trimmedSearch = searchTerm.trim().toLowerCase();
+    
+    // If search is empty, show all
+    if (!trimmedSearch) return true;
+    
     return (
-      (String(e.intern_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(e.supervisor_id).toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (internIdFilter ? Number(e.intern_id) === Number(internIdFilter) : true) &&
-      (supervisorIdFilter ? Number(e.supervisor_id) === Number(supervisorIdFilter) : true)
+      String(e.intern_id).toLowerCase().includes(trimmedSearch) ||
+      String(e.supervisor_id).toLowerCase().includes(trimmedSearch) ||
+      internName.toLowerCase().includes(trimmedSearch)
     );
   });
 
@@ -304,33 +304,13 @@ const Evaluations = () => {
         className="rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
-          <div className="relative md:col-span-2">
+          <div className="relative md:col-span-6">
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              type="text" placeholder="Search by ID" value={searchTerm}
+              type="text" placeholder="Search by Name or ID" value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             />
-          </div>
-          <div className="relative md:col-span-2">
-            <Users size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <select
-              value={internIdFilter} onChange={e => setInternIdFilter(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-            >
-              <option value="">All Interns</option>
-              {uniqueInternIds.map(id => <option key={id} value={id}>{id}</option>)}
-            </select>
-          </div>
-          <div className="relative md:col-span-2">
-            <ClipboardList size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <select
-              value={supervisorIdFilter} onChange={e => setSupervisorIdFilter(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-            >
-              <option value="">All Supervisors</option>
-              {uniqueSupervisorIds.map(id => <option key={id} value={id}>{id}</option>)}
-            </select>
           </div>
         </div>
       </motion.div>
@@ -381,7 +361,7 @@ const Evaluations = () => {
                     className="border-b border-gray-100 last:border-none dark:border-white/5"
                   >
                     <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.intern_id}</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.intern_name}</td>
+                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{internMap[Number(evaluation.intern_id)] || evaluation.intern_name || `Intern ${evaluation.intern_id}`}</td>
                     <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.score}/100</td>
                     <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.evaluation_date}</td>
                     <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 truncate max-w-xs">{evaluation.feedback || '-'}</td>

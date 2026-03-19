@@ -118,7 +118,7 @@ const AdminDailyLogs = () => {
         if (timerRef.current) clearInterval(timerRef.current);
         if (sessionState === 'clocked_in') {
             timerRef.current = setInterval(() => {
-                setElapsed(prev => prev + 1);
+                setElapsed(prev => Math.min(prev + 1, MAX_HOURS * 3600));
             }, 1000);
         }
         return () => { if (timerRef.current) clearInterval(timerRef.current); };
@@ -351,7 +351,10 @@ const AdminDailyLogs = () => {
                     {(() => {
                         const R = 60;
                         const circ = 2 * Math.PI * R;
-                        const offset = circ - (progressPct / 100) * circ;
+                        const actualPct = isClockedOut
+                            ? Math.min(((todayRecord?.total_hours || 0) / MAX_HOURS) * 100, 100)
+                            : progressPct;
+                        const offset = circ - (actualPct / 100) * circ;
                         const ringColor = isExpired ? '#ef4444' : isClockedOut ? '#22c55e' : '#FF8800';
                         return (
                             <div className="relative w-36 h-36 mx-auto">

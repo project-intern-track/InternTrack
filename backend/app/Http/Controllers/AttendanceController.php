@@ -316,7 +316,7 @@ class AttendanceController extends Controller
         $in = Carbon::parse($timeIn);
         $out = Carbon::parse($timeOut);
         
-        $diff = $out->diffInMinutes($in); // positive value
+        $diff = $in->diffInMinutes($out); // positive value
         return max(0, round($diff / 60, 2));
     }
 }

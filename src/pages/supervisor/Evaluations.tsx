@@ -16,6 +16,7 @@ const Evaluations = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [internMap, setInternMap] = useState<{ [key: number]: string}>({});
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const [createFormData, setCreateFormData] = useState({
     intern_id: '',
     task_completion: 0,
@@ -26,6 +27,20 @@ const Evaluations = () => {
   const [allInterns, setAllInterns] = useState<any[]>([]);
 
   const handleInternSelect = async (internId: string) => {
+    const existingEvaluation = evaluations.find(e => String(e.intern_id) === String(internId));
+    if (existingEvaluation) {
+      setIsReadOnly(true);
+      setCreateFormData({
+        intern_id: internId,
+        task_completion: existingEvaluation.task_completion || 0,
+        competency_score: existingEvaluation.competency_score || '',
+        score: existingEvaluation.score || 0,
+        feedback: existingEvaluation.feedback || '',
+      });
+      return;
+    }
+
+    setIsReadOnly(false);
     try {
       const scoreData = await feedbackService.getInternFinalScore(Number(internId));
       setCreateFormData({
@@ -178,6 +193,7 @@ const Evaluations = () => {
 
   const handleCloseCreateModal = async () => {
     setShowCreateModal(false);
+    setIsReadOnly(false);
     setCreateFormData({
       intern_id: '',
       task_completion: 0,
@@ -351,7 +367,9 @@ const Evaluations = () => {
             className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white">Create Evaluation</h3>
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white">
+                {isReadOnly ? 'View Evaluation' : 'Create Evaluation'}
+              </h3>
               <button
                 onClick={handleCloseCreateModal}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -382,7 +400,8 @@ const Evaluations = () => {
                 <input
                   type="number" min="0" max="10" value={createFormData.task_completion}
                   onChange={e => setCreateFormData({ ...createFormData, task_completion: Number(e.target.value) })}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
+                  disabled={isReadOnly}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
                 />
               </div>
 
@@ -391,7 +410,8 @@ const Evaluations = () => {
                 <input
                   type="text" placeholder="e.g., 4.5/5" value={createFormData.competency_score}
                   onChange={e => setCreateFormData({ ...createFormData, competency_score: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
+                  disabled={isReadOnly}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
                 />
               </div>
 
@@ -400,7 +420,8 @@ const Evaluations = () => {
                 <input
                   type="number" min="0" max="100" value={createFormData.score}
                   onChange={e => setCreateFormData({ ...createFormData, score: Number(e.target.value) })}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
+                  disabled={isReadOnly}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
                 />
               </div>
 
@@ -409,7 +430,8 @@ const Evaluations = () => {
                 <textarea
                   value={createFormData.feedback}
                   onChange={e => setCreateFormData({ ...createFormData, feedback: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
+                  disabled={isReadOnly}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
                   rows={3}
                 />
               </div>
@@ -420,14 +442,16 @@ const Evaluations = () => {
                 onClick={handleCloseCreateModal}
                 className="flex-1 rounded-lg border border-gray-300 py-2 font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-slate-800"
               >
-                Cancel
+                {isReadOnly ? 'Close' : 'Cancel'}
               </button>
-              <button
-                onClick={handleCreateEvaluation}
-                className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90"
-              >
-                Create
-              </button>
+              {!isReadOnly && (
+                <button
+                  onClick={handleCreateEvaluation}
+                  className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90"
+                >
+                  Create
+                </button>
+              )}
             </div>
           </motion.div>
         </div>,

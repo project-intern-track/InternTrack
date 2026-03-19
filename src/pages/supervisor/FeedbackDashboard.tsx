@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter, X, Star } from 'lucide-react';
+import { Search, Filter, X, Star, ChevronDown } from 'lucide-react';
 import {
   feedbackService,
   type FeedbackRow,
@@ -147,12 +147,13 @@ const FeedbackDashboard = () => {
             <Filter size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
               value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-16 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+              className="w-full appearance-none rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-10 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             >
               <option value="">Filter by Status</option>
               <option value="Submitted">Submitted</option>
               <option value="Pending">Pending</option>
             </select>
+            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
         </div>
       </motion.div>

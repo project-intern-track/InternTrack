@@ -205,7 +205,7 @@ const Settings = () => {
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div className="max-w-[2000px] mx-auto p-4 space-y-6 relative">
+    <div className="space-y-4 p-4 md:p-8 relative">
       {successPopup && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-success text-white px-8 py-4 rounded-lg shadow-lg z-50 flex items-center gap-4 font-bold">
           {successPopup}
@@ -216,7 +216,7 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 mb-6"
+        className="flex items-center gap-4 mb-2"
       >
         <div>
           <h1 className="text-3xl font-bold text-primary dark:text-primary mb-1">
@@ -233,23 +233,23 @@ const Settings = () => {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm text-center"
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm text-center"
       >
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">
           Profile Information
         </h2>
 
-        <div className="flex justify-center mb-8">
-          <div className="p-3 rounded-full bg-white border-[3px] border-gray-800 dark:border-gray-300">
-            <User 
-              size={100} 
-              className="text-gray-700 dark:text-gray-300" 
-              strokeWidth={1.5} 
+        <div className="flex justify-center mb-5">
+          <div className="p-2 rounded-full bg-white border-[3px] border-gray-800 dark:border-gray-300">
+            <User
+              size={80}
+              className="text-gray-700 dark:text-gray-300"
+              strokeWidth={1.5}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
           {/* LEFT */}
           <div className="space-y-4">
             <div>
@@ -329,13 +329,13 @@ const Settings = () => {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm"
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm"
       >
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">
           Change Password
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* LEFT */}
           <div className="space-y-4">
             <div>

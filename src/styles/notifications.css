@@ -5,8 +5,6 @@
 
 /* ── Layout ── */
 .notif-page {
-  max-width: 860px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -17,8 +15,8 @@
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius-xl);
-  padding: 1.5rem 1.75rem 0;
-  margin-bottom: 1.25rem;
+  padding: 1.25rem 1.5rem 0;
+  margin-bottom: 1rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -115,8 +113,8 @@
   display: flex;
   gap: 0;
   border-top: 1px solid hsl(var(--border));
-  margin: 0 -1.75rem;
-  padding: 0 1.75rem;
+  margin: 0 -1.5rem;
+  padding: 0 1.5rem;
 }
 
 .notif-page-filter-tab {
@@ -178,7 +176,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
-  padding: 4rem 2rem;
+  padding: 2.5rem 1.5rem;
   color: hsl(var(--muted-foreground));
   font-size: 0.9rem;
   text-align: center;

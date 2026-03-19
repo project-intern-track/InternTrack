@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     Search,
     Filter,
@@ -11,6 +12,119 @@ import PageLoader from '../../components/PageLoader';
 import { announcementService } from '../../services/announcementService';
 import { useAuth } from '../../context/AuthContext';
 import type { Announcement, AnnouncementPriority } from '../../types/database.types';
+
+type DropdownOption<T extends string> = {
+    value: T;
+    label: string;
+};
+
+type CustomDropdownProps<T extends string> = {
+    value: T;
+    options: DropdownOption<T>[];
+    onChange: (value: T) => void;
+    className?: string;
+    buttonClassName?: string;
+    panelClassName?: string;
+};
+
+function CustomDropdown<T extends string>({
+    value,
+    options,
+    onChange,
+    className = '',
+    buttonClassName = '',
+    panelClassName = '',
+}: CustomDropdownProps<T>) {
+    const [open, setOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement | null>(null);
+    const selectedOption = options.find(option => option.value === value) ?? options[0];
+
+    useEffect(() => {
+        if (!open) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!dropdownRef.current?.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [open]);
+
+    return (
+        <div ref={dropdownRef} className={`relative ${open ? 'z-[120]' : 'z-20'} ${className}`}>
+            <motion.button
+                type="button"
+                whileTap={{ scale: 0.985 }}
+                onClick={() => setOpen(prev => !prev)}
+                className={`flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[#ff8c42] focus:ring-2 focus:ring-[#ff8c42]/20 ${buttonClassName} ${open ? 'border-[#ff8c42] shadow-[0_14px_34px_-22px_rgba(255,140,66,0.85)]' : ''}`}
+                aria-haspopup="listbox"
+                aria-expanded={open}
+            >
+                <span>{selectedOption?.label ?? value}</span>
+                <motion.span
+                    animate={{ rotate: open ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="ml-3 shrink-0 text-slate-500"
+                >
+                    <ChevronDown size={18} />
+                </motion.span>
+            </motion.button>
+
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className={`absolute left-0 right-0 top-[calc(100%+0.55rem)] z-10 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] ${panelClassName}`}
+                        role="listbox"
+                    >
+                        <div className="p-2">
+                            {options.map(option => {
+                                const isActive = option.value === value;
+
+                                return (
+                                    <motion.button
+                                        key={option.value}
+                                        type="button"
+                                        whileTap={{ scale: 0.985 }}
+                                        onClick={() => {
+                                            onChange(option.value);
+                                            setOpen(false);
+                                        }}
+                                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                                            isActive
+                                                ? 'bg-[#ff8c42] text-white'
+                                                : 'text-slate-700 hover:bg-orange-50'
+                                        }`}
+                                        role="option"
+                                        aria-selected={isActive}
+                                    >
+                                        <span>{option.label}</span>
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
 
 const Announcements = () => {
     const { user } = useAuth();
@@ -29,6 +143,24 @@ const Announcements = () => {
     const [submitting, setSubmitting] = useState(false);
 
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+    const dateCreatedOptions: DropdownOption<typeof dateCreatedFilter>[] = [
+        { value: 'all', label: 'All Date Created' },
+        { value: 'newest', label: 'Newest to Oldest' },
+        { value: 'oldest', label: 'Oldest to Newest' },
+        { value: 'this-month', label: 'This Month' },
+        { value: 'this-year', label: 'This Year' },
+    ];
+    const priorityFilterOptions: DropdownOption<typeof priorityFilter>[] = [
+        { value: 'all', label: 'All Priority' },
+        { value: 'high', label: 'High' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'low', label: 'Low' },
+    ];
+    const formPriorityOptions: DropdownOption<AnnouncementPriority>[] = [
+        { value: 'high', label: 'High' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'low', label: 'Low' },
+    ];
 
     const fetchAnnouncements = useCallback(async (signal?: AbortSignal) => {
         try {
@@ -184,32 +316,19 @@ const Announcements = () => {
                 </div>
 
                 <div className="announcements-filter-select">
-                    <select
-                        className="select w-full"
+                    <CustomDropdown
                         value={dateCreatedFilter}
-                        onChange={(e) => setDateCreatedFilter(e.target.value)}
-                    >
-                        <option value="all">All Date Created</option>
-                        <option value="newest">Newest to Oldest</option>
-                        <option value="oldest">Oldest to Newest</option>
-                        <option value="this-month">This Month</option>
-                        <option value="this-year">This Year</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        options={dateCreatedOptions}
+                        onChange={setDateCreatedFilter}
+                    />
                 </div>
 
                 <div className="announcements-filter-select">
-                    <select
-                        className="select w-full"
+                    <CustomDropdown
                         value={priorityFilter}
-                        onChange={(e) => setPriorityFilter(e.target.value)}
-                    >
-                        <option value="all">All Priority</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        options={priorityFilterOptions}
+                        onChange={setPriorityFilter}
+                    />
                 </div>
             </div>
 
@@ -389,18 +508,11 @@ const Announcements = () => {
 
                         <div className="mb-8">
                             <label className="block font-semibold mb-2">Priority:</label>
-                            <div className="relative">
-                                <select
-                                    className="select w-full bg-white"
-                                    value={formData.priority}
-                                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as AnnouncementPriority })}
-                                >
-                                    <option value="high">High</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="low">Low</option>
-                                </select>
-                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            </div>
+                            <CustomDropdown
+                                value={formData.priority}
+                                options={formPriorityOptions}
+                                onChange={(value) => setFormData({ ...formData, priority: value })}
+                            />
                         </div>
 
                         <div className="announcement-modal-actions">

@@ -1,5 +1,6 @@
-import { Filter, Search, Calendar, X, Loader2 } from 'lucide-react';
+import { Filter, Search, Calendar, X, Loader2, ChevronDown } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import '../../index.css';
 
 import { taskService } from '../../services/taskServices';
@@ -179,6 +180,119 @@ const TOOLS_BY_CATEGORY: Record<(typeof TECH_STACK_CATEGORIES)[number], string[]
     ],
 };
 
+type DropdownOption<T extends string> = {
+    value: T;
+    label: string;
+};
+
+type CustomDropdownProps<T extends string> = {
+    value: T;
+    options: DropdownOption<T>[];
+    onChange: (value: T) => void;
+    className?: string;
+    buttonClassName?: string;
+    panelClassName?: string;
+};
+
+function CustomDropdown<T extends string>({
+    value,
+    options,
+    onChange,
+    className = '',
+    buttonClassName = '',
+    panelClassName = '',
+}: CustomDropdownProps<T>) {
+    const [open, setOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement | null>(null);
+    const selectedOption = options.find(option => option.value === value) ?? options[0];
+
+    useEffect(() => {
+        if (!open) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!dropdownRef.current?.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [open]);
+
+    return (
+        <div ref={dropdownRef} className={`relative ${open ? 'z-[120]' : 'z-20'} ${className}`}>
+            <motion.button
+                type="button"
+                whileTap={{ scale: 0.985 }}
+                onClick={() => setOpen(prev => !prev)}
+                className={`flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20 ${buttonClassName} ${open ? 'border-[hsl(var(--orange))] shadow-[0_14px_34px_-22px_rgba(255,136,0,0.85)]' : ''}`}
+                aria-haspopup="listbox"
+                aria-expanded={open}
+            >
+                <span>{selectedOption?.label ?? value}</span>
+                <motion.span
+                    animate={{ rotate: open ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="ml-3 shrink-0 text-slate-500"
+                >
+                    <ChevronDown size={18} />
+                </motion.span>
+            </motion.button>
+
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className={`absolute left-0 right-0 top-[calc(100%+0.55rem)] z-10 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] ${panelClassName}`}
+                        role="listbox"
+                    >
+                        <div className="p-2">
+                            {options.map(option => {
+                                const isActive = option.value === value;
+
+                                return (
+                                    <motion.button
+                                        key={option.value}
+                                        type="button"
+                                        whileTap={{ scale: 0.985 }}
+                                        onClick={() => {
+                                            onChange(option.value);
+                                            setOpen(false);
+                                        }}
+                                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                                            isActive
+                                                ? 'bg-[hsl(var(--orange))] text-white'
+                                                : 'text-slate-700 hover:bg-orange-50'
+                                        }`}
+                                        role="option"
+                                        aria-selected={isActive}
+                                    >
+                                        <span>{option.label}</span>
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
 const ManageTasks = () => {
     const [search, setSearch] = useState('');
     const [dueDateFilter, setDueDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month' | 'custom'>('all');
@@ -208,7 +322,6 @@ const ManageTasks = () => {
     const [dueDate, setDueDate] = useState('');
     const [dueTime, setDueTime] = useState('');
     const [priority, setPriority] = useState('');
-    const [isPriorityDropdownOpen, setIsPriorityDropdownOpen] = useState(false);
     const [techCategory, setTechCategory] = useState<(typeof TECH_STACK_CATEGORIES)[number]>('All Category');
     const [dueDateError, setDueDateError] = useState('');
     const [internSearch, setInternSearch] = useState('');
@@ -218,6 +331,35 @@ const ManageTasks = () => {
     const [editingTask, setEditingTask] = useState<Tasks | null>(null);
     const [selectedTools, setSelectedTools] = useState<string[]>([]);
     const [toolsPage, setToolsPage] = useState(1);
+
+    const dueDateOptions: DropdownOption<typeof dueDateFilter>[] = [
+        { value: 'all', label: 'All' },
+        { value: 'today', label: 'Today' },
+        { value: 'tomorrow', label: 'Tomorrow' },
+        { value: 'overdue', label: 'Overdue' },
+        { value: 'this_week', label: 'This Week' },
+        { value: 'this_month', label: 'This Month' },
+        { value: 'custom', label: 'Custom Range...' },
+    ];
+
+    const priorityOptions: DropdownOption<typeof priorityFilter>[] = [
+        { value: 'All Priority', label: 'All Priority' },
+        { value: 'High', label: 'High' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'Low', label: 'Low' },
+    ];
+
+    const statusOptions: DropdownOption<typeof statusFilter>[] = [
+        { value: 'All Status', label: 'All Status' },
+        { value: 'For checking', label: 'For checking' },
+        { value: 'For revision', label: 'For revision' },
+        { value: 'Not Started', label: 'Not Started' },
+        { value: 'In Progress', label: 'In Progress' },
+        { value: 'Pending', label: 'Pending' },
+        { value: 'Completed', label: 'Completed' },
+        { value: 'Overdue', label: 'Overdue' },
+        { value: 'Rejected', label: 'Rejected' },
+    ];
 
     // Toast notification state
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({ message: '', type: 'error', visible: false });
@@ -301,7 +443,6 @@ const ManageTasks = () => {
         setDueDate('');
         setDueTime('');
         setPriority('');
-        setIsPriorityDropdownOpen(false);
         setTechCategory('All Category');
         setSelectedInterns([]);
         setInternSearch('');
@@ -768,6 +909,16 @@ const ManageTasks = () => {
                     padding: 1.25rem;
                     background-color: #e9e6e1;
                     border-radius: 8px;
+                    position: relative;
+                    z-index: 40;
+                    overflow: visible;
+                }
+
+                .manage-tasks-filter-row,
+                .manage-tasks-filter-selects,
+                .manage-tasks-filter-col {
+                    position: relative;
+                    overflow: visible;
                 }
                 
                 
@@ -815,11 +966,10 @@ const ManageTasks = () => {
 
                     <div className="manage-tasks-filter-selects">
                         <div className="manage-tasks-filter-col">
-                            <select
-                                className="select"
+                            <CustomDropdown
                                 value={dueDateFilter}
-                                onChange={(e) => {
-                                    const raw = e.target.value as typeof dueDateFilter;
+                                options={dueDateOptions}
+                                onChange={(raw) => {
                                     if (raw === 'custom') {
                                         if (dueDateFilter !== 'custom') {
                                             setLastNonCustomDueFilter(dueDateFilter);
@@ -831,46 +981,23 @@ const ManageTasks = () => {
                                     setLastNonCustomDueFilter(raw);
                                     setDueDateFilter(raw);
                                 }}
-                            >
-                                <option value="all">All</option>
-                                <option value="today">Today</option>
-                                <option value="tomorrow">Tomorrow</option>
-                                <option value="overdue">Overdue</option>
-                                <option value="this_week">This Week</option>
-                                <option value="this_month">This Month</option>
-                                <option value="custom">Custom Range…</option>
-                            </select>
+                            />
                         </div>
 
                         <div className="manage-tasks-filter-col">
-                            <select
-                                className="select"
+                            <CustomDropdown
                                 value={priorityFilter}
-                                onChange={(e) => setPriorityFilter(e.target.value)}
-                            >
-                                <option>All Priority</option>
-                                <option>High</option>
-                                <option>Medium</option>
-                                <option>Low</option>
-                            </select>
+                                options={priorityOptions}
+                                onChange={setPriorityFilter}
+                            />
                         </div>
 
                         <div className="manage-tasks-filter-col">
-                            <select
-                                className="select"
+                            <CustomDropdown
                                 value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                            >
-                                <option>All Status</option>
-                                <option>For checking</option>
-                                <option>For revision</option>
-                                <option>Not Started</option>
-                                <option>In Progress</option>
-                                <option>Pending</option>
-                                <option>Completed</option>
-                                <option>Overdue</option>
-                                <option>Rejected</option>
-                            </select>
+                                options={statusOptions}
+                                onChange={setStatusFilter}
+                            />
                         </div>
                     </div>
                 </div>
@@ -1161,123 +1288,27 @@ const ManageTasks = () => {
                                 </div>
                                 <div className="mb-1">
                                     <label className="label mb-2"><b>Priority:</b></label>
-                                    <div className="relative">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsPriorityDropdownOpen((prev) => !prev)}
-                                            style={{
-                                                width: '100%',
-                                                borderRadius: 'var(--radius-md)',
-                                                border: '1px solid hsl(var(--input))',
-                                                backgroundColor: '#fff',
-                                                padding: '0.55rem 0.9rem',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'flex-start',
-                                                gap: '0.6rem',
-                                                cursor: 'pointer',
-                                                fontSize: '0.9rem',
-                                                color: '#111827',
-                                            }}
-                                        >
-                                            {priority ? (
-                                                <>
-                                                    <span
-                                                        style={{
-                                                            width: '12px',
-                                                            height: '12px',
-                                                            borderRadius: '999px',
-                                                            backgroundColor:
-                                                                priority === 'low'
-                                                                    ? '#60a5fa'
-                                                                    : priority === 'medium'
-                                                                        ? '#eab308'
-                                                                        : '#f97373',
-                                                            border: '2px solid #e5e7eb',
-                                                        }}
-                                                    />
-                                                    <span className="font-medium">
-                                                        {priority === 'low'
-                                                            ? 'Low Priority'
-                                                            : priority === 'medium'
-                                                                ? 'Medium Priority'
-                                                                : 'High Priority'}
-                                                    </span>
-                                                </>
-                                            ) : (
-                                                <span className="text-muted-foreground">Select priority</span>
-                                            )}
-                                        </button>
-                                        {isPriorityDropdownOpen && (
-                                            <div
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: 'calc(100% + 4px)',
-                                                    left: 0,
-                                                    right: 0,
-                                                    backgroundColor: '#fff',
-                                                    borderRadius: 'var(--radius-md)',
-                                                    border: '1px solid hsl(var(--border))',
-                                                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                                                    zIndex: 50,
-                                                    overflow: 'hidden',
-                                                    fontSize: '0.9rem',
-                                                }}
-                                            >
-                                                {[
-                                                    { value: 'low', label: 'Low Priority', color: '#60a5fa' },
-                                                    { value: 'medium', label: 'Medium Priority', color: '#eab308' },
-                                                    { value: 'high', label: 'High Priority', color: '#f97373' },
-                                                ].map((opt) => (
-                                                    <button
-                                                        key={opt.value}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setPriority(opt.value);
-                                                            setIsPriorityDropdownOpen(false);
-                                                        }}
-                                                        style={{
-                                                            width: '100%',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'flex-start',
-                                                            gap: '0.6rem',
-                                                            padding: '0.5rem 0.9rem',
-                                                            backgroundColor: priority === opt.value ? '#f9fafb' : '#fff',
-                                                            border: 'none',
-                                                            cursor: 'pointer',
-                                                            textAlign: 'left',
-                                                        }}
-                                                    >
-                                                        <span
-                                                            style={{
-                                                                width: '12px',
-                                                                height: '12px',
-                                                                borderRadius: '999px',
-                                                                backgroundColor: opt.color,
-                                                                border: '2px solid #e5e7eb',
-                                                            }}
-                                                        />
-                                                        <span className="font-medium">{opt.label}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <CustomDropdown
+                                        value={(priority || 'unselected') as 'unselected' | 'low' | 'medium' | 'high'}
+                                        options={[
+                                            { value: 'unselected', label: 'Select priority' },
+                                            { value: 'low', label: 'Low Priority' },
+                                            { value: 'medium', label: 'Medium Priority' },
+                                            { value: 'high', label: 'High Priority' },
+                                        ]}
+                                        onChange={(value) => setPriority(value === 'unselected' ? '' : value)}
+                                    />
                                 </div>
                                 <div>
                                     <label className="label mb-2"><b>Tech Stack Category:</b></label>
-                                    <select
-                                        className="select bg-white"
+                                    <CustomDropdown
                                         value={techCategory}
-                                        onChange={(e) => setTechCategory(e.target.value as (typeof TECH_STACK_CATEGORIES)[number])}
-                                    >
-                                        {TECH_STACK_CATEGORIES.map((category) => (
-                                            <option key={category} value={category}>
-                                                {category}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        options={TECH_STACK_CATEGORIES.map((category) => ({
+                                            value: category,
+                                            label: category,
+                                        }))}
+                                        onChange={(value) => setTechCategory(value)}
+                                    />
                                 </div>
                                 <div>
                                     <label className="label mb-2"><b>Tools &amp; Technologies:</b></label>
@@ -1816,3 +1847,5 @@ const toastStyles = {
 };
 
 export default ManageTasks;
+
+

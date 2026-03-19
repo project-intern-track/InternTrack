@@ -108,15 +108,7 @@ const DailyLogs = () => {
         if (timerRef.current) clearInterval(timerRef.current);
         if (sessionState === 'clocked_in') {
             timerRef.current = setInterval(() => {
-                setElapsed(prev => {
-                    const next = prev + 1;
-                    if (next >= MAX_HOURS * 3600) {
-                        clearInterval(timerRef.current!);
-                        handleAutoClockOut();
-                        return MAX_HOURS * 3600;
-                    }
-                    return next;
-                });
+                setElapsed(prev => prev + 1);
             }, 1000);
         }
         return () => { if (timerRef.current) clearInterval(timerRef.current); };
@@ -133,24 +125,14 @@ const DailyLogs = () => {
                     if (timerRef.current) clearInterval(timerRef.current);
                     setSessionState('expired');
                     setElapsed(MAX_HOURS * 3600);
-                    setNotice('Your session crossed midnight. Click "Force Clock-Out" to save it capped at 8 hours.');
+                    setNotice('Your session crossed midnight and has been invalidated. Please acknowledge it below.');
                 }
             }, 30_000);
         }
         return () => { if (dayCheckRef.current) clearInterval(dayCheckRef.current); };
     }, [sessionState, todayRecord?.date]);
 
-    // ── Auto clock-out at cap ──────────────────────────────────────────────
-    const handleAutoClockOut = async () => {
-        try {
-            const result = await attendanceService.clockOut();
-            setTodayRecord(result.data);
-            setSessionState('clocked_out');
-            setCappedBanner(true);
-            setElapsed(MAX_HOURS * 3600);
-            setLogs(prev => prev.map(l => l.id === result.data.id ? result.data : l));
-        } catch { /* best-effort */ }
-    };
+    // ── Auto clock-out removed ──────────────────────────────────────────────
 
     // ── Clock In ──────────────────────────────────────────────────────────
     const handleClockIn = async () => {
@@ -187,7 +169,7 @@ const DailyLogs = () => {
             if (timerRef.current) clearInterval(timerRef.current);
             if (result.capped) setCappedBanner(true);
             if (result.cross_midnight) {
-                setNotice('Session crossed midnight — hours capped at 8 and saved to yesterday\'s record.');
+                setNotice('Your session crossed midnight and was automatically invalidated.');
             }
             setLogs(prev => prev.map(l => l.id === result.data.id ? result.data : l));
         } catch (err: any) {
@@ -277,7 +259,7 @@ const DailyLogs = () => {
         !ojtIdOk    ? 'Enter your OJT ID first' :
         isClockedIn ? 'You are already clocked in' :
         isClockedOut? 'Session already completed for today' :
-        isExpired   ? 'Expired session — use Force Clock-Out first' :
+        isExpired   ? 'Expired session — click Acknowledge below' :
         loading     ? 'Loading your attendance data…' :
         null;
 
@@ -420,7 +402,7 @@ const DailyLogs = () => {
                     {isExpired && (
                         <div className="flex items-start gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl text-sm text-red-700 dark:text-red-400">
                             <AlertCircle size={15} className="shrink-0 mt-0.5"/>
-                            Session from previous day is invalid. Enter your OJT ID and click <strong className="ml-1">Force Clock-Out</strong>.
+                            Session from previous day is invalid. Enter your OJT ID and click <strong className="ml-1">Acknowledge</strong>.
                         </div>
                     )}
                     {notice && (
@@ -453,12 +435,12 @@ const DailyLogs = () => {
                                     ? 'bg-red-500 text-white hover:bg-red-600'
                                     : 'bg-white dark:bg-transparent border-2 border-[#FF8800] text-[#FF8800] hover:bg-orange-50 dark:hover:bg-orange-900/20'}`}
                             onClick={handleClockOut}
-                            disabled={acting || isIdle || isClockedOut || (isClockedIn && elapsed < MAX_HOURS * 3600)}
+                            disabled={acting || isIdle || isClockedOut}
                         >
                             {acting && (isClockedIn || isExpired)
                                 ? <RefreshCw size={16} className="animate-spin"/>
                                 : isExpired ? <AlertCircle size={16}/> : <LogOut size={16}/>}
-                            {isExpired ? 'Force Clock-Out' : 'Clock Out'}
+                            {isExpired ? 'Acknowledge' : 'Clock Out'}
                         </button>
                     </div>
 

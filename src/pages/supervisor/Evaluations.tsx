@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { BarChart, ClipboardList, Search, Users, Edit, Trash, X } from 'lucide-react';
+import { BarChart, ClipboardList, Search, Users, Trash, X } from 'lucide-react';
 import type { Evaluation } from '../../types/database.types';
 import { evaluationService } from '../../services/evaluationService';
 import { authService } from '../../services/authService';
@@ -14,17 +14,7 @@ const Evaluations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [internIdFilter, setInternIdFilter] = useState('');
-  const [supervisorIdFilter, setSupervisorIdFilter] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingEvaluation, setEditingEvaluation] = useState<Evaluation | null>(null);
   const [internMap, setInternMap] = useState<{ [key: number]: string}>({});
-  const [formData, setFormData] = useState({
-    task_completion: 0,
-    competency_score: '',
-    score: 0,
-    feedback: '',
-  });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createFormData, setCreateFormData] = useState({
     intern_id: '',
@@ -143,15 +133,17 @@ const Evaluations = () => {
 
   }, [allInterns])
 
-  const uniqueInternIds = Array.from(new Set(evaluations.map(e => e.intern_id).filter(Boolean)));
-  const uniqueSupervisorIds = Array.from(new Set(evaluations.map(e => e.supervisor_id).filter(Boolean)));
-
   const filteredEvaluations = evaluations.filter(e => {
+    const internName = internMap[Number(e.intern_id)] || e.intern_name || '';
+    const trimmedSearch = searchTerm.trim().toLowerCase();
+    
+    // If search is empty, show all
+    if (!trimmedSearch) return true;
+    
     return (
-      (String(e.intern_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(e.supervisor_id).toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (internIdFilter ? Number(e.intern_id) === Number(internIdFilter) : true) &&
-      (supervisorIdFilter ? Number(e.supervisor_id) === Number(supervisorIdFilter) : true)
+      String(e.intern_id).toLowerCase().includes(trimmedSearch) ||
+      String(e.supervisor_id).toLowerCase().includes(trimmedSearch) ||
+      internName.toLowerCase().includes(trimmedSearch)
     );
   });
 
@@ -219,37 +211,6 @@ const Evaluations = () => {
     setDeleteConfirm(null);
   };
 
-  const handleEdit = (evaluation: Evaluation) => {
-    setEditingEvaluation(evaluation);
-    setFormData({
-      task_completion: evaluation.task_completion || 0,
-      competency_score: evaluation.competency_score || '',
-      score: evaluation.score,
-      feedback: evaluation.feedback || '',
-    });
-    setShowModal(true);
-  };
-
-  const handleSave = async () => {
-    if (!editingEvaluation) return;
-    try {
-      await evaluationService.updateEvaluation(String(editingEvaluation.id), formData);
-      setEvaluations(evaluations.map(e =>
-        e.id === editingEvaluation.id ? { ...e, ...formData } : e
-      ));
-      setShowModal(false);
-      setEditingEvaluation(null);
-    } catch (err: any) {
-      console.error('Update failed:', err);
-      alert('Failed to update evaluation');
-    }
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingEvaluation(null);
-  };
-
   const summaryCards = [
     { label: 'Total Evaluated',      value: totalEvaluated,  icon: Users,         iconColor: 'text-blue-500',   iconBg: 'bg-blue-500/10'   },
     { label: 'Average Score',        value: averageScore,    icon: ClipboardList, iconColor: 'text-orange-500', iconBg: 'bg-orange-500/10' },
@@ -304,33 +265,13 @@ const Evaluations = () => {
         className="rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
-          <div className="relative md:col-span-2">
+          <div className="relative md:col-span-6">
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              type="text" placeholder="Search by ID" value={searchTerm}
+              type="text" placeholder="Search by Name or ID" value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             />
-          </div>
-          <div className="relative md:col-span-2">
-            <Users size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <select
-              value={internIdFilter} onChange={e => setInternIdFilter(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-            >
-              <option value="">All Interns</option>
-              {uniqueInternIds.map(id => <option key={id} value={id}>{id}</option>)}
-            </select>
-          </div>
-          <div className="relative md:col-span-2">
-            <ClipboardList size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <select
-              value={supervisorIdFilter} onChange={e => setSupervisorIdFilter(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-            >
-              <option value="">All Supervisors</option>
-              {uniqueSupervisorIds.map(id => <option key={id} value={id}>{id}</option>)}
-            </select>
           </div>
         </div>
       </motion.div>
@@ -381,17 +322,11 @@ const Evaluations = () => {
                     className="border-b border-gray-100 last:border-none dark:border-white/5"
                   >
                     <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.intern_id}</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.intern_name}</td>
+                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{internMap[Number(evaluation.intern_id)] || evaluation.intern_name || `Intern ${evaluation.intern_id}`}</td>
                     <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.score}/100</td>
                     <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.evaluation_date}</td>
                     <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 truncate max-w-xs">{evaluation.feedback || '-'}</td>
-                    <td className="py-3 pr-4 flex gap-2">
-                      <button
-                        onClick={() => handleEdit(evaluation)}
-                        className="flex items-center gap-1 rounded-lg bg-blue-500/10 p-2 text-blue-600 hover:bg-blue-500/20 dark:text-blue-400"
-                      >
-                        <Edit size={16} />
-                      </button>
+                    <td className="py-3 pr-4">
                       <button
                         onClick={() => handleDelete(Number(evaluation.id))}
                         className="flex items-center gap-1 rounded-lg bg-red-500/10 p-2 text-red-600 hover:bg-red-500/20 dark:text-red-400"
@@ -492,79 +427,6 @@ const Evaluations = () => {
                 className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90"
               >
                 Create
-              </button>
-            </div>
-          </motion.div>
-        </div>,
-        document.body
-      )}
-
-      {/* Edit Modal */}
-      {showModal && createPortal(
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white">Edit Evaluation</h3>
-              <button
-                onClick={handleCloseModal}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Task Completion</label>
-                <input
-                  type="number" value={formData.task_completion} readOnly
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Competency Score</label>
-                <input
-                  type="text" value={formData.competency_score} readOnly
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Score (0-100)</label>
-                <input
-                  type="number" min="0" max="100" value={formData.score} readOnly
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Feedback</label>
-                <textarea
-                  value={formData.feedback}
-                  onChange={e => setFormData({ ...formData, feedback: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={handleCloseModal}
-                className="flex-1 rounded-lg border border-gray-300 py-2 font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-slate-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90"
-              >
-                Save
               </button>
             </div>
           </motion.div>

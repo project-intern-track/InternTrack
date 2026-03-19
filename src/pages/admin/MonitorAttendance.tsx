@@ -241,13 +241,15 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
   const formatTime = (timeString: string | null) => {
     if (!timeString) return '-';
-    // If it's just "HH:mm"
-    if (timeString.length === 5) {
-      const [h, m] = timeString.split(':');
-      const hours = parseInt(h, 10);
+    // If it's just "HH:mm" or "HH:mm:ss"
+    if (timeString.length === 5 || timeString.length === 8) {
+      const parts = timeString.split(':');
+      const hours = parseInt(parts[0], 10);
+      const m = parts[1];
+      const s = parts[2];
       const ampm = hours >= 12 ? 'PM' : 'AM';
       const displayHours = hours % 12 || 12;
-      return `${displayHours}:${m} ${ampm}`;
+      return s ? `${displayHours}:${m}:${s} ${ampm}` : `${displayHours}:${m} ${ampm}`;
     }
     const date = new Date(timeString);
     if (isNaN(date.getTime())) return timeString;
@@ -1241,6 +1243,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Time In</label>
                   <input 
                     type="time" 
+                    step="1"
                     className="input" 
                     value={manualEntryForm.time_in} 
                     onChange={e => setManualEntryForm({...manualEntryForm, time_in: e.target.value})}
@@ -1252,6 +1255,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Time Out (Optional)</label>
                   <input 
                     type="time" 
+                    step="1"
                     className="input" 
                     value={manualEntryForm.time_out} 
                     onChange={e => setManualEntryForm({...manualEntryForm, time_out: e.target.value})}

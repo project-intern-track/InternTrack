@@ -20,6 +20,14 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
 
+        // Auto-invalidate any past sessions that were never clocked out
+        Attendance::whereNull('time_out')
+            ->where('date', '<', Carbon::now()->toDateString())
+            ->update([
+                'status' => 'absent',
+                'total_hours' => 0
+            ]);
+
         $query = Attendance::with('user:id,full_name,email,role')
             ->orderBy('date', 'desc');
 
@@ -188,21 +196,21 @@ class AttendanceController extends Controller
         $sessionDate   = Carbon::parse($attendance->date);
         $isCrossMidnight = !$sessionDate->isSameDay($now);
 
-        $timeIn = Carbon::parse($attendance->date . ' ' . $attendance->time_in);
-        if (!$isCrossMidnight && $timeIn->diffInMinutes($now) < 480) {
-            return response()->json([
-                'message' => 'You must complete 8 hours before clocking out.',
-            ], 422);
-        }
+        $timeIn = Carbon::parse($sessionDate->format('Y-m-d') . ' ' . $attendance->time_in);
 
         if ($isCrossMidnight) {
-            // Cap to 8 hours from clock-in and set time_out to time_in + 8 h
-            $timeInMinutes  = $this->toMinutes($attendance->time_in);
-            $cappedMinutes  = $timeInMinutes + 480; // 8 * 60
-            $cappedHour     = intdiv($cappedMinutes, 60) % 24;
-            $cappedMin      = $cappedMinutes % 60;
-            $timeOut        = sprintf('%02d:%02d', $cappedHour, $cappedMin);
-            $totalHours     = 8.0;
+            // Invalidate the session instead of capping it
+            $attendance->time_out = null;
+            $attendance->total_hours = 0;
+            $attendance->status = 'absent';
+            $attendance->save();
+
+            return response()->json([
+                'message'        => 'Session invalidated because you did not clock out yesterday.',
+                'data'           => $attendance,
+                'capped'         => false,
+                'cross_midnight' => true,
+            ]);
         } else {
             $timeOut       = $now->format('H:i');
             $rawHours      = $this->computeHours($attendance->time_in, $timeOut);

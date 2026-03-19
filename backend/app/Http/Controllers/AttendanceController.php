@@ -198,6 +198,12 @@ class AttendanceController extends Controller
 
         $timeIn = Carbon::parse($sessionDate->format('Y-m-d') . ' ' . $attendance->time_in);
 
+        if (!$isCrossMidnight && $timeIn->diffInMinutes($now) < 480) {
+            return response()->json([
+                'message' => 'You must complete 8 hours before clocking out.',
+            ], 422);
+        }
+
         if ($isCrossMidnight) {
             // Invalidate the session instead of capping it
             $attendance->time_out = null;

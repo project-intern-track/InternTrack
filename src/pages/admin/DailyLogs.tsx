@@ -437,7 +437,8 @@ const AdminDailyLogs = () => {
                                     ? 'bg-red-500 text-white hover:bg-red-600'
                                     : 'bg-white dark:bg-transparent border-2 border-[#FF8800] text-[#FF8800] hover:bg-orange-50 dark:hover:bg-orange-900/20'}`}
                             onClick={handleClockOut}
-                            disabled={acting || isIdle || isClockedOut}
+                            disabled={acting || isIdle || isClockedOut || (isClockedIn && elapsed < MAX_HOURS * 3600)}
+                            title={(isClockedIn && elapsed < MAX_HOURS * 3600) ? 'You must complete 8 hours before clocking out' : undefined}
                         >
                             {acting && (isClockedIn || isExpired)
                                 ? <RefreshCw size={16} className="animate-spin"/>

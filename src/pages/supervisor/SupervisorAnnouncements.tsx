@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react';
+import { Bell, ClipboardList } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Announcement {
@@ -41,6 +41,16 @@ const sampleAnnouncements: Announcement[] = [
   },
 ];
 
+const formatRelativeTime = (isoDate: string): string => {
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const minutes = Math.floor(diff / 60_000);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  return `${minutes}m ago`;
+};
+
 const SupervisorAnnouncements = ({ type = 'company' }: { type?: 'company' | 'internship' }) => {
   const title = type === 'company' ? 'Company Notices' : 'Internship Reminders';
   const description =
@@ -48,50 +58,87 @@ const SupervisorAnnouncements = ({ type = 'company' }: { type?: 'company' | 'int
       ? 'Post and manage company announcements for interns.'
       : 'Create and manage internship reminders and important dates.';
 
+  const TypeIcon = type === 'company' ? Bell : ClipboardList;
+
   // Filter announcements by type
   const filteredAnnouncements = sampleAnnouncements.filter((a) => a.type === type);
 
   return (
-    <div className="max-w-[2000px] mx-auto p-4 space-y-6">
+    <div className="space-y-6">
+      {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 mb-6"
+        transition={{ duration: 0.4, ease: 'easeOut' }}
       >
-        <Bell size={32} className="text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
-          <p className="text-muted-foreground dark:text-gray-400 mt-1">{description}</p>
-        </div>
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">{title}</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
       </motion.div>
 
+      {/* Announcements List */}
       {filteredAnnouncements.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 text-center shadow-sm"
+          transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
+          className="rounded-[2.5rem] border border-gray-200 bg-white p-16 text-center shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
         >
-          <p className="text-gray-500 dark:text-gray-400">No announcements found.</p>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/5">
+            <Bell className="text-gray-400 dark:text-gray-500" size={28} />
+          </div>
+          <p className="font-bold text-gray-500 dark:text-gray-400">No announcements found</p>
+          <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">Check back later for updates.</p>
         </motion.div>
       ) : (
-        <div className="space-y-4">
-          {filteredAnnouncements.map((a, index) => (
-            <motion.div
-              key={a.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.05 }}
-              className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{a.title}</h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-4">{a.content}</p>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                By {a.created_by.full_name} — {new Date(a.created_at).toLocaleString()}
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
+          className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50 overflow-hidden"
+        >
+          <div className="flex items-center gap-3 border-b border-gray-200 px-8 py-6 dark:border-white/5">
+            <TypeIcon className="text-primary" size={20} />
+            <h2 className="text-xl font-black text-gray-800 dark:text-white">{title}</h2>
+            <span className="ml-auto rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+              {filteredAnnouncements.length}
+            </span>
+          </div>
+
+          <div className="divide-y divide-gray-100 dark:divide-white/5">
+            {filteredAnnouncements.map((a, index) => (
+              <motion.div
+                key={a.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: 0.1 + index * 0.04, ease: 'easeOut' }}
+                className="px-8 py-6 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+                    <Bell className="text-primary" size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-black text-gray-900 dark:text-white">{a.title}</h3>
+                      <span className="flex-shrink-0 text-xs text-gray-400 dark:text-gray-500">
+                        {formatRelativeTime(a.created_at)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{a.content}</p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="h-5 w-5 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center">
+                        <span className="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase">
+                          {a.created_by.full_name.charAt(0)}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{a.created_by.full_name}</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       )}
     </div>
   );

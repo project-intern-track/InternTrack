@@ -206,23 +206,16 @@ const AdminDashboard = () => {
     if (!stats) return <PageLoader message="Loading dashboard..." />;
 
     return (
-        <>
-
-            <h1 className="dashboard-welcome" style={{
-                animation: 'slideInFromTop 0.6s ease-out',
-                animationFillMode: 'both'
-            }}>
+        <div className="admin-page-shell">
+            <h1 className="dashboard-welcome animate-in fade-in duration-700">
                 Welcome back, <span className="highlight">Admin {user?.name}</span>!
             </h1>
 
             {/* Stats Cards */}
-            <div className="stats-grid" style={{
-                animation: 'slideInFromTop 0.8s ease-out 0.2s',
-                animationFillMode: 'both'
-            }}>
-                <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
+            <div className="stats-grid animate-in fade-in duration-700">
+                <div className="stat-card bg-gray-50 dark:bg-slate-900/60 shadow-md">
                     <div className="stat-header">
-                        <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Total Interns</span>
+                        <span className="stat-label text-base text-black dark:text-white">Total Interns</span>
                     </div>
                     <div className="stat-value">{stats.totalInterns}</div>
                     <div className="stat-footer">
@@ -232,18 +225,18 @@ const AdminDashboard = () => {
                         <span className="stat-description">Registered Interns</span>
                     </div>
                 </div>
-                <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
+                <div className="stat-card bg-gray-50 dark:bg-slate-900/60 shadow-md">
                     <div className="stat-header">
-                        <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Active Interns</span>
+                        <span className="stat-label text-base text-black dark:text-white">Active Interns</span>
                     </div>
                     <div className="stat-value">{stats.activeInterns}</div>
                     <div className="stat-footer">
                         <span className="stat-description">Currently Active</span>
                     </div>
                 </div>
-                <div className="stat-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
+                <div className="stat-card bg-gray-50 dark:bg-slate-900/60 shadow-md">
                     <div className="stat-header">
-                        <span className="stat-label" style={{ color: '#000000', fontSize: '1rem' }}>Pending Applications</span>
+                        <span className="stat-label text-base text-black dark:text-white">Pending Applications</span>
                     </div>
                     <div className="stat-value">{stats.pendingApplications}</div>
                     <div className="stat-footer">
@@ -253,64 +246,52 @@ const AdminDashboard = () => {
             </div>
 
             {/* Charts Section */}
-            <div className="dashboard-grid" style={{
-                animation: 'slideInFromBottom 0.8s ease-out 0.4s',
-                animationFillMode: 'both'
-            }}>
-                <div className="chart-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
-                    <div className="chart-head-container" style={{ backgroundColor: '#f6f6f6', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', marginLeft: '0.5rem' }}>
-                        <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0' }}>
+            <div className="dashboard-grid animate-in fade-in duration-700">
+                <div className="chart-card bg-gray-50 dark:bg-slate-900/60 shadow-md">
+                    <div className="chart-head-container bg-gray-100 dark:bg-slate-800 rounded-xl p-4 mb-4 ml-2">
+                        <div className="chart-header mb-0">
                             <div className="chart-title">
                                 <UserPlus className="chart-icon" />
                                 <span>New Registers</span>
                             </div>
-                            <select className="chart-filter" aria-label="Filter time period" style={{ backgroundColor: '#eeeeee' }}>
+                            <select className="chart-filter bg-gray-200 dark:bg-slate-700" aria-label="Filter time period">
                                 <option>Last 30 Days</option>
                             </select>
                         </div>
                     </div>
-                    <div className="chart-content" style={{ height: '300px', backgroundColor: '#ffffff' }}>
+                    <div className="chart-content h-[300px] bg-white dark:bg-slate-900 rounded-lg">
                         <Bar data={data} options={options} />
                     </div>
                 </div>
 
-                <div className="activity-card" style={{ backgroundColor: '#F9F7F4', boxShadow: '0px 4px 4px 0px #00000040' }}>
+                <div className="activity-card bg-gray-50 dark:bg-slate-900/60 shadow-md">
                     <div className="activity-header">
                         <h3>Recent Activity</h3>
                     </div>
                     <div className="activity-content">
                         {activities.length === 0 ? (
-                            <div style={{ padding: '1rem', color: '#666' }}>No recent activity</div>
+                            <div className="p-4 text-gray-500 dark:text-gray-400">No recent activity</div>
                         ) : (
                             activities.map((item, index) => (
-                                <div key={index} className="activity-item" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div key={index} className="activity-item">
 
                                     {/* Simple Avatar Circle */}
-                                    <div className="activity-avatar" style={{
-                                        backgroundColor: item.color === '#ff8800' ? '#fff7ed' : '#ecfeff',
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0
-                                    }}>
+                                    <div className={`activity-avatar w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${item.color === '#ff8800' ? 'bg-orange-50' : 'bg-cyan-50'}`}>
                                         {item.avatar ? (
-                                            <img src={item.avatar} alt="u" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                                            <img src={item.avatar} alt="u" className="w-full h-full rounded-full object-cover" />
                                         ) : (
-                                            <span style={{ color: item.color, fontWeight: 'bold' }}>
+                                            <span className="font-bold" style={{ color: item.color }}>
                                                 {item.user === 'System' ? 'A' : item.user.charAt(0)}
                                             </span>
                                         )}
                                     </div>
 
-                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                        <div style={{ fontSize: '0.875rem', color: '#333', fontWeight: '500' }}>
-                                            <span style={{ fontWeight: '700' }}>{item.user}</span> {item.message}
+                                    <div className="flex-1 flex flex-col gap-1">
+                                        <div className="text-sm text-gray-700 dark:text-gray-200 font-medium">
+                                            <span className="font-bold">{item.user}</span> {item.message}
                                         </div>
-                                        <div style={{ fontSize: '0.75rem', color: '#999', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                            <span style={{ width: '4px', height: '4px', backgroundColor: '#999', borderRadius: '50%', display: 'inline-block' }}></span>
+                                        <div className="text-xs text-gray-400 flex items-center gap-1">
+                                            <span className="w-1 h-1 bg-gray-400 rounded-full inline-block"></span>
                                             {timeAgo(item.time)}
                                         </div>
                                     </div>
@@ -320,7 +301,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

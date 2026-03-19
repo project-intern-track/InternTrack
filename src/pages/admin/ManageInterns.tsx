@@ -353,11 +353,11 @@ const ManageInterns = () => {
     if (!interns || !stats) return <PageLoader message="Loading interns..." />;
 
     return (
-        <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
+        <div className="admin-page-shell max-w-full p-0 overflow-hidden">
             {/* Header Section */}
             <div className="manage-interns-header">
-                <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Interns</h1>
-                <button className="btn btn-primary" onClick={handleExportCSV} style={{ gap: '0.5rem' }}>
+                <h1 className="text-3xl font-bold text-orange-600 m-0">Manage Interns</h1>
+                <button className="btn btn-primary gap-2" onClick={handleExportCSV}>
                     <Download size={18} />
                     Export to CSV
                 </button>
@@ -386,14 +386,13 @@ const ManageInterns = () => {
             </div>
 
             {/* Search Bar */}
-            <div style={{ marginBottom: '1.5rem' }}>
-                <div className="input-group" style={{ position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
+            <div className="mb-6">
+                <div className="input-group admin-search-wrap">
+                    <Search size={20} className="admin-search-icon" />
                     <input
                         type="text"
-                        className="input"
+                        className="input admin-search-input"
                         placeholder="Search by name, role, email, or OJT ID"
-                        style={{ paddingLeft: '3rem' }}
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                     />
@@ -402,28 +401,26 @@ const ManageInterns = () => {
 
             {/* Filter Section */}
             <div className="manage-interns-filters">
-                <div className="row" style={{ alignItems: 'center', gap: '0.5rem', minWidth: 'fit-content' }}>
+                <div className="row items-center gap-2 min-w-fit">
                     <Filter size={20} />
-                    <span style={{ fontWeight: 600 }}>Filters:</span>
+                    <span className="font-semibold">Filters:</span>
                 </div>
 
                 <div className="filter-dropdown">
                     <select
-                        className="select"
-                        style={{ paddingRight: '2.5rem', width: '100%' }}
+                        className="select pr-10 w-full"
                         value={sortDirection}
                         onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
                     >
                         <option value="asc">Name: A → Z</option>
                         <option value="desc">Name: Z → A</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
 
                 <div className="filter-dropdown">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="select w-full"
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
                     >
@@ -432,13 +429,12 @@ const ManageInterns = () => {
                             <option key={role} value={role}>{role}</option>
                         ))}
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
 
                 <div className="filter-dropdown">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="select w-full"
                         value={startDateFilter}
                         onChange={(e) => setStartDateFilter(e.target.value)}
                     >
@@ -448,13 +444,12 @@ const ManageInterns = () => {
                         <option value="this-month">This Month</option>
                         <option value="this-year">This Year</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
 
                 <div className="filter-dropdown-wide">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="select w-full"
                         value={requiredHoursFilter}
                         onChange={(e) => setRequiredHoursFilter(e.target.value)}
                     >
@@ -465,13 +460,12 @@ const ManageInterns = () => {
                         <option value="highest">Highest to Lowest</option>
                         <option value="lowest">Lowest to Highest</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
 
                 <div className="filter-dropdown">
                     <select
-                        className="select"
-                        style={{ width: '100%' }}
+                        className="select w-full"
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
@@ -479,98 +473,67 @@ const ManageInterns = () => {
                         <option value="active">Active</option>
                         <option value="archived">Archived</option>
                     </select>
-                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
             </div>
 
             {/* Error Banner */}
             {error && (
-                <div style={{
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    backgroundColor: 'hsl(var(--danger) / 0.1)',
-                    color: 'hsl(var(--danger))',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid hsl(var(--danger) / 0.2)',
-                }}>
+                <div className="p-4 mb-4 rounded-md border border-red-200 bg-red-50 text-red-700">
                     {error}
                 </div>
             )}
 
             {/* Table Container - Scrollable */}
-            <div className="table-container" style={{
-                borderRadius: '8px',
-                border: '1px solid #e5e5e5',
-                overflow: 'auto',
-                backgroundColor: 'white',
-                width: '100%',
-                maxWidth: '100vw',
-                position: 'relative'
-            }}>
+            <div className="table-container rounded-lg border border-slate-200 overflow-auto bg-white w-full max-w-[100vw] relative">
 
-                <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', textAlign: 'center' }}>
+                <table className="w-full min-w-[1000px] border-collapse text-center">
                     <thead>
-                        <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Name</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Role</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Email Address</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>OJT ID</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Start Date</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Required Hours</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Status</th>
-                            <th style={{ padding: '1rem', fontWeight: 600, borderBottom: 'none', whiteSpace: 'nowrap' }}>Actions</th>
+                        <tr className="bg-orange-500 text-white">
+                            <th className="p-4 font-semibold border-b-0 whitespace-nowrap">Name</th>
+                            <th className="p-4 font-semibold border-b-0 whitespace-nowrap">Role</th>
+                            <th className="p-4 font-semibold border-b-0 whitespace-nowrap">Email Address</th>
+                            <th className="p-4 font-semibold border-b-0 whitespace-nowrap">OJT ID</th>
+                            <th className="p-4 font-semibold border-b-0 whitespace-nowrap">Start Date</th>
+                            <th className="p-4 font-semibold border-b-0 whitespace-nowrap">Required Hours</th>
+                            <th className="p-4 font-semibold border-b-0 whitespace-nowrap">Status</th>
+                            <th className="p-4 font-semibold border-b-0 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {paginatedInterns.length === 0 ? (
                             <tr>
-                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
+                                <td colSpan={8} className="text-center py-12 px-4 text-slate-500">
                                     No interns found.
                                 </td>
                             </tr>
                         ) : (
                             paginatedInterns.map((intern) => (
-                                <tr key={intern.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.full_name}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_role || '—'}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.email}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.ojt_id || '—'}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{formatDate(intern.start_date)}</td>
-                                    <td style={{ padding: '1rem', color: '#334155' }}>{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
-                                    <td style={{ padding: '1rem' }}>
+                                <tr key={intern.id} className="border-b border-slate-200">
+                                    <td className="p-4 text-slate-700">{intern.full_name}</td>
+                                    <td className="p-4 text-slate-700">{intern.ojt_role || '—'}</td>
+                                    <td className="p-4 text-slate-700">{intern.email}</td>
+                                    <td className="p-4 text-slate-700">{intern.ojt_id || '—'}</td>
+                                    <td className="p-4 text-slate-700">{formatDate(intern.start_date)}</td>
+                                    <td className="p-4 text-slate-700">{intern.required_hours ? `${intern.required_hours} hours` : '—'}</td>
+                                    <td className="p-4">
                                         <span
-                                            style={{
-                                                color: intern.status === 'active' ? '#22c55e' : '#8b5cf6',
-                                                fontWeight: 500,
-                                                textTransform: 'capitalize',
-                                            }}
+                                            className={`font-medium capitalize ${intern.status === 'active' ? 'text-green-500' : 'text-violet-500'}`}
                                         >
                                             {intern.status}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                                    <td className="p-4">
+                                        <div className="flex justify-center gap-2">
                                             <button
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    color: '#64748b',
-                                                    padding: '4px'
-                                                }}
+                                                className="bg-transparent border-none cursor-pointer text-slate-500 p-1"
                                                 title="Edit"
                                                 onClick={() => openEditModal(intern)}
                                             >
                                                 <Pencil size={18} />
                                             </button>
                                             <button
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: 'pointer',
-                                                    color: '#64748b',
-                                                    padding: '4px'
-                                                }}
+                                                className="bg-transparent border-none cursor-pointer text-slate-500 p-1"
                                                 title={intern.status === 'active' ? 'Archive' : 'Restore'}
                                                 onClick={() => handleArchiveToggle(intern)}
                                             >
@@ -637,30 +600,28 @@ const ManageInterns = () => {
             {/* ===== Archive Confirmation Modal ===== */}
             {archiveTarget && (
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '440px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px]" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-4">
                             <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
-                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
+                            <h2 className="text-orange-600 m-0 text-xl font-bold">
                                 {archiveTarget.status === 'active' ? 'Archive Intern' : 'Restore Intern'}
                             </h2>
                         </div>
-                        <p style={{ margin: '0 0 1.5rem', color: '#334155', lineHeight: 1.5 }}>
+                        <p className="m-0 mb-6 text-slate-700 leading-6">
                             Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
                             <strong>{archiveTarget.full_name}</strong>?
                             {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
                         </p>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                        <div className="flex justify-end gap-4">
                             <button
-                                className="btn"
+                                className="btn bg-white text-orange-600 border-none px-6 py-3"
                                 onClick={() => setArchiveTarget(null)}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="btn btn-primary"
+                                className="btn btn-primary border-none px-6 py-3"
                                 onClick={confirmArchive}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 {archiveTarget.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
                             </button>
@@ -671,90 +632,67 @@ const ManageInterns = () => {
 
             {/* ===== Edit Intern Modal ===== */}
             {editingIntern && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    backdropFilter: 'blur(2px)'
-                }} onClick={closeEditModal}>
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] backdrop-blur-sm" onClick={closeEditModal}>
                     <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
                         {/* Heading */}
-                        <div style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Edit Intern Information</h2>
+                        <div className="mb-8">
+                            <h2 className="text-orange-600 m-0 text-2xl font-bold">Edit Intern Information</h2>
                         </div>
 
                         {editError && (
-                            <div style={{
-                                padding: '0.75rem 1rem',
-                                marginBottom: '1.5rem',
-                                backgroundColor: 'hsl(var(--danger) / 0.1)',
-                                color: 'hsl(var(--danger))',
-                                borderRadius: '8px',
-                                border: '1px solid hsl(var(--danger) / 0.2)',
-                                fontSize: '0.875rem',
-                            }}>
+                            <div className="p-3 px-4 mb-6 bg-red-50 text-red-700 rounded-lg border border-red-200 text-sm">
                                 {editError}
                             </div>
                         )}
 
                         {/* Full Name */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Full Name:</label>
+                        <div className="mb-6">
+                            <label className="block font-semibold mb-2">Full Name:</label>
                             <input
-                                className="input"
+                                className="input w-full bg-white"
                                 name="full_name"
                                 value={editForm.full_name}
                                 onChange={handleEditChange}
                                 placeholder="Enter full name"
-                                style={{ width: '100%', backgroundColor: 'white' }}
                             />
                         </div>
 
                         {/* Email */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Email Address:</label>
+                        <div className="mb-6">
+                            <label className="block font-semibold mb-2">Email Address:</label>
                             <input
-                                className="input"
+                                className="input w-full bg-white"
                                 name="email"
                                 type="email"
                                 value={editForm.email}
                                 onChange={handleEditChange}
                                 placeholder="Enter email address"
-                                style={{ width: '100%', backgroundColor: 'white' }}
                             />
                         </div>
 
                         {/* OJT Role & OJT ID */}
                         <div className="modal-grid-2col">
                             <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Role:</label>
-                                <div style={{ position: 'relative' }}>
+                                <label className="block font-semibold mb-2">OJT Role:</label>
+                                <div className="relative">
                                     <select
-                                        className="select"
+                                        className="select w-full bg-white"
                                         name="ojt_role"
                                         value={editForm.ojt_role}
                                         onChange={handleEditChange}
-                                        style={{ width: '100%', backgroundColor: 'white' }}
                                     >
                                         <option value="">Select Role</option>
                                         {OJT_ROLES.map(role => (
                                             <option key={role} value={role}>{role}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                                 </div>
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT ID:</label>
+                                <label className="block font-semibold mb-2">OJT ID:</label>
                                 <input
-                                    className="input"
+                                    className="input w-full bg-white"
                                     name="ojt_id"
                                     type="text"
                                     inputMode="numeric"
@@ -762,7 +700,6 @@ const ManageInterns = () => {
                                     value={editForm.ojt_id}
                                     onChange={handleEditChange}
                                     placeholder="e.g. 1101"
-                                    style={{ width: '100%', backgroundColor: 'white' }}
                                 />
                             </div>
                         </div>
@@ -770,20 +707,19 @@ const ManageInterns = () => {
                         {/* Start Date & Required Hours */}
                         <div className="modal-grid-2col">
                             <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Start Date:</label>
+                                <label className="block font-semibold mb-2">Start Date:</label>
                                 <input
-                                    className="input"
+                                    className="input w-full bg-white"
                                     name="start_date"
                                     type="date"
                                     value={editForm.start_date}
                                     onChange={handleEditChange}
-                                    style={{ width: '100%', backgroundColor: 'white' }}
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Required Hours:</label>
+                                <label className="block font-semibold mb-2">Required Hours:</label>
                                 <input
-                                    className="input"
+                                    className="input w-full bg-white"
                                     name="required_hours"
                                     type="text"
                                     inputMode="numeric"
@@ -791,45 +727,41 @@ const ManageInterns = () => {
                                     value={editForm.required_hours}
                                     onChange={handleEditChange}
                                     placeholder="e.g. 600"
-                                    style={{ width: '100%', backgroundColor: 'white' }}
                                 />
                             </div>
                         </div>
 
                         {/* OJT Type */}
-                        <div style={{ marginBottom: '3rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>OJT Type:</label>
-                            <div style={{ position: 'relative' }}>
+                        <div className="mb-12">
+                            <label className="block font-semibold mb-2">OJT Type:</label>
+                            <div className="relative">
                                 <select
-                                    className="select"
+                                    className="select w-full bg-white"
                                     name="ojt_type"
                                     value={editForm.ojt_type}
                                     onChange={handleEditChange}
-                                    style={{ width: '100%', backgroundColor: 'white' }}
                                 >
                                     <option value="">Select OJT Type</option>
                                     <option value="required">Required</option>
                                     <option value="voluntary">Voluntary</option>
                                 </select>
-                                <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                             </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
+                        <div className="row justify-end gap-4">
                             <button
-                                className="btn"
+                                className="btn bg-white text-orange-600 border-none px-6 py-3"
                                 onClick={closeEditModal}
                                 disabled={saving}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="btn btn-primary"
+                                className="btn btn-primary border-none px-6 py-3"
                                 onClick={handleEditSave}
                                 disabled={saving}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 {saving ? 'Saving...' : 'Save Changes'}
                             </button>

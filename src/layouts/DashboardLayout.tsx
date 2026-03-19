@@ -1,7 +1,7 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Sidebar from '../components/layout/Sidebar';
 import TopBar from '../components/layout/TopBar';
 import NotificationDropdown from '../components/layout/NotificationDropdown';
@@ -9,14 +9,15 @@ import NotificationDropdown from '../components/layout/NotificationDropdown';
 const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const location = useLocation();
+    const prefersReducedMotion = useReducedMotion();
 
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950">
-            {/* Desktop Sidebar — animated width */}
-            <motion.div
-                animate={{ width: sidebarCollapsed ? 72 : 260 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="hidden lg:block sticky top-0 h-screen bg-[#0a0a0a] rounded-tr-[25px] rounded-br-[25px] overflow-visible flex-shrink-0"
+            {/* Desktop Sidebar — CSS width transition (avoids reflow on framer-motion JS thread) */}
+            <div
+                style={{ width: sidebarCollapsed ? 72 : 260 }}
+                className="hidden lg:block sticky top-0 h-screen bg-[#0a0a0a] rounded-tr-[25px] rounded-br-[25px] overflow-visible flex-shrink-0 transition-[width] duration-300 ease-in-out"
             >
                 <Sidebar
                     isOpen={true}
@@ -24,7 +25,7 @@ const DashboardLayout = () => {
                     collapsed={sidebarCollapsed}
                     onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
                 />
-            </motion.div>
+            </div>
 
             {/* Mobile Sidebar Overlay */}
             <AnimatePresence>
@@ -78,7 +79,17 @@ const DashboardLayout = () => {
                 <TopBar />
 
                 <main className="flex-1 p-4 md:p-6 lg:p-8 w-full overflow-y-auto">
-                    <Outlet />
+                    <AnimatePresence mode="wait" initial={false}>
+                        <motion.div
+                            key={location.pathname}
+                            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -4 }}
+                            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                            <Outlet />
+                        </motion.div>
+                    </AnimatePresence>
                 </main>
             </div>
         </div>

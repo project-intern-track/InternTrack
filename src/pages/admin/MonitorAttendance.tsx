@@ -289,17 +289,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const getStatusBadge = (status: string) => {    switch (status.toLowerCase()) {
       case 'present':
       case 'completed':
-        return <span className="badge badge-success" style={{ padding: '4px 8px', borderRadius: '4px', background: '#dcfce7', color: '#166534', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Present</span>;
+        return <span className="badge badge-success px-2 py-1 rounded bg-green-100 text-green-800 font-semibold text-xs capitalize">Present</span>;
       case 'late':
       case 'incomplete':
-        return <span className="badge badge-warning" style={{ padding: '4px 8px', borderRadius: '4px', background: '#fef08a', color: '#854d0e', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Late</span>;
+        return <span className="badge badge-warning px-2 py-1 rounded bg-yellow-200 text-yellow-900 font-semibold text-xs capitalize">Late</span>;
       case 'absent':
       case 'no_log':
-        return <span className="badge badge-danger" style={{ padding: '4px 8px', borderRadius: '4px', background: '#fee2e2', color: '#991b1b', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Absent</span>;
+        return <span className="badge badge-danger px-2 py-1 rounded bg-red-100 text-red-800 font-semibold text-xs capitalize">Absent</span>;
       case 'excused':
-        return <span className="badge badge-info" style={{ padding: '4px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#075985', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>Excused</span>;
+        return <span className="badge badge-info px-2 py-1 rounded bg-sky-100 text-sky-900 font-semibold text-xs capitalize">Excused</span>;
       default:
-        return <span className="badge" style={{ padding: '4px 8px', borderRadius: '4px', background: '#f3f4f6', color: '#374151', fontWeight: 600, fontSize: '0.75rem', textTransform: 'capitalize' }}>{status}</span>;
+        return <span className="badge px-2 py-1 rounded bg-slate-100 text-slate-700 font-semibold text-xs capitalize">{status}</span>;
     }
   };
 
@@ -863,26 +863,14 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           }
         }
       `}</style>
-      <div className="attendance-container">
+      <div className="attendance-container admin-page-shell">
         {/* Header */}
-        <div className="attendance-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div className="attendance-header mb-8 flex justify-between items-center flex-wrap gap-4">
           <h1>Monitor Attendance</h1>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="flex gap-3">
             <button
               onClick={() => setIsManualEntryOpen(true)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.625rem 1rem',
-                backgroundColor: 'white',
-                color: 'hsl(var(--orange))',
-                border: '2px solid hsl(var(--orange))',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white text-[hsl(var(--orange))] border-2 border-[hsl(var(--orange))] rounded-lg font-semibold cursor-pointer transition-all"
             >
               <Plus size={18} />
               Add Manual Entry
@@ -890,20 +878,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             <button
               onClick={handleExport}
               disabled={filteredRecords.length === 0}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.625rem 1rem',
-                backgroundColor: 'hsl(var(--orange))',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: filteredRecords.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: filteredRecords.length === 0 ? 0.6 : 1,
-                transition: 'all 0.2s'
-              }}
+              className={`flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--orange))] text-white border-none rounded-lg font-semibold transition-all ${filteredRecords.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
               <Download size={18} />
               Export
@@ -943,20 +918,13 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="card attendance-filter-section" style={{ marginBottom: '1.5rem' }}>
-          <div className="row attendance-filter-row" style={{ gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="card attendance-filter-section mb-6">
+          <div className="row attendance-filter-row gap-4 items-center flex-wrap">
             {/* Search Bar */}
-            <div className="input-group attendance-search-container" style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
+            <div className="input-group attendance-search-container relative flex-1 min-w-[200px]">
               <Search
                 size={20}
-                style={{
-                  position: 'absolute',
-                  left: '1rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'hsl(var(--muted-foreground))',
-                  pointerEvents: 'none',
-                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
               />
               <input
                 className="input"
@@ -971,29 +939,26 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 }}
                 style={{
                   paddingLeft: '3rem',
-                  width: '100%',
-                  boxSizing: 'border-box',
                   backgroundColor: 'white',
                 }}
               />
             </div>
 
             {/* Filter label */}
-            <div className="row attendance-filter-label" style={{ gap: '0.5rem', alignItems: 'center' }}>
-              <Filter size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
-              <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Filters:</span>
+            <div className="row attendance-filter-label gap-2 items-center">
+              <Filter size={20} className="text-muted-foreground" />
+              <span className="font-semibold text-sm">Filters:</span>
             </div>
 
             {/* Filter dropdown */}
-            <div className="attendance-filter-selects" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <div style={{ position: 'relative', flex: '1', minWidth: '200px', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <label htmlFor="date-filter-input" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
+            <div className="attendance-filter-selects flex gap-4 flex-wrap">
+              <div className="relative flex-1 min-w-[200px] flex gap-2 items-center">
+                <label htmlFor="date-filter-input" className="absolute -left-[9999px] w-px h-px overflow-hidden">
                   Filter by date
                 </label>
                 <input
                   id="date-filter-input"
                   type="date"
-                  className="input"
                   value={dateFilter === 'all' ? '' : dateFilter}
                   onChange={(e) => {
                     if (scrollContainerRef.current) {
@@ -1004,9 +969,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   disabled={dateFilter === 'all'}
                   aria-label="Select date to filter attendance records"
                   aria-disabled={dateFilter === 'all'}
-                  style={{ 
+                  className="input"
+                  style={{
                     width: '100%',
-                    minWidth: '0', // prevents flex overflow
+                    minWidth: '0',
                     backgroundColor: dateFilter === 'all' ? '#f5f5f5' : 'white',
                     cursor: dateFilter === 'all' ? 'not-allowed' : 'text',
                     flex: '1'
@@ -1021,18 +987,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                     setDateFilter(dateFilter === 'all' ? todayDate : 'all');
                   }}
                   aria-label={dateFilter === 'all' ? 'Show today\'s records' : 'Show all dates'}
-                  style={{
-                    padding: '0.625rem 1rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: dateFilter === 'all' ? 'white' : 'hsl(var(--orange))',
-                    backgroundColor: dateFilter === 'all' ? 'hsl(var(--orange))' : 'white',
-                    border: `2px solid hsl(var(--orange))`,
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap',
-                  }}
+                  className={`px-4 py-2.5 text-sm font-medium border-2 border-[hsl(var(--orange))] rounded-md cursor-pointer transition-all whitespace-nowrap ${dateFilter === 'all' ? 'text-white bg-[hsl(var(--orange))]' : 'text-[hsl(var(--orange))] bg-white'}`}
                   onMouseEnter={(e) => {
                     if (dateFilter !== 'all') {
                       e.currentTarget.style.backgroundColor = '#f5f5f5';
@@ -1048,7 +1003,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 </button>
               </div>
 
-              <div style={{ position: 'relative', flex: '1', minWidth: '150px' }}>
+              <div className="relative flex-1 min-w-[150px]">
                 <select
                   className="select"
                   value={statusFilter}
@@ -1068,14 +1023,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 </select>
                 <ChevronDown
                   size={16}
-                  style={{
-                    position: 'absolute',
-                    right: '0.75rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    pointerEvents: 'none',
-                    color: 'hsl(var(--muted-foreground))',
-                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground"
                 />
               </div>
 
@@ -1125,13 +1073,13 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
           {/* Attendance Table - Desktop */}
           {loading ? (
-            <div className="attendance-empty-state" style={{ padding: '3rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>
+            <div className="attendance-empty-state p-12 text-center text-muted-foreground">
               Loading attendance records...
             </div>
           ) : filteredRecords.length === 0 ? (
-            <div className="attendance-empty-state" style={{ padding: '3rem', textAlign: 'center' }}>
-              <UserCheck size={48} style={{ color: 'hsl(var(--muted-foreground))', marginBottom: '1rem' }} />
-              <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '1rem' }}>
+            <div className="attendance-empty-state p-12 text-center">
+              <UserCheck size={48} className="text-muted-foreground mb-4 inline-block" />
+              <p className="text-muted-foreground text-base">
                 {dateFilter === 'all'
                   ? 'No attendance records found'
                   : dateFilter === todayDate
@@ -1146,13 +1094,13 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 <table className="attendance-table-header">
                   <thead>
                     <tr>
-                      <th style={{ width: '18%' }}>NAME</th>
-                      <th style={{ width: '10%' }}>ROLE</th>
-                      <th style={{ width: '11%' }}>DATE</th>
-                      <th style={{ width: '13%' }}>TIME IN</th>
-                      <th style={{ width: '13%' }}>TIME OUT</th>
-                      <th style={{ width: '15%' }}>TOTAL HOURS</th>
-                      <th style={{ width: '20%' }}>STATUS</th>
+                      <th className="w-[18%]">NAME</th>
+                      <th className="w-[10%]">ROLE</th>
+                      <th className="w-[11%]">DATE</th>
+                      <th className="w-[13%]">TIME IN</th>
+                      <th className="w-[13%]">TIME OUT</th>
+                      <th className="w-[15%]">TOTAL HOURS</th>
+                      <th className="w-[20%]">STATUS</th>
                     </tr>
                   </thead>
                 </table>
@@ -1163,15 +1111,15 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                     <tbody>
                       {paginatedRecords.map((record, index) => (
                         <tr key={`${record.id}-${record.date}-${index}`}>
-                          <td style={{ width: '18%' }}>
+                          <td className="w-[18%]">
                             <strong>{record.user?.full_name || 'Unknown User'}</strong>
                           </td>
-                          <td style={{ width: '10%' }}>{getRoleBadge(record.user?.role)}</td>
-                          <td style={{ width: '11%' }}>{formatDate(record.date)}</td>
-                          <td style={{ width: '13%' }}>{formatTime(record.time_in)}</td>
-                          <td style={{ width: '13%' }}>{formatTime(record.time_out)}</td>
-                          <td style={{ width: '15%' }}>{formatHours(record.total_hours)}</td>
-                          <td style={{ width: '20%' }}>{getStatusBadge(record.status)}</td>
+                          <td className="w-[10%]">{getRoleBadge(record.user?.role)}</td>
+                          <td className="w-[11%]">{formatDate(record.date)}</td>
+                          <td className="w-[13%]">{formatTime(record.time_in)}</td>
+                          <td className="w-[13%]">{formatTime(record.time_out)}</td>
+                          <td className="w-[15%]">{formatHours(record.total_hours)}</td>
+                          <td className="w-[20%]">{getStatusBadge(record.status)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1332,18 +1280,14 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
       {/* Manual Entry Modal */}
       {isManualEntryOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
-        }}>
-          <div style={{
-            backgroundColor: 'white', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '500px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', maxHeight: '90vh', overflowY: 'auto'
-          }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111827' }}>Add Manual Entry</h2>
-            {submitError && <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', fontSize: '0.875rem' }}>{submitError}</div>}
-            <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-8 w-full max-w-[500px] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-6 text-slate-900">Add Manual Entry</h2>
+            {submitError && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">{submitError}</div>}
+            <form onSubmit={handleManualSubmit} className="flex flex-col gap-4">
               
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Intern</label>
+                <label className="block text-sm font-medium mb-2">Intern</label>
                 <select 
                   className="select" 
                   value={manualEntryForm.user_id} 
@@ -1359,7 +1303,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Date</label>
+                <label className="block text-sm font-medium mb-2">Date</label>
                 <input 
                   type="date" 
                   className="input" 
@@ -1370,9 +1314,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Time In</label>
+                  <label className="block text-sm font-medium mb-2">Time In</label>
                   <input 
                     type="time" 
                     step="1"
@@ -1384,7 +1328,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Time Out (Optional)</label>
+                  <label className="block text-sm font-medium mb-2">Time Out (Optional)</label>
                   <input 
                     type="time" 
                     step="1"
@@ -1397,7 +1341,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Status</label>
+                <label className="block text-sm font-medium mb-2">Status</label>
                 <select 
                   className="select" 
                   value={manualEntryForm.status} 
@@ -1411,18 +1355,19 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+              <div className="flex justify-end gap-3 mt-4">
                 <button
                   type="button"
                   onClick={() => setIsManualEntryOpen(false)}
-                  style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: 500, cursor: 'pointer' }}
+                  className="px-4 py-2 rounded-md border border-slate-300 bg-white font-medium cursor-pointer"
                   disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: 'hsl(var(--orange))', color: 'white', fontWeight: 500, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}
+                  className="px-4 py-2 rounded-md border-none bg-[hsl(var(--orange))] text-white font-medium cursor-pointer"
+                  style={{ opacity: submitting ? 0.7 : 1 }}
                   disabled={submitting}
                 >
                   {submitting ? 'Saving...' : 'Save Entry'}

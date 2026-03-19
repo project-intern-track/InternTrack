@@ -298,11 +298,11 @@ const ManageSupervisors = () => {
     );
 
     return (
-        <div style={{ maxWidth: '100%', padding: '0', overflow: 'hidden' }}>
+        <div className="admin-page-shell max-w-full p-0 overflow-hidden">
             {/* Header Section */}
             <div className="manage-interns-header">
-                <h1 style={{ color: 'hsl(var(--orange))', fontSize: '2rem', margin: 0 }}>Manage Supervisors</h1>
-                <button className="btn btn-primary" style={{ gap: '0.5rem' }} onClick={handleSignUpModal}>
+                <h1 className="text-3xl font-bold text-orange-600 m-0">Manage Supervisors</h1>
+                <button className="btn btn-primary gap-2" onClick={handleSignUpModal}>
                     <Plus size={18} /> Add Supervisor
                 </button>
             </div>
@@ -324,14 +324,13 @@ const ManageSupervisors = () => {
             </div>
 
             {/* Search Bar */}
-            <div style={{ marginBottom: '1.5rem' }}>
-                <div className="input-group" style={{ position: 'relative' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
+            <div className="mb-6">
+                <div className="input-group admin-search-wrap">
+                    <Search size={20} className="admin-search-icon" />
                     <input
                         type="text"
-                        className="input"
+                        className="input admin-search-input"
                         placeholder="Search by name or email"
-                        style={{ paddingLeft: '3rem' }}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -340,8 +339,8 @@ const ManageSupervisors = () => {
 
             {/* Filter Section */}
             <div className="manage-interns-filters">
-                <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
-                    <Filter size={20} /> <span style={{ fontWeight: 600 }}>Filters:</span>
+                <div className="row items-center gap-2">
+                    <Filter size={20} /> <span className="font-semibold">Filters:</span>
                 </div>
                 <div className="filter-dropdown">
                     <select className="select" value={dateSort} onChange={(e) => setDateSort(e.target.value as 'newest' | 'oldest')}>
@@ -360,51 +359,44 @@ const ManageSupervisors = () => {
 
             {/* Error Banner */}
             {error && (
-                <div style={{
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    backgroundColor: 'hsl(var(--danger) / 0.1)',
-                    color: 'hsl(var(--danger))',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid hsl(var(--danger) / 0.2)',
-                }}>
+                <div className="p-4 mb-4 rounded-md border border-red-200 bg-red-50 text-red-700">
                     {error}
                 </div>
             )}
 
             {/* Table Container */}
-            <div className="table-container" style={{ borderRadius: '8px', border: '1px solid #e5e5e5', overflow: 'auto', backgroundColor: 'white' }}>
-                <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'center' }}>
+            <div className="table-container rounded-lg border border-slate-200 overflow-auto bg-white">
+                <table className="w-full min-w-[800px] border-collapse text-center">
                     <thead>
-                        <tr style={{ backgroundColor: '#ff9800', color: 'white' }}>
-                            <th style={{ padding: '1rem' }}>Name</th>
-                            <th style={{ padding: '1rem' }}>Email Address</th>
-                            <th style={{ padding: '1rem' }}>Date Created</th>
-                            <th style={{ padding: '1rem' }}>Status</th>
-                            <th style={{ padding: '1rem' }}>Actions</th>
+                        <tr className="bg-orange-500 text-white">
+                            <th className="p-4">Name</th>
+                            <th className="p-4">Email Address</th>
+                            <th className="p-4">Date Created</th>
+                            <th className="p-4">Status</th>
+                            <th className="p-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {paginatedSupervisors.length === 0 ? (
                             <tr>
-                                <td colSpan={5} style={{ padding: '3rem 1rem', color: '#64748b' }}>No supervisors found.</td>
+                                <td colSpan={5} className="py-12 px-4 text-slate-500">No supervisors found.</td>
                             </tr>
                         ) : (
                             paginatedSupervisors.map((supervisor) => (
-                                <tr key={supervisor.id} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                                    <td style={{ padding: '1rem' }}>{supervisor.full_name}</td>
-                                    <td style={{ padding: '1rem' }}>{supervisor.email}</td>
-                                    <td style={{ padding: '1rem' }}>{formatDate(supervisor.created_at)}</td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <span style={{ color: supervisor.status === 'active' ? '#22c55e' : '#8b5cf6', fontWeight: 500 }}>
+                                <tr key={supervisor.id} className="border-b border-slate-200">
+                                    <td className="p-4">{supervisor.full_name}</td>
+                                    <td className="p-4">{supervisor.email}</td>
+                                    <td className="p-4">{formatDate(supervisor.created_at)}</td>
+                                    <td className="p-4">
+                                        <span className={`font-medium ${supervisor.status === 'active' ? 'text-green-500' : 'text-violet-500'}`}>
                                             {supervisor.status}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => openEditModal(supervisor)}><Pencil size={18} /></button>
+                                    <td className="p-4">
+                                        <div className="flex justify-center gap-2">
+                                            <button className="bg-transparent border-none cursor-pointer" onClick={() => openEditModal(supervisor)}><Pencil size={18} /></button>
                                             <button
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                                                className="bg-transparent border-none cursor-pointer"
                                                 title={supervisor.status === 'active' ? 'Archive' : 'Restore'}
                                                 onClick={() => handleArchiveToggle(supervisor)}
                                             >
@@ -471,93 +463,74 @@ const ManageSupervisors = () => {
             {/* Add Supervisor Modal */}
             {signUpModalOpen && (
                 <div className="modal-overlay" onClick={handleCloseSignupModal}>
-                    <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '500px' }}>
-                        <h2 style={{ color: '#ea580c' }}>Register New Supervisor</h2>
+                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[500px]" onClick={(e) => e.stopPropagation()}>
+                        <h2 className="text-orange-600 mb-6">Register New Supervisor</h2>
 
                         {signUpSuccess && (
-                            <div style={{
-                                padding: '1rem',
-                                marginBottom: '1.5rem',
-                                backgroundColor: '#dcfce7',
-                                color: '#166534',
-                                borderRadius: '8px',
-                                border: '1px solid #86efac',
-                            }}>
+                            <div className="p-4 mb-6 bg-emerald-100 text-emerald-800 rounded-lg border border-emerald-300">
                                 ✅ Registration successful! Credentials sent to {signUpForm.email}
                             </div>
                         )}
 
                         {signUpError && (
-                            <div style={{
-                                padding: '0.75rem 1rem',
-                                marginBottom: '1.5rem',
-                                backgroundColor: 'hsl(var(--danger) / 0.1)',
-                                color: 'hsl(var(--danger))',
-                                borderRadius: '8px',
-                                border: '1px solid hsl(var(--danger) / 0.2)',
-                                fontSize: '0.875rem',
-                            }}>
+                            <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-lg border border-red-200 text-sm">
                                 {signUpError}
                             </div>
                         )}
 
                         {!signUpSuccess && (
-                            <div>
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Full Name:</label>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block font-semibold mb-2">Full Name:</label>
                                     <input
-                                        className="input"
+                                        className="input w-full"
                                         name="full_name"
                                         value={signUpForm.full_name}
                                         onChange={handleSignUpChange}
                                         placeholder="Enter full name"
-                                        style={{ width: '100%' }}
                                     />
                                 </div>
 
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Email:</label>
+                                <div>
+                                    <label className="block font-semibold mb-2">Email:</label>
                                     <input
-                                        className="input"
+                                        className="input w-full"
                                         name="email"
                                         type="email"
                                         value={signUpForm.email}
                                         onChange={handleSignUpChange}
                                         placeholder="Enter email"
-                                        style={{ width: '100%' }}
                                     />
                                 </div>
 
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Password:</label>
+                                <div>
+                                    <label className="block font-semibold mb-2">Password:</label>
                                     <input
-                                        className="input"
+                                        className="input w-full"
                                         name="password"
                                         type="password"
                                         value={signUpForm.password}
                                         onChange={handleSignUpChange}
                                         placeholder="Min 8 characters"
-                                        style={{ width: '100%' }}
                                     />
                                 </div>
 
-                                <div style={{ marginBottom: '1.5rem' }}>
-                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Confirm Password:</label>
+                                <div className="mb-6">
+                                    <label className="block font-semibold mb-2">Confirm Password:</label>
                                     <input
-                                        className="input"
+                                        className="input w-full"
                                         name="password_confirmation"
                                         type="password"
                                         value={signUpForm.password_confirmation}
                                         onChange={handleSignUpChange}
                                         placeholder="Confirm password"
-                                        style={{ width: '100%' }}
                                     />
                                 </div>
                             </div>
                         )}
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                            <button className="btn" onClick={handleCloseSignupModal} disabled={signUpLoading}>
+                        <div className="flex justify-end gap-4 mt-6">
+                            <button className="btn bg-white text-orange-600 border-none" onClick={handleCloseSignupModal} disabled={signUpLoading}>
                                 Cancel
                             </button>
                             {!signUpSuccess && (
@@ -573,30 +546,28 @@ const ManageSupervisors = () => {
             {/* ===== Archive Confirmation Modal ===== */}
             {archiveTarget && (
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#e6ded6', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '440px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px]" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-4">
                             <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
-                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
+                            <h2 className="text-orange-600 m-0 text-xl font-bold">
                                 {archiveTarget.status === 'active' ? 'Archive Supervisor' : 'Restore Supervisor'}
                             </h2>
                         </div>
-                        <p style={{ margin: '0 0 1.5rem', color: '#334155', lineHeight: 1.5 }}>
+                        <p className="m-0 mb-6 text-slate-700 leading-6">
                             Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
                             <strong>{archiveTarget.full_name}</strong>?
                             {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
                         </p>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                        <div className="flex justify-end gap-4">
                             <button
-                                className="btn"
+                                className="btn bg-white text-orange-600 border-none px-6 py-3"
                                 onClick={() => setArchiveTarget(null)}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="btn btn-primary"
+                                className="btn btn-primary border-none px-6 py-3"
                                 onClick={confirmArchive}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 {archiveTarget.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
                             </button>
@@ -607,81 +578,57 @@ const ManageSupervisors = () => {
 
             {/* ===== Edit Supervisor Modal ===== */}
             {editingSupervisor && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    backdropFilter: 'blur(2px)'
-                }} onClick={closeEditModal}>
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] backdrop-blur-sm" onClick={closeEditModal}>
                     <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
                         {/* Heading */}
-                        <div style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ color: '#ea580c', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Edit Supervisor Information</h2>
+                        <div className="mb-8">
+                            <h2 className="text-orange-600 m-0 text-2xl font-bold">Edit Supervisor Information</h2>
                         </div>
 
                         {editError && (
-                            <div style={{
-                                padding: '0.75rem 1rem',
-                                marginBottom: '1.5rem',
-                                backgroundColor: 'hsl(var(--danger) / 0.1)',
-                                color: 'hsl(var(--danger))',
-                                borderRadius: '8px',
-                                border: '1px solid hsl(var(--danger) / 0.2)',
-                                fontSize: '0.875rem',
-                            }}>
+                            <div className="p-3 px-4 mb-6 bg-red-50 text-red-700 rounded-lg border border-red-200 text-sm">
                                 {editError}
                             </div>
                         )}
 
                         {/* Full Name */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Full Name:</label>
+                        <div className="mb-6">
+                            <label className="block font-semibold mb-2">Full Name:</label>
                             <input
-                                className="input"
+                                className="input w-full bg-white"
                                 name="full_name"
                                 value={editForm.full_name}
                                 onChange={handleEditChange}
                                 placeholder="Enter full name"
-                                style={{ width: '100%', backgroundColor: 'white' }}
                             />
                         </div>
 
                         {/* Email */}
-                        <div style={{ marginBottom: '3rem' }}>
-                            <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>Email Address:</label>
+                        <div className="mb-12">
+                            <label className="block font-semibold mb-2">Email Address:</label>
                             <input
-                                className="input"
+                                className="input w-full bg-white"
                                 name="email"
                                 type="email"
                                 value={editForm.email}
                                 onChange={handleEditChange}
                                 placeholder="Enter email address"
-                                style={{ width: '100%', backgroundColor: 'white' }}
                             />
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="row" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
+                        <div className="row justify-end gap-4">
                             <button
-                                className="btn"
+                                className="btn bg-white text-orange-600 border-none px-6 py-3"
                                 onClick={closeEditModal}
                                 disabled={saving}
-                                style={{ backgroundColor: 'white', color: '#ea580c', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="btn btn-primary"
+                                className="btn btn-primary border-none px-6 py-3"
                                 onClick={handleEditSave}
                                 disabled={saving}
-                                style={{ backgroundColor: '#ff8c42', border: 'none', padding: '0.75rem 1.5rem' }}
                             >
                                 {saving ? 'Saving...' : 'Save Changes'}
                             </button>

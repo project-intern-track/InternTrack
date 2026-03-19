@@ -665,7 +665,7 @@ const ManageTasks = () => {
     }, [tasks, search, priorityFilter, statusFilter, dueDateFilter, customDueStart, customDueEnd]);
 
     return (
-        <div>
+        <div className="admin-page-shell">
             <style>{`
                 @keyframes spin {
                     0% { transform: rotate(0deg); }
@@ -788,18 +788,17 @@ const ManageTasks = () => {
             }
         `}</style>
 
-            <div className="row row-between" style={{ marginBottom: '2rem' }}>
-                <h1 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: '31px' }}>Manage Tasks</h1>
-                <button className="btn btn-primary" style={{ fontSize: '15px' }} onClick={openCreateModal}>
+            <div className="row row-between manage-tasks-header">
+                <h1 className="manage-tasks-title">Manage Tasks</h1>
+                <button className="btn btn-primary manage-tasks-create-btn" onClick={openCreateModal}>
                     + Create Task
                 </button>
             </div>
 
-            <div style={{ marginTop: '20px', marginBottom: '1.5rem' }}>
-                <div className="input-group" style={{ position: 'relative', width: '100%' }}>
-                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
-                    <input type="text" className="input" placeholder="Search Task"
-                        style={{ paddingLeft: '3rem', width: '100%', boxSizing: 'border-box' }}
+            <div className="manage-tasks-search-wrap">
+                <div className="input-group manage-tasks-search-group">
+                    <Search size={20} className="manage-tasks-search-icon" />
+                    <input type="text" className="input manage-tasks-search-input" placeholder="Search Task"
                         value={search} onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
@@ -808,18 +807,16 @@ const ManageTasks = () => {
             <div className="card manage-tasks-filter-section">
                 <div
                     className="row manage-tasks-filter-row"
-                    style={{ gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}
                 >
-                    <div className="manage-tasks-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Filter size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
-                        <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Filters:</span>
+                    <div className="manage-tasks-filter-label">
+                        <Filter size={20} />
+                        <span>Filters:</span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', flex: 1, flexWrap: 'wrap' }}>
-                        <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div className="manage-tasks-filter-selects">
+                        <div className="manage-tasks-filter-col">
                             <select
                                 className="select"
-                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
                                 value={dueDateFilter}
                                 onChange={(e) => {
                                     const raw = e.target.value as typeof dueDateFilter;
@@ -845,10 +842,9 @@ const ManageTasks = () => {
                             </select>
                         </div>
 
-                        <div style={{ flex: 1, minWidth: '200px' }}>
+                        <div className="manage-tasks-filter-col">
                             <select
                                 className="select"
-                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
                                 value={priorityFilter}
                                 onChange={(e) => setPriorityFilter(e.target.value)}
                             >
@@ -859,10 +855,9 @@ const ManageTasks = () => {
                             </select>
                         </div>
 
-                        <div style={{ flex: 1, minWidth: '200px' }}>
+                        <div className="manage-tasks-filter-col">
                             <select
                                 className="select"
-                                style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', width: '100%' }}
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
@@ -882,20 +877,9 @@ const ManageTasks = () => {
 
                 {dueDateFilter === 'custom' && customDueStart && (
                     <div
-                        style={{
-                            marginTop: '0.75rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.4rem 0.75rem',
-                            borderRadius: '999px',
-                            backgroundColor: '#fff',
-                            border: '1px solid #d1d5db',
-                            fontSize: '0.85rem',
-                            color: '#111827',
-                        }}
+                        className="manage-tasks-custom-chip"
                     >
-                        <span style={{ fontWeight: 700, color: '#374151' }}>Custom:</span>
+                        <span className="manage-tasks-custom-chip-label">Custom:</span>
                         <span>
                             {customDueStart}
                             {customDueEnd && customDueEnd !== customDueStart ? ` → ${customDueEnd}` : ''}
@@ -903,15 +887,7 @@ const ManageTasks = () => {
                         <button
                             type="button"
                             onClick={() => openCustomRangeModal()}
-                            style={{
-                                border: 'none',
-                                backgroundColor: 'transparent',
-                                color: 'hsl(var(--orange))',
-                                cursor: 'pointer',
-                                fontWeight: 800,
-                                padding: 0,
-                                marginLeft: '0.35rem',
-                            }}
+                            className="manage-tasks-custom-chip-btn"
                             title="Edit custom range"
                         >
                             Edit
@@ -923,15 +899,7 @@ const ManageTasks = () => {
                                 setCustomDueEnd('');
                                 setDueDateFilter(lastNonCustomDueFilter);
                             }}
-                            style={{
-                                border: 'none',
-                                backgroundColor: 'transparent',
-                                color: '#6b7280',
-                                cursor: 'pointer',
-                                fontWeight: 700,
-                                padding: 0,
-                                marginLeft: '0.25rem',
-                            }}
+                            className="manage-tasks-custom-chip-btn clear"
                             title="Clear custom range"
                         >
                             ×
@@ -940,11 +908,11 @@ const ManageTasks = () => {
                 )}
             </div>
 
-            <div className="grid-3" style={{ marginTop: '2rem' }}>
+            <div className="grid-3 manage-tasks-grid">
                 {isLoadingTasks && tasks.length === 0 ? (
-                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', paddingTop: '3rem', paddingBottom: '3rem' }}>
-                        <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid hsl(var(--orange))', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                        <p style={{ color: '#666', marginTop: '1rem', fontSize: '0.875rem' }}>Loading tasks...</p>
+                    <div className="col-[1/-1] text-center py-12">
+                        <div className="inline-block w-10 h-10 border-4 border-[#f3f3f3] border-t-[hsl(var(--orange))] rounded-full animate-spin" />
+                        <p className="text-slate-500 mt-4 text-sm">Loading tasks...</p>
                     </div>
                 ) : (
                     <>
@@ -952,43 +920,36 @@ const ManageTasks = () => {
                             const priorityStyle = getPriorityStyle(task.priority);
                             const statusStyle = getStatusStyle(task.status);
                             return (
-                                <div key={task.id} className="card"
+                                <div key={task.id} className="card manage-task-card"
                                     onClick={() => handleViewDetail(task)}
-                                    style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', transition: 'transform 0.2s ease, box-shadow 0.2s ease', cursor: 'pointer' }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'; }}
                                 >
-                                    <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-                                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#000', margin: 0, flex: 1 }}>{task.title}</h3>
-                                        <div style={{ display: 'inline-block', padding: '0.375rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, border: `1px solid ${priorityStyle.borderColor}`, whiteSpace: 'nowrap', ...priorityStyle }}>
+                                    <div className="manage-task-card-top">
+                                        <h3 className="manage-task-card-title">{task.title}</h3>
+                                        <div className="inline-block px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap" style={{ border: `1px solid ${priorityStyle.borderColor}`, ...priorityStyle }}>
                                             {getPriorityLabel(task.priority)}
                                         </div>
                                     </div>
-                                    <p style={{ fontSize: '0.875rem', color: '#666', lineHeight: '1.5', marginBottom: '1.5rem', flex: 1 }}>
+                                    <p className="manage-task-card-description">
                                         {task.description}
                                     </p>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <span style={{ color: '#666' }}>Assigned to:</span>
-                                            <span style={{ fontWeight: 600, color: '#000' }}>{task.assigned_interns_count} intern{task.assigned_interns_count !== 1 ? 's' : ''}</span>
+                                    <div className="manage-task-card-meta">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-500">Assigned to:</span>
+                                            <span className="font-semibold text-black">{task.assigned_interns_count} intern{task.assigned_interns_count !== 1 ? 's' : ''}</span>
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <span style={{ color: '#666' }}>Date Created:</span>
-                                            <span style={{ fontWeight: 600, color: '#000' }}>{new Date(task.created_at).toLocaleDateString('en-US')}</span>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-500">Date Created:</span>
+                                            <span className="font-semibold text-black">{new Date(task.created_at).toLocaleDateString('en-US')}</span>
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <span style={{ color: '#666' }}>Due:</span>
-                                            <span style={{ fontWeight: 600, color: '#000' }}>{new Date(task.due_date).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-500">Due:</span>
+                                            <span className="font-semibold text-black">{new Date(task.due_date).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ color: '#666' }}>Status:</span>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-500">Status:</span>
                                             <span
+                                                className="inline-block px-3 py-1 rounded-full text-xs font-semibold"
                                                 style={{
-                                                    display: 'inline-block',
-                                                    padding: '0.25rem 0.75rem',
-                                                    borderRadius: '999px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: 600,
                                                     backgroundColor: statusStyle.backgroundColor,
                                                     color: statusStyle.color,
                                                     border: `1px solid ${statusStyle.borderColor}`,
@@ -998,12 +959,12 @@ const ManageTasks = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <button className="btn btn-primary" style={{ marginTop: 'auto', fontSize: '0.875rem' }}>View Details</button>
+                                    <button className="btn btn-primary manage-task-card-btn">View Details</button>
                                 </div>
                             );
                         })}
                         {filteredTasks.length === 0 && !isLoadingTasks && (
-                            <p style={{ color: '#888', gridColumn: '1 / -1', textAlign: 'center', paddingTop: '2rem' }}>No tasks found.</p>
+                            <p className="text-slate-400 col-[1/-1] text-center pt-8">No tasks found.</p>
                         )}
                     </>
                 )}
@@ -1012,59 +973,48 @@ const ManageTasks = () => {
             {/* Create Task Modal */}
             {isModalOpen && (
                 <div className="modal-overlay" onClick={closeModal}>
-                    <div className="modal create-task-modal"
-                        style={{ backgroundColor: '#e8ddd0', maxWidth: '880px', width: '100%', padding: '1.25rem', margin: '0.75rem', position: 'relative' }}
+                    <div className="modal create-task-modal max-w-[900px] w-full p-5 m-3 relative"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h2 style={{ color: 'hsl(var(--orange))', margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Task Information</h2>
-                            <button onClick={closeModal} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.5rem', display: 'flex', alignItems: 'center', color: '#666', borderRadius: '4px' }}>
+                        <div className="mb-5 flex justify-between items-center">
+                            <h2 className="text-[hsl(var(--orange))] m-0 text-2xl font-bold">Task Information</h2>
+                            <button onClick={closeModal} className="bg-transparent border-none cursor-pointer p-2 flex items-center text-slate-500 rounded">
                                 <X size={24} />
                             </button>
                         </div>
 
-                        <div className="create-task-modal-content" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.05fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                        <div className="create-task-modal-content">
                             <div>
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Task Title:</b></label>
+                                <div className="mb-4">
+                                    <label className="label mb-2"><b>Task Title:</b></label>
                                     <input
                                         type="text"
-                                        className="input"
+                                        className="input bg-white"
                                         placeholder="Enter task title"
                                         value={taskTitle}
                                         onChange={(e) => setTaskTitle(e.target.value)}
-                                        style={{ backgroundColor: '#fff' }}
                                     />
                                 </div>
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Task Description:</b></label>
+                                <div className="mb-4">
+                                    <label className="label mb-2"><b>Task Description:</b></label>
                                     <textarea
-                                        className="input"
+                                        className="input bg-white min-h-[100px] resize-y"
                                         placeholder="Brief description of the task"
                                         value={taskDescription}
                                         onChange={(e) => setTaskDescription(e.target.value)}
-                                        style={{ backgroundColor: '#fff', minHeight: '100px', resize: 'vertical' }}
                                     />
                                 </div>
-                                <div style={{ marginBottom: '1rem', position: 'relative' }}>
-                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Assign to Intern/s:</b></label>
-                                    <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
+                                <div className="mb-4 relative">
+                                    <label className="label mb-2"><b>Assign to Intern/s:</b></label>
+                                    <div className="relative mb-3">
                                         <Search
                                             size={20}
-                                            style={{
-                                                position: 'absolute',
-                                                left: '0.875rem',
-                                                top: '50%',
-                                                transform: 'translateY(-50%)',
-                                                color: 'hsl(var(--muted-foreground))',
-                                                pointerEvents: 'none',
-                                                zIndex: 10,
-                                            }}
+                                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10"
                                         />
                                         <input
                                             ref={internSearchInputRef}
                                             type="text"
-                                            className="input"
+                                            className="input bg-white pl-11"
                                             placeholder="Search interns by name"
                                             value={internSearch}
                                             onChange={(e) => { setInternSearch(e.target.value); setIsInternSearchFocused(true); }}
@@ -1074,7 +1024,6 @@ const ManageTasks = () => {
                                                     if (!document.activeElement?.closest('.intern-dropdown')) setIsInternSearchFocused(false);
                                                 }, 200)
                                             }
-                                            style={{ backgroundColor: '#fff', paddingLeft: '2.75rem' }}
                                         />
                                         {isInternSearchFocused && filteredInternOptions.length > 0 && (
                                             <div
@@ -1173,19 +1122,19 @@ const ManageTasks = () => {
                                 </div>
                             </div>
 
-                            <div className="create-task-modal-bottom" style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-                                <div style={{ marginBottom: '0.25rem' }}>
+                            <div className="create-task-modal-bottom">
+                                <div className="mb-1">
                                     {dueDateError && (
-                                        <p style={{ marginBottom: '0.35rem', fontSize: '0.8rem', color: 'hsl(var(--danger))', fontWeight: 500 }}>
+                                        <p className="mb-1.5 text-xs text-[hsl(var(--danger))] font-medium">
                                             {dueDateError}
                                         </p>
                                     )}
-                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Due Date:</b></label>
-                                    <div style={{ position: 'relative' }}>
+                                    <label className="label mb-2"><b>Due Date:</b></label>
+                                    <div className="relative">
                                         <input
                                             ref={dateInputRef}
                                             type="datetime-local"
-                                            className="input"
+                                            className="input bg-white pr-10"
                                             value={dueDate && dueTime ? `${dueDate}T${dueTime}` : dueDate ? `${dueDate}T00:00` : ''}
                                             min={new Date().toISOString().slice(0, 16)}
                                             onChange={(e) => {
@@ -1202,19 +1151,17 @@ const ManageTasks = () => {
                                                     setDueDateError('');
                                                 }
                                             }}
-                                            style={{ backgroundColor: '#fff', paddingRight: '2.5rem', colorScheme: 'light' }}
+                                            style={{ colorScheme: 'light' }}
                                         />
                                         <button type="button" onClick={() => dateInputRef.current?.showPicker?.()}
-                                            style={{ position: 'absolute', right: '0.875rem', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', color: 'hsl(var(--muted-foreground))' }}>
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-1 flex items-center text-muted-foreground">
                                             <Calendar size={20} />
                                         </button>
                                     </div>
                                 </div>
-                                <div style={{ marginBottom: '0.25rem' }}>
-                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Priority:</b></label>
-                                    <div
-                                        style={{ position: 'relative' }}
-                                    >
+                                <div className="mb-1">
+                                    <label className="label mb-2"><b>Priority:</b></label>
+                                    <div className="relative">
                                         <button
                                             type="button"
                                             onClick={() => setIsPriorityDropdownOpen((prev) => !prev)}
@@ -1249,7 +1196,7 @@ const ManageTasks = () => {
                                                             border: '2px solid #e5e7eb',
                                                         }}
                                                     />
-                                                    <span style={{ fontWeight: 500 }}>
+                                                    <span className="font-medium">
                                                         {priority === 'low'
                                                             ? 'Low Priority'
                                                             : priority === 'medium'
@@ -1258,7 +1205,7 @@ const ManageTasks = () => {
                                                     </span>
                                                 </>
                                             ) : (
-                                                <span style={{ color: 'hsl(var(--muted-foreground))' }}>Select priority</span>
+                                                <span className="text-muted-foreground">Select priority</span>
                                             )}
                                         </button>
                                         {isPriorityDropdownOpen && (
@@ -1311,7 +1258,7 @@ const ManageTasks = () => {
                                                                 border: '2px solid #e5e7eb',
                                                             }}
                                                         />
-                                                        <span style={{ fontWeight: 500 }}>{opt.label}</span>
+                                                        <span className="font-medium">{opt.label}</span>
                                                     </button>
                                                 ))}
                                             </div>
@@ -1319,12 +1266,11 @@ const ManageTasks = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Tech Stack Category:</b></label>
+                                    <label className="label mb-2"><b>Tech Stack Category:</b></label>
                                     <select
-                                        className="select"
+                                        className="select bg-white"
                                         value={techCategory}
                                         onChange={(e) => setTechCategory(e.target.value as (typeof TECH_STACK_CATEGORIES)[number])}
-                                        style={{ backgroundColor: '#fff' }}
                                     >
                                         {TECH_STACK_CATEGORIES.map((category) => (
                                             <option key={category} value={category}>
@@ -1334,7 +1280,7 @@ const ManageTasks = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="label" style={{ marginBottom: '0.5rem' }}><b>Tools &amp; Technologies:</b></label>
+                                    <label className="label mb-2"><b>Tools &amp; Technologies:</b></label>
                                     <div
                                         style={{
                                             backgroundColor: '#fff',
@@ -1355,7 +1301,7 @@ const ManageTasks = () => {
                                             }}
                                         >
                                             Showing tools for{' '}
-                                            <span style={{ fontWeight: 600, color: '#111827' }}>
+                                            <span className="font-semibold text-slate-900">
                                                 {techCategory}
                                             </span>
                                         </p>
@@ -1433,7 +1379,7 @@ const ManageTasks = () => {
                                                             fontSize: '0.8rem',
                                                         }}
                                                     >
-                                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>
+                                                        <span className="text-muted-foreground">
                                                             {(() => {
                                                                 const start = (toolsPage - 1) * TOOLS_PER_PAGE + 1;
                                                                 const end = Math.min(toolsPage * TOOLS_PER_PAGE, availableTools.length);
@@ -1465,7 +1411,7 @@ const ManageTasks = () => {
                                                                     Prev
                                                                 </button>
                                                             )}
-                                                            <span style={{ color: 'hsl(var(--muted-foreground))' }}>
+                                                            <span className="text-muted-foreground">
                                                                 Page {toolsPage} of {toolsMaxPage}
                                                             </span>
                                                             {toolsPage < toolsMaxPage && (
@@ -1496,9 +1442,8 @@ const ManageTasks = () => {
                             </div>
                         </div>
 
-                        <div className="create-task-modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
-                            <button onClick={handleClear}
-                                style={{ padding: '0.625rem 1.5rem', backgroundColor: '#fff', color: 'hsl(var(--orange))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontWeight: 500, fontSize: '0.875rem' }}>
+                        <div className="create-task-modal-actions">
+                            <button onClick={handleClear} className="px-6 py-2.5 bg-white text-[hsl(var(--orange))] border border-[hsl(var(--border))] rounded-md cursor-pointer font-medium text-sm">
                                 Clear
                             </button>
                             <button
@@ -1514,7 +1459,7 @@ const ManageTasks = () => {
                                     alignItems: 'center',
                                     gap: '0.5rem'
                                 }}>
-                                {assigning && <Loader2 size={16} className="spinner" style={{ flexShrink: 0 }} />}
+                                {assigning && <Loader2 size={16} className="spinner shrink-0" />}
                                 {assigning ? 'Assigning...' : 'Assign'}
                             </button>
                         </div>
@@ -1530,21 +1475,13 @@ const ManageTasks = () => {
                     style={{ zIndex: 1200 }}
                 >
                     <div
-                        className="modal"
+                        className="modal w-[92%] max-w-[520px] p-5 pb-[1.1rem] rounded-2xl bg-white shadow-[0_30px_60px_rgba(0,0,0,0.25)]"
                         onClick={(e) => e.stopPropagation()}
-                        style={{
-                            width: '92%',
-                            maxWidth: 520,
-                            padding: '1.25rem 1.25rem 1.1rem',
-                            borderRadius: '16px',
-                            backgroundColor: '#fff',
-                            boxShadow: '0 30px 60px rgba(0,0,0,0.25)',
-                        }}
                     >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                        <div className="flex justify-between items-center gap-4">
                             <div>
-                                <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#111827' }}>Custom due date range</div>
-                                <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.15rem' }}>
+                                <div className="font-extrabold text-[1.1rem] text-slate-900">Custom due date range</div>
+                                <div className="text-[0.9rem] text-slate-500 mt-0.5">
                                     Select a specific date or date range to filter tasks.
                                 </div>
                             </div>
@@ -1552,54 +1489,39 @@ const ManageTasks = () => {
                                 type="button"
                                 onClick={closeCustomRangeModal}
                                 aria-label="Close"
-                                style={{
-                                    background: 'hsl(var(--orange))',
-                                    border: 'none',
-                                    borderRadius: '999px',
-                                    width: 36,
-                                    height: 36,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#fff',
-                                    fontWeight: 900,
-                                    boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-                                }}
+                                className="bg-[hsl(var(--orange))] border-none rounded-full w-9 h-9 cursor-pointer flex items-center justify-center text-white font-black shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
                             >
                                 ×
                             </button>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginTop: '1.1rem' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#374151' }}>Start date</label>
+                        <div className="grid grid-cols-2 gap-3.5 mt-4.5">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[0.85rem] font-bold text-slate-700">Start date</label>
                                 <input
                                     type="date"
-                                    className="input"
+                                    className="input bg-white"
                                     value={customDraftStart}
                                     onChange={(e) => {
                                         const next = e.target.value;
                                         setCustomDraftStart(next);
                                         setCustomDraftEnd((prev) => (prev && prev < next ? next : prev));
                                     }}
-                                    style={{ backgroundColor: '#fff' }}
                                 />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#374151' }}>End date</label>
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[0.85rem] font-bold text-slate-700">End date</label>
                                 <input
                                     type="date"
-                                    className="input"
+                                    className="input bg-white"
                                     value={customDraftEnd}
                                     min={customDraftStart || undefined}
                                     onChange={(e) => setCustomDraftEnd(e.target.value)}
-                                    style={{ backgroundColor: '#fff' }}
                                 />
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginTop: '1.25rem' }}>
+                        <div className="flex justify-between items-center gap-3 mt-5">
                             <button
                                 type="button"
                                 onClick={() => {
@@ -1648,54 +1570,27 @@ const ManageTasks = () => {
                             type="button"
                             onClick={closeViewDetail}
                             aria-label="Close"
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                width: 36,
-                                height: 36,
-                                borderRadius: '999px',
-                                border: 'none',
-                                backgroundColor: 'hsl(var(--orange))',
-                                color: '#fff',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                            }}
+                            className="absolute top-4 right-4 w-9 h-9 rounded-full border-none bg-[hsl(var(--orange))] text-white flex items-center justify-center cursor-pointer"
                         >
                             <X size={18} />
                         </button>
 
                         {/* Header */}
-                        <div style={{ marginBottom: '1.5rem', paddingRight: '3rem' }}>
+                        <div className="mb-6 pr-12">
                             <div
-                                style={{
-                                    fontSize: '0.8rem',
-                                    textTransform: 'none',
-                                    color: 'hsl(var(--orange))',
-                                    fontWeight: 700,
-                                    marginBottom: '0.35rem',
-                                }}
+                                className="text-xs text-[hsl(var(--orange))] font-bold mb-1.5"
                             >
                                 Task Information
                             </div>
-                            <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+                            <div className="font-bold text-sm mb-3">
                                 {selectedTask.title}
                             </div>
 
                             {/* Status / Priority and Dates row */}
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    gap: '3rem',
-                                    fontSize: '0.8rem',
-                                    color: '#111827',
-                                }}
-                            >
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                            <div className="flex gap-12 text-xs text-slate-900">
+                                <div className="flex flex-col gap-1.5">
                                     <div>
-                                        <span style={{ fontWeight: 600 }}>Status:&nbsp;</span>
+                                        <span className="font-semibold">Status:&nbsp;</span>
                                         <span
                                             style={{
                                                 padding: '0.15rem 0.75rem',
@@ -1710,8 +1605,8 @@ const ManageTasks = () => {
                                             {getStatusLabel(selectedTask.status)}
                                         </span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                        <span style={{ fontWeight: 600 }}>Priority:&nbsp;</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="font-semibold">Priority:&nbsp;</span>
                                         <span
                                             style={{
                                                 width: 10,
@@ -1729,15 +1624,15 @@ const ManageTasks = () => {
                                         <span>{getPriorityLabel(selectedTask.priority)}</span>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                <div className="flex flex-col gap-1.5">
                                     <div>
-                                        <span style={{ fontWeight: 600 }}>Date Created:&nbsp;</span>
+                                        <span className="font-semibold">Date Created:&nbsp;</span>
                                         <span>
                                             {selectedTask.created_at ? new Date(selectedTask.created_at).toLocaleString() : '—'}
                                         </span>
                                     </div>
                                     <div>
-                                        <span style={{ fontWeight: 600 }}>Due:&nbsp;</span>
+                                        <span className="font-semibold">Due:&nbsp;</span>
                                         <span>{new Date(selectedTask.due_date).toLocaleString()}</span>
                                     </div>
                                 </div>
@@ -1745,32 +1640,32 @@ const ManageTasks = () => {
                         </div>
 
                         {/* Tech stack */}
-                        <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#111827' }}>
-                            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Tech Stack:</div>
-                            <div style={{ color: selectedTask.tools?.length ? '#111827' : 'hsl(var(--muted-foreground))' }}>
+                        <div className="mb-4 text-sm text-slate-900">
+                            <div className="font-semibold mb-1">Tech Stack:</div>
+                            <div className={selectedTask.tools?.length ? 'text-slate-900' : 'text-muted-foreground'}>
                                 {selectedTask.tools?.length ? selectedTask.tools.join(', ') : 'Not set'}
                             </div>
                         </div>
 
                         {/* Description */}
-                        <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#111827' }}>
-                            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Task Description:</div>
-                            <p style={{ margin: 0, lineHeight: 1.5 }}>
+                        <div className="mb-4 text-sm text-slate-900">
+                            <div className="font-semibold mb-1">Task Description:</div>
+                            <p className="m-0 leading-6">
                                 {selectedTask.description || 'No description provided.'}
                             </p>
                         </div>
 
                         {/* Assigned list */}
-                        <div style={{ marginBottom: '1.25rem', fontSize: '0.875rem', color: '#111827' }}>
-                            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Assigned to Intern/s:</div>
+                        <div className="mb-5 text-sm text-slate-900">
+                            <div className="font-semibold mb-1">Assigned to Intern/s:</div>
                             {selectedTask.assigned_interns && selectedTask.assigned_interns.length > 0 ? (
-                                <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                                <ul className="m-0 pl-5">
                                     {selectedTask.assigned_interns.map(intern => (
                                         <li key={intern.id}>{intern.full_name}</li>
                                     ))}
                                 </ul>
                             ) : (
-                                <p style={{ margin: 0, color: 'hsl(var(--muted-foreground))' }}>
+                                <p className="m-0 text-muted-foreground">
                                     {selectedTask.assigned_interns_count > 0
                                         ? `${selectedTask.assigned_interns_count} intern(s)`
                                         : 'No interns assigned.'}
@@ -1808,16 +1703,7 @@ const ManageTasks = () => {
                                         startEditTask(selectedTask);
                                         closeViewDetail();
                                     }}
-                                    style={{
-                                        padding: '0.625rem 1.25rem',
-                                        borderRadius: '999px',
-                                        border: 'none',
-                                        backgroundColor: '#2563eb',
-                                        color: '#fff',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem',
-                                    }}
+                                    className="px-5 py-2.5 rounded-full border-none bg-blue-600 text-white font-semibold cursor-pointer text-[0.85rem]"
                                 >
                                     Edit Task
                                 </button>
@@ -1828,17 +1714,8 @@ const ManageTasks = () => {
                                     type="button"
                                     onClick={handleArchive}
                                     disabled={archiving}
-                                    style={{
-                                        padding: '0.625rem 1.25rem',
-                                        borderRadius: '999px',
-                                        border: 'none',
-                                        backgroundColor: 'hsl(var(--orange))',
-                                        color: '#fff',
-                                        fontWeight: 600,
-                                        cursor: archiving ? 'wait' : 'pointer',
-                                        fontSize: '0.85rem',
-                                        opacity: archiving ? 0.7 : 1,
-                                    }}
+                                    className="px-5 py-2.5 rounded-full border-none bg-[hsl(var(--orange))] text-white font-semibold text-[0.85rem]"
+                                    style={{ cursor: archiving ? 'wait' : 'pointer', opacity: archiving ? 0.7 : 1 }}
                                 >
                                     {archiving ? 'Archiving…' : 'Archive Task'}
                                 </button>
@@ -1850,30 +1727,31 @@ const ManageTasks = () => {
 
             {/* Reject confirmation modal*/}
             {rejectModalOpen && selectedTask && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100 }}>
-                    <div style={{ backgroundColor: '#fff', width: '90%', maxWidth: '460px', borderRadius: '16px', padding: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
+                <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1100]">
+                    <div className="bg-white w-[90%] max-w-[460px] rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
                         onClick={(e) => e.stopPropagation()}>
-                        <h2 style={{ margin: '0 0 0.25rem', fontSize: '1.25rem', fontWeight: 800, color: '#dc2626' }}>Reject Task</h2>
-                        <p style={{ margin: '0 0 1.5rem', color: '#555', fontSize: '0.9rem' }}>{selectedTask.title}</p>
+                        <h2 className="m-0 mb-1 text-xl font-extrabold text-red-600">Reject Task</h2>
+                        <p className="m-0 mb-6 text-slate-600 text-[0.9rem]">{selectedTask.title}</p>
 
-                        <label style={{ fontWeight: 700, fontSize: '0.875rem', display: 'block', marginBottom: '0.5rem' }}>
-                            Reason for rejection <span style={{ color: '#dc2626' }}>*</span>
+                        <label className="font-bold text-sm block mb-2">
+                            Reason for rejection <span className="text-red-600">*</span>
                         </label>
                         <textarea
                             value={rejectionReason}
                             onChange={(e) => setRejectionReason(e.target.value)}
                             placeholder="Explain why this task is being rejected..."
-                            style={{ width: '100%', minHeight: '100px', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.875rem', resize: 'vertical', boxSizing: 'border-box' }}
+                            className="w-full min-h-[100px] p-3 rounded-lg border border-slate-300 text-sm resize-y box-border"
                         />
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-                            <button onClick={closeRejectModal} style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: '1px solid #ddd', backgroundColor: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button onClick={closeRejectModal} className="px-5 py-2.5 rounded-lg border border-slate-300 bg-white font-semibold cursor-pointer">
                                 Cancel
                             </button>
                             <button
                                 onClick={handleReject}
                                 disabled={rejecting || !rejectionReason.trim()}
-                                style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', backgroundColor: rejectionReason.trim() ? '#dc2626' : '#fca5a5', color: '#fff', fontWeight: 700, cursor: rejectionReason.trim() ? 'pointer' : 'not-allowed', opacity: rejecting ? 0.7 : 1 }}
+                                className="px-5 py-2.5 rounded-lg border-none text-white font-bold"
+                                style={{ backgroundColor: rejectionReason.trim() ? '#dc2626' : '#fca5a5', cursor: rejectionReason.trim() ? 'pointer' : 'not-allowed', opacity: rejecting ? 0.7 : 1 }}
                             >
                                 {rejecting ? 'Rejecting…' : 'Confirm Reject'}
                             </button>

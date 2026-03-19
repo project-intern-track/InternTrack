@@ -44,72 +44,84 @@ const sampleRecords: AttendanceRecord[] = [
   },
 ];
 
+const statusBadgeStyles: Record<string, string> = {
+  present: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
+  absent:  'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+};
+
+const hoursColor = (hours: number | null): string => {
+  if (hours === null) return 'text-gray-400 dark:text-gray-500';
+  if (hours >= 8) return 'text-green-600 dark:text-green-400 font-bold';
+  if (hours >= 4) return 'text-amber-600 dark:text-amber-400 font-bold';
+  return 'text-red-600 dark:text-red-400 font-bold';
+};
+
 const MonitorAttendance = () => {
   return (
-    <div className="max-w-[2000px] mx-auto p-4 space-y-6">
+    <div className="space-y-6">
+      {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 mb-6"
+        transition={{ duration: 0.4, ease: 'easeOut' }}
       >
-        <UserCheck size={32} className="text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Monitor Attendance
-          </h1>
-          <p className="text-muted-foreground dark:text-gray-400 mt-1">
-            Track and manage intern attendance records.
-          </p>
-        </div>
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+          Monitor Attendance
+        </h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Track and manage intern attendance records.
+        </p>
       </motion.div>
 
+      {/* Table Card */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] shadow-sm overflow-hidden"
+        transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
+        className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50 overflow-hidden"
       >
+        <div className="flex items-center gap-3 border-b border-gray-200 px-8 py-6 dark:border-white/5">
+          <UserCheck className="text-primary" size={20} />
+          <h2 className="text-xl font-black text-gray-800 dark:text-white">Attendance Records</h2>
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-white/5">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Intern</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Time In</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Time Out</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Hours</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-white/5">
+                <th className="px-8 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern</th>
+                <th className="px-4 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Date</th>
+                <th className="px-4 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Time In</th>
+                <th className="px-4 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Time Out</th>
+                <th className="px-4 pb-3 pt-5 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Hours</th>
+                <th className="px-4 pb-3 pt-5 pr-8 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-white/5">
+            <tbody>
               {sampleRecords.map((record, index) => (
                 <motion.tr
                   key={record.id}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.15 + index * 0.05 }}
-                  className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: 0.03 * index, ease: 'easeOut' }}
+                  className="border-b border-gray-100 last:border-none hover:bg-gray-50 dark:border-white/5 dark:hover:bg-white/5 transition-colors"
                 >
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-4">
                     <div className="font-semibold text-gray-900 dark:text-white">{record.user.full_name}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">{record.user.email}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{record.user.email}</div>
                   </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">{record.date}</td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
-                    {record.time_in ? new Date(record.time_in).toLocaleTimeString() : '-'}
+                  <td className="px-4 py-4 text-gray-700 dark:text-gray-300">{record.date}</td>
+                  <td className="px-4 py-4 text-green-600 dark:text-green-400 font-medium">
+                    {record.time_in ? new Date(record.time_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                   </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
-                    {record.time_out ? new Date(record.time_out).toLocaleTimeString() : '-'}
+                  <td className="px-4 py-4 text-red-500 dark:text-red-400 font-medium">
+                    {record.time_out ? new Date(record.time_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                   </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
-                    {record.total_hours ?? '-'}
+                  <td className={`px-4 py-4 ${hoursColor(record.total_hours)}`}>
+                    {record.total_hours !== null ? `${record.total_hours}h` : '—'}
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
-                      record.status === 'present' 
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                    }`}>
+                  <td className="px-4 py-4 pr-8">
+                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize ${statusBadgeStyles[record.status] ?? 'bg-gray-100 text-gray-700'}`}>
                       {record.status}
                     </span>
                   </td>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, X } from 'lucide-react';
 import { taskService } from '../../services/taskServices';
@@ -53,6 +53,16 @@ const SupervisorApprovals = () => {
   const [revisionSubmitting, setRevisionSubmitting] = useState(false);
   
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+
+  // Reject modal state
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectTask, setRejectTaskState] = useState<Tasks | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
+
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({ message: '', type: 'error', visible: false });
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Progress modal state
   const [progressTask, setProgressTask] = useState<Tasks | null>(null);
@@ -127,36 +137,52 @@ const SupervisorApprovals = () => {
     setShowModal(false);
   };
 
+  const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToast({ message, type, visible: true });
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }));
+    }, 4000);
+  };
+
   const approveTask = async (taskId: number) => {
     setActionLoading(taskId);
     try {
       await taskService.approveTask(taskId);
       await fetchTasks();
+      showToast('Task approved successfully.', 'success');
     } catch (err) {
       console.error(err);
-      alert('Failed to approve task.');
+      showToast('Failed to approve task.', 'error');
     } finally {
       setActionLoading(null);
     }
   };
 
-  const rejectTask = async (taskId: number) => {
-    setActionLoading(taskId);
-    // In real app we might want to ask for reason, simple prompt for now
-    const reason = window.prompt("Enter reason for rejection:");
-    if (!reason || !reason.trim()) {
-      setActionLoading(null);
-      return;
-    }
-    
+  const openRejectModal = (task: Tasks) => {
+    setRejectTaskState(task);
+    setRejectReason('');
+    setShowRejectModal(true);
+  };
+
+  const closeRejectModal = () => {
+    setRejectTaskState(null);
+    setShowRejectModal(false);
+  };
+
+  const submitRejection = async () => {
+    if (!rejectTask || !rejectReason.trim()) return;
+    setRejectSubmitting(true);
     try {
-      await taskService.supervisorRejectTask(taskId, reason.trim());
+      await taskService.supervisorRejectTask(rejectTask.id, rejectReason.trim());
       await fetchTasks();
+      closeRejectModal();
+      showToast('Task rejected successfully.', 'success');
     } catch (err) {
       console.error(err);
-      alert('Failed to reject task.');
+      showToast('Failed to reject task.', 'error');
     } finally {
-      setActionLoading(null);
+      setRejectSubmitting(false);
     }
   };
 
@@ -188,7 +214,7 @@ const SupervisorApprovals = () => {
       closeProgressModal();
     } catch (err) {
       console.error(err);
-      alert('Failed to finalize task.');
+      showToast('Failed to finalize task.', 'error');
     } finally {
       setFinalizing(false);
     }
@@ -204,7 +230,7 @@ const SupervisorApprovals = () => {
       closeModal();
     } catch (err) {
       console.error(err);
-      alert('Failed to request revision.');
+      showToast('Failed to request revision.', 'error');
     } finally {
       setRevisionSubmitting(false);
     }
@@ -319,7 +345,7 @@ const SupervisorApprovals = () => {
                       {actionLoading === task.id ? '...' : 'Approve'}
                     </button>
                     <button
-                      onClick={() => rejectTask(task.id)}
+                      onClick={() => openRejectModal(task)}
                       disabled={actionLoading !== null}
                       className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-700 disabled:opacity-50"
                     >
@@ -495,8 +521,115 @@ const SupervisorApprovals = () => {
           </motion.div>
         </div>
       )}
+      {/* ================= REJECT MODAL ================= */}
+      {showRejectModal && rejectTask && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
+          >
+            <button
+              onClick={closeRejectModal}
+              className="absolute right-4 top-4 rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+              aria-label="Close modal"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="mb-5 flex items-center gap-2">
+              <AlertCircle className="text-red-500" size={18} />
+              <h2 className="text-xl font-black text-gray-900 dark:text-white">Reject Task</h2>
+            </div>
+
+            <div className="mb-4">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                Reason for Rejection
+              </label>
+              <textarea
+                className="min-h-[100px] w-full resize-y rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                placeholder="Explain why this task is being rejected..."
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={closeRejectModal}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitRejection}
+                disabled={!rejectReason.trim() || rejectSubmitting}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-700 disabled:opacity-50"
+              >
+                <AlertCircle size={16} />
+                {rejectSubmitting ? 'Rejecting...' : 'Reject Task'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ================= TOAST ================= */}
+      {toast.visible && (
+        <div style={{ ...toastStyles.container, ...(toast.type === 'error' ? toastStyles.error : toastStyles.success) }}>
+          <span>{toast.type === 'error' ? '\u26A0' : '\u2713'}</span>
+          <span style={{ flex: 1 }}>{toast.message}</span>
+          <button
+            style={toastStyles.closeBtn}
+            onClick={() => setToast(prev => ({ ...prev, visible: false }))}
+          >
+            &times;
+          </button>
+        </div>
+      )}
     </div>
   );
+};
+
+/* Toast notification styles (matches ManageTasks pattern) */
+const toastStyles = {
+  container: {
+    position: 'fixed' as const,
+    top: '24px',
+    right: '24px',
+    zIndex: 9999,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '14px 20px',
+    borderRadius: '10px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+    fontSize: '0.95rem',
+    fontWeight: 500,
+    maxWidth: '420px',
+    animation: 'slideIn 0.3s ease-out',
+  },
+  error: {
+    backgroundColor: '#fee2e2',
+    color: '#991b1b',
+    border: '1px solid #fca5a5',
+  },
+  success: {
+    backgroundColor: '#dcfce7',
+    color: '#166534',
+    border: '1px solid #86efac',
+  },
+  closeBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '1.1rem',
+    lineHeight: 1,
+    padding: '0 0 0 8px',
+    color: 'inherit',
+    opacity: 0.7,
+  },
 };
 
 export default SupervisorApprovals;

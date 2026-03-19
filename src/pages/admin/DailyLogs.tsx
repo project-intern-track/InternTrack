@@ -15,12 +15,17 @@ function getTodayStr(): string {
     return new Date().toLocaleDateString('en-CA', { timeZone: MANILA_TZ });
 }
 
-function formatTimeFull(hhmm: string | null | undefined): string {
-    if (!hhmm) return '—';
-    const [h, m] = hhmm.split(':').map(Number);
+function formatTimeFull(timeStr: string | null | undefined): string {
+    if (!timeStr) return '—';
+    const parts = timeStr.split(':').map(Number);
+    const h = parts[0] || 0;
+    const m = parts[1] || 0;
+    const s = parts[2] !== undefined ? parts[2] : null;
     const period = h >= 12 ? 'PM' : 'AM';
     const h12 = h % 12 || 12;
-    return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
+    return s !== null 
+        ? `${h12}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} ${period}`
+        : `${h12}:${m.toString().padStart(2, '0')} ${period}`;
 }
 
 function formatDateLong(dateStr: string): string {
@@ -91,7 +96,8 @@ const AdminDailyLogs = () => {
                     setSessionState('clocked_in');
                     const nowManila = new Date();
                     const todayManila = getTodayStr();
-                    const clockInDate = new Date(`${todayManila}T${today.time_in}:00+08:00`);
+                    const timeInStr = today.time_in.split(':').length === 2 ? `${today.time_in}:00` : today.time_in;
+                    const clockInDate = new Date(`${todayManila}T${timeInStr}+08:00`);
                     const diffSec = Math.floor((nowManila.getTime() - clockInDate.getTime()) / 1000);
                     setElapsed(Math.min(diffSec, MAX_HOURS * 3600));
                 }

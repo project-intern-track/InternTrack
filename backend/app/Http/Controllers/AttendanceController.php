@@ -61,8 +61,8 @@ class AttendanceController extends Controller
         $validated = $request->validate([
             'user_id'  => 'required|exists:users,id',
             'date'     => 'required|date_format:Y-m-d',
-            'time_in'  => 'required|date_format:H:i',
-            'time_out' => 'nullable|date_format:H:i|after:time_in',
+            'time_in'  => ['required', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'time_out' => ['nullable', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', 'after:time_in'],
             'status'   => 'nullable|in:present,absent,late,excused',
         ]);
 
@@ -95,8 +95,8 @@ class AttendanceController extends Controller
 
         $validated = $request->validate([
             'date'     => 'required|date_format:Y-m-d',
-            'time_in'  => 'required|date_format:H:i',
-            'time_out' => 'required|date_format:H:i|after:time_in',
+            'time_in'  => ['required', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'time_out' => ['required', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', 'after:time_in'],
         ]);
 
         $totalHours = $this->computeHours($validated['time_in'], $validated['time_out']);
@@ -124,7 +124,7 @@ class AttendanceController extends Controller
     {
         $user  = Auth::user();
         $today = Carbon::now()->toDateString();
-        $timeIn = Carbon::now()->format('H:i');
+        $timeIn = Carbon::now()->format('H:i:s');
 
         // ── OJT ID verification ─────────────────────────────────────────────
         $request->validate([
@@ -218,7 +218,7 @@ class AttendanceController extends Controller
                 'cross_midnight' => true,
             ]);
         } else {
-            $timeOut       = $now->format('H:i');
+            $timeOut       = $now->format('H:i:s');
             $rawHours      = $this->computeHours($attendance->time_in, $timeOut);
             $totalHours    = min((float)$rawHours, 8.0); // cap at 8 h
         }
@@ -303,13 +303,20 @@ class AttendanceController extends Controller
     // ──────────────────────────────────────────────────────────────────────────
     private function toMinutes(string $hhmm): int
     {
-        [$h, $m] = array_map('intval', explode(':', $hhmm));
+        $parts = array_map('intval', explode(':', $hhmm));
+        $h = $parts[0] ?? 0;
+        $m = $parts[1] ?? 0;
         return $h * 60 + $m;
     }
 
     private function computeHours(string $timeIn, string $timeOut): float
     {
-        $diff = $this->toMinutes($timeOut) - $this->toMinutes($timeIn);
+        // Add artificial dummy date just to calculate pure time diff cleanly if needed
+        // but Carbon::parse handles raw times as today's date perfectly
+        $in = Carbon::parse($timeIn);
+        $out = Carbon::parse($timeOut);
+        
+        $diff = $out->diffInMinutes($in); // positive value
         return max(0, round($diff / 60, 2));
     }
 }

@@ -32,9 +32,7 @@ Route::get('/auth/verify-email/{id}/{hash}', function (Request $request) {
         return response()->json(['error' => 'Invalid verification link.'], 403);
     }
 
-    $frontendUrl = app()->environment('local')
-        ? env('FRONTEND_URL', 'http://localhost:5173')
-        : rtrim(env('FRONTEND_URL', config('app.url')), '/');
+    $frontendUrl = rtrim((string) config('app.frontend_url', 'http://localhost:5173'), '/');
 
     if ($user->hasVerifiedEmail()) {
         return redirect($frontendUrl . '/?verified=1');

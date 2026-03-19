@@ -112,7 +112,7 @@ class AuthController extends Controller
 
                 $user->markEmailAsVerified();
 
-                $loginUrl = rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/') . '/login';
+                $loginUrl = rtrim((string) config('app.frontend_url'), '/') . '/login';
 
                 Mail::send('emails.supervisor-credentials', [
                     'full_name' => $user->full_name,

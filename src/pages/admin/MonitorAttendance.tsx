@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { UserCheck, Search, Filter, ChevronDown, Download, Plus } from 'lucide-react';
+import { UserCheck, Search, Filter, ChevronDown, Download, Plus, X } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
@@ -45,6 +45,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
   // Manual Entry State
   const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [interns, setInterns] = useState<Users[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -458,6 +459,14 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         .attendance-mobile-card {
           display: none;
         }
+
+        .attendance-mobile-filter-btn {
+          display: none;
+        }
+
+        .attendance-filter-drawer-overlay {
+          display: none;
+        }
         
         @media (max-width: 768px) {
           .attendance-container {
@@ -511,62 +520,103 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           }
           
           .attendance-filter-section {
-            padding: 1rem !important;
-            margin-bottom: 1.25rem !important;
+            display: none !important;
           }
-          
-          .attendance-filter-row {
-            flex-direction: column !important;
-            align-items: stretch !important;
-            gap: 0.875rem !important;
+
+          .attendance-mobile-filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background-color: #e9e6e1;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-bottom: 1.25rem;
+            width: 100%;
+            justify-content: center;
           }
-          
-          .attendance-filter-label {
-            margin-bottom: 0;
-            justify-content: flex-start;
+
+          .attendance-filter-drawer-overlay {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
           }
-          
-          .attendance-filter-label span {
-            font-size: 0.875rem !important;
+
+          .attendance-filter-drawer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 16px 16px 0 0;
+            padding: 1.5rem;
+            z-index: 999;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
           }
-          
-          .attendance-filter-selects {
+
+          .attendance-filter-drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e5e5;
+          }
+
+          .attendance-filter-drawer-header h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin: 0;
+            color: #1a1a1a;
+          }
+
+          .attendance-filter-drawer-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            color: #666;
+          }
+
+          .attendance-filter-drawer-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          }
+
+          .attendance-filter-drawer-body label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            margin-bottom: 0.375rem;
+            color: #555;
+          }
+
+          .attendance-filter-drawer-body input,
+          .attendance-filter-drawer-body select {
             width: 100% !important;
-            min-width: 100% !important;
-            flex-direction: column !important;
-            gap: 0.875rem !important;
-          }
-          
-          .attendance-filter-selects > div {
-            width: 100% !important;
-            min-width: 100% !important;
-            flex-direction: column !important;
-            display: flex !important;
-            gap: 0.75rem !important;
-          }
-          
-          .attendance-filter-selects select {
-            width: 100% !important;
-            min-width: 100% !important;
-            font-size: 16px !important;
-            padding: 0.75rem 2.5rem 0.75rem 0.875rem !important;
-          }
-          
-          .attendance-filter-selects input[type="date"] {
-            width: 100% !important;
-            min-width: 100% !important;
             font-size: 16px !important;
             padding: 0.75rem !important;
-            flex: none !important;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
           }
-          
-          .attendance-filter-selects button {
-            width: 100% !important;
-            padding: 0.75rem 1rem !important;
-            font-size: 0.875rem !important;
-            flex: none !important;
-            white-space: normal !important;
-            word-wrap: break-word !important;
+
+          .attendance-filter-drawer-body button.drawer-date-toggle {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
           }
           
           .attendance-table-wrapper {
@@ -653,34 +703,24 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           .attendance-header h1 {
             font-size: 22px !important;
           }
-          
+
           .attendance-stats-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: repeat(2, 1fr) !important;
             gap: 0.75rem !important;
           }
-          
+
           .stat-card {
             padding: 0.875rem !important;
           }
-          
+
           .stat-value {
-            font-size: 1.5rem !important;
+            font-size: 1.25rem !important;
           }
-          
-          .attendance-filter-section {
-            padding: 0.875rem !important;
+
+          .stat-label {
+            font-size: 0.75rem !important;
           }
-          
-          .attendance-filter-selects input[type="date"] {
-            font-size: 16px !important;
-            padding: 0.625rem !important;
-          }
-          
-          .attendance-filter-selects button {
-            font-size: 0.8125rem !important;
-            padding: 0.625rem 0.875rem !important;
-          }
-          
+
           .attendance-mobile-record {
             padding: 0.875rem !important;
             margin-bottom: 0.75rem !important;
@@ -1072,8 +1112,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           </div>
         </div>
 
+        {/* Mobile Filter Button — visible only on mobile via CSS */}
+        <button
+          className="attendance-mobile-filter-btn"
+          onClick={() => setIsFilterDrawerOpen(true)}
+        >
+          <Filter size={18} />
+          Filters
+        </button>
+
         <div>
-          
+
           {/* Attendance Table - Desktop */}
           {loading ? (
             <div className="attendance-empty-state" style={{ padding: '3rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>
@@ -1197,6 +1246,89 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           )}
         </div>
       </div>
+
+      {/* Mobile Filter Drawer */}
+      {isFilterDrawerOpen && (
+        <div className="attendance-filter-drawer-overlay" onClick={() => setIsFilterDrawerOpen(false)}>
+          <div className="attendance-filter-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="attendance-filter-drawer-header">
+              <h3>Filters</h3>
+              <button className="attendance-filter-drawer-close" onClick={() => setIsFilterDrawerOpen(false)}>
+                <X size={22} />
+              </button>
+            </div>
+            <div className="attendance-filter-drawer-body">
+              {/* Search */}
+              <div>
+                <label>Search by name</label>
+                <input
+                  type="text"
+                  placeholder="Search by name"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <label>Date</label>
+                <input
+                  type="date"
+                  value={dateFilter === 'all' ? '' : dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value || 'all')}
+                  disabled={dateFilter === 'all'}
+                  style={{
+                    backgroundColor: dateFilter === 'all' ? '#f5f5f5' : 'white',
+                    cursor: dateFilter === 'all' ? 'not-allowed' : 'text',
+                  }}
+                />
+                <button
+                  type="button"
+                  className="drawer-date-toggle"
+                  onClick={() => setDateFilter(dateFilter === 'all' ? todayDate : 'all')}
+                  style={{
+                    marginTop: '0.5rem',
+                    color: dateFilter === 'all' ? 'white' : 'hsl(var(--orange))',
+                    backgroundColor: dateFilter === 'all' ? 'hsl(var(--orange))' : 'white',
+                    border: '2px solid hsl(var(--orange))',
+                  }}
+                >
+                  {dateFilter === 'all' ? 'Show All Dates' : 'Clear Date'}
+                </button>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label>Status</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Status</option>
+                  <option value="present">Present</option>
+                  <option value="late">Late</option>
+                  <option value="absent">Absent</option>
+                  <option value="excused">Excused</option>
+                </select>
+              </div>
+
+              {/* Role */}
+              <div>
+                <label>Role</label>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                >
+                  <option value="all">All Roles</option>
+                  <option value="intern">Intern</option>
+                  <option value="admin">Admin</option>
+                  <option value="supervisor">Supervisor</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Manual Entry Modal */}
       {isManualEntryOpen && (

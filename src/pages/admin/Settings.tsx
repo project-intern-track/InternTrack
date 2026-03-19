@@ -210,6 +210,21 @@ const Settings = () => {
 
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
+  const normalizedRole = formData.role?.toLowerCase() || 'admin';
+  const dateStartedDisplay = formData.start_date
+    ? new Date(formData.start_date).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      })
+    : formData.created_at
+      ? new Date(formData.created_at).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        })
+      : 'N/A';
+
+  const requiredHoursDisplay = normalizedRole === 'intern'
+    ? (formData.required_hours || 'N/A')
+    : 'N/A';
+
   return (
     <div className="space-y-4 p-4 md:p-8 relative">
       {successPopup && (
@@ -340,13 +355,7 @@ const Settings = () => {
               </label>
               <input
                 type="text"
-                value={
-                  formData.start_date
-                    ? new Date(formData.start_date).toLocaleDateString('en-US', {
-                        year: 'numeric', month: 'long', day: 'numeric'
-                      })
-                    : '—'
-                }
+                value={dateStartedDisplay}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />
@@ -358,7 +367,7 @@ const Settings = () => {
               </label>
               <input
                 type="text"
-                defaultValue={formData.required_hours || '—'}
+                value={requiredHoursDisplay}
                 disabled
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               />

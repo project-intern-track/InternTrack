@@ -206,7 +206,7 @@ const Settings = () => {
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6 relative">
+    <div className="space-y-4 p-4 md:p-8 relative">
       {successPopup && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-green-600 text-white px-8 py-3.5 rounded-xl shadow-lg z-50 flex items-center gap-4 font-bold text-sm">
           {successPopup}
@@ -231,21 +231,21 @@ const Settings = () => {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm text-center"
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm text-center"
       >
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">
           Profile Information
         </h2>
 
-        <div className="flex justify-center mb-8">
-          <div className="w-24 h-24 rounded-2xl bg-[#FF8800] flex items-center justify-center shadow-[0_0_20px_rgba(255,136,0,0.25)]">
-            <span className="text-3xl font-black text-white select-none">
-              {formData.name ? formData.name.trim().charAt(0).toUpperCase() : <User size={40} />}
+        <div className="flex justify-center mb-5">
+          <div className="w-20 h-20 rounded-2xl bg-[#FF8800] flex items-center justify-center shadow-[0_0_20px_rgba(255,136,0,0.25)]">
+            <span className="text-2xl font-black text-white select-none">
+              {formData.name ? formData.name.trim().charAt(0).toUpperCase() : <User size={32} />}
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
           {/* LEFT */}
           <div className="space-y-4">
             <div>
@@ -380,13 +380,13 @@ const Settings = () => {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm"
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm"
       >
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">
           Change Password
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* LEFT */}
           <div className="space-y-4">
             <div>

@@ -268,28 +268,51 @@ const SupervisorApprovals = () => {
         transition={{ duration: 0.4, delay: 0.05 }}
         className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
-        <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {tabs.map((tab, index) => {
-            const isActive = activeTab === tab.key;
+        <div className="mb-6 max-[800px]:hidden">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {tabs.map((tab, index) => {
+              const isActive = activeTab === tab.key;
 
-            return (
-              <motion.button
-                key={tab.key}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: 0.05 * index }}
-                onClick={() => setActiveTab(tab.key)}
-                className={`rounded-xl border px-4 py-3 text-left transition-all ${
-                  isActive
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:bg-slate-900/40 dark:text-gray-300 dark:hover:bg-slate-900/70'
-                }`}
-              >
-                <p className="text-xs font-bold uppercase tracking-widest">{tab.label}</p>
-                <p className="mt-1 text-2xl font-black">{tab.count}</p>
-              </motion.button>
-            );
-          })}
+              return (
+                <motion.button
+                  key={tab.key}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: 0.05 * index }}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`rounded-xl border px-4 py-3 text-left transition-all ${
+                    isActive
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:bg-slate-900/40 dark:text-gray-300 dark:hover:bg-slate-900/70'
+                  }`}
+                >
+                  <p className="text-xs font-bold uppercase tracking-widest">{tab.label}</p>
+                  <p className="mt-1 text-2xl font-black">{tab.count}</p>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mb-6 hidden max-[800px]:block">
+          <label
+            htmlFor="approval-status-filter"
+            className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400"
+          >
+            Approval Status
+          </label>
+          <select
+            id="approval-status-filter"
+            value={activeTab}
+            onChange={e => setActiveTab(e.target.value as ActiveTab)}
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+          >
+            {tabs.map(tab => (
+              <option key={tab.key} value={tab.key}>
+                {tab.label} ({tab.count})
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-4">
@@ -310,9 +333,10 @@ const SupervisorApprovals = () => {
                 transition={{ duration: 0.25, delay: 0.04 * index }}
                 className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
               >
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900 dark:text-white">{task.title}</h3>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                    <h3 className="break-words text-lg font-black leading-snug text-gray-900 dark:text-white">{task.title}</h3>
                     <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{task.description}</p>
                     <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
                       <span className="font-semibold">Assigned to:</span> {assignedNames(task)}
@@ -320,11 +344,12 @@ const SupervisorApprovals = () => {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       <span className="font-semibold">Due:</span> {formatDate(task.due_date)}
                     </p>
-                  </div>
+                    </div>
 
-                  <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-bold dark:border-white/10 dark:bg-white/5">
-                    <span className={`h-2.5 w-2.5 rounded-full ${priorityDotStyles[task.priority] || 'bg-gray-500'}`} />
-                    <span className="text-gray-700 dark:text-gray-300">{getPriorityLabel(task.priority)}</span>
+                    <div className="inline-flex w-fit shrink-0 items-center gap-2 self-start rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-bold dark:border-white/10 dark:bg-white/5">
+                      <span className={`h-2.5 w-2.5 rounded-full ${priorityDotStyles[task.priority] || 'bg-gray-500'}`} />
+                      <span className="text-gray-700 dark:text-gray-300">{getPriorityLabel(task.priority)}</span>
+                    </div>
                   </div>
                 </div>
 

@@ -6,7 +6,9 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
@@ -23,7 +25,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email'          => 'required|email|unique:users,email',
             'password'       => ['required', 'string', PasswordRule::min(8)],
-            'full_name'      => ['required', 'string', 'min:1', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
+            'full_name'      => ['required', 'string', 'min:1', 'max:255'],
             'role'           => 'nullable|in:admin,supervisor,intern',
             'avatar_url'     => 'nullable|url',
             'ojt_role'       => 'nullable|string',
@@ -84,7 +86,7 @@ class AuthController extends Controller
     public function registerSupervisor(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'full_name' => ['required', 'string', 'min:1', 'regex:/^[a-zA-Z]+( [a-zA-Z]+)*$/'],
+            'full_name' => ['required', 'string', 'min:1', 'max:255'],
             'email' => 'required|email|unique:users,email',
             'password' => ['required', 'string', PasswordRule::min(8), 'confirmed']
         ]);
@@ -95,44 +97,49 @@ class AuthController extends Controller
         // OJT ID Reference for Giving task, feedback and evaluation.
         $lastOjtId = User::max('ojt_id') ?? 1100;
 
-        // Supervisor Account Details
-        $user = User::create([
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-            'full_name' => $validated['full_name'],
-            'role' => 'supervisor', // Auto-set to superviser Role
-            'ojt_role' => null,
-            'avatar_url' => $avatarUrl,
-            'status' => 'active', // Set to Active - User (Actual Member of the Company)
-            'ojt_id' => $lastOjtId + 1
-        ]);
-
-        // Email Auto set Verified by Admin
-        $user ->markEmailAsVerified();
-        
-        // Credentials to Email
         try {
-            \Illuminate\Support\Facades\Mail::send('emails.supervisor-credentials', [
-                'full_name' => $user->full_name,
-                'email' => $user->email,
-                'password' => $validated['password'],
-                'login_url' => env('FRONTEND_URL') . '/login'
-            ], function ($message) use ($user) {
+            $user = DB::transaction(function () use ($validated, $avatarUrl, $lastOjtId) {
+                $user = User::create([
+                    'email' => $validated['email'],
+                    'password' => $validated['password'],
+                    'full_name' => $validated['full_name'],
+                    'role' => 'supervisor',
+                    'ojt_role' => null,
+                    'avatar_url' => $avatarUrl,
+                    'status' => 'active',
+                    'ojt_id' => $lastOjtId + 1,
+                ]);
+
+                $user->markEmailAsVerified();
+
+                $loginUrl = rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/') . '/login';
+
+                Mail::send('emails.supervisor-credentials', [
+                    'full_name' => $user->full_name,
+                    'email' => $user->email,
+                    'password' => $validated['password'],
+                    'login_url' => $loginUrl,
+                ], function ($message) use ($user) {
                     $message->to($user->email)
                         ->subject('Here Are Your Supervisor Credentials! - INTERNTRACK');
+                });
+
+                return $user;
             });
-        } catch (\Exception $e) {
-            \Log::error('Failed To Send Supervisor Credentials Email', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'error' => $e->getMessage()
+        } catch (\Throwable $e) {
+            \Log::error('Failed To Create Supervisor Or Send Credentials Email', [
+                'email' => $validated['email'],
+                'error' => $e->getMessage(),
             ]);
+
+            return response()->json([
+                'error' => 'Supervisor account was not created because the credentials email failed to send. Verify MAIL_* settings and try again.',
+            ], 500);
         }
 
-
         return response()->json([
-            'message' => 'Supervisor Account Created Successfuly, Credentails Has Been Sent to Email.',
-            'data' => $this->formatUser($user)
+            'message' => 'Supervisor account created successfully. Credentials email has been sent.',
+            'data' => $this->formatUser($user),
         ], 201);
     }
 

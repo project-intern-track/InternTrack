@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronRight } from "lucide-react";
+import { X, ChevronDown, ChevronRight } from "lucide-react";
 import { taskService } from "../../services/taskServices";
 import type { Tasks, TaskStatus } from "../../types/database.types";
 
@@ -46,6 +46,14 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
   pending_approval: "Pending Approval",
   needs_revision: "For Revision",
 };
+
+const TAB_KEYS: TabKey[] = [
+  "all",
+  "not_started",
+  "in_progress",
+  "completed",
+  "overdue",
+];
 
 function getPriorityColor(priority: string): string {
   if (priority === "high") return "text-red-500";
@@ -95,6 +103,7 @@ export default function TaskList() {
   const [tab, setTab] = useState<TabKey>("all");
   const [tasks, setTasks] = useState<Tasks[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileTabMenuOpen, setMobileTabMenuOpen] = useState(false);
 
   // Status update modal
   const [statusModalTask, setStatusModalTask] = useState<Tasks | null>(null);
@@ -105,6 +114,7 @@ export default function TaskList() {
   const [detailTask, setDetailTask] = useState<Tasks | null>(null);
   const [detailUpdating, setDetailUpdating] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const mobileTabMenuRef = useRef<HTMLDivElement | null>(null);
 
   const fetchTasks = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -131,6 +141,30 @@ export default function TaskList() {
     fetchTasks(controller.signal);
     return () => controller.abort();
   }, [fetchTasks]);
+
+  useEffect(() => {
+    if (!mobileTabMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!mobileTabMenuRef.current?.contains(event.target as Node)) {
+        setMobileTabMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileTabMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [mobileTabMenuOpen]);
 
   const openStatusModal = (task: Tasks) => {
     setStatusModalTask(task);
@@ -231,7 +265,7 @@ export default function TaskList() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
+      <div className="relative">
         <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
           Task List
         </h1>
@@ -241,25 +275,85 @@ export default function TaskList() {
       </div>
 
       {/* Tab Bar — dropdown on mobile, buttons on md+ */}
-      <div>
+      <div className="relative">
         {/* Mobile dropdown */}
-        <select
-          value={tab}
-          onChange={(e) => setTab(e.target.value as TabKey)}
-          className="md:hidden w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white outline-none focus:border-[#FF8800] focus:ring-2 focus:ring-[#FF8800]/20"
-        >
-          {(["all", "not_started", "in_progress", "completed", "overdue"] as TabKey[]).map((key) => (
-            <option key={key} value={key}>
-              {TAB_LABELS[key]} ({grouped[key].length})
-            </option>
-          ))}
-        </select>
+        <div className="relative md:hidden" ref={mobileTabMenuRef}>
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.985 }}
+            onClick={() => setMobileTabMenuOpen((prev) => !prev)}
+            className={`flex w-full items-center justify-between rounded-[1.35rem] border bg-white px-5 py-3 text-left text-sm font-semibold text-gray-900 outline-none transition-all duration-200 focus:border-[#FF8800] focus:ring-2 focus:ring-[#FF8800]/20 dark:border-white/10 dark:bg-slate-900 dark:text-white ${
+              mobileTabMenuOpen
+                ? "border-[#FF8800] shadow-[0_14px_34px_-22px_rgba(255,136,0,0.85)]"
+                : "border-gray-200"
+            }`}
+            aria-haspopup="listbox"
+            aria-expanded={mobileTabMenuOpen}
+          >
+            <span>
+              {TAB_LABELS[tab]} ({grouped[tab].length})
+            </span>
+            <motion.span
+              animate={{ rotate: mobileTabMenuOpen ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="ml-3 shrink-0 text-gray-500 dark:text-gray-300"
+            >
+              <ChevronDown size={18} />
+            </motion.span>
+          </motion.button>
+
+          <AnimatePresence>
+            {mobileTabMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-[1.35rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-slate-900"
+                role="listbox"
+                aria-label="Task Filter"
+              >
+                <div className="p-2">
+                  {TAB_KEYS.map((key) => {
+                    const isActive = tab === key;
+
+                    return (
+                      <motion.button
+                        key={key}
+                        type="button"
+                        whileTap={{ scale: 0.985 }}
+                        onClick={() => {
+                          setTab(key);
+                          setMobileTabMenuOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                          isActive
+                            ? "bg-[#FF8800] text-white"
+                            : "text-gray-700 hover:bg-orange-50 dark:text-gray-200 dark:hover:bg-white/10"
+                        }`}
+                        role="option"
+                        aria-selected={isActive}
+                      >
+                        <span>{TAB_LABELS[key]}</span>
+                        <span className={`text-xs ${isActive ? "text-white/90" : "text-gray-500 dark:text-gray-400"}`}>
+                          {grouped[key].length}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Desktop buttons */}
         <div className="hidden md:flex flex-wrap gap-2">
-          {(["all", "not_started", "in_progress", "completed", "overdue"] as TabKey[]).map((key) => (
-            <button
+          {TAB_KEYS.map((key) => (
+            <motion.button
               key={key}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setTab(key)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
                 tab === key
@@ -271,7 +365,7 @@ export default function TaskList() {
               <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === key ? "bg-white/20" : "bg-gray-200 dark:bg-white/10"}`}>
                 {grouped[key].length}
               </span>
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>

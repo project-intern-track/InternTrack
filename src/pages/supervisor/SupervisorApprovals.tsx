@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+ import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, ChevronDown, X } from 'lucide-react';
 import { taskService } from '../../services/taskServices';
 import type { Tasks } from '../../types/database.types';
 
@@ -43,6 +43,7 @@ const SupervisorApprovals = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('review');
   const [tasks, setTasks] = useState<Tasks[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileTabMenuOpen, setMobileTabMenuOpen] = useState(false);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -63,6 +64,7 @@ const SupervisorApprovals = () => {
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({ message: '', type: 'error', visible: false });
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mobileTabMenuRef = useRef<HTMLDivElement | null>(null);
 
   // Progress modal state
   const [progressTask, setProgressTask] = useState<Tasks | null>(null);
@@ -86,6 +88,30 @@ const SupervisorApprovals = () => {
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  useEffect(() => {
+    if (!mobileTabMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!mobileTabMenuRef.current?.contains(event.target as Node)) {
+        setMobileTabMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileTabMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [mobileTabMenuOpen]);
 
   const reviewCount = tasks.filter(t => t.status === 'pending_approval').length;
   const approvedCount = tasks.filter(t => ['not_started', 'in_progress', 'pending', 'completed', 'overdue'].includes(t.status)).length;
@@ -268,29 +294,114 @@ const SupervisorApprovals = () => {
         transition={{ duration: 0.4, delay: 0.05 }}
         className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
-        <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {tabs.map((tab, index) => {
-            const isActive = activeTab === tab.key;
+        <div className="mb-6 max-[800px]:hidden">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {tabs.map((tab, index) => {
+              const isActive = activeTab === tab.key;
 
-            return (
-              <motion.button
-                key={tab.key}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: 0.05 * index }}
-                onClick={() => setActiveTab(tab.key)}
-                className={`rounded-xl border px-4 py-3 text-left transition-all ${
-                  isActive
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:bg-slate-900/40 dark:text-gray-300 dark:hover:bg-slate-900/70'
-                }`}
-              >
-                <p className="text-xs font-bold uppercase tracking-widest">{tab.label}</p>
-                <p className="mt-1 text-2xl font-black">{tab.count}</p>
-              </motion.button>
-            );
-          })}
+              return (
+                <motion.button
+                  key={tab.key}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: 0.05 * index }}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
+                    isActive
+                      ? 'border-primary bg-primary/10 text-primary shadow-[0_12px_30px_-18px_rgba(249,115,22,0.75)]'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:bg-slate-900/40 dark:text-gray-300 dark:hover:bg-slate-900/70'
+                  }`}
+                >
+                  <p className="text-xs font-bold uppercase tracking-widest">{tab.label}</p>
+                  <p className="mt-1 text-2xl font-black">{tab.count}</p>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.05 }}
+          className="mb-6 hidden max-[800px]:block"
+        >
+          <label
+            htmlFor="approval-status-filter"
+            className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400"
+          >
+            Approval Status
+          </label>
+          <div ref={mobileTabMenuRef} className="relative">
+            <motion.button
+              id="approval-status-filter"
+              type="button"
+              whileTap={{ scale: 0.985 }}
+              onClick={() => setMobileTabMenuOpen(prev => !prev)}
+              className={`flex w-full items-center justify-between rounded-[1.35rem] border bg-white px-5 py-3 text-left text-sm font-semibold text-gray-800 outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white ${
+                mobileTabMenuOpen
+                  ? 'border-primary shadow-[0_14px_34px_-22px_rgba(249,115,22,0.85)]'
+                  : 'border-gray-300'
+              }`}
+              aria-haspopup="listbox"
+              aria-expanded={mobileTabMenuOpen}
+            >
+              <span>
+                {tabs.find(tab => tab.key === activeTab)?.label} ({tabs.find(tab => tab.key === activeTab)?.count})
+              </span>
+              <motion.span
+                animate={{ rotate: mobileTabMenuOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="ml-3 shrink-0 text-gray-500 dark:text-gray-300"
+              >
+                <ChevronDown size={18} />
+              </motion.span>
+            </motion.button>
+
+            {mobileTabMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-20 overflow-hidden rounded-[1.35rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-slate-900"
+                role="listbox"
+                aria-label="Approval Status"
+              >
+                <div className="p-2">
+                  {tabs.map(tab => {
+                    const isActive = activeTab === tab.key;
+
+                    return (
+                      <motion.button
+                        key={tab.key}
+                        type="button"
+                        whileTap={{ scale: 0.985 }}
+                        onClick={() => {
+                          setActiveTab(tab.key);
+                          setMobileTabMenuOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                          isActive
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/10'
+                        }`}
+                        role="option"
+                        aria-selected={isActive}
+                      >
+                        <span>{tab.label}</span>
+                        <span className={`text-xs ${isActive ? 'text-primary-foreground/90' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {tab.count}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
 
         <div className="space-y-4">
           {loading ? (
@@ -310,9 +421,10 @@ const SupervisorApprovals = () => {
                 transition={{ duration: 0.25, delay: 0.04 * index }}
                 className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
               >
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900 dark:text-white">{task.title}</h3>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                    <h3 className="break-words text-lg font-black leading-snug text-gray-900 dark:text-white">{task.title}</h3>
                     <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{task.description}</p>
                     <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
                       <span className="font-semibold">Assigned to:</span> {assignedNames(task)}
@@ -320,11 +432,12 @@ const SupervisorApprovals = () => {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       <span className="font-semibold">Due:</span> {formatDate(task.due_date)}
                     </p>
-                  </div>
+                    </div>
 
-                  <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-bold dark:border-white/10 dark:bg-white/5">
-                    <span className={`h-2.5 w-2.5 rounded-full ${priorityDotStyles[task.priority] || 'bg-gray-500'}`} />
-                    <span className="text-gray-700 dark:text-gray-300">{getPriorityLabel(task.priority)}</span>
+                    <div className="inline-flex w-fit shrink-0 items-center gap-2 self-start rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-bold dark:border-white/10 dark:bg-white/5">
+                      <span className={`h-2.5 w-2.5 rounded-full ${priorityDotStyles[task.priority] || 'bg-gray-500'}`} />
+                      <span className="text-gray-700 dark:text-gray-300">{getPriorityLabel(task.priority)}</span>
+                    </div>
                   </div>
                 </div>
 

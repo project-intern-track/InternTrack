@@ -1506,14 +1506,14 @@ textarea,
 
 .manage-interns-filters .filter-dropdown {
   position: relative;
-  min-width: 150px;
-  flex: 0 1 auto;
+  min-width: 170px;
+  flex: 0 0 170px;
 }
 
 .manage-interns-filters .filter-dropdown-wide {
   position: relative;
-  min-width: 170px;
-  flex: 0 1 auto;
+  min-width: 190px;
+  flex: 0 0 190px;
 }
 
 .modal-grid-2col {
@@ -2703,6 +2703,11 @@ textarea,
   color: #e5e7eb;
 }
 
+.reports-status-dropdown {
+  min-width: 160px;
+  flex: 0 0 160px;
+}
+
 .reports-export-btn {
   height: 40px;
   padding-inline: 1.25rem;
@@ -2863,7 +2868,7 @@ textarea,
   }
 
   .reports-search-wrap,
-  .reports-status-select,
+  .reports-status-dropdown,
   .reports-export-btn {
     width: 100%;
   }

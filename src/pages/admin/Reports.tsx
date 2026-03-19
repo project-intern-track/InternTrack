@@ -35,14 +35,16 @@ const InternCard = ({ id, name, email, role, hours, attendance, status, lastUpda
         navigate(`/admin/reports/${id}`);
     };
     return (
-        <div style={{
+        <div className="intern-card" style={{
             background: '#F9F7F4',
             borderRadius: '12px',
             padding: '1.5rem',
             border: '1px solid #e5e5e5',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            width: '100%',
+            boxSizing: 'border-box'
         }}
             onClick={handleClick}
             onMouseEnter={(e) => {
@@ -157,26 +159,140 @@ const Reports = () => {
     });
 
     return (
-        <div>
+        <>
+            <style>{`
+                @media (max-width: 768px) {
+                    .reports-container {
+                        padding: 0 1rem;
+                    }
+                    .filter-container {
+                        flex-direction: column !important;
+                        align-items: stretch !important;
+                        gap: 0.75rem !important;
+                    }
+                    .search-container {
+                        min-width: 100% !important;
+                        width: 100% !important;
+                    }
+                    .cards-grid {
+                        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+                        gap: 1rem !important;
+                    }
+                    .intern-card {
+                        padding: 1rem !important;
+                        border-radius: 8px !important;
+                        width: 100% !important;
+                        min-width: 280px !important;
+                        max-width: 400px !important;
+                    }
+                    .intern-card h3 {
+                        font-size: 1rem !important;
+                    }
+                    .intern-card p {
+                        font-size: 0.8rem !important;
+                    }
+                    .intern-card span {
+                        font-size: 0.8rem !important;
+                    }
+                }
+                
+                @media (min-width: 769px) and (max-width: 1024px) {
+                    .reports-container {
+                        padding: 0 1.5rem;
+                    }
+                    .filter-container {
+                        flex-wrap: wrap !important;
+                        gap: 1rem !important;
+                    }
+                    .search-container {
+                        min-width: 280px !important;
+                        flex: 1 !important;
+                    }
+                    .cards-grid {
+                        grid-template-columns: repeat(2, 1fr) !important;
+                        gap: 1.25rem !important;
+                    }
+                    .intern-card {
+                        padding: 1.25rem !important;
+                        border-radius: 10px !important;
+                        width: 100% !important;
+                        min-width: 300px !important;
+                        max-width: 380px !important;
+                    }
+                    .intern-card h3 {
+                        font-size: 1.05rem !important;
+                    }
+                    .intern-card p {
+                        font-size: 0.85rem !important;
+                    }
+                    .intern-card span {
+                        font-size: 0.85rem !important;
+                    }
+                }
+                
+                @media (min-width: 1025px) {
+                    .reports-container {
+                        padding: 0 2rem;
+                    }
+                    .filter-container {
+                        flex-wrap: wrap !important;
+                        gap: 1rem !important;
+                    }
+                    .search-container {
+                        min-width: 300px !important;
+                        flex: 1 !important;
+                    }
+                    .cards-grid {
+                        grid-template-columns: repeat(auto-fit, minmax(320px, 400px)) !important;
+                        gap: 1.5rem !important;
+                    }
+                    .intern-card {
+                        padding: 1.5rem !important;
+                        border-radius: 12px !important;
+                        width: 100% !important;
+                        min-width: 320px !important;
+                        max-width: 400px !important;
+                    }
+                    .intern-card h3 {
+                        font-size: 1.1rem !important;
+                    }
+                    .intern-card p {
+                        font-size: 0.9rem !important;
+                    }
+                    .intern-card span {
+                        font-size: 0.9rem !important;
+                    }
+                }
+            `}</style>
+            <div className="reports-container" style={{
+                width: '100%',
+                maxWidth: '100vw',
+                overflowX: 'hidden',
+                boxSizing: 'border-box'
+            }}>
             <h1 style={{ color: '#ff8800', fontSize: '2rem', margin: 0 }}>Reports Section</h1>
             <h2 style={{ fontSize: '1.2rem', margin: '0.5rem 0', color: '#2b2a2a' }}>Weekly/Monthly Summaries</h2>
 
             {/* Filter and Search Container */}
-            <div style={{
+            <div className="filter-container" style={{
                 display: 'flex',
+                flexDirection: 'row',
                 gap: '1rem',
                 alignItems: 'center',
                 marginTop: '2rem',
                 padding: '1rem',
                 backgroundColor: '#F9F7F4',
                 borderRadius: '12px',
-                border: '1px solid #777777'
+                border: '1px solid #777777',
+                width: '100%',
+                boxSizing: 'border-box'
             }}>
                 {/* Search Bar */}
-                <div style={{
+                <div className="search-container" style={{
                     position: 'relative',
                     flex: '1',
-                    minWidth: '200px'
+                    minWidth: '250px',
+                    width: '100%'
                 }}>
                     <Search
                         size={20}
@@ -211,13 +327,18 @@ const Reports = () => {
                     onChange={(e) => setFilterStatus(e.target.value)}
                     style={{
                         height: '40px',
-                        padding: '0 1rem',
+                        padding: '0 2.5rem 0 1rem',
                         border: '1px solid #777777',
                         borderRadius: '8px',
                         outline: 'none',
                         fontSize: '1rem',
                         minWidth: '180px',
-                        backgroundColor: 'white'
+                        backgroundColor: 'white',
+                        appearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.75rem center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: '1.25rem'
                     }}>
                     <option value="all">All Status</option>
                     <option value="active">Active</option>
@@ -253,18 +374,21 @@ const Reports = () => {
             ) : filteredInterns.length === 0 ? (
                 <div style={{ marginTop: '2rem', textAlign: 'center', color: '#666' }}>No interns found matching the filters.</div>
             ) : (
-                <div style={{
+                <div className="cards-grid" style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                     gap: '1.5rem',
-                    marginTop: '2rem'
+                    marginTop: '2rem',
+                    width: '100%',
+                    boxSizing: 'border-box'
                 }}>
                     {filteredInterns.map((intern, index) => (
                         <InternCard key={intern.id || index} {...intern} />
                     ))}
                 </div>
             )}
-        </div>
+            </div>
+        </>
     );
 };
 

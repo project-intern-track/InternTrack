@@ -431,7 +431,7 @@ const ManageSupervisors = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="stats-grid">
+            <div className="stats-grid manage-users-stats-grid">
                 <div className="stat-card">
                     <div className="stat-label">Total Supervisors</div>
                     <div className="stat-value">{stats.totalSupervisors}</div>
@@ -489,7 +489,7 @@ const ManageSupervisors = () => {
             )}
 
             {/* Table Container */}
-            <div className="table-container rounded-lg border border-slate-200 overflow-auto bg-white">
+            <div className="table-container rounded-lg border border-slate-200 overflow-auto bg-white hidden min-[851px]:block">
                 <table className="w-full min-w-[800px] border-collapse text-center">
                     <thead>
                         <tr className="bg-orange-500 text-white">
@@ -533,6 +533,40 @@ const ManageSupervisors = () => {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile card view */}
+            <div className="min-[851px]:hidden space-y-3">
+                {paginatedSupervisors.length === 0 ? (
+                    <div className="text-center py-12 text-slate-500">No supervisors found.</div>
+                ) : (
+                    paginatedSupervisors.map((supervisor) => (
+                        <div key={supervisor.id} className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900/60 p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="font-semibold">{supervisor.full_name}</span>
+                                <span className={`text-xs font-medium ${supervisor.status === 'active' ? 'text-green-500' : 'text-violet-500'}`}>
+                                    {supervisor.status}
+                                </span>
+                            </div>
+                            <div className="text-sm text-slate-500 mb-1">{supervisor.email}</div>
+                            <div className="text-xs text-slate-400 mb-3">{formatDate(supervisor.created_at)}</div>
+                            <div className="flex gap-2">
+                                <button
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium bg-orange-50 text-orange-600"
+                                    onClick={() => openEditModal(supervisor)}
+                                >
+                                    <Pencil size={14} /> Edit
+                                </button>
+                                <button
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium bg-slate-50 text-slate-600"
+                                    onClick={() => handleArchiveToggle(supervisor)}
+                                >
+                                    <Archive size={14} /> {supervisor.status === 'active' ? 'Archive' : 'Restore'}
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             {/* Pagination Controls */}
@@ -587,7 +621,7 @@ const ManageSupervisors = () => {
             {/* Add Supervisor Modal */}
             {signUpModalOpen && (
                 <div className="modal-overlay" onClick={handleCloseSignupModal}>
-                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[500px]" onClick={(e) => e.stopPropagation()}>
+                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <h2 className="text-orange-600 mb-6">Register New Supervisor</h2>
 
                         {signUpSuccess && (
@@ -670,7 +704,7 @@ const ManageSupervisors = () => {
             {/* ===== Archive Confirmation Modal ===== */}
             {archiveTarget && (
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px]" onClick={(e) => e.stopPropagation()}>
+                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
                             <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
                             <h2 className="text-orange-600 m-0 text-xl font-bold">

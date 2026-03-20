@@ -389,7 +389,7 @@ const ManageAdmins = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="stats-grid">
+            <div className="stats-grid manage-users-stats-grid">
                 <div className="stat-card">
                     <div className="stat-label">Total Admin</div>
                     <div className="stat-value">{stats.totalAdmins}</div>
@@ -424,12 +424,10 @@ const ManageAdmins = () => {
                     <Filter size={20} /> <span className="font-semibold">Filters:</span>
                 </div>
                 <div className="filter-dropdown">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <CustomDropdown
                         value={dateSort}
                         options={dateSortOptions}
                         onChange={setDateSort}
-                        buttonClassName="pl-10"
                     />
                 </div>
                 <div className="filter-dropdown">
@@ -449,7 +447,7 @@ const ManageAdmins = () => {
             )}
 
             {/* Table Container */}
-            <div className="table-container rounded-lg border border-gray-200 dark:border-white/10 overflow-auto bg-white dark:bg-slate-900/60">
+            <div className="table-container rounded-lg border border-gray-200 dark:border-white/10 overflow-auto bg-white dark:bg-slate-900/60 hidden min-[851px]:block">
                 <table className="w-full min-w-[800px] border-collapse text-center">
                     <thead>
                         <tr className="bg-orange-500 text-white">
@@ -495,6 +493,42 @@ const ManageAdmins = () => {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile card view */}
+            <div className="min-[851px]:hidden space-y-3">
+                {paginatedAdmins.length === 0 ? (
+                    <div className="text-center py-12 text-slate-500">No admins found.</div>
+                ) : (
+                    paginatedAdmins.map((admin) => (
+                        <div key={admin.id} className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900/60 p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="font-semibold">{admin.full_name}</span>
+                                <span className={`text-xs font-medium ${admin.status === 'active' ? 'text-green-500' : 'text-violet-500'}`}>
+                                    {admin.status}
+                                </span>
+                            </div>
+                            <div className="text-sm text-slate-500 mb-1">{admin.email}</div>
+                            <div className="text-xs text-slate-400 mb-3">{formatDate(admin.created_at)}</div>
+                            <div className="flex gap-2">
+                                <button
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium bg-orange-50 text-orange-600"
+                                    onClick={() => openEditModal(admin)}
+                                >
+                                    <Pencil size={14} /> Edit
+                                </button>
+                                {String(currentUser?.id) !== String(admin.id) && (
+                                    <button
+                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium bg-slate-50 text-slate-600"
+                                        onClick={() => handleArchiveToggle(admin)}
+                                    >
+                                        <Archive size={14} /> {admin.status === 'active' ? 'Archive' : 'Restore'}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             {/* Pagination Controls */}
@@ -549,7 +583,7 @@ const ManageAdmins = () => {
             {/* Add Admin Modal */}
             {isAddModalOpen && (
                 <div className="modal-overlay" onClick={handleCloseAddModal}>
-                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-8 w-full max-w-[500px]" onClick={(e) => e.stopPropagation()}>
+                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <h2 className="text-orange-600 dark:text-orange-400">{confirmationStep ? 'Confirm Admin Addition' : 'Add New Admin'}</h2>
                         {!confirmationStep ? (
                             <div>
@@ -590,7 +624,7 @@ const ManageAdmins = () => {
             {/* ===== Archive Confirmation Modal ===== */}
             {archiveTarget && (
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-8 w-full max-w-[440px]" onClick={(e) => e.stopPropagation()}>
+                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
                             <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
                             <h2 className="text-orange-600 dark:text-orange-400 m-0 text-xl font-bold">

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, ClipboardList, Star, Users, Eye, X } from 'lucide-react';
+import { BarChart, CheckCircle, ClipboardList, Star, Users, Eye, X } from 'lucide-react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/userServices';
@@ -121,6 +121,7 @@ const SupervisorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [detailTask, setDetailTask] = useState<Tasks | null>(null);
+  const [finalizingId, setFinalizingId] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -143,6 +144,25 @@ const SupervisorDashboard = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // A task can be finalized when it's in_progress and every intern has finished
+  const canFinalize = (task: Tasks) =>
+    task.status === 'in_progress' &&
+    task.assigned_interns.length > 0 &&
+    task.assigned_interns.every((i) => i.intern_status === 'completed');
+
+  const handleFinalize = async (taskId: number) => {
+    if (finalizingId !== null) return;
+    setFinalizingId(taskId);
+    try {
+      await taskService.finalizeTask(taskId);
+      await fetchData();
+    } catch (err) {
+      console.error('Failed to finalize task:', err);
+    } finally {
+      setFinalizingId(null);
+    }
+  };
 
   // ── Computed values ──────────────────────────────────────────────────────
   const pieData = stats
@@ -284,15 +304,16 @@ const SupervisorDashboard = () => {
                       <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Intern(s)</th>
                       <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task</th>
                       <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Due Date</th>
-                      <th className="hidden pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Status</th>
-                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:hidden">Action</th>
+                      <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Status</th>
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recentTasks.map((task, index) => {
                       const style = statusStyles[task.status] ?? fallbackStyle;
-                      const internNames = task.assigned_interns?.map((i) => i.full_name).join(', ')
-                        || (task.assigned_interns_count ? `${task.assigned_interns_count} intern(s)` : '—');
+                      const doneCount = task.assigned_interns.filter((i) => i.intern_status === 'completed').length;
+                      const totalCount = task.assigned_interns.length;
+                      const readyToFinalize = canFinalize(task);
                       return (
                         <motion.tr
                           key={task.id}
@@ -301,22 +322,46 @@ const SupervisorDashboard = () => {
                           transition={{ delay: 0.03 * index, duration: 0.25 }}
                           className="border-b border-gray-100 last:border-none dark:border-white/5"
                         >
-                          <td className="hidden py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap lg:table-cell">{internNames}</td>
+                          <td className="hidden py-3 pr-4 lg:table-cell">
+                            <div className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                              {task.assigned_interns?.map((i) => i.full_name).join(', ') ||
+                                (task.assigned_interns_count ? `${task.assigned_interns_count} intern(s)` : '—')}
+                            </div>
+                            {/* Show per-intern done count when task is in_progress */}
+                            {task.status === 'in_progress' && totalCount > 0 && (
+                              <div className={`mt-1 text-xs font-semibold ${
+                                readyToFinalize ? 'text-green-600 dark:text-green-400' : 'text-amber-500 dark:text-amber-400'
+                              }`}>
+                                {doneCount}/{totalCount} done
+                              </div>
+                            )}
+                          </td>
                           <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{task.title}</td>
                           <td className="hidden py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap lg:table-cell">{formatDueDate(task.due_date)}</td>
-                          <td className="hidden py-3 lg:table-cell">
+                          <td className="hidden py-3 pr-4 lg:table-cell">
                             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize whitespace-nowrap ${style.pill}`}>
                               {formatStatus(task.status)}
                             </span>
                           </td>
-                          <td className="py-3 lg:hidden">
-                            <button
-                              onClick={() => setDetailTask(task)}
-                              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-white transition-transform hover:scale-105 active:scale-95"
-                            >
-                              <Eye size={14} />
-                              View Details
-                            </button>
+                          <td className="py-3">
+                            {readyToFinalize ? (
+                              <button
+                                onClick={() => handleFinalize(task.id)}
+                                disabled={finalizingId !== null}
+                                className="inline-flex items-center gap-1.5 rounded-full bg-green-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-green-700 hover:scale-105 active:scale-95 disabled:opacity-60"
+                              >
+                                <CheckCircle size={13} />
+                                {finalizingId === task.id ? 'Finalizing…' : 'Finalize'}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setDetailTask(task)}
+                                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-white transition-transform hover:scale-105 active:scale-95"
+                              >
+                                <Eye size={14} />
+                                View
+                              </button>
+                            )}
                           </td>
                         </motion.tr>
                       );

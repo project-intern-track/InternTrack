@@ -37,6 +37,7 @@ export interface TaskIntern {
     id: number;
     full_name: string;
     avatar_url: string | null;
+    intern_status?: string; // pivot column — populated for supervisor views
 }
 
 export interface Tasks {

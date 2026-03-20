@@ -110,7 +110,7 @@ const FeedbackDashboard = () => {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
         {[
           { label: 'Feedback Submitted', value: submittedCount, color: 'text-green-500', bg: 'bg-green-500/10' },
           { label: 'Pending Feedback',   value: pendingCount,   color: 'text-amber-500', bg: 'bg-amber-500/10' },
@@ -119,12 +119,12 @@ const FeedbackDashboard = () => {
             key={card.label}
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+            className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm backdrop-blur-md md:rounded-[2rem] md:p-6 dark:border-white/5 dark:bg-slate-900/50"
           >
-            <div className={`mb-3 inline-flex rounded-2xl px-3 py-2 ${card.bg}`}>
-              <span className={`text-xs font-bold uppercase tracking-widest ${card.color}`}>{card.label}</span>
+            <div className={`mb-2 inline-flex rounded-xl px-2.5 py-1.5 md:mb-3 md:rounded-2xl md:px-3 md:py-2 ${card.bg}`}>
+              <span className={`text-[0.65rem] font-bold uppercase tracking-widest md:text-xs ${card.color}`}>{card.label}</span>
             </div>
-            <p className="text-4xl font-black text-gray-900 dark:text-white">{card.value}</p>
+            <p className="text-2xl font-black text-gray-900 md:text-4xl dark:text-white">{card.value}</p>
           </motion.div>
         ))}
       </div>
@@ -158,10 +158,11 @@ const FeedbackDashboard = () => {
         </div>
       </motion.div>
 
+      {/* Desktop: Table view */}
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.12 }}
-        className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+        className="hidden rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md md:block dark:border-white/5 dark:bg-slate-900/50"
       >
         <div className="overflow-x-auto px-8 py-6">
           {loading ? (
@@ -217,6 +218,59 @@ const FeedbackDashboard = () => {
           )}
         </div>
       </motion.div>
+
+      {/* Mobile: Card-based view */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+            Loading...
+          </div>
+        ) : filteredRows.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+            No completed tasks found.
+          </div>
+        ) : (
+          filteredRows.map((row, idx) => (
+            <motion.div
+              key={`mobile-${row.taskId}-${row.internId}`}
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.03 }}
+              className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
+            >
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">{row.taskName}</h3>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[0.65rem] font-bold ${
+                  row.feedbackSubmitted
+                    ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300'
+                    : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                }`}>
+                  {row.feedbackSubmitted ? 'Submitted' : 'Pending'}
+                </span>
+              </div>
+              <div className="mb-3 space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Intern</span>
+                  <span className="font-medium text-gray-800 dark:text-gray-200">{row.internName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Role</span>
+                  <span className="text-gray-700 dark:text-gray-300">{row.internRole}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Completed</span>
+                  <span className="text-gray-700 dark:text-gray-300">{formatDate(row.completionDate)}</span>
+                </div>
+              </div>
+              <button
+                className="w-full rounded-lg bg-primary py-2 text-xs font-bold text-primary-foreground transition-all hover:brightness-95"
+                onClick={() => openModal(row)}
+              >
+                {row.feedbackSubmitted ? 'Edit Feedback' : 'Give Feedback'}
+              </button>
+            </motion.div>
+          ))
+        )}
+      </div>
 
       {/* Competency Modal — portaled to document.body to escape layout stacking context */}
       {competencyModal && createPortal(

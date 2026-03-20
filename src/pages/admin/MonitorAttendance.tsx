@@ -483,24 +483,24 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             line-height: 1.2;
           }
           
-          .attendance-stats-grid {
+          .admin-page-shell .attendance-stats-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 0.875rem !important;
             margin-bottom: 1.25rem !important;
           }
-          
-          .stat-card {
+
+          .admin-page-shell .stat-card {
             padding: 1rem !important;
           }
-          
-          .stat-value {
+
+          .admin-page-shell .stat-value {
             font-size: 1.75rem !important;
           }
-          
-          .stat-label {
+
+          .admin-page-shell .stat-label {
             font-size: 0.875rem !important;
           }
-          
+
           .attendance-search-container {
             width: 100% !important;
             min-width: 100% !important;
@@ -704,20 +704,20 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             font-size: 22px !important;
           }
 
-          .attendance-stats-grid {
+          .admin-page-shell .attendance-stats-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 0.75rem !important;
           }
 
-          .stat-card {
+          .admin-page-shell .stat-card {
             padding: 0.875rem !important;
           }
 
-          .stat-value {
+          .admin-page-shell .stat-value {
             font-size: 1.25rem !important;
           }
 
-          .stat-label {
+          .admin-page-shell .stat-label {
             font-size: 0.75rem !important;
           }
 

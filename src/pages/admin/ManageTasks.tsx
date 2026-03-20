@@ -924,6 +924,8 @@ const ManageTasks = () => {
                 
                 @media (max-width: 768px) {
                     .manage-tasks-filter-row { flex-direction: column !important; align-items: stretch !important; }
+                    .manage-tasks-filter-selects { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 0.5rem !important; }
+                    .manage-tasks-filter-col { min-width: 0 !important; }
                     .create-task-modal-content { grid-template-columns: 1fr !important; }
                     .create-task-modal-bottom { grid-template-columns: 1fr !important; }
                     .task-detail-info-grid { grid-template-columns: 1fr; }
@@ -1618,7 +1620,7 @@ const ManageTasks = () => {
                             </div>
 
                             {/* Status / Priority and Dates row */}
-                            <div className="flex gap-12 text-xs text-slate-900">
+                            <div className="flex flex-wrap gap-4 text-xs text-slate-900 sm:gap-12">
                                 <div className="flex flex-col gap-1.5">
                                     <div>
                                         <span className="font-semibold">Status:&nbsp;</span>

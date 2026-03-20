@@ -317,7 +317,7 @@ class TaskController extends Controller
     public function supervisorTasks(Request $request): JsonResponse
     {
         $tasks = Task::whereIn('status', [
-                'pending_approval', // For checking
+                'pending_approval',
                 'not_started',
                 'in_progress',
                 'pending',
@@ -326,12 +326,32 @@ class TaskController extends Controller
                 'rejected',
                 'overdue',
             ])
-            ->with(['assignedInterns:id,full_name,avatar_url', 'creator:id,full_name'])
+            ->with([
+                'assignedInterns' => fn($q) => $q->withPivot('intern_status'),
+                'creator:id,full_name',
+            ])
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn($task) => $this->formatTask($task));
+            ->map(fn($task) => $this->formatTaskForSupervisor($task));
 
         return response()->json(['data' => $tasks]);
+    }
+
+    /**
+     * Like formatTask() but also includes each intern's pivot intern_status.
+     * Used exclusively by the supervisor task list so they can see when
+     * all interns have finished and the Finalize button should appear.
+     */
+    private function formatTaskForSupervisor(Task $task): array
+    {
+        $base = $this->formatTask($task);
+        $base['assigned_interns'] = $task->assignedInterns?->map(fn($i) => [
+            'id'            => $i->id,
+            'full_name'     => $i->full_name,
+            'avatar_url'    => $i->avatar_url,
+            'intern_status' => $i->pivot->intern_status ?? 'not_started',
+        ])->values()->toArray() ?? [];
+        return $base;
     }
 
     /**

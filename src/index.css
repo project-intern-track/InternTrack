@@ -2358,6 +2358,10 @@ textarea,
     grid-template-columns: 1fr !important;
   }
 
+  .admin-page-shell .manage-users-stats-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
   .admin-page-shell .manage-interns-header .btn,
   .admin-page-shell .announcements-header .btn,
   .admin-page-shell .attendance-header button {

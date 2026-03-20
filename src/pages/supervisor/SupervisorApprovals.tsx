@@ -1,6 +1,6 @@
  import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, ChevronDown, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, X } from 'lucide-react';
 import { taskService } from '../../services/taskServices';
 import type { Tasks } from '../../types/database.types';
 
@@ -43,7 +43,6 @@ const SupervisorApprovals = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('review');
   const [tasks, setTasks] = useState<Tasks[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mobileTabMenuOpen, setMobileTabMenuOpen] = useState(false);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -64,7 +63,6 @@ const SupervisorApprovals = () => {
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({ message: '', type: 'error', visible: false });
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const mobileTabMenuRef = useRef<HTMLDivElement | null>(null);
 
   // Progress modal state
   const [progressTask, setProgressTask] = useState<Tasks | null>(null);
@@ -88,30 +86,6 @@ const SupervisorApprovals = () => {
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
-
-  useEffect(() => {
-    if (!mobileTabMenuOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!mobileTabMenuRef.current?.contains(event.target as Node)) {
-        setMobileTabMenuOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setMobileTabMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [mobileTabMenuOpen]);
 
   const reviewCount = tasks.filter(t => t.status === 'pending_approval').length;
   const approvedCount = tasks.filter(t => ['not_started', 'in_progress', 'pending', 'completed', 'overdue'].includes(t.status)).length;
@@ -294,11 +268,11 @@ const SupervisorApprovals = () => {
         transition={{ duration: 0.4, delay: 0.05 }}
         className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
+        {/* Desktop: Original 4-column clickable metric cards */}
         <div className="mb-6 max-[800px]:hidden">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             {tabs.map((tab, index) => {
               const isActive = activeTab === tab.key;
-
               return (
                 <motion.button
                   key={tab.key}
@@ -322,86 +296,34 @@ const SupervisorApprovals = () => {
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, delay: 0.05 }}
-          className="mb-6 hidden max-[800px]:block"
-        >
-          <label
-            htmlFor="approval-status-filter"
-            className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400"
-          >
-            Approval Status
-          </label>
-          <div ref={mobileTabMenuRef} className="relative">
-            <motion.button
-              id="approval-status-filter"
-              type="button"
-              whileTap={{ scale: 0.985 }}
-              onClick={() => setMobileTabMenuOpen(prev => !prev)}
-              className={`flex w-full items-center justify-between rounded-[1.35rem] border bg-white px-5 py-3 text-left text-sm font-semibold text-gray-800 outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white ${
-                mobileTabMenuOpen
-                  ? 'border-primary shadow-[0_14px_34px_-22px_rgba(249,115,22,0.85)]'
-                  : 'border-gray-300'
-              }`}
-              aria-haspopup="listbox"
-              aria-expanded={mobileTabMenuOpen}
-            >
-              <span>
-                {tabs.find(tab => tab.key === activeTab)?.label} ({tabs.find(tab => tab.key === activeTab)?.count})
-              </span>
-              <motion.span
-                animate={{ rotate: mobileTabMenuOpen ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="ml-3 shrink-0 text-gray-500 dark:text-gray-300"
-              >
-                <ChevronDown size={18} />
-              </motion.span>
-            </motion.button>
+        {/* Mobile: Static 2×2 metrics + tab bar */}
+        <div className="mb-4 hidden max-[800px]:grid grid-cols-2 gap-2.5">
+          {tabs.map((tab) => (
+            <div key={tab.key} className="rounded-xl border border-gray-200 bg-gray-50/80 px-3.5 py-2.5 dark:border-white/10 dark:bg-white/5">
+              <p className="text-[0.65rem] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{tab.label}</p>
+              <p className="mt-0.5 text-lg font-black text-gray-900 dark:text-white">{tab.count}</p>
+            </div>
+          ))}
+        </div>
 
-            {mobileTabMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-20 overflow-hidden rounded-[1.35rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-slate-900"
-                role="listbox"
-                aria-label="Approval Status"
+        <div className="mb-6 hidden max-[800px]:flex rounded-xl bg-gray-100 p-1 dark:bg-white/10">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 rounded-lg px-1.5 py-2 text-center text-[0.7rem] font-bold transition-all ${
+                  isActive
+                    ? 'bg-white text-primary shadow-sm dark:bg-slate-800 dark:text-orange-400'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
               >
-                <div className="p-2">
-                  {tabs.map(tab => {
-                    const isActive = activeTab === tab.key;
-
-                    return (
-                      <motion.button
-                        key={tab.key}
-                        type="button"
-                        whileTap={{ scale: 0.985 }}
-                        onClick={() => {
-                          setActiveTab(tab.key);
-                          setMobileTabMenuOpen(false);
-                        }}
-                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
-                          isActive
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/10'
-                        }`}
-                        role="option"
-                        aria-selected={isActive}
-                      >
-                        <span>{tab.label}</span>
-                        <span className={`text-xs ${isActive ? 'text-primary-foreground/90' : 'text-gray-500 dark:text-gray-400'}`}>
-                          {tab.count}
-                        </span>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
 
         <div className="space-y-4">
           {loading ? (
@@ -442,25 +364,25 @@ const SupervisorApprovals = () => {
                 </div>
 
                 {activeTab === 'review' ? (
-                  <div className="mt-4 flex flex-wrap justify-end gap-2">
+                  <div className="mt-4 flex flex-wrap justify-end gap-2 max-[800px]:flex-nowrap">
                     <button
                       onClick={() => openRevisionModal(task)}
                       disabled={actionLoading !== null}
-                      className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-amber-600 disabled:opacity-50"
+                      className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-amber-600 disabled:opacity-50 max-[800px]:flex-1 max-[800px]:px-0 max-[800px]:text-xs"
                     >
                       Request Revision
                     </button>
                     <button
                       onClick={() => approveTask(task.id)}
                       disabled={actionLoading !== null}
-                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-green-700 disabled:opacity-50"
+                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-green-700 disabled:opacity-50 max-[800px]:flex-1 max-[800px]:px-0 max-[800px]:text-xs"
                     >
                       {actionLoading === task.id ? '...' : 'Approve'}
                     </button>
                     <button
                       onClick={() => openRejectModal(task)}
                       disabled={actionLoading !== null}
-                      className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-700 disabled:opacity-50"
+                      className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-red-700 disabled:opacity-50 max-[800px]:flex-1 max-[800px]:px-0 max-[800px]:text-xs"
                     >
                       Reject
                     </button>

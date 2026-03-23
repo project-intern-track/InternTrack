@@ -1,4 +1,4 @@
- import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, X } from 'lucide-react';
 import { taskService } from '../../services/taskServices';
@@ -39,8 +39,11 @@ const priorityDotStyles: Record<string, string> = {
   high: 'bg-red-500',
 };
 
+const ITEMS_PER_PAGE = 10;
+
 const SupervisorApprovals = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('review');
+  const [currentPage, setCurrentPage] = useState(1);
   const [tasks, setTasks] = useState<Tasks[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,6 +127,29 @@ const SupervisorApprovals = () => {
     }
     return list;
   })();
+
+  const totalPages = Math.ceil(filteredTasks.length / ITEMS_PER_PAGE);
+  const paginatedTasks = filteredTasks.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+      return;
+    }
+
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   const openRevisionModal = (task: Tasks) => {
     setSelectedTask(task);
@@ -268,9 +294,9 @@ const SupervisorApprovals = () => {
         transition={{ duration: 0.4, delay: 0.05 }}
         className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
-        {/* Desktop: Original 4-column clickable metric cards */}
+        {/* Desktop: Segmented status tabs */}
         <div className="mb-6 max-[800px]:hidden">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="flex flex-wrap gap-3 rounded-2xl border border-gray-200 bg-gray-50/80 p-3 dark:border-white/10 dark:bg-white/5">
             {tabs.map((tab, index) => {
               const isActive = activeTab === tab.key;
               return (
@@ -281,15 +307,29 @@ const SupervisorApprovals = () => {
                   transition={{ duration: 0.2, delay: 0.05 * index }}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
+                  onClick={() => {
+                    setActiveTab(tab.key);
+                    setCurrentPage(1);
+                  }}
+                  className={`flex min-w-[180px] flex-1 items-center justify-between rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
                     isActive
-                      ? 'border-primary bg-primary/10 text-primary shadow-[0_12px_30px_-18px_rgba(249,115,22,0.75)]'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:bg-slate-900/40 dark:text-gray-300 dark:hover:bg-slate-900/70'
+                      ? 'border-primary bg-white text-primary shadow-[0_12px_30px_-18px_rgba(249,115,22,0.75)] dark:bg-slate-900'
+                      : 'border-transparent bg-transparent text-gray-700 hover:border-gray-300 hover:bg-white dark:text-gray-300 dark:hover:border-white/10 dark:hover:bg-slate-900/60'
                   }`}
                 >
-                  <p className="text-xs font-bold uppercase tracking-widest">{tab.label}</p>
-                  <p className="mt-1 text-2xl font-black">{tab.count}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-widest">{tab.label}</p>
+                    <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                      {tab.count} task{tab.count === 1 ? '' : 's'}
+                    </p>
+                  </div>
+                  <span className={`ml-4 inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-black ${
+                    isActive
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-gray-200'
+                  }`}>
+                    {tab.count}
+                  </span>
                 </motion.button>
               );
             })}
@@ -312,7 +352,10 @@ const SupervisorApprovals = () => {
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  setCurrentPage(1);
+                }}
                 className={`flex-1 rounded-lg px-1.5 py-2 text-center text-[0.7rem] font-bold transition-all ${
                   isActive
                     ? 'bg-white text-primary shadow-sm dark:bg-slate-800 dark:text-orange-400'
@@ -335,7 +378,8 @@ const SupervisorApprovals = () => {
               No tasks in this section.
             </div>
           ) : (
-            filteredTasks.map((task, index) => (
+            <>
+            {paginatedTasks.map((task, index) => (
               <motion.div
                 key={task.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -347,8 +391,8 @@ const SupervisorApprovals = () => {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1">
                     <h3 className="break-words text-lg font-black leading-snug text-gray-900 dark:text-white">{task.title}</h3>
-                    <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{task.description}</p>
-                    <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-1 mb-4 text-sm text-gray-700 dark:text-gray-300">{task.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       <span className="font-semibold">Assigned to:</span> {assignedNames(task)}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -418,7 +462,50 @@ const SupervisorApprovals = () => {
                   </div>
                 )}
               </motion.div>
-            ))
+            ))}
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <div className="pagination-summary">
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredTasks.length)} of {filteredTasks.length} tasks
+                </div>
+                <div className="pagination-buttons">
+                  <button
+                    className="pagination-btn pagination-arrow"
+                    onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Prev
+                  </button>
+                  {paginationItems.map((page) => {
+                    if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                      return (
+                        <button
+                          key={page}
+                          className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    }
+
+                    if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="pagination-ellipsis">...</span>;
+                    }
+
+                    return null;
+                  })}
+                  <button
+                    className="pagination-btn pagination-arrow"
+                    onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+            </>
           )}
         </div>
       </motion.div>

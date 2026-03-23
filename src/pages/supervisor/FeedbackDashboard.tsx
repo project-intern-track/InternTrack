@@ -1,14 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter, X, Star, ChevronDown } from 'lucide-react';
+import { Search, Filter, X, Star } from 'lucide-react';
 import {
   feedbackService,
   type FeedbackRow,
   type CompetencyRating,
 } from '../../services/feedbackService';
+import DropdownSelect from '../../components/DropdownSelect';
 
 const defaultCompetencies = ['Technical Skills', 'Communication', 'Teamwork', 'Timeliness'];
+const ITEMS_PER_PAGE = 10;
+const FEEDBACK_STATUS_OPTIONS = [
+  { value: '', label: 'Filter by Status' },
+  { value: 'Submitted', label: 'Submitted' },
+  { value: 'Pending', label: 'Pending' },
+] as const;
 
 type StarRatingProps = { rating: number; onChange: (val: number) => void; max?: number };
 const StarRating = ({ rating, onChange, max = 5 }: StarRatingProps) => (
@@ -28,6 +35,7 @@ const StarRating = ({ rating, onChange, max = 5 }: StarRatingProps) => (
 const FeedbackDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [rows, setRows] = useState<FeedbackRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -62,6 +70,28 @@ const FeedbackDashboard = () => {
     const matchesFilter = filterStatus ? status === filterStatus : true;
     return matchesSearch && matchesFilter;
   });
+
+  const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
+  const paginatedRows = filteredRows.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+  const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
+  useEffect(() => {
+    if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+      return;
+    }
+
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const openModal = (row: FeedbackRow) => {
     const evaluations: CompetencyRating[] = row.competencyRatings?.length
@@ -102,7 +132,7 @@ const FeedbackDashboard = () => {
     new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="space-y-4 p-4 md:p-8">
+    <div className="space-y-4">
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
         <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Feedback</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -144,16 +174,13 @@ const FeedbackDashboard = () => {
             />
           </div>
           <div className="relative md:col-span-2">
-            <Filter size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <select
-              value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-              className="w-full appearance-none rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-10 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-            >
-              <option value="">Filter by Status</option>
-              <option value="Submitted">Submitted</option>
-              <option value="Pending">Pending</option>
-            </select>
-            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Filter size={16} className="pointer-events-none absolute left-3 top-1/2 z-[1] -translate-y-1/2 text-gray-400" />
+            <DropdownSelect
+              value={filterStatus}
+              onChange={setFilterStatus}
+              options={FEEDBACK_STATUS_OPTIONS as unknown as { value: string; label: string }[]}
+              buttonClassName="min-h-[42px] rounded-xl py-2 pl-9"
+            />
           </div>
         </div>
       </motion.div>
@@ -170,6 +197,7 @@ const FeedbackDashboard = () => {
           ) : filteredRows.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">No completed tasks found.</p>
           ) : (
+            <>
             <table className="min-w-[880px] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-white/10">
@@ -181,7 +209,7 @@ const FeedbackDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((row, idx) => (
+                {paginatedRows.map((row, idx) => (
                   <motion.tr
                     key={`${row.taskId}-${row.internId}`}
                     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -215,6 +243,49 @@ const FeedbackDashboard = () => {
                 ))}
               </tbody>
             </table>
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <div className="pagination-summary">
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredRows.length)} of {filteredRows.length} feedback entries
+                </div>
+                <div className="pagination-buttons">
+                  <button
+                    className="pagination-btn pagination-arrow"
+                    onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Prev
+                  </button>
+                  {paginationItems.map((page) => {
+                    if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                      return (
+                        <button
+                          key={page}
+                          className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    }
+
+                    if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="pagination-ellipsis">...</span>;
+                    }
+
+                    return null;
+                  })}
+                  <button
+                    className="pagination-btn pagination-arrow"
+                    onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+            </>
           )}
         </div>
       </motion.div>
@@ -230,7 +301,8 @@ const FeedbackDashboard = () => {
             No completed tasks found.
           </div>
         ) : (
-          filteredRows.map((row, idx) => (
+          <>
+          {paginatedRows.map((row, idx) => (
             <motion.div
               key={`mobile-${row.taskId}-${row.internId}`}
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -268,7 +340,50 @@ const FeedbackDashboard = () => {
                 {row.feedbackSubmitted ? 'Edit Feedback' : 'Give Feedback'}
               </button>
             </motion.div>
-          ))
+          ))}
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <div className="pagination-summary">
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredRows.length)} of {filteredRows.length} feedback entries
+              </div>
+              <div className="pagination-buttons">
+                <button
+                  className="pagination-btn pagination-arrow"
+                  onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </button>
+                {paginationItems.map((page) => {
+                  if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                    return (
+                      <button
+                        key={page}
+                        className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    );
+                  }
+
+                  if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <span key={page} className="pagination-ellipsis">...</span>;
+                  }
+
+                  return null;
+                })}
+                <button
+                  className="pagination-btn pagination-arrow"
+                  onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
 

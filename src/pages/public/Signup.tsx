@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
+import DropdownSelect from '../../components/DropdownSelect';
 
 const OJT_ROLES = [
     'UI/UX Designer',
@@ -261,25 +262,19 @@ const Signup = () => {
                                 Role
                             </label>
                             <div className="relative">
-                                <select
-                                    id="signup-role"
-                                    className="w-full px-4 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none appearance-none bg-no-repeat bg-right pr-10 border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
-                                    style={{
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-                                        backgroundPosition: 'right 12px center',
-                                    }}
+                                <DropdownSelect
                                     value={role}
-                                    onChange={(e) => handleChange('role', e.target.value)}
-                                    onBlur={() => handleBlur('role')}
+                                    onChange={(value) => {
+                                        handleChange('role', value);
+                                        handleBlur('role');
+                                    }}
+                                    options={[
+                                        { value: '', label: 'Select role' },
+                                        ...OJT_ROLES.map((r) => ({ value: r, label: r })),
+                                    ]}
                                     disabled={isSubmitting}
-                                >
-                                    <option value="">Select role</option>
-                                    {OJT_ROLES.map((r) => (
-                                        <option key={r} value={r}>
-                                            {r}
-                                        </option>
-                                    ))}
-                                </select>
+                                    buttonClassName="w-full rounded-lg border-2 border-gray-300 px-4 py-3 font-medium focus:border-orange focus:ring-2 focus:ring-orange/10"
+                                />
                             </div>
                             {touched.role && fieldErrors.role && (
                                 <motion.span

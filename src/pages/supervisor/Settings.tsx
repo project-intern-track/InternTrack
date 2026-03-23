@@ -205,7 +205,7 @@ const Settings = () => {
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div className="space-y-6 relative md:p-8 p-4">
+    <div className="relative space-y-6">
       {successPopup && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-success text-white px-8 py-4 rounded-lg shadow-lg z-50 flex items-center gap-4 font-bold">
           {successPopup}
@@ -217,12 +217,12 @@ const Settings = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="flex items-center gap-4 mb-2"
+        className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-4"
       >
-        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+        <h1 className="m-0 text-3xl font-black tracking-tight text-gray-900 dark:text-white">
           Settings
         </h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="m-0 text-sm text-gray-500 dark:text-gray-400">
           Manage your profile and account preferences.
         </p>
       </motion.div>

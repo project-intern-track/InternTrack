@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2, ChevronDown } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2 } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
+import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
+import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
@@ -14,119 +15,6 @@ interface EditFormData {
     email: string;
 }
 
-type DropdownOption<T extends string> = {
-    value: T;
-    label: string;
-};
-
-type CustomDropdownProps<T extends string> = {
-    value: T;
-    options: DropdownOption<T>[];
-    onChange: (value: T) => void;
-    className?: string;
-    buttonClassName?: string;
-    panelClassName?: string;
-};
-
-function CustomDropdown<T extends string>({
-    value,
-    options,
-    onChange,
-    className = '',
-    buttonClassName = '',
-    panelClassName = '',
-}: CustomDropdownProps<T>) {
-    const [open, setOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement | null>(null);
-    const selectedOption = options.find(option => option.value === value) ?? options[0];
-
-    useEffect(() => {
-        if (!open) return;
-
-        const handleClickOutside = (event: MouseEvent) => {
-            if (!dropdownRef.current?.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        };
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleEscape);
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEscape);
-        };
-    }, [open]);
-
-    return (
-        <div ref={dropdownRef} className={`relative ${open ? 'z-[120]' : 'z-20'} ${className}`}>
-            <motion.button
-                type="button"
-                whileTap={{ scale: 0.985 }}
-                onClick={() => setOpen(prev => !prev)}
-                className={`flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20 ${buttonClassName} ${open ? 'border-[hsl(var(--orange))] shadow-[0_14px_34px_-22px_rgba(255,136,0,0.85)]' : ''}`}
-                aria-haspopup="listbox"
-                aria-expanded={open}
-            >
-                <span>{selectedOption?.label ?? value}</span>
-                <motion.span
-                    animate={{ rotate: open ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="ml-3 shrink-0 text-slate-500"
-                >
-                    <ChevronDown size={18} />
-                </motion.span>
-            </motion.button>
-
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                        transition={{ duration: 0.18, ease: 'easeOut' }}
-                        className={`absolute left-0 right-0 top-[calc(100%+0.55rem)] z-10 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] ${panelClassName}`}
-                        role="listbox"
-                    >
-                        <div className="p-2">
-                            {options.map(option => {
-                                const isActive = option.value === value;
-
-                                return (
-                                    <motion.button
-                                        key={option.value}
-                                        type="button"
-                                        whileTap={{ scale: 0.985 }}
-                                        onClick={() => {
-                                            onChange(option.value);
-                                            setOpen(false);
-                                        }}
-                                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
-                                            isActive
-                                                ? 'bg-[hsl(var(--orange))] text-white'
-                                                : 'text-slate-700 hover:bg-orange-50'
-                                        }`}
-                                        role="option"
-                                        aria-selected={isActive}
-                                    >
-                                        <span>{option.label}</span>
-                                    </motion.button>
-                                );
-                            })}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
-
 const ManageSupervisors = () => {
     const [supervisors, setSupervisors] = useState<Users[] | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -136,7 +24,7 @@ const ManageSupervisors = () => {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [dateSort, setDateSort] = useState<'newest' | 'oldest'>('newest');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -178,11 +66,11 @@ const ManageSupervisors = () => {
     const [archiveTarget, setArchiveTarget] = useState<Users | null>(null);
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const dateSortOptions: DropdownOption<typeof dateSort>[] = [
+    const dateSortOptions: DropdownSelectOption<typeof dateSort>[] = [
         { value: 'newest', label: 'Newest' },
         { value: 'oldest', label: 'Oldest' },
     ];
-    const statusOptions: DropdownOption<typeof statusFilter>[] = [
+    const statusOptions: DropdownSelectOption<typeof statusFilter>[] = [
         { value: 'all', label: 'All Status' },
         { value: 'active', label: 'Active' },
         { value: 'archived', label: 'Archived' },
@@ -422,7 +310,7 @@ const ManageSupervisors = () => {
     );
 
     return (
-        <div className="admin-page-shell max-w-full p-0 overflow-hidden">
+        <div className="admin-page-shell w-full space-y-6 overflow-hidden">
             {/* Header Section */}
             <div className="manage-interns-header">
                 <h1 className="text-3xl font-bold text-orange-600 m-0">Manage Supervisors</h1>
@@ -462,27 +350,21 @@ const ManageSupervisors = () => {
             </div>
 
             {/* Filter Section */}
-            <div className="manage-interns-filters flex-col md:flex-row items-stretch md:items-center">
-                <div 
-                    className="flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
-                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                >
-                    <div className="flex flex-row items-center gap-2">
-                        <Filter size={20} /> <span className="font-semibold">Filters:</span>
-                    </div>
-                    <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+            <div className="manage-interns-filters !hidden items-center gap-4 min-[851px]:!flex">
+                <div className="flex flex-row items-center gap-2">
+                    <Filter size={20} /> <span className="font-semibold">Filters:</span>
                 </div>
-                
-                <div className={`w-full md:w-auto flex-col md:flex-row flex-wrap gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
+
+                <div className="flex w-full flex-col flex-wrap gap-4 md:w-auto md:flex-row">
                     <div className="filter-dropdown">
-                        <CustomDropdown
+                        <DropdownSelect
                             value={dateSort}
                             options={dateSortOptions}
                             onChange={setDateSort}
                         />
                     </div>
                     <div className="filter-dropdown">
-                        <CustomDropdown
+                        <DropdownSelect
                             value={statusFilter}
                             options={statusOptions}
                             onChange={setStatusFilter}
@@ -490,6 +372,36 @@ const ManageSupervisors = () => {
                     </div>
                 </div>
             </div>
+
+            <MobileFilterDrawer
+                open={isFilterDrawerOpen}
+                onOpen={() => setIsFilterDrawerOpen(true)}
+                onClose={() => setIsFilterDrawerOpen(false)}
+                bodyClassName="space-y-4"
+            >
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date Created</label>
+                    <DropdownSelect
+                        value={dateSort}
+                        options={dateSortOptions}
+                        onChange={(value) => {
+                            setDateSort(value);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                    />
+                </div>
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Status</label>
+                    <DropdownSelect
+                        value={statusFilter}
+                        options={statusOptions}
+                        onChange={(value) => {
+                            setStatusFilter(value);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                    />
+                </div>
+            </MobileFilterDrawer>
 
             {/* Error Banner */}
             {error && (

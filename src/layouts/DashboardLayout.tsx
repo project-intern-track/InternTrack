@@ -60,18 +60,18 @@ const DashboardLayout = () => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Mobile Header */}
-                <div className="lg:hidden sticky top-0 z-20 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-white/5 h-16 flex items-center px-4 gap-3 backdrop-blur-md">
+                <div className="lg:hidden sticky top-0 z-20 grid h-16 grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-gray-200 bg-white px-4 backdrop-blur-md dark:border-white/5 dark:bg-slate-900">
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setSidebarOpen(true)}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-slate-800"
                         aria-label="Open menu"
                     >
                         <Menu size={24} className="text-gray-700 dark:text-gray-300" />
                     </motion.button>
-                    <h1 className="text-xl font-black text-gray-900 dark:text-white">InternTrack</h1>
-                    <div className="ml-auto">
+                    <h1 className="m-0 self-center text-xl font-black leading-none text-gray-900 dark:text-white">InternTrack</h1>
+                    <div className="justify-self-end">
                         <NotificationDropdown />
                     </div>
                 </div>

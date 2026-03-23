@@ -124,7 +124,7 @@ const Sidebar = ({ isOpen: _isOpen = true, onClose, collapsed = false, onToggleC
         .slice(0, 2) || 'IT';
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0a] relative overflow-hidden">
+        <div className="relative flex h-full min-h-0 flex-col overflow-y-auto bg-[#0a0a0a] [scrollbar-width:none]">
             {/* Header */}
             <div
                 className={`flex items-center border-b border-white/10 h-16 flex-shrink-0 transition-all duration-300 ${
@@ -163,7 +163,7 @@ const Sidebar = ({ isOpen: _isOpen = true, onClose, collapsed = false, onToggleC
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-3 py-4 overflow-y-auto overflow-x-hidden space-y-5" style={{ scrollbarWidth: 'none' }}>
+            <nav className="flex-1 px-3 py-4 space-y-5 overflow-x-hidden min-h-0">
                 {navSections.map((section) => (
                     <div key={section.label}>
                         <AnimatePresence initial={false}>
@@ -239,7 +239,7 @@ const Sidebar = ({ isOpen: _isOpen = true, onClose, collapsed = false, onToggleC
             </nav>
 
             {/* Footer: collapse toggle + logout + user profile */}
-            <div className="border-t border-white/10 p-3 space-y-1 flex-shrink-0">
+            <div className="mt-auto flex-shrink-0 space-y-1 border-t border-white/10 p-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]">
                 {/* Desktop collapse toggle — lives in the footer */}
                 {onToggleCollapse && (
                     <motion.button

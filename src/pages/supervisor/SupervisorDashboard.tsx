@@ -122,6 +122,8 @@ const SupervisorDashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [detailTask, setDetailTask] = useState<Tasks | null>(null);
   const [finalizingId, setFinalizingId] = useState<number | null>(null);
+  const [currentTaskPage, setCurrentTaskPage] = useState(1);
+  const [isMobileTasksView, setIsMobileTasksView] = useState(() => window.innerWidth <= 768);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -132,8 +134,7 @@ const SupervisorDashboard = () => {
         taskService.getSupervisorTasks(),
       ]);
       setStats(statsData);
-      // Show the 7 most-recent tasks in the pending-tasks table
-      setRecentTasks(tasksData.slice(0, 7));
+      setRecentTasks(tasksData);
     } catch (err: any) {
       setError(err.message ?? 'Failed to load dashboard data.');
     } finally {
@@ -144,6 +145,13 @@ const SupervisorDashboard = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileTasksView(window.innerWidth <= 768);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // A task can be finalized when it's in_progress and every intern has finished
   const canFinalize = (task: Tasks) =>
@@ -175,6 +183,13 @@ const SupervisorDashboard = () => {
     : [];
 
   const totalPie = pieData.reduce((acc, d) => acc + d.value, 0);
+  const taskItemsPerPage = 5;
+  const totalTaskPages = Math.max(1, Math.ceil(recentTasks.length / taskItemsPerPage));
+  const safeTaskPage = Math.min(Math.max(1, currentTaskPage), totalTaskPages);
+  const paginatedRecentTasks = recentTasks.slice(
+    (safeTaskPage - 1) * taskItemsPerPage,
+    safeTaskPage * taskItemsPerPage
+  );
 
   const summaryRows = stats
     ? [
@@ -184,6 +199,16 @@ const SupervisorDashboard = () => {
         { label: 'Rejected', value: stats.rejected, colorClass: 'text-red-600 dark:text-red-300', soft: 'bg-red-50 dark:bg-red-500/10' },
       ]
     : [];
+
+  useEffect(() => {
+    setCurrentTaskPage(1);
+  }, [isMobileTasksView]);
+
+  useEffect(() => {
+    if (currentTaskPage > totalTaskPages) {
+      setCurrentTaskPage(1);
+    }
+  }, [currentTaskPage, totalTaskPages]);
 
   // ── Loading / Error states ────────────────────────────────────────────────
   if (loading) {
@@ -298,76 +323,189 @@ const SupervisorDashboard = () => {
               {recentTasks.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">No tasks found.</p>
               ) : (
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-white/5">
-                      <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Intern(s)</th>
-                      <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task</th>
-                      <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Due Date</th>
-                      <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Status</th>
-                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentTasks.map((task, index) => {
+                <>
+                  <div className="hidden md:block">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-white/5">
+                          <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Intern(s)</th>
+                          <th className="pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Task</th>
+                          <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Due Date</th>
+                          <th className="hidden pb-3 pr-4 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 lg:table-cell">Status</th>
+                          <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedRecentTasks.map((task, index) => {
+                          const style = statusStyles[task.status] ?? fallbackStyle;
+                          const doneCount = task.assigned_interns.filter((i) => i.intern_status === 'completed').length;
+                          const totalCount = task.assigned_interns.length;
+                          const readyToFinalize = canFinalize(task);
+                          return (
+                            <motion.tr
+                              key={task.id}
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.03 * index, duration: 0.25 }}
+                              className="border-b border-gray-100 last:border-none dark:border-white/5"
+                            >
+                              <td className="hidden py-3 pr-4 lg:table-cell">
+                                <div className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                                  {task.assigned_interns?.map((i) => i.full_name).join(', ') ||
+                                    (task.assigned_interns_count ? `${task.assigned_interns_count} intern(s)` : '-')}
+                                </div>
+                                {task.status === 'in_progress' && totalCount > 0 && (
+                                  <div className={`mt-1 text-xs font-semibold ${
+                                    readyToFinalize ? 'text-green-600 dark:text-green-400' : 'text-amber-500 dark:text-amber-400'
+                                  }`}>
+                                    {doneCount}/{totalCount} done
+                                  </div>
+                                )}
+                              </td>
+                              <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{task.title}</td>
+                              <td className="hidden py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap lg:table-cell">{formatDueDate(task.due_date)}</td>
+                              <td className="hidden py-3 pr-4 lg:table-cell">
+                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize whitespace-nowrap ${style.pill}`}>
+                                  {formatStatus(task.status)}
+                                </span>
+                              </td>
+                              <td className="py-3">
+                                {readyToFinalize ? (
+                                  <button
+                                    onClick={() => handleFinalize(task.id)}
+                                    disabled={finalizingId !== null}
+                                    className="inline-flex items-center gap-1.5 rounded-full bg-green-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-green-700 hover:scale-105 active:scale-95 disabled:opacity-60"
+                                  >
+                                    <CheckCircle size={13} />
+                                    {finalizingId === task.id ? 'Finalizing...' : 'Finalize'}
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => setDetailTask(task)}
+                                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-white transition-transform hover:scale-105 active:scale-95"
+                                  >
+                                    <Eye size={14} />
+                                    View
+                                  </button>
+                                )}
+                              </td>
+                            </motion.tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="space-y-3 md:hidden">
+                    {paginatedRecentTasks.map((task, index) => {
                       const style = statusStyles[task.status] ?? fallbackStyle;
                       const doneCount = task.assigned_interns.filter((i) => i.intern_status === 'completed').length;
                       const totalCount = task.assigned_interns.length;
                       const readyToFinalize = canFinalize(task);
                       return (
-                        <motion.tr
+                        <motion.div
                           key={task.id}
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.03 * index, duration: 0.25 }}
-                          className="border-b border-gray-100 last:border-none dark:border-white/5"
+                          className="rounded-[1.75rem] border border-gray-200 bg-gray-50/80 p-4 shadow-sm dark:border-white/5 dark:bg-white/5"
                         >
-                          <td className="hidden py-3 pr-4 lg:table-cell">
-                            <div className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                              {task.assigned_interns?.map((i) => i.full_name).join(', ') ||
-                                (task.assigned_interns_count ? `${task.assigned_interns_count} intern(s)` : '—')}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-base font-bold text-gray-900 dark:text-white">{task.title}</p>
+                              <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                {formatDueDate(task.due_date)}
+                              </p>
                             </div>
-                            {/* Show per-intern done count when task is in_progress */}
-                            {task.status === 'in_progress' && totalCount > 0 && (
-                              <div className={`mt-1 text-xs font-semibold ${
-                                readyToFinalize ? 'text-green-600 dark:text-green-400' : 'text-amber-500 dark:text-amber-400'
-                              }`}>
-                                {doneCount}/{totalCount} done
-                              </div>
-                            )}
-                          </td>
-                          <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{task.title}</td>
-                          <td className="hidden py-3 pr-4 text-gray-600 dark:text-gray-400 whitespace-nowrap lg:table-cell">{formatDueDate(task.due_date)}</td>
-                          <td className="hidden py-3 pr-4 lg:table-cell">
                             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize whitespace-nowrap ${style.pill}`}>
                               {formatStatus(task.status)}
                             </span>
-                          </td>
-                          <td className="py-3">
-                            {readyToFinalize ? (
-                              <button
-                                onClick={() => handleFinalize(task.id)}
-                                disabled={finalizingId !== null}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-green-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-green-700 hover:scale-105 active:scale-95 disabled:opacity-60"
-                              >
-                                <CheckCircle size={13} />
-                                {finalizingId === task.id ? 'Finalizing…' : 'Finalize'}
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => setDetailTask(task)}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-white transition-transform hover:scale-105 active:scale-95"
-                              >
-                                <Eye size={14} />
-                                View
-                              </button>
+                          </div>
+
+                          <div className="mt-4 space-y-3">
+                            <div>
+                              <p className="text-[0.7rem] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Intern(s)</p>
+                              <p className="mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                {task.assigned_interns?.map((i) => i.full_name).join(', ') ||
+                                  (task.assigned_interns_count ? `${task.assigned_interns_count} intern(s)` : '-')}
+                              </p>
+                            </div>
+
+                            {task.status === 'in_progress' && totalCount > 0 && (
+                              <div className={`text-xs font-semibold ${
+                                readyToFinalize ? 'text-green-600 dark:text-green-400' : 'text-amber-500 dark:text-amber-400'
+                              }`}>
+                                Progress: {doneCount}/{totalCount} done
+                              </div>
                             )}
-                          </td>
-                        </motion.tr>
+
+                            <div className="pt-1">
+                              {readyToFinalize ? (
+                                <button
+                                  onClick={() => handleFinalize(task.id)}
+                                  disabled={finalizingId !== null}
+                                  className="inline-flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-green-700 active:scale-95 disabled:opacity-60"
+                                >
+                                  <CheckCircle size={14} />
+                                  {finalizingId === task.id ? 'Finalizing...' : 'Finalize'}
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => setDetailTask(task)}
+                                  className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition-transform active:scale-95"
+                                >
+                                  <Eye size={14} />
+                                  View
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </div>
+
+                  <div className="pagination-controls mt-5">
+                    <div className="pagination-summary">
+                      Showing {(safeTaskPage - 1) * taskItemsPerPage + 1} to {Math.min(safeTaskPage * taskItemsPerPage, recentTasks.length)} of {recentTasks.length} tasks
+                    </div>
+                    <div className="pagination-buttons">
+                      <button
+                        className="pagination-btn pagination-arrow"
+                        onClick={() => setCurrentTaskPage((page) => Math.max(1, page - 1))}
+                        disabled={safeTaskPage === 1}
+                      >
+                        Prev
+                      </button>
+                      {Array.from({ length: totalTaskPages }, (_, index) => index + 1).map((page) => {
+                        if (page === 1 || page === totalTaskPages || (page >= safeTaskPage - 1 && page <= safeTaskPage + 1)) {
+                          return (
+                            <button
+                              key={page}
+                              className={`pagination-btn ${safeTaskPage === page ? 'active' : ''}`}
+                              onClick={() => setCurrentTaskPage(page)}
+                            >
+                              {page}
+                            </button>
+                          );
+                        }
+
+                        if (page === safeTaskPage - 2 || page === safeTaskPage + 2) {
+                          return <span key={page} className="pagination-ellipsis">...</span>;
+                        }
+
+                        return null;
+                      })}
+                      <button
+                        className="pagination-btn pagination-arrow"
+                        onClick={() => setCurrentTaskPage((page) => Math.min(totalTaskPages, page + 1))}
+                        disabled={safeTaskPage === totalTaskPages}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>

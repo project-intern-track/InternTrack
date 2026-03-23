@@ -5,6 +5,7 @@ import PageLoader from '../../components/PageLoader';
 import { Bar } from 'react-chartjs-2';
 import { userService } from '../../services/userServices';
 import { announcementService } from '../../services/announcementService';
+import DropdownSelect from '../../components/DropdownSelect';
 
 import {
     Chart as ChartJS,
@@ -206,7 +207,7 @@ const AdminDashboard = () => {
     if (!stats) return <PageLoader message="Loading dashboard..." />;
 
     return (
-        <div className="admin-page-shell">
+        <div className="admin-page-shell w-full space-y-6">
             <h1 className="dashboard-welcome animate-in fade-in duration-700">
                 Welcome back, <span className="highlight">Admin {user?.name}</span>!
             </h1>
@@ -254,9 +255,14 @@ const AdminDashboard = () => {
                                 <UserPlus className="chart-icon" />
                                 <span>New Registers</span>
                             </div>
-                            <select className="chart-filter bg-gray-200 dark:bg-slate-700" aria-label="Filter time period">
-                                <option>Last 30 Days</option>
-                            </select>
+                            <div className="min-w-[180px]">
+                                <DropdownSelect
+                                    value="last-30-days"
+                                    onChange={() => {}}
+                                    options={[{ value: 'last-30-days', label: 'Last 30 Days' }]}
+                                    buttonClassName="chart-filter bg-gray-200 dark:bg-slate-700"
+                                />
+                            </div>
                         </div>
                     </div>
                     <div className="chart-content h-[300px] bg-white dark:bg-slate-900 rounded-lg">

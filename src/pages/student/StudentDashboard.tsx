@@ -185,7 +185,7 @@ const StudentDashboard: React.FC = () => {
   const hoursRemaining = Math.max(0, stats.targetHours - stats.hoursLogged);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 space-y-6">
       {/* Welcome Header */}
       <motion.div
         initial={{ opacity: 0, y: -16 }}

@@ -1,130 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import {
-    Search,
-    Filter,
-    Plus,
-    ChevronDown,
-    Loader2,
-    X,
-} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, Filter, Plus, Loader2, X } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import { announcementService } from '../../services/announcementService';
 import { useAuth } from '../../context/AuthContext';
 import type { Announcement, AnnouncementPriority } from '../../types/database.types';
-
-type DropdownOption<T extends string> = {
-    value: T;
-    label: string;
-};
-
-type CustomDropdownProps<T extends string> = {
-    value: T;
-    options: DropdownOption<T>[];
-    onChange: (value: T) => void;
-    className?: string;
-    buttonClassName?: string;
-    panelClassName?: string;
-};
-
-function CustomDropdown<T extends string>({
-    value,
-    options,
-    onChange,
-    className = '',
-    buttonClassName = '',
-    panelClassName = '',
-}: CustomDropdownProps<T>) {
-    const [open, setOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement | null>(null);
-    const selectedOption = options.find(option => option.value === value) ?? options[0];
-
-    useEffect(() => {
-        if (!open) return;
-
-        const handleClickOutside = (event: MouseEvent) => {
-            if (!dropdownRef.current?.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        };
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleEscape);
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEscape);
-        };
-    }, [open]);
-
-    return (
-        <div ref={dropdownRef} className={`relative ${open ? 'z-[120]' : 'z-20'} ${className}`}>
-            <motion.button
-                type="button"
-                whileTap={{ scale: 0.985 }}
-                onClick={() => setOpen(prev => !prev)}
-                className={`flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[#ff8c42] focus:ring-2 focus:ring-[#ff8c42]/20 ${buttonClassName} ${open ? 'border-[#ff8c42] shadow-[0_14px_34px_-22px_rgba(255,140,66,0.85)]' : ''}`}
-                aria-haspopup="listbox"
-                aria-expanded={open}
-            >
-                <span>{selectedOption?.label ?? value}</span>
-                <motion.span
-                    animate={{ rotate: open ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="ml-3 shrink-0 text-slate-500"
-                >
-                    <ChevronDown size={18} />
-                </motion.span>
-            </motion.button>
-
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                        transition={{ duration: 0.18, ease: 'easeOut' }}
-                        className={`absolute left-0 right-0 top-[calc(100%+0.55rem)] z-10 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] ${panelClassName}`}
-                        role="listbox"
-                    >
-                        <div className="p-2">
-                            {options.map(option => {
-                                const isActive = option.value === value;
-
-                                return (
-                                    <motion.button
-                                        key={option.value}
-                                        type="button"
-                                        whileTap={{ scale: 0.985 }}
-                                        onClick={() => {
-                                            onChange(option.value);
-                                            setOpen(false);
-                                        }}
-                                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
-                                            isActive
-                                                ? 'bg-[#ff8c42] text-white'
-                                                : 'text-slate-700 hover:bg-orange-50'
-                                        }`}
-                                        role="option"
-                                        aria-selected={isActive}
-                                    >
-                                        <span>{option.label}</span>
-                                    </motion.button>
-                                );
-                            })}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
+import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
+import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 
 const Announcements = () => {
     const { user } = useAuth();
@@ -133,7 +14,7 @@ const Announcements = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
     const [dateCreatedFilter, setDateCreatedFilter] = useState('all');
-    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -144,20 +25,20 @@ const Announcements = () => {
     const [submitting, setSubmitting] = useState(false);
 
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
-    const dateCreatedOptions: DropdownOption<typeof dateCreatedFilter>[] = [
+    const dateCreatedOptions: DropdownSelectOption<typeof dateCreatedFilter>[] = [
         { value: 'all', label: 'All Date Created' },
         { value: 'newest', label: 'Newest to Oldest' },
         { value: 'oldest', label: 'Oldest to Newest' },
         { value: 'this-month', label: 'This Month' },
         { value: 'this-year', label: 'This Year' },
     ];
-    const priorityFilterOptions: DropdownOption<typeof priorityFilter>[] = [
+    const priorityFilterOptions: DropdownSelectOption<typeof priorityFilter>[] = [
         { value: 'all', label: 'All Priority' },
         { value: 'high', label: 'High' },
         { value: 'medium', label: 'Medium' },
         { value: 'low', label: 'Low' },
     ];
-    const formPriorityOptions: DropdownOption<AnnouncementPriority>[] = [
+    const formPriorityOptions: DropdownSelectOption<AnnouncementPriority>[] = [
         { value: 'high', label: 'High' },
         { value: 'medium', label: 'Medium' },
         { value: 'low', label: 'Low' },
@@ -285,7 +166,7 @@ const Announcements = () => {
     if (!announcements) return <PageLoader message="Loading announcements..." />;
 
     return (
-        <div className="container admin-page-shell max-w-full p-0">
+        <div className="admin-page-shell w-full space-y-6">
             {/* Header */}
             <div className="announcements-header mb-8">
                 <h1 className="text-3xl font-bold text-orange-600 m-0">Announcements</h1>
@@ -311,20 +192,14 @@ const Announcements = () => {
                     />
                 </div>
 
-                <div 
-                    className="announcements-filter-label flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto md:mt-0"
-                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                >
-                    <div className="flex flex-row items-center gap-2">
-                        <Filter size={20} />
-                        <span className="font-semibold">Filters:</span>
-                    </div>
-                    <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+                <div className="announcements-filter-label !hidden items-center gap-2 min-[851px]:!flex min-[851px]:mt-0">
+                    <Filter size={20} />
+                    <span className="font-semibold">Filters:</span>
                 </div>
 
-                <div className={`w-full md:w-auto flex-col md:flex-row gap-4 md:flex ${isFiltersOpen ? 'flex' : 'hidden md:mt-0'}`}>
+                <div className="!hidden w-full flex-col gap-4 min-[851px]:!flex min-[851px]:w-auto min-[851px]:flex-row">
                     <div className="announcements-filter-select w-full md:w-auto">
-                        <CustomDropdown
+                        <DropdownSelect
                             value={dateCreatedFilter}
                             options={dateCreatedOptions}
                             onChange={setDateCreatedFilter}
@@ -332,13 +207,49 @@ const Announcements = () => {
                     </div>
 
                     <div className="announcements-filter-select w-full md:w-auto">
-                        <CustomDropdown
+                        <DropdownSelect
                             value={priorityFilter}
                             options={priorityFilterOptions}
                             onChange={setPriorityFilter}
                         />
                     </div>
                 </div>
+
+                <MobileFilterDrawer
+                    open={isFilterDrawerOpen}
+                    onOpen={() => setIsFilterDrawerOpen(true)}
+                    onClose={() => setIsFilterDrawerOpen(false)}
+                    bodyClassName="space-y-4"
+                >
+                    <div className="flex flex-row items-center gap-2">
+                        <Filter size={20} className="text-orange-600" />
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Adjust announcement filters</span>
+                    </div>
+
+                    <div className="announcements-filter-select w-full">
+                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date Created</label>
+                        <DropdownSelect
+                            value={dateCreatedFilter}
+                            options={dateCreatedOptions}
+                            onChange={(value) => {
+                                setDateCreatedFilter(value);
+                                setIsFilterDrawerOpen(false);
+                            }}
+                        />
+                    </div>
+
+                    <div className="announcements-filter-select w-full">
+                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Priority</label>
+                        <DropdownSelect
+                            value={priorityFilter}
+                            options={priorityFilterOptions}
+                            onChange={(value) => {
+                                setPriorityFilter(value);
+                                setIsFilterDrawerOpen(false);
+                            }}
+                        />
+                    </div>
+                </MobileFilterDrawer>
             </div>
 
             {/* Content Grid / Empty State */}
@@ -517,7 +428,7 @@ const Announcements = () => {
 
                         <div className="mb-8">
                             <label className="block font-semibold mb-2">Priority:</label>
-                            <CustomDropdown
+                            <DropdownSelect
                                 value={formData.priority}
                                 options={formPriorityOptions}
                                 onChange={(value) => setFormData({ ...formData, priority: value })}

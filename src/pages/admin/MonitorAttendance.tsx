@@ -1,9 +1,11 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { UserCheck, Search, Filter, ChevronDown, Download, Plus, X } from 'lucide-react';
+import { UserCheck, Search, Filter, Download, Plus } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
 import '../../index.css';
+import DropdownSelect from '../../components/DropdownSelect';
+import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -460,14 +462,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           display: none;
         }
 
-        .attendance-mobile-filter-btn {
-          display: none;
-        }
-
-        .attendance-filter-drawer-overlay {
-          display: none;
-        }
-        
         @media (max-width: 768px) {
           .attendance-container {
             padding: 0;
@@ -523,102 +517,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             display: none !important;
           }
 
-          .attendance-mobile-filter-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.625rem 1rem;
-            background-color: #e9e6e1;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            margin-bottom: 1.25rem;
-            width: 100%;
-            justify-content: center;
-          }
-
-          .attendance-filter-drawer-overlay {
-            display: block;
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 35;
-          }
-
-          .attendance-filter-drawer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 16px 16px 0 0;
-            padding: 1.5rem;
-            z-index: 36;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-          }
-
-          .attendance-filter-drawer-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #e5e5e5;
-          }
-
-          .attendance-filter-drawer-header h3 {
-            font-size: 1.125rem;
-            font-weight: 700;
-            margin: 0;
-            color: #1a1a1a;
-          }
-
-          .attendance-filter-drawer-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.25rem;
-            color: #666;
-          }
-
-          .attendance-filter-drawer-body {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-          }
-
-          .attendance-filter-drawer-body label {
-            display: block;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            margin-bottom: 0.375rem;
-            color: #555;
-          }
-
-          .attendance-filter-drawer-body input,
-          .attendance-filter-drawer-body select {
-            width: 100% !important;
-            font-size: 16px !important;
-            padding: 0.75rem !important;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            box-sizing: border-box;
-          }
-
-          .attendance-filter-drawer-body button.drawer-date-toggle {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-          
           .attendance-table-wrapper {
             display: none !important;
           }
@@ -863,7 +761,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           }
         }
       `}</style>
-      <div className="attendance-container admin-page-shell">
+      <div className="attendance-container admin-page-shell w-full space-y-6">
         {/* Header */}
         <div className="attendance-header mb-8 flex justify-between items-center flex-wrap gap-4">
           <h1>Monitor Attendance</h1>
@@ -918,32 +816,33 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="card attendance-filter-section mb-6">
-          <div className="row attendance-filter-row gap-4 items-center flex-wrap">
-            {/* Search Bar */}
-            <div className="input-group attendance-search-container relative flex-1 min-w-[200px]">
-              <Search
-                size={20}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-              />
-              <input
-                className="input"
-                type="text"
-                placeholder="Search by name"
-                value={searchTerm}
-                onChange={(e) => {
-                  if (scrollContainerRef.current) {
-                    scrollPositionRef.current = scrollContainerRef.current.scrollTop;
-                  }
-                  setSearchTerm(e.target.value);
-                }}
-                style={{
-                  paddingLeft: '3rem',
-                  backgroundColor: 'white',
-                }}
-              />
-            </div>
+        <div className="mb-6">
+          <div className="input-group attendance-search-container relative">
+            <Search
+              size={20}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            />
+            <input
+              className="input"
+              type="text"
+              placeholder="Search by name"
+              value={searchTerm}
+              onChange={(e) => {
+                if (scrollContainerRef.current) {
+                  scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+                }
+                setSearchTerm(e.target.value);
+              }}
+              style={{
+                paddingLeft: '3rem',
+                backgroundColor: 'white',
+              }}
+            />
+          </div>
+        </div>
 
+        <div className="card attendance-filter-section mb-6 !hidden min-[851px]:!block">
+          <div className="row attendance-filter-row gap-4 items-center flex-wrap">
             {/* Filter label */}
             <div className="row attendance-filter-label gap-2 items-center">
               <Filter size={20} className="text-muted-foreground" />
@@ -1004,70 +903,104 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               </div>
 
               <div className="relative flex-1 min-w-[150px]">
-                <select
-                  className="select"
+                <DropdownSelect
                   value={statusFilter}
-                  onChange={(e) => {
+                  onChange={(value) => {
                     if (scrollContainerRef.current) {
                       scrollPositionRef.current = scrollContainerRef.current.scrollTop;
                     }
-                    setStatusFilter(e.target.value);
+                    setStatusFilter(value);
                   }}
-                  style={{ width: '100%', backgroundColor: 'white', paddingRight: '2.5rem' }}
-                >
-                  <option value="all">All Status</option>
-                  <option value="present">Present</option>
-                  <option value="late">Late</option>
-                  <option value="absent">Absent</option>
-                  <option value="excused">Excused</option>
-                </select>
-                <ChevronDown
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground"
+                  options={[
+                    { value: 'all', label: 'All Status' },
+                    { value: 'present', label: 'Present' },
+                    { value: 'late', label: 'Late' },
+                    { value: 'absent', label: 'Absent' },
+                    { value: 'excused', label: 'Excused' },
+                  ]}
+                  buttonClassName="select"
                 />
               </div>
 
               <div style={{ position: 'relative', flex: '1', minWidth: '130px' }}>
-                <select
-                  className="select"
+                <DropdownSelect
                   value={roleFilter}
-                  onChange={(e) => {
+                  onChange={(value) => {
                     if (scrollContainerRef.current) {
                       scrollPositionRef.current = scrollContainerRef.current.scrollTop;
                     }
-                    setRoleFilter(e.target.value);
+                    setRoleFilter(value);
                   }}
-                  style={{ width: '100%', backgroundColor: 'white', paddingRight: '2.5rem' }}
-                >
-                  <option value="all">All Roles</option>
-                  <option value="intern">Intern</option>
-                  <option value="admin">Admin</option>
-                  <option value="supervisor">Supervisor</option>
-                </select>
-                <ChevronDown
-                  size={16}
-                  style={{
-                    position: 'absolute',
-                    right: '0.75rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    pointerEvents: 'none',
-                    color: 'hsl(var(--muted-foreground))',
-                  }}
+                  options={[
+                    { value: 'all', label: 'All Roles' },
+                    { value: 'intern', label: 'Intern' },
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'supervisor', label: 'Supervisor' },
+                  ]}
+                  buttonClassName="select"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Mobile Filter Button — visible only on mobile via CSS */}
-        <button
-          className="attendance-mobile-filter-btn"
-          onClick={() => setIsFilterDrawerOpen(true)}
+        <MobileFilterDrawer
+          open={isFilterDrawerOpen}
+          onOpen={() => setIsFilterDrawerOpen(true)}
+          onClose={() => setIsFilterDrawerOpen(false)}
+          bodyClassName="space-y-4"
         >
-          <Filter size={18} />
-          Filters
-        </button>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date</label>
+            <input
+              type="date"
+              value={dateFilter === 'all' ? '' : dateFilter}
+              onChange={(e) => setDateFilter(e.target.value || 'all')}
+              disabled={dateFilter === 'all'}
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:disabled:bg-slate-800"
+            />
+            <button
+              type="button"
+              className={`mt-3 inline-flex rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${
+                dateFilter === 'all'
+                  ? 'border-orange-500 bg-orange-500 text-white'
+                  : 'border-orange-200 bg-white text-orange-600 hover:bg-orange-50'
+              }`}
+              onClick={() => setDateFilter(dateFilter === 'all' ? todayDate : 'all')}
+            >
+              {dateFilter === 'all' ? 'Show All Dates' : 'Clear Date'}
+            </button>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Status</label>
+            <DropdownSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: 'all', label: 'All Status' },
+                { value: 'present', label: 'Present' },
+                { value: 'late', label: 'Late' },
+                { value: 'absent', label: 'Absent' },
+                { value: 'excused', label: 'Excused' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Role</label>
+            <DropdownSelect
+              value={roleFilter}
+              onChange={setRoleFilter}
+              options={[
+                { value: 'all', label: 'All Roles' },
+                { value: 'intern', label: 'Intern' },
+                { value: 'admin', label: 'Admin' },
+                { value: 'supervisor', label: 'Supervisor' },
+              ]}
+            />
+          </div>
+        </MobileFilterDrawer>
 
         <div>
 
@@ -1195,89 +1128,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         </div>
       </div>
 
-      {/* Mobile Filter Drawer */}
-      {isFilterDrawerOpen && (
-        <div className="attendance-filter-drawer-overlay" onClick={() => setIsFilterDrawerOpen(false)}>
-          <div className="attendance-filter-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="attendance-filter-drawer-header">
-              <h3>Filters</h3>
-              <button className="attendance-filter-drawer-close" onClick={() => setIsFilterDrawerOpen(false)}>
-                <X size={22} />
-              </button>
-            </div>
-            <div className="attendance-filter-drawer-body">
-              {/* Search */}
-              <div>
-                <label>Search by name</label>
-                <input
-                  type="text"
-                  placeholder="Search by name"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              {/* Date */}
-              <div>
-                <label>Date</label>
-                <input
-                  type="date"
-                  value={dateFilter === 'all' ? '' : dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value || 'all')}
-                  disabled={dateFilter === 'all'}
-                  style={{
-                    backgroundColor: dateFilter === 'all' ? '#f5f5f5' : 'white',
-                    cursor: dateFilter === 'all' ? 'not-allowed' : 'text',
-                  }}
-                />
-                <button
-                  type="button"
-                  className="drawer-date-toggle"
-                  onClick={() => setDateFilter(dateFilter === 'all' ? todayDate : 'all')}
-                  style={{
-                    marginTop: '0.5rem',
-                    color: dateFilter === 'all' ? 'white' : 'hsl(var(--orange))',
-                    backgroundColor: dateFilter === 'all' ? 'hsl(var(--orange))' : 'white',
-                    border: '2px solid hsl(var(--orange))',
-                  }}
-                >
-                  {dateFilter === 'all' ? 'Show All Dates' : 'Clear Date'}
-                </button>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label>Status</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="all">All Status</option>
-                  <option value="present">Present</option>
-                  <option value="late">Late</option>
-                  <option value="absent">Absent</option>
-                  <option value="excused">Excused</option>
-                </select>
-              </div>
-
-              {/* Role */}
-              <div>
-                <label>Role</label>
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <option value="all">All Roles</option>
-                  <option value="intern">Intern</option>
-                  <option value="admin">Admin</option>
-                  <option value="supervisor">Supervisor</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Manual Entry Modal */}
       {isManualEntryOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -1288,18 +1138,15 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               
               <div>
                 <label className="block text-sm font-medium mb-2">Intern</label>
-                <select 
-                  className="select" 
-                  value={manualEntryForm.user_id} 
-                  onChange={e => setManualEntryForm({...manualEntryForm, user_id: e.target.value})}
-                  required
-                  style={{ width: '100%' }}
-                >
-                  <option value="">Select an intern...</option>
-                  {interns.map(intern => (
-                    <option key={intern.id} value={intern.id}>{intern.full_name}</option>
-                  ))}
-                </select>
+                <DropdownSelect
+                  value={manualEntryForm.user_id}
+                  onChange={(value) => setManualEntryForm({ ...manualEntryForm, user_id: value })}
+                  options={[
+                    { value: '', label: 'Select an intern...' },
+                    ...interns.map((intern) => ({ value: String(intern.id), label: intern.full_name })),
+                  ]}
+                  buttonClassName="select"
+                />
               </div>
 
               <div>
@@ -1342,17 +1189,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
               <div>
                 <label className="block text-sm font-medium mb-2">Status</label>
-                <select 
-                  className="select" 
-                  value={manualEntryForm.status} 
-                  onChange={e => setManualEntryForm({...manualEntryForm, status: e.target.value})}
-                  style={{ width: '100%' }}
-                >
-                  <option value="present">Present</option>
-                  <option value="late">Late</option>
-                  <option value="absent">Absent</option>
-                  <option value="excused">Excused</option>
-                </select>
+                <DropdownSelect
+                  value={manualEntryForm.status}
+                  onChange={(value) => setManualEntryForm({ ...manualEntryForm, status: value })}
+                  options={[
+                    { value: 'present', label: 'Present' },
+                    { value: 'late', label: 'Late' },
+                    { value: 'absent', label: 'Absent' },
+                    { value: 'excused', label: 'Excused' },
+                  ]}
+                  buttonClassName="select"
+                />
               </div>
 
               <div className="flex justify-end gap-3 mt-4">

@@ -284,19 +284,22 @@ const DailyLogs = () => {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
                 {[
-                    { label: "Today's Hours", value: loading ? '…' : `${stats.todayHours}`, unit: 'hrs', icon: <Clock size={20} />, iconBg: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400' },
-                    { label: 'This Week', value: loading ? '…' : `${stats.weekHours}`, unit: 'hrs', icon: <Calendar size={20} />, iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconColor: 'text-[#FF8800]' },
-                    { label: 'Total Entries', value: loading ? '…' : `${stats.totalEntries}`, unit: 'logs', icon: <FileText size={20} />, iconBg: 'bg-green-100 dark:bg-green-900/30', iconColor: 'text-green-600 dark:text-green-400' },
+                    { label: "Today's Hours", mobileLabel: 'Today', value: loading ? '...' : `${stats.todayHours}`, unit: 'hrs', icon: <Clock size={20} />, iconBg: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400' },
+                    { label: 'This Week', mobileLabel: 'Week', value: loading ? '...' : `${stats.weekHours}`, unit: 'hrs', icon: <Calendar size={20} />, iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconColor: 'text-[#FF8800]' },
+                    { label: 'Total Entries', mobileLabel: 'Entries', value: loading ? '...' : `${stats.totalEntries}`, unit: 'logs', icon: <FileText size={20} />, iconBg: 'bg-green-100 dark:bg-green-900/30', iconColor: 'text-green-600 dark:text-green-400' },
                 ].map((s) => (
-                    <div key={s.label} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-5">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${s.iconBg} ${s.iconColor}`}>
+                    <div key={s.label} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-3 sm:p-5">
+                        <div className={`flex w-8 h-8 sm:w-10 sm:h-10 rounded-xl items-center justify-center mb-2 sm:mb-3 ${s.iconBg} ${s.iconColor}`}>
                             {s.icon}
                         </div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">{s.label}</p>
-                        <p className="text-3xl font-black text-gray-900 dark:text-white leading-none">
-                            {s.value}<span className="text-base font-semibold text-gray-400 ml-1">{s.unit}</span>
+                        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] sm:tracking-widest text-gray-400 dark:text-gray-500 mb-1">
+                            <span className="sm:hidden">{s.mobileLabel}</span>
+                            <span className="hidden sm:inline">{s.label}</span>
+                        </p>
+                        <p className="text-xl sm:text-3xl font-black text-gray-900 dark:text-white leading-none">
+                            {s.value}<span className="text-[11px] sm:text-base font-semibold text-gray-400 ml-1">{s.unit}</span>
                         </p>
                     </div>
                 ))}

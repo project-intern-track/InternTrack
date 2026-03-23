@@ -267,7 +267,7 @@ const ManageAdmins = () => {
     );
 
     return (
-        <div className="admin-page-shell max-w-full p-0 overflow-hidden">
+        <div className="admin-page-shell w-full space-y-6 overflow-hidden">
             {/* Header Section */}
             <div className="manage-interns-header">
                 <h1 className="text-primary text-3xl m-0">Manage Admins</h1>

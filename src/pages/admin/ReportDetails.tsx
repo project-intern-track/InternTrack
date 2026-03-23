@@ -36,7 +36,7 @@ const ReportDetails = () => {
 
     if (loading) {
         return (
-            <div className="admin-page-shell">
+            <div className="admin-page-shell w-full">
                 <div className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-2xl p-8 text-center text-sm text-gray-500 dark:text-gray-400">
                     Loading report details...
                 </div>
@@ -46,7 +46,7 @@ const ReportDetails = () => {
 
     if (!profile) {
         return (
-            <div className="admin-page-shell">
+            <div className="admin-page-shell w-full">
                 <div className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-2xl p-8 text-center">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Report not found</h2>
                 <button
@@ -61,7 +61,7 @@ const ReportDetails = () => {
     }
 
     return (
-        <div className="admin-page-shell report-details-shell">
+        <div className="admin-page-shell report-details-shell w-full space-y-6">
             <div className="report-details-card bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-2xl p-5 md:p-6 mb-6">
                 <div className="mb-4">
                     <button

@@ -700,7 +700,7 @@ const ManageTasks = () => {
     }, [tasks, search, priorityFilter, statusFilter, dueDateFilter, customDueStart, customDueEnd]);
 
     return (
-        <div className="admin-page-shell">
+        <div className="admin-page-shell w-full space-y-6">
             <style>{`
                 @keyframes spin {
                     0% { transform: rotate(0deg); }

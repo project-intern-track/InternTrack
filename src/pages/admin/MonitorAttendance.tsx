@@ -864,7 +864,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           }
         }
       `}</style>
-      <div className="attendance-container admin-page-shell">
+      <div className="attendance-container admin-page-shell w-full space-y-6">
         {/* Header */}
         <div className="attendance-header mb-8 flex justify-between items-center flex-wrap gap-4">
           <h1>Monitor Attendance</h1>

@@ -134,7 +134,7 @@ const Reports = () => {
     });
 
     return (
-        <div className="admin-page-shell reports-page-shell">
+        <div className="admin-page-shell reports-page-shell w-full space-y-6">
             <div className="reports-header-block">
                 <h1 className="reports-title">Reports Section</h1>
                 <h2 className="reports-subtitle">Weekly/Monthly Summaries</h2>

@@ -309,7 +309,7 @@ const ManageSupervisors = () => {
     );
 
     return (
-        <div className="admin-page-shell max-w-full p-0 overflow-hidden">
+        <div className="admin-page-shell w-full space-y-6 overflow-hidden">
             {/* Header Section */}
             <div className="manage-interns-header">
                 <h1 className="text-3xl font-bold text-orange-600 m-0">Manage Supervisors</h1>

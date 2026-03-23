@@ -165,7 +165,7 @@ const Announcements = () => {
     if (!announcements) return <PageLoader message="Loading announcements..." />;
 
     return (
-        <div className="container admin-page-shell max-w-full p-0">
+        <div className="admin-page-shell w-full space-y-6">
             {/* Header */}
             <div className="announcements-header mb-8">
                 <h1 className="text-3xl font-bold text-orange-600 m-0">Announcements</h1>

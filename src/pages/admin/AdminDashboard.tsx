@@ -207,7 +207,7 @@ const AdminDashboard = () => {
     if (!stats) return <PageLoader message="Loading dashboard..." />;
 
     return (
-        <div className="admin-page-shell">
+        <div className="admin-page-shell w-full space-y-6">
             <h1 className="dashboard-welcome animate-in fade-in duration-700">
                 Welcome back, <span className="highlight">Admin {user?.name}</span>!
             </h1>

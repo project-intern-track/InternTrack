@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash, Lock, X } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import type { Attendance } from '../../types/database.types';
+import ModalPortal from '../../components/ModalPortal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_HOURS = 8;
@@ -283,19 +284,22 @@ const DailyLogs = () => {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
                 {[
-                    { label: "Today's Hours", value: loading ? '…' : `${stats.todayHours}`, unit: 'hrs', icon: <Clock size={20} />, iconBg: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400' },
-                    { label: 'This Week', value: loading ? '…' : `${stats.weekHours}`, unit: 'hrs', icon: <Calendar size={20} />, iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconColor: 'text-[#FF8800]' },
-                    { label: 'Total Entries', value: loading ? '…' : `${stats.totalEntries}`, unit: 'logs', icon: <FileText size={20} />, iconBg: 'bg-green-100 dark:bg-green-900/30', iconColor: 'text-green-600 dark:text-green-400' },
+                    { label: "Today's Hours", mobileLabel: 'Today', value: loading ? '...' : `${stats.todayHours}`, unit: 'hrs', icon: <Clock size={20} />, iconBg: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400' },
+                    { label: 'This Week', mobileLabel: 'Week', value: loading ? '...' : `${stats.weekHours}`, unit: 'hrs', icon: <Calendar size={20} />, iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconColor: 'text-[#FF8800]' },
+                    { label: 'Total Entries', mobileLabel: 'Entries', value: loading ? '...' : `${stats.totalEntries}`, unit: 'logs', icon: <FileText size={20} />, iconBg: 'bg-green-100 dark:bg-green-900/30', iconColor: 'text-green-600 dark:text-green-400' },
                 ].map((s) => (
-                    <div key={s.label} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-5">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${s.iconBg} ${s.iconColor}`}>
+                    <div key={s.label} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-3 sm:p-5">
+                        <div className={`flex w-8 h-8 sm:w-10 sm:h-10 rounded-xl items-center justify-center mb-2 sm:mb-3 ${s.iconBg} ${s.iconColor}`}>
                             {s.icon}
                         </div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">{s.label}</p>
-                        <p className="text-3xl font-black text-gray-900 dark:text-white leading-none">
-                            {s.value}<span className="text-base font-semibold text-gray-400 ml-1">{s.unit}</span>
+                        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] sm:tracking-widest text-gray-400 dark:text-gray-500 mb-1">
+                            <span className="sm:hidden">{s.mobileLabel}</span>
+                            <span className="hidden sm:inline">{s.label}</span>
+                        </p>
+                        <p className="text-xl sm:text-3xl font-black text-gray-900 dark:text-white leading-none">
+                            {s.value}<span className="text-[11px] sm:text-base font-semibold text-gray-400 ml-1">{s.unit}</span>
                         </p>
                     </div>
                 ))}
@@ -548,8 +552,9 @@ const DailyLogs = () => {
 
             {/* Delete Confirm Modal */}
             {deleteId && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={cancelDelete}>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+                <ModalPortal>
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={cancelDelete}>
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
                         <button className="absolute right-4 top-4 p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-700 transition-all" onClick={cancelDelete} disabled={isDeleting}>
                             <X size={18}/>
                         </button>
@@ -578,8 +583,9 @@ const DailyLogs = () => {
                                 {isDeleting ? <RefreshCw size={15} className="animate-spin"/> : 'Delete'}
                             </button>
                         </div>
+                        </div>
                     </div>
-                </div>
+                </ModalPortal>
             )}
         </div>
     );

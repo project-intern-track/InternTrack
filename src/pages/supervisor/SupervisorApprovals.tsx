@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle, X } from 'lucide-react';
 import { taskService } from '../../services/taskServices';
 import type { Tasks } from '../../types/database.types';
 import DropdownSelect from '../../components/DropdownSelect';
+import ModalPortal from '../../components/ModalPortal';
 
 type InternProgress = {
   id: number;
@@ -513,7 +514,8 @@ const SupervisorApprovals = () => {
 
       {/* ================= PROGRESS MODAL ================= */}
       {progressTask && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+        <ModalPortal>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -576,11 +578,13 @@ const SupervisorApprovals = () => {
             )}
           </motion.div>
         </div>
+        </ModalPortal>
       )}
 
       {/* ================= REVISION MODAL ================= */}
       {showModal && selectedTask && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+        <ModalPortal>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -642,10 +646,12 @@ const SupervisorApprovals = () => {
             </div>
           </motion.div>
         </div>
+        </ModalPortal>
       )}
       {/* ================= REJECT MODAL ================= */}
       {showRejectModal && rejectTask && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+        <ModalPortal>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -695,6 +701,7 @@ const SupervisorApprovals = () => {
             </div>
           </motion.div>
         </div>
+        </ModalPortal>
       )}
 
       {/* ================= TOAST ================= */}

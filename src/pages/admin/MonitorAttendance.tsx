@@ -6,6 +6,7 @@ import type { Attendance, Users } from '../../types/database.types';
 import '../../index.css';
 import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
+import ModalPortal from '../../components/ModalPortal';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -1130,8 +1131,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
       {/* Manual Entry Modal */}
       {isManualEntryOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-8 w-full max-w-[500px] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] max-h-[90vh] overflow-y-auto">
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl p-8 w-full max-w-[500px] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-6 text-slate-900">Add Manual Entry</h2>
             {submitError && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">{submitError}</div>}
             <form onSubmit={handleManualSubmit} className="flex flex-col gap-4">
@@ -1221,8 +1223,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 </button>
               </div>
             </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </>
   );

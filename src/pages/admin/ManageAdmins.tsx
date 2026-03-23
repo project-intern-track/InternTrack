@@ -4,6 +4,7 @@ import PageLoader from '../../components/PageLoader';
 import SearchableSelect from '../../components/SearchableSelect';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
+import ModalPortal from '../../components/ModalPortal';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import { useAuth } from '../../context/AuthContext';
@@ -504,6 +505,7 @@ const ManageAdmins = () => {
 
             {/* Add Admin Modal */}
             {isAddModalOpen && (
+                <ModalPortal>
                 <div className="modal-overlay" onClick={handleCloseAddModal}>
                     <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <h2 className="text-orange-600 dark:text-orange-400">{confirmationStep ? 'Confirm Admin Addition' : 'Add New Admin'}</h2>
@@ -541,10 +543,12 @@ const ManageAdmins = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
 
             {/* ===== Archive Confirmation Modal ===== */}
             {archiveTarget && (
+                <ModalPortal>
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
                     <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
@@ -574,10 +578,12 @@ const ManageAdmins = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
 
             {/* ===== Edit Admin Modal ===== */}
             {editingAdmin && (
+                <ModalPortal>
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] backdrop-blur-sm" onClick={closeEditModal}>
                     <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
                         {/* Heading */}
@@ -635,6 +641,7 @@ const ManageAdmins = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
         </div>
     );

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2 } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
+import ModalPortal from '../../components/ModalPortal';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
@@ -542,6 +543,7 @@ const ManageSupervisors = () => {
 
             {/* Add Supervisor Modal */}
             {signUpModalOpen && (
+                <ModalPortal>
                 <div className="modal-overlay" onClick={handleCloseSignupModal}>
                     <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <h2 className="text-orange-600 mb-6">Register New Supervisor</h2>
@@ -621,10 +623,12 @@ const ManageSupervisors = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
 
             {/* ===== Archive Confirmation Modal ===== */}
             {archiveTarget && (
+                <ModalPortal>
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
                     <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
@@ -654,10 +658,12 @@ const ManageSupervisors = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
 
             {/* ===== Edit Supervisor Modal ===== */}
             {editingSupervisor && (
+                <ModalPortal>
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] backdrop-blur-sm" onClick={closeEditModal}>
                     <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
                         {/* Heading */}
@@ -715,6 +721,7 @@ const ManageSupervisors = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
         </div>
     );

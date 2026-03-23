@@ -3,6 +3,7 @@ import { Pencil, AlertCircle, Search, Download, Filter, Archive } from 'lucide-r
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
+import ModalPortal from '../../components/ModalPortal';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users, OJTType } from '../../types/database.types';
@@ -734,6 +735,7 @@ const ManageInterns = () => {
 
             {/* ===== Archive Confirmation Modal ===== */}
             {archiveTarget && (
+                <ModalPortal>
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
                     <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px]" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
@@ -763,10 +765,12 @@ const ManageInterns = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
 
             {/* ===== Edit Intern Modal ===== */}
             {editingIntern && (
+                <ModalPortal>
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] backdrop-blur-sm" onClick={closeEditModal}>
                     <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
                         {/* Heading */}
@@ -899,6 +903,7 @@ const ManageInterns = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
         </div>
     );

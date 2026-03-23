@@ -304,6 +304,7 @@ const ManageTasks = () => {
     const [lastNonCustomDueFilter, setLastNonCustomDueFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month'>('today');
     const [priorityFilter, setPriorityFilter] = useState('All Priority');
     const [statusFilter, setStatusFilter] = useState('All Status');
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
     const [tasks, setTasks] = useState<Tasks[]>([]);
     const [interns, setInterns] = useState<Users[]>([]);
@@ -965,14 +966,20 @@ const ManageTasks = () => {
 
             <div className="card manage-tasks-filter-section">
                 <div
-                    className="row manage-tasks-filter-row"
+                    className="row manage-tasks-filter-row flex-col md:flex-row items-stretch md:items-center"
                 >
-                    <div className="manage-tasks-filter-label">
-                        <Filter size={20} />
-                        <span>Filters:</span>
+                    <div 
+                        className="manage-tasks-filter-label flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
+                        onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Filter size={20} />
+                            <span className="font-semibold">Filters:</span>
+                        </div>
+                        <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                     </div>
 
-                    <div className="manage-tasks-filter-selects">
+                    <div className={`manage-tasks-filter-selects w-full md:w-auto flex-col md:flex-row gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
                         <div className="manage-tasks-filter-col">
                             <CustomDropdown
                                 value={dueDateFilter}

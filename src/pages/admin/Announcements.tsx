@@ -133,6 +133,7 @@ const Announcements = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
     const [dateCreatedFilter, setDateCreatedFilter] = useState('all');
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -298,8 +299,8 @@ const Announcements = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="announcements-filter-bar mb-8 border border-slate-200 rounded-lg p-3 bg-[#F9F7F4] gap-4">
-                <div className="announcements-filter-search admin-search-wrap">
+            <div className="announcements-filter-bar mb-8 border border-slate-200 rounded-lg p-3 bg-[#F9F7F4] flex-col md:flex-row items-stretch md:items-center gap-4">
+                <div className="announcements-filter-search admin-search-wrap w-full md:w-auto">
                     <Search size={20} className="admin-search-icon" />
                     <input
                         type="text"
@@ -310,25 +311,33 @@ const Announcements = () => {
                     />
                 </div>
 
-                <div className="announcements-filter-label">
-                    <Filter size={20} />
-                    <span className="font-semibold">Filters:</span>
+                <div 
+                    className="announcements-filter-label flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto md:mt-0"
+                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                >
+                    <div className="flex items-center gap-2">
+                        <Filter size={20} />
+                        <span className="font-semibold">Filters:</span>
+                    </div>
+                    <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                 </div>
 
-                <div className="announcements-filter-select">
-                    <CustomDropdown
-                        value={dateCreatedFilter}
-                        options={dateCreatedOptions}
-                        onChange={setDateCreatedFilter}
-                    />
-                </div>
+                <div className={`w-full md:w-auto flex-col md:flex-row gap-4 md:flex ${isFiltersOpen ? 'flex' : 'hidden md:mt-0'}`}>
+                    <div className="announcements-filter-select w-full md:w-auto">
+                        <CustomDropdown
+                            value={dateCreatedFilter}
+                            options={dateCreatedOptions}
+                            onChange={setDateCreatedFilter}
+                        />
+                    </div>
 
-                <div className="announcements-filter-select">
-                    <CustomDropdown
-                        value={priorityFilter}
-                        options={priorityFilterOptions}
-                        onChange={setPriorityFilter}
-                    />
+                    <div className="announcements-filter-select w-full md:w-auto">
+                        <CustomDropdown
+                            value={priorityFilter}
+                            options={priorityFilterOptions}
+                            onChange={setPriorityFilter}
+                        />
+                    </div>
                 </div>
             </div>
 

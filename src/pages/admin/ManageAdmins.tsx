@@ -137,6 +137,7 @@ const ManageAdmins = () => {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [dateSort, setDateSort] = useState<'newest' | 'oldest'>('newest');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -419,23 +420,32 @@ const ManageAdmins = () => {
             </div>
 
             {/* Filter Section */}
-            <div className="manage-interns-filters">
-                <div className="row items-center gap-2">
-                    <Filter size={20} /> <span className="font-semibold">Filters:</span>
+            <div className="manage-interns-filters flex-col md:flex-row items-stretch md:items-center">
+                <div 
+                    className="flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
+                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                >
+                    <div className="flex flex-row items-center gap-2">
+                        <Filter size={20} /> <span className="font-semibold">Filters:</span>
+                    </div>
+                    <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                 </div>
-                <div className="filter-dropdown">
-                    <CustomDropdown
-                        value={dateSort}
-                        options={dateSortOptions}
-                        onChange={setDateSort}
-                    />
-                </div>
-                <div className="filter-dropdown">
-                    <CustomDropdown
-                        value={statusFilter}
-                        options={statusOptions}
-                        onChange={setStatusFilter}
-                    />
+                
+                <div className={`w-full md:w-auto flex-col md:flex-row flex-wrap gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
+                    <div className="filter-dropdown">
+                        <CustomDropdown
+                            value={dateSort}
+                            options={dateSortOptions}
+                            onChange={setDateSort}
+                        />
+                    </div>
+                    <div className="filter-dropdown">
+                        <CustomDropdown
+                            value={statusFilter}
+                            options={statusOptions}
+                            onChange={setStatusFilter}
+                        />
+                    </div>
                 </div>
             </div>
 

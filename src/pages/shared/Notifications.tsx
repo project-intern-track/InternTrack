@@ -50,12 +50,14 @@ function formatDate(iso: string): string {
 
 const PRIORITY_FILTERS = ['all', 'high', 'medium', 'low'] as const;
 type PriorityFilter = (typeof PRIORITY_FILTERS)[number];
+const ITEMS_PER_PAGE = 10;
 
 const Notifications = () => {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<PriorityFilter>('all');
+    const [currentPage, setCurrentPage] = useState(1);
     const [readIds, setReadIds] = useState<Set<string>>(() => {
         try {
             return new Set(JSON.parse(localStorage.getItem('read_notifications') ?? '[]'));
@@ -110,6 +112,28 @@ const Notifications = () => {
         (a) => filter === 'all' || a.priority === filter
     );
     const unreadCount = announcements.filter((a) => !readIds.has(a.id)).length;
+    const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+    const paginatedAnnouncements = filtered.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+    const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1);
+
+    useEffect(() => {
+        setCurrentPage(1);
+        setExpanded(null);
+    }, [filter]);
+
+    useEffect(() => {
+        if (totalPages === 0 && currentPage !== 1) {
+            setCurrentPage(1);
+            return;
+        }
+
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
     return (
         <div className="notif-page">
@@ -148,7 +172,10 @@ const Notifications = () => {
                     {PRIORITY_FILTERS.map((p) => (
                         <button
                             key={p}
-                            onClick={() => setFilter(p)}
+                            onClick={() => {
+                                setFilter(p);
+                                setCurrentPage(1);
+                            }}
                             className={`notif-page-filter-tab${filter === p ? ' active' : ''}`}
                         >
                             {p === 'all' ? 'All' : p.charAt(0).toUpperCase() + p.slice(1)}
@@ -200,9 +227,10 @@ const Notifications = () => {
 
                 {/* List */}
                 {!loading && !error && filtered.length > 0 && (
+                    <>
                     <ul className="notif-page-list">
                         <AnimatePresence initial={false}>
-                            {filtered.map((ann, i) => {
+                            {paginatedAnnouncements.map((ann, i) => {
                                 const meta = priorityMeta(ann.priority);
                                 const isUnread = !readIds.has(ann.id);
                                 const isExpanded = expanded === ann.id;
@@ -279,6 +307,55 @@ const Notifications = () => {
                             })}
                         </AnimatePresence>
                     </ul>
+                    {totalPages > 1 && (
+                        <div className="pagination-controls">
+                            <div className="pagination-summary">
+                                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} notifications
+                            </div>
+                            <div className="pagination-buttons">
+                                <button
+                                    className="pagination-btn pagination-arrow"
+                                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Prev
+                                </button>
+                                {paginationItems.map((page) => {
+                                    if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                                        return (
+                                            <button
+                                                key={page}
+                                                className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                                                onClick={() => {
+                                                    setCurrentPage(page);
+                                                    setExpanded(null);
+                                                }}
+                                            >
+                                                {page}
+                                            </button>
+                                        );
+                                    }
+
+                                    if (page === currentPage - 2 || page === currentPage + 2) {
+                                        return <span key={page} className="pagination-ellipsis">...</span>;
+                                    }
+
+                                    return null;
+                                })}
+                                <button
+                                    className="pagination-btn pagination-arrow"
+                                    onClick={() => {
+                                        setCurrentPage((page) => Math.min(totalPages, page + 1));
+                                        setExpanded(null);
+                                    }}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    </>
                 )}
             </div>
         </div>

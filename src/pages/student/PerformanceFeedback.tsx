@@ -135,7 +135,7 @@ export default function PerformanceFeedback() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         {/* Skills Overview */}
-        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col h-[600px]" aria-label="Skills Overview">
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col h-fit max-h-[400px] lg:max-h-[600px]" aria-label="Skills Overview">
           <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5 flex-shrink-0">Skills Overview</h2>
           <div className="space-y-5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
             {skills.map((s) => (

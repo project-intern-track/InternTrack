@@ -3,6 +3,7 @@ import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash
 import { attendanceService } from '../../services/attendanceServices';
 import { useAuth } from '../../context/AuthContext';
 import type { Attendance } from '../../types/database.types';
+import ModalPortal from '../../components/ModalPortal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_HOURS = 8;
@@ -550,8 +551,9 @@ const AdminDailyLogs = () => {
 
             {/* Delete Confirm Modal */}
             {deleteId && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={cancelDelete}>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+                <ModalPortal>
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={cancelDelete}>
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
                         <button className="absolute right-4 top-4 p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-700 transition-all" onClick={cancelDelete} disabled={isDeleting}>
                             <X size={18}/>
                         </button>
@@ -580,8 +582,9 @@ const AdminDailyLogs = () => {
                                 {isDeleting ? <RefreshCw size={15} className="animate-spin"/> : 'Delete'}
                             </button>
                         </div>
+                        </div>
                     </div>
-                </div>
+                </ModalPortal>
             )}
         </div>
     );

@@ -3,6 +3,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import '../../index.css';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
+import ModalPortal from '../../components/ModalPortal';
 
 import { taskService } from '../../services/taskServices';
 import { userService } from '../../services/userServices';
@@ -1049,10 +1050,11 @@ const ManageTasks = () => {
 
             {/* Create Task Modal */}
             {isModalOpen && (
-                <div className="modal-overlay" onClick={closeModal}>
-                    <div className="modal create-task-modal max-w-[900px] w-full p-5 m-3 relative"
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                <ModalPortal>
+                    <div className="modal-overlay" onClick={closeModal}>
+                        <div className="modal create-task-modal max-w-[900px] w-full p-5 m-3 relative"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                         <div className="mb-5 flex justify-between items-center">
                             <h2 className="text-[hsl(var(--orange))] m-0 text-2xl font-bold">Task Information</h2>
                             <button onClick={closeModal} className="bg-transparent border-none cursor-pointer p-2 flex items-center text-slate-500 rounded">
@@ -1444,21 +1446,23 @@ const ManageTasks = () => {
                                 {assigning ? 'Assigning...' : 'Assign'}
                             </button>
                         </div>
+                        </div>
                     </div>
-                </div>
+                </ModalPortal>
             )}
 
             {/* Custom Range Modal */}
             {isCustomRangeOpen && (
-                <div
-                    className="modal-overlay"
-                    onClick={closeCustomRangeModal}
-                    style={{ zIndex: 1200 }}
-                >
+                <ModalPortal>
                     <div
-                        className="modal w-[92%] max-w-[520px] p-5 pb-[1.1rem] rounded-2xl bg-white shadow-[0_30px_60px_rgba(0,0,0,0.25)]"
-                        onClick={(e) => e.stopPropagation()}
+                        className="modal-overlay"
+                        onClick={closeCustomRangeModal}
+                        style={{ zIndex: 1200 }}
                     >
+                        <div
+                            className="modal w-[92%] max-w-[520px] p-5 pb-[1.1rem] rounded-2xl bg-white shadow-[0_30px_60px_rgba(0,0,0,0.25)]"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                         <div className="flex justify-between items-center gap-4">
                             <div>
                                 <div className="font-extrabold text-[1.1rem] text-slate-900">Custom due date range</div>
@@ -1538,14 +1542,16 @@ const ManageTasks = () => {
                                 Apply
                             </button>
                         </div>
+                        </div>
                     </div>
-                </div>
+                </ModalPortal>
             )}
 
             {/* Task Detail Modal */}
             {selectedTask && (
-                <div className="modal-overlay" onClick={closeViewDetail}>
-                    <div className="modal task-detail-modal" onClick={(e) => e.stopPropagation()}>
+                <ModalPortal>
+                    <div className="modal-overlay" onClick={closeViewDetail}>
+                        <div className="modal task-detail-modal" onClick={(e) => e.stopPropagation()}>
                         {/* Top-right close button */}
                         <button
                             type="button"
@@ -1702,15 +1708,17 @@ const ManageTasks = () => {
                                 </button>
                             )}
                         </div>
+                        </div>
                     </div>
-                </div>
+                </ModalPortal>
             )}
 
             {/* Reject confirmation modal*/}
             {rejectModalOpen && selectedTask && (
-                <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1100]">
-                    <div className="bg-white w-[90%] max-w-[460px] rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
-                        onClick={(e) => e.stopPropagation()}>
+                <ModalPortal>
+                    <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1100]">
+                        <div className="bg-white w-[90%] max-w-[460px] rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+                            onClick={(e) => e.stopPropagation()}>
                         <h2 className="m-0 mb-1 text-xl font-extrabold text-red-600">Reject Task</h2>
                         <p className="m-0 mb-6 text-slate-600 text-[0.9rem]">{selectedTask.title}</p>
 
@@ -1737,17 +1745,19 @@ const ManageTasks = () => {
                                 {rejecting ? 'Rejecting…' : 'Confirm Reject'}
                             </button>
                         </div>
+                        </div>
                     </div>
-                </div>
-        )}
+                </ModalPortal>
+            )}
 
             {/* Archive confirmation modal */}
             {archiveModalOpen && selectedTask && (
-                <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1100]">
-                    <div
-                        className="bg-white w-[90%] max-w-[420px] rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                <ModalPortal>
+                    <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1100]">
+                        <div
+                            className="bg-white w-[90%] max-w-[420px] rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                         <div className="flex items-center gap-3 mb-1">
                             <span className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-100 text-[hsl(var(--orange))]">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
@@ -1777,8 +1787,9 @@ const ManageTasks = () => {
                                 {archiving ? 'Archiving…' : 'Confirm Archive'}
                             </button>
                         </div>
+                        </div>
                     </div>
-                </div>
+                </ModalPortal>
             )}
 
             {toast.visible && (

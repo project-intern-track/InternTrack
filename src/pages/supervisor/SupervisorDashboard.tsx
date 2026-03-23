@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/userServices';
 import { taskService } from '../../services/taskServices';
 import type { Tasks } from '../../types/database.types';
+import ModalPortal from '../../components/ModalPortal';
 
 // ============================
 // Types
@@ -627,17 +628,18 @@ const SupervisorDashboard = () => {
         const internNames = detailTask.assigned_interns?.map((i) => i.full_name).join(', ')
           || (detailTask.assigned_interns_count ? `${detailTask.assigned_interns_count} intern(s)` : '—');
         return (
-          <div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
-            onClick={() => setDetailTask(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
-              onClick={(e) => e.stopPropagation()}
+          <ModalPortal>
+            <div
+              className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
+              onClick={() => setDetailTask(null)}
             >
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                onClick={(e) => e.stopPropagation()}
+              >
               <button
                 onClick={() => setDetailTask(null)}
                 className="absolute right-4 top-4 rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
@@ -688,8 +690,9 @@ const SupervisorDashboard = () => {
                   Close
                 </button>
               </div>
-            </motion.div>
-          </div>
+              </motion.div>
+            </div>
+          </ModalPortal>
         );
       })()}
     </div>

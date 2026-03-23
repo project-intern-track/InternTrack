@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import type { Announcement, AnnouncementPriority } from '../../types/database.types';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
+import ModalPortal from '../../components/ModalPortal';
 
 const Announcements = () => {
     const { user } = useAuth();
@@ -342,14 +343,15 @@ const Announcements = () => {
 
             {/* Detail Modal */}
             {selectedAnnouncement && (
-                <div
-                    className="announcement-modal-overlay"
-                    onClick={() => setSelectedAnnouncement(null)}
-                >
+                <ModalPortal>
                     <div
-                        className="announcement-modal-panel relative"
-                        onClick={(e) => e.stopPropagation()}
+                        className="announcement-modal-overlay"
+                        onClick={() => setSelectedAnnouncement(null)}
                     >
+                        <div
+                            className="announcement-modal-panel relative"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                         {/* Top-right close button */}
                         <button
                             type="button"
@@ -378,20 +380,22 @@ const Announcements = () => {
                                 <span className="font-semibold text-slate-900">{formatDate(selectedAnnouncement.created_at)}</span>
                             </div>
                         </div>
+                        </div>
                     </div>
-                </div>
+                </ModalPortal>
             )}
 
             {/* Create Modal */}
             {isModalOpen && (
-                <div
-                    className="announcement-modal-overlay"
-                    onClick={() => setIsModalOpen(false)}
-                >
+                <ModalPortal>
                     <div
-                        className="announcement-modal-create relative"
-                        onClick={(e) => e.stopPropagation()}
+                        className="announcement-modal-overlay"
+                        onClick={() => setIsModalOpen(false)}
                     >
+                        <div
+                            className="announcement-modal-create relative"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                         {/* Top-right close button */}
                         <button
                             type="button"
@@ -452,8 +456,9 @@ const Announcements = () => {
                                 {submitting ? <Loader2 className="spinner" size={18} /> : 'Announce'}
                             </button>
                         </div>
+                        </div>
                     </div>
-                </div>
+                </ModalPortal>
             )}
         </div>
     );

@@ -24,6 +24,7 @@ import type {
   Users,
 } from "../../types/database.types";
 import PageLoader from "../../components/PageLoader";
+import ModalPortal from "../../components/ModalPortal";
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -577,20 +578,21 @@ const StudentDashboard: React.FC = () => {
 
       {/* ── Announcement Detail Modal ── */}
       {selectedAnnouncement && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setSelectedAnnouncement(null)}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
+        <ModalPortal>
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedAnnouncement(null)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4"
           >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            >
             {/* Modal Header */}
             <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-white/5 p-6 flex items-start justify-between">
               <div className="flex items-start gap-4 flex-1">
@@ -668,8 +670,9 @@ const StudentDashboard: React.FC = () => {
                 Close
               </motion.button>
             </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </ModalPortal>
       )}
     </div>
   );

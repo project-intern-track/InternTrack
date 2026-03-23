@@ -357,8 +357,8 @@ const AdminDailyLogs = () => {
                         const offset = circ - (actualPct / 100) * circ;
                         const ringColor = isExpired ? '#ef4444' : isClockedOut ? '#22c55e' : '#FF8800';
                         return (
-                            <div className="relative w-36 h-36 mx-auto">
-                                <svg viewBox="0 0 144 144" width="144" height="144">
+                            <div className="relative w-36 h-36 shrink-0 mx-auto">
+                                <svg viewBox="0 0 144 144" className="absolute inset-0 w-full h-full">
                                     <circle fill="none" stroke="rgb(229 231 235)" cx="72" cy="72" r={R} strokeWidth="10"/>
                                     <circle fill="none" stroke={ringColor} cx="72" cy="72" r={R} strokeWidth="10"
                                         strokeLinecap="round"
@@ -366,7 +366,7 @@ const AdminDailyLogs = () => {
                                         transform="rotate(-90 72 72)"
                                         style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1)' }}/>
                                 </svg>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                                     <span className={`text-xl font-black tracking-tight text-gray-900 dark:text-white ${isClockedIn ? 'opacity-100' : ''}`}
                                         style={isClockedIn ? { animation: 'pulse 1.6s ease-in-out infinite' } : {}}>
                                         {isClockedIn || isExpired

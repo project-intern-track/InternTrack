@@ -9,6 +9,7 @@ import {
 } from '../../services/feedbackService';
 
 const defaultCompetencies = ['Technical Skills', 'Communication', 'Teamwork', 'Timeliness'];
+const ITEMS_PER_PAGE = 10;
 
 type StarRatingProps = { rating: number; onChange: (val: number) => void; max?: number };
 const StarRating = ({ rating, onChange, max = 5 }: StarRatingProps) => (
@@ -28,6 +29,7 @@ const StarRating = ({ rating, onChange, max = 5 }: StarRatingProps) => (
 const FeedbackDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [rows, setRows] = useState<FeedbackRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -62,6 +64,28 @@ const FeedbackDashboard = () => {
     const matchesFilter = filterStatus ? status === filterStatus : true;
     return matchesSearch && matchesFilter;
   });
+
+  const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
+  const paginatedRows = filteredRows.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+  const paginationItems = Array.from({ length: totalPages }, (_, index) => index + 1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
+  useEffect(() => {
+    if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+      return;
+    }
+
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const openModal = (row: FeedbackRow) => {
     const evaluations: CompetencyRating[] = row.competencyRatings?.length
@@ -170,6 +194,7 @@ const FeedbackDashboard = () => {
           ) : filteredRows.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">No completed tasks found.</p>
           ) : (
+            <>
             <table className="min-w-[880px] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-white/10">
@@ -181,7 +206,7 @@ const FeedbackDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((row, idx) => (
+                {paginatedRows.map((row, idx) => (
                   <motion.tr
                     key={`${row.taskId}-${row.internId}`}
                     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -215,6 +240,49 @@ const FeedbackDashboard = () => {
                 ))}
               </tbody>
             </table>
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <div className="pagination-summary">
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredRows.length)} of {filteredRows.length} feedback entries
+                </div>
+                <div className="pagination-buttons">
+                  <button
+                    className="pagination-btn pagination-arrow"
+                    onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Prev
+                  </button>
+                  {paginationItems.map((page) => {
+                    if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                      return (
+                        <button
+                          key={page}
+                          className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    }
+
+                    if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="pagination-ellipsis">...</span>;
+                    }
+
+                    return null;
+                  })}
+                  <button
+                    className="pagination-btn pagination-arrow"
+                    onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+            </>
           )}
         </div>
       </motion.div>
@@ -230,7 +298,8 @@ const FeedbackDashboard = () => {
             No completed tasks found.
           </div>
         ) : (
-          filteredRows.map((row, idx) => (
+          <>
+          {paginatedRows.map((row, idx) => (
             <motion.div
               key={`mobile-${row.taskId}-${row.internId}`}
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -268,7 +337,50 @@ const FeedbackDashboard = () => {
                 {row.feedbackSubmitted ? 'Edit Feedback' : 'Give Feedback'}
               </button>
             </motion.div>
-          ))
+          ))}
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <div className="pagination-summary">
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredRows.length)} of {filteredRows.length} feedback entries
+              </div>
+              <div className="pagination-buttons">
+                <button
+                  className="pagination-btn pagination-arrow"
+                  onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </button>
+                {paginationItems.map((page) => {
+                  if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                    return (
+                      <button
+                        key={page}
+                        className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    );
+                  }
+
+                  if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <span key={page} className="pagination-ellipsis">...</span>;
+                  }
+
+                  return null;
+                })}
+                <button
+                  className="pagination-btn pagination-arrow"
+                  onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
 

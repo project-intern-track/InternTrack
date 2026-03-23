@@ -259,7 +259,7 @@ const Evaluations = () => {
   }
 
   return (
-    <div className="space-y-4 p-4 md:p-8">
+    <div className="space-y-4">
       <motion.div
         initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
       >

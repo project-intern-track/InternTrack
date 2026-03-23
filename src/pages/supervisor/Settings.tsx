@@ -205,7 +205,7 @@ const Settings = () => {
   if (profileLoading) return <PageLoader message="Loading settings..." />;
 
   return (
-    <div className="space-y-6 relative md:p-8 p-4">
+    <div className="relative space-y-6">
       {successPopup && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-success text-white px-8 py-4 rounded-lg shadow-lg z-50 flex items-center gap-4 font-bold">
           {successPopup}

@@ -126,7 +126,7 @@ const FeedbackDashboard = () => {
     new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="space-y-4 p-4 md:p-8">
+    <div className="space-y-4">
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
         <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Feedback</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">

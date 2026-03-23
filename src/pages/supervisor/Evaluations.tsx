@@ -267,19 +267,19 @@ const Evaluations = () => {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage evaluations for interns here.</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-3 gap-4">
         {summaryCards.map((item, idx) => (
           <motion.div
             key={item.label}
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.08, duration: 0.3 }}
-            className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+            className="rounded-[2rem] border border-gray-200 bg-white p-3 md:p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
           >
-            <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${item.iconBg}`}>
-              <item.icon className={item.iconColor} size={24} />
-            </div>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{item.label}</p>
-            <p className="mt-2 text-4xl font-black text-gray-900 dark:text-white">{item.value}</p>
+              <div className={`mb-2 md:mb-4 flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-2xl ${item.iconBg}`}>
+                <item.icon className={item.iconColor} size={20} />
+              </div>
+              <p className="text-[0.55rem] md:text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{item.label}</p>
+              <p className="mt-1 md:mt-2 text-2xl md:text-4xl font-black text-gray-900 dark:text-white">{item.value}</p>
           </motion.div>
         ))}
       </div>

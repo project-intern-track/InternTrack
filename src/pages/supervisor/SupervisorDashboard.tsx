@@ -240,7 +240,7 @@ const SupervisorDashboard = () => {
       </motion.div>
 
       {/* ── Stat Cards ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-3 gap-4">
         {[
           {
             label: 'Pending Tasks',
@@ -269,13 +269,13 @@ const SupervisorDashboard = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 * index, duration: 0.35 }}
-            className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+            className="rounded-[2rem] border border-gray-200 bg-white p-3 md:p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
           >
-            <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${stat.iconBg}`}>
-              <stat.icon className={stat.iconColor} size={24} />
+            <div className={`mb-2 md:mb-4 flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-2xl ${stat.iconBg}`}>
+              <stat.icon className={stat.iconColor} size={20} />
             </div>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{stat.label}</p>
-            <p className="mt-2 text-4xl font-black text-gray-900 dark:text-white">{stat.value}</p>
+            <p className="text-[0.55rem] md:text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{stat.label}</p>
+            <p className="mt-1 md:mt-2 text-2xl md:text-4xl font-black text-gray-900 dark:text-white">{stat.value}</p>
           </motion.div>
         ))}
       </div>

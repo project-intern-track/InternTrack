@@ -212,7 +212,7 @@ const AdminDashboard = () => {
             </h1>
 
             {/* Stats Cards */}
-            <div className="stats-grid animate-in fade-in duration-700">
+            <div className="stats-grid manage-users-stats-grid animate-in fade-in duration-700">
                 <div className="stat-card bg-gray-50 dark:bg-slate-900/60 shadow-md">
                     <div className="stat-header">
                         <span className="stat-label text-base text-black dark:text-white">Total Interns</span>

@@ -364,7 +364,7 @@ const ManageInterns = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="stats-grid">
+            <div className="stats-grid manage-users-stats-grid">
                 <div className="stat-card">
                     <div className="stat-header">
                         <span className="stat-label">Total Interns</span>

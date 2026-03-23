@@ -1,7 +1,7 @@
 import { Filter, Search, Calendar, X, Loader2, ChevronDown } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import '../../index.css';
+import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 
 import { taskService } from '../../services/taskServices';
 import { userService } from '../../services/userServices';
@@ -180,119 +180,6 @@ const TOOLS_BY_CATEGORY: Record<(typeof TECH_STACK_CATEGORIES)[number], string[]
     ],
 };
 
-type DropdownOption<T extends string> = {
-    value: T;
-    label: string;
-};
-
-type CustomDropdownProps<T extends string> = {
-    value: T;
-    options: DropdownOption<T>[];
-    onChange: (value: T) => void;
-    className?: string;
-    buttonClassName?: string;
-    panelClassName?: string;
-};
-
-function CustomDropdown<T extends string>({
-    value,
-    options,
-    onChange,
-    className = '',
-    buttonClassName = '',
-    panelClassName = '',
-}: CustomDropdownProps<T>) {
-    const [open, setOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement | null>(null);
-    const selectedOption = options.find(option => option.value === value) ?? options[0];
-
-    useEffect(() => {
-        if (!open) return;
-
-        const handleClickOutside = (event: MouseEvent) => {
-            if (!dropdownRef.current?.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        };
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleEscape);
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEscape);
-        };
-    }, [open]);
-
-    return (
-        <div ref={dropdownRef} className={`relative ${open ? 'z-[120]' : 'z-20'} ${className}`}>
-            <motion.button
-                type="button"
-                whileTap={{ scale: 0.985 }}
-                onClick={() => setOpen(prev => !prev)}
-                className={`flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20 ${buttonClassName} ${open ? 'border-[hsl(var(--orange))] shadow-[0_14px_34px_-22px_rgba(255,136,0,0.85)]' : ''}`}
-                aria-haspopup="listbox"
-                aria-expanded={open}
-            >
-                <span>{selectedOption?.label ?? value}</span>
-                <motion.span
-                    animate={{ rotate: open ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="ml-3 shrink-0 text-slate-500"
-                >
-                    <ChevronDown size={18} />
-                </motion.span>
-            </motion.button>
-
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                        transition={{ duration: 0.18, ease: 'easeOut' }}
-                        className={`absolute left-0 right-0 top-[calc(100%+0.55rem)] z-10 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] ${panelClassName}`}
-                        role="listbox"
-                    >
-                        <div className="p-2">
-                            {options.map(option => {
-                                const isActive = option.value === value;
-
-                                return (
-                                    <motion.button
-                                        key={option.value}
-                                        type="button"
-                                        whileTap={{ scale: 0.985 }}
-                                        onClick={() => {
-                                            onChange(option.value);
-                                            setOpen(false);
-                                        }}
-                                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
-                                            isActive
-                                                ? 'bg-[hsl(var(--orange))] text-white'
-                                                : 'text-slate-700 hover:bg-orange-50'
-                                        }`}
-                                        role="option"
-                                        aria-selected={isActive}
-                                    >
-                                        <span>{option.label}</span>
-                                    </motion.button>
-                                );
-                            })}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
-
 const ManageTasks = () => {
     const [search, setSearch] = useState('');
     const [dueDateFilter, setDueDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month' | 'custom'>('all');
@@ -334,7 +221,7 @@ const ManageTasks = () => {
     const [selectedTools, setSelectedTools] = useState<string[]>([]);
     const [toolsPage, setToolsPage] = useState(1);
 
-    const dueDateOptions: DropdownOption<typeof dueDateFilter>[] = [
+    const dueDateOptions: DropdownSelectOption<typeof dueDateFilter>[] = [
         { value: 'all', label: 'All' },
         { value: 'today', label: 'Today' },
         { value: 'tomorrow', label: 'Tomorrow' },
@@ -344,14 +231,14 @@ const ManageTasks = () => {
         { value: 'custom', label: 'Custom Range...' },
     ];
 
-    const priorityOptions: DropdownOption<typeof priorityFilter>[] = [
+    const priorityOptions: DropdownSelectOption<typeof priorityFilter>[] = [
         { value: 'All Priority', label: 'All Priority' },
         { value: 'High', label: 'High' },
         { value: 'Medium', label: 'Medium' },
         { value: 'Low', label: 'Low' },
     ];
 
-    const statusOptions: DropdownOption<typeof statusFilter>[] = [
+    const statusOptions: DropdownSelectOption<typeof statusFilter>[] = [
         { value: 'All Status', label: 'All Status' },
         { value: 'For checking', label: 'For checking' },
         { value: 'For revision', label: 'For revision' },
@@ -981,7 +868,7 @@ const ManageTasks = () => {
 
                     <div className={`manage-tasks-filter-selects w-full md:w-auto flex-col md:flex-row gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
                         <div className="manage-tasks-filter-col">
-                            <CustomDropdown
+                            <DropdownSelect
                                 value={dueDateFilter}
                                 options={dueDateOptions}
                                 onChange={(raw) => {
@@ -1000,7 +887,7 @@ const ManageTasks = () => {
                         </div>
 
                         <div className="manage-tasks-filter-col">
-                            <CustomDropdown
+                            <DropdownSelect
                                 value={priorityFilter}
                                 options={priorityOptions}
                                 onChange={setPriorityFilter}
@@ -1008,7 +895,7 @@ const ManageTasks = () => {
                         </div>
 
                         <div className="manage-tasks-filter-col">
-                            <CustomDropdown
+                            <DropdownSelect
                                 value={statusFilter}
                                 options={statusOptions}
                                 onChange={setStatusFilter}
@@ -1303,7 +1190,7 @@ const ManageTasks = () => {
                                 </div>
                                 <div className="mb-1">
                                     <label className="label mb-2"><b>Priority:</b></label>
-                                    <CustomDropdown
+                                    <DropdownSelect
                                         value={(priority || 'unselected') as 'unselected' | 'low' | 'medium' | 'high'}
                                         options={[
                                             { value: 'unselected', label: 'Select priority' },
@@ -1316,7 +1203,7 @@ const ManageTasks = () => {
                                 </div>
                                 <div>
                                     <label className="label mb-2"><b>Tech Stack Category:</b></label>
-                                    <CustomDropdown
+                                    <DropdownSelect
                                         value={techCategory}
                                         options={TECH_STACK_CATEGORIES.map((category) => ({
                                             value: category,

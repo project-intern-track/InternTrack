@@ -1,9 +1,10 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { UserCheck, Search, Filter, ChevronDown, Download, Plus, X } from 'lucide-react';
+import { UserCheck, Search, Filter, Download, Plus, X } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
 import '../../index.css';
+import DropdownSelect from '../../components/DropdownSelect';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -1004,56 +1005,41 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               </div>
 
               <div className="relative flex-1 min-w-[150px]">
-                <select
-                  className="select"
+                <DropdownSelect
                   value={statusFilter}
-                  onChange={(e) => {
+                  onChange={(value) => {
                     if (scrollContainerRef.current) {
                       scrollPositionRef.current = scrollContainerRef.current.scrollTop;
                     }
-                    setStatusFilter(e.target.value);
+                    setStatusFilter(value);
                   }}
-                  style={{ width: '100%', backgroundColor: 'white', paddingRight: '2.5rem' }}
-                >
-                  <option value="all">All Status</option>
-                  <option value="present">Present</option>
-                  <option value="late">Late</option>
-                  <option value="absent">Absent</option>
-                  <option value="excused">Excused</option>
-                </select>
-                <ChevronDown
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground"
+                  options={[
+                    { value: 'all', label: 'All Status' },
+                    { value: 'present', label: 'Present' },
+                    { value: 'late', label: 'Late' },
+                    { value: 'absent', label: 'Absent' },
+                    { value: 'excused', label: 'Excused' },
+                  ]}
+                  buttonClassName="select"
                 />
               </div>
 
               <div style={{ position: 'relative', flex: '1', minWidth: '130px' }}>
-                <select
-                  className="select"
+                <DropdownSelect
                   value={roleFilter}
-                  onChange={(e) => {
+                  onChange={(value) => {
                     if (scrollContainerRef.current) {
                       scrollPositionRef.current = scrollContainerRef.current.scrollTop;
                     }
-                    setRoleFilter(e.target.value);
+                    setRoleFilter(value);
                   }}
-                  style={{ width: '100%', backgroundColor: 'white', paddingRight: '2.5rem' }}
-                >
-                  <option value="all">All Roles</option>
-                  <option value="intern">Intern</option>
-                  <option value="admin">Admin</option>
-                  <option value="supervisor">Supervisor</option>
-                </select>
-                <ChevronDown
-                  size={16}
-                  style={{
-                    position: 'absolute',
-                    right: '0.75rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    pointerEvents: 'none',
-                    color: 'hsl(var(--muted-foreground))',
-                  }}
+                  options={[
+                    { value: 'all', label: 'All Roles' },
+                    { value: 'intern', label: 'Intern' },
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'supervisor', label: 'Supervisor' },
+                  ]}
+                  buttonClassName="select"
                 />
               </div>
             </div>
@@ -1248,30 +1234,32 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               {/* Status */}
               <div>
                 <label>Status</label>
-                <select
+                <DropdownSelect
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="all">All Status</option>
-                  <option value="present">Present</option>
-                  <option value="late">Late</option>
-                  <option value="absent">Absent</option>
-                  <option value="excused">Excused</option>
-                </select>
+                  onChange={setStatusFilter}
+                  options={[
+                    { value: 'all', label: 'All Status' },
+                    { value: 'present', label: 'Present' },
+                    { value: 'late', label: 'Late' },
+                    { value: 'absent', label: 'Absent' },
+                    { value: 'excused', label: 'Excused' },
+                  ]}
+                />
               </div>
 
               {/* Role */}
               <div>
                 <label>Role</label>
-                <select
+                <DropdownSelect
                   value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <option value="all">All Roles</option>
-                  <option value="intern">Intern</option>
-                  <option value="admin">Admin</option>
-                  <option value="supervisor">Supervisor</option>
-                </select>
+                  onChange={setRoleFilter}
+                  options={[
+                    { value: 'all', label: 'All Roles' },
+                    { value: 'intern', label: 'Intern' },
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'supervisor', label: 'Supervisor' },
+                  ]}
+                />
               </div>
             </div>
           </div>
@@ -1288,18 +1276,15 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               
               <div>
                 <label className="block text-sm font-medium mb-2">Intern</label>
-                <select 
-                  className="select" 
-                  value={manualEntryForm.user_id} 
-                  onChange={e => setManualEntryForm({...manualEntryForm, user_id: e.target.value})}
-                  required
-                  style={{ width: '100%' }}
-                >
-                  <option value="">Select an intern...</option>
-                  {interns.map(intern => (
-                    <option key={intern.id} value={intern.id}>{intern.full_name}</option>
-                  ))}
-                </select>
+                <DropdownSelect
+                  value={manualEntryForm.user_id}
+                  onChange={(value) => setManualEntryForm({ ...manualEntryForm, user_id: value })}
+                  options={[
+                    { value: '', label: 'Select an intern...' },
+                    ...interns.map((intern) => ({ value: String(intern.id), label: intern.full_name })),
+                  ]}
+                  buttonClassName="select"
+                />
               </div>
 
               <div>
@@ -1342,17 +1327,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
               <div>
                 <label className="block text-sm font-medium mb-2">Status</label>
-                <select 
-                  className="select" 
-                  value={manualEntryForm.status} 
-                  onChange={e => setManualEntryForm({...manualEntryForm, status: e.target.value})}
-                  style={{ width: '100%' }}
-                >
-                  <option value="present">Present</option>
-                  <option value="late">Late</option>
-                  <option value="absent">Absent</option>
-                  <option value="excused">Excused</option>
-                </select>
+                <DropdownSelect
+                  value={manualEntryForm.status}
+                  onChange={(value) => setManualEntryForm({ ...manualEntryForm, status: value })}
+                  options={[
+                    { value: 'present', label: 'Present' },
+                    { value: 'late', label: 'Late' },
+                    { value: 'absent', label: 'Absent' },
+                    { value: 'excused', label: 'Excused' },
+                  ]}
+                  buttonClassName="select"
+                />
               </div>
 
               <div className="flex justify-end gap-3 mt-4">

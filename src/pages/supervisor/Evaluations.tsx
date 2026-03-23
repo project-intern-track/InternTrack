@@ -7,6 +7,7 @@ import { evaluationService } from '../../services/evaluationService';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userServices';
 import { feedbackService } from '../../services/feedbackService';
+import DropdownSelect from '../../components/DropdownSelect';
 
 const Evaluations = () => {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -498,18 +499,18 @@ const Evaluations = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Intern</label>
-                <select
+                <DropdownSelect
                   value={createFormData.intern_id}
-                  onChange={e => handleInternSelect(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                >
-                  <option value="">Select an intern...</option>
-                  {allInterns.map(intern => (
-                    <option key={intern.id} value={intern.id}>
-                      {intern.full_name || intern.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={handleInternSelect}
+                  options={[
+                    { value: '', label: 'Select an intern...' },
+                    ...allInterns.map((intern) => ({
+                      value: String(intern.id),
+                      label: intern.full_name || intern.name,
+                    })),
+                  ]}
+                  buttonClassName="rounded-lg py-2"
+                />
               </div>
 
               <div>

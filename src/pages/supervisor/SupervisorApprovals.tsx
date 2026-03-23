@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, X } from 'lucide-react';
 import { taskService } from '../../services/taskServices';
 import type { Tasks } from '../../types/database.types';
+import DropdownSelect from '../../components/DropdownSelect';
 
 type InternProgress = {
   id: number;
@@ -615,13 +616,12 @@ const SupervisorApprovals = () => {
               <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 Revision Category
               </label>
-              <select
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-                onChange={e => setRevisionCategory(e.target.value)}
+              <DropdownSelect
                 value={revisionCategory}
-              >
-                {REVISION_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+                onChange={setRevisionCategory}
+                options={REVISION_CATEGORIES.map((category) => ({ value: category, label: category }))}
+                buttonClassName="rounded-xl"
+              />
             </div>
 
             <div className="mt-6 flex justify-end gap-2">

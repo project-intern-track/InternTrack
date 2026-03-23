@@ -110,5 +110,8 @@ class DatabaseSeeder extends Seeder
 
         // 5. Seed report data for the intern
         $this->call(ReportSeeder::class);
+
+        // 6. Seed broader dashboard-focused demo data for testing
+        $this->call(DashboardTestDataSeeder::class);
     }
 }

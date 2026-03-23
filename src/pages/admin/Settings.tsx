@@ -237,16 +237,14 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 mb-2"
+        className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-4"
       >
-        <div>
-          <h1 className="text-3xl font-bold text-primary dark:text-primary mb-1">
-            Settings
-          </h1>
-          <p className="text-muted-foreground dark:text-gray-400">
-            Manage your profile and account preferences.
-          </p>
-        </div>
+        <h1 className="m-0 text-3xl font-bold text-primary dark:text-primary">
+          Settings
+        </h1>
+        <p className="m-0 text-muted-foreground dark:text-gray-400">
+          Manage your profile and account preferences.
+        </p>
       </motion.div>
 
       {/* PROFILE INFORMATION */}

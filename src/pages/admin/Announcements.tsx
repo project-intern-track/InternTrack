@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, Plus, ChevronDown, Loader2, X } from 'lucide-react';
+import { Search, Filter, Plus, Loader2, X } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import { announcementService } from '../../services/announcementService';
 import { useAuth } from '../../context/AuthContext';
 import type { Announcement, AnnouncementPriority } from '../../types/database.types';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
+import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 
 const Announcements = () => {
     const { user } = useAuth();
@@ -13,7 +14,7 @@ const Announcements = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
     const [dateCreatedFilter, setDateCreatedFilter] = useState('all');
-    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -191,18 +192,12 @@ const Announcements = () => {
                     />
                 </div>
 
-                <div 
-                    className="announcements-filter-label flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto md:mt-0"
-                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                >
-                    <div className="flex flex-row items-center gap-2">
-                        <Filter size={20} />
-                        <span className="font-semibold">Filters:</span>
-                    </div>
-                    <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+                <div className="announcements-filter-label !hidden items-center gap-2 min-[851px]:!flex min-[851px]:mt-0">
+                    <Filter size={20} />
+                    <span className="font-semibold">Filters:</span>
                 </div>
 
-                <div className={`w-full md:w-auto flex-col md:flex-row gap-4 md:flex ${isFiltersOpen ? 'flex' : 'hidden md:mt-0'}`}>
+                <div className="!hidden w-full flex-col gap-4 min-[851px]:!flex min-[851px]:w-auto min-[851px]:flex-row">
                     <div className="announcements-filter-select w-full md:w-auto">
                         <DropdownSelect
                             value={dateCreatedFilter}
@@ -219,6 +214,42 @@ const Announcements = () => {
                         />
                     </div>
                 </div>
+
+                <MobileFilterDrawer
+                    open={isFilterDrawerOpen}
+                    onOpen={() => setIsFilterDrawerOpen(true)}
+                    onClose={() => setIsFilterDrawerOpen(false)}
+                    bodyClassName="space-y-4"
+                >
+                    <div className="flex flex-row items-center gap-2">
+                        <Filter size={20} className="text-orange-600" />
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Adjust announcement filters</span>
+                    </div>
+
+                    <div className="announcements-filter-select w-full">
+                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date Created</label>
+                        <DropdownSelect
+                            value={dateCreatedFilter}
+                            options={dateCreatedOptions}
+                            onChange={(value) => {
+                                setDateCreatedFilter(value);
+                                setIsFilterDrawerOpen(false);
+                            }}
+                        />
+                    </div>
+
+                    <div className="announcements-filter-select w-full">
+                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Priority</label>
+                        <DropdownSelect
+                            value={priorityFilter}
+                            options={priorityFilterOptions}
+                            onChange={(value) => {
+                                setPriorityFilter(value);
+                                setIsFilterDrawerOpen(false);
+                            }}
+                        />
+                    </div>
+                </MobileFilterDrawer>
             </div>
 
             {/* Content Grid / Empty State */}

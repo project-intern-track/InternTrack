@@ -1,7 +1,8 @@
-import { Filter, Search, Calendar, X, Loader2, ChevronDown } from 'lucide-react';
+import { Filter, Search, Calendar, X, Loader2 } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import '../../index.css';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
+import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 
 import { taskService } from '../../services/taskServices';
 import { userService } from '../../services/userServices';
@@ -191,7 +192,7 @@ const ManageTasks = () => {
     const [lastNonCustomDueFilter, setLastNonCustomDueFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month'>('today');
     const [priorityFilter, setPriorityFilter] = useState('All Priority');
     const [statusFilter, setStatusFilter] = useState('All Status');
-    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
     const [tasks, setTasks] = useState<Tasks[]>([]);
     const [interns, setInterns] = useState<Users[]>([]);
@@ -852,21 +853,15 @@ const ManageTasks = () => {
             </div>
 
             <div className="card manage-tasks-filter-section">
-                <div
-                    className="row manage-tasks-filter-row flex-col md:flex-row items-stretch md:items-center"
-                >
-                    <div 
-                        className="manage-tasks-filter-label flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
-                        onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                    >
+                <div className="row manage-tasks-filter-row !hidden items-center min-[851px]:!flex">
+                    <div className="manage-tasks-filter-label flex items-center w-full md:w-auto">
                         <div className="flex flex-row items-center gap-2">
                             <Filter size={20} />
                             <span className="font-semibold">Filters:</span>
                         </div>
-                        <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                     </div>
 
-                    <div className={`manage-tasks-filter-selects w-full md:w-auto flex-col md:flex-row gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
+                    <div className="manage-tasks-filter-selects !hidden w-full flex-col gap-4 min-[851px]:mt-0 min-[851px]:!flex min-[851px]:w-auto min-[851px]:flex-row">
                         <div className="manage-tasks-filter-col">
                             <DropdownSelect
                                 value={dueDateFilter}
@@ -903,6 +898,59 @@ const ManageTasks = () => {
                         </div>
                     </div>
                 </div>
+
+                <MobileFilterDrawer
+                    open={isFilterDrawerOpen}
+                    onOpen={() => setIsFilterDrawerOpen(true)}
+                    onClose={() => setIsFilterDrawerOpen(false)}
+                    bodyClassName="space-y-4"
+                >
+                    <div>
+                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Due Date</label>
+                        <DropdownSelect
+                            value={dueDateFilter}
+                            options={dueDateOptions}
+                            onChange={(raw) => {
+                                if (raw === 'custom') {
+                                    if (dueDateFilter !== 'custom') {
+                                        setLastNonCustomDueFilter(dueDateFilter);
+                                    }
+                                    setDueDateFilter('custom');
+                                    setIsFilterDrawerOpen(false);
+                                    openCustomRangeModal();
+                                    return;
+                                }
+                                setLastNonCustomDueFilter(raw);
+                                setDueDateFilter(raw);
+                                setIsFilterDrawerOpen(false);
+                            }}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Priority</label>
+                        <DropdownSelect
+                            value={priorityFilter}
+                            options={priorityOptions}
+                            onChange={(value) => {
+                                setPriorityFilter(value);
+                                setIsFilterDrawerOpen(false);
+                            }}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Status</label>
+                        <DropdownSelect
+                            value={statusFilter}
+                            options={statusOptions}
+                            onChange={(value) => {
+                                setStatusFilter(value);
+                                setIsFilterDrawerOpen(false);
+                            }}
+                        />
+                    </div>
+                </MobileFilterDrawer>
 
                 {dueDateFilter === 'custom' && customDueStart && (
                     <div

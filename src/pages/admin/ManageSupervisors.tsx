@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2, ChevronDown } from 'lucide-react';
+import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2 } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
+import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
@@ -23,7 +24,7 @@ const ManageSupervisors = () => {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [dateSort, setDateSort] = useState<'newest' | 'oldest'>('newest');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -349,18 +350,12 @@ const ManageSupervisors = () => {
             </div>
 
             {/* Filter Section */}
-            <div className="manage-interns-filters flex-col md:flex-row items-stretch md:items-center">
-                <div 
-                    className="flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
-                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                >
-                    <div className="flex flex-row items-center gap-2">
-                        <Filter size={20} /> <span className="font-semibold">Filters:</span>
-                    </div>
-                    <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+            <div className="manage-interns-filters !hidden items-center gap-4 min-[851px]:!flex">
+                <div className="flex flex-row items-center gap-2">
+                    <Filter size={20} /> <span className="font-semibold">Filters:</span>
                 </div>
-                
-                <div className={`w-full md:w-auto flex-col md:flex-row flex-wrap gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
+
+                <div className="flex w-full flex-col flex-wrap gap-4 md:w-auto md:flex-row">
                     <div className="filter-dropdown">
                         <DropdownSelect
                             value={dateSort}
@@ -377,6 +372,36 @@ const ManageSupervisors = () => {
                     </div>
                 </div>
             </div>
+
+            <MobileFilterDrawer
+                open={isFilterDrawerOpen}
+                onOpen={() => setIsFilterDrawerOpen(true)}
+                onClose={() => setIsFilterDrawerOpen(false)}
+                bodyClassName="space-y-4"
+            >
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date Created</label>
+                    <DropdownSelect
+                        value={dateSort}
+                        options={dateSortOptions}
+                        onChange={(value) => {
+                            setDateSort(value);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                    />
+                </div>
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Status</label>
+                    <DropdownSelect
+                        value={statusFilter}
+                        options={statusOptions}
+                        onChange={(value) => {
+                            setStatusFilter(value);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                    />
+                </div>
+            </MobileFilterDrawer>
 
             {/* Error Banner */}
             {error && (

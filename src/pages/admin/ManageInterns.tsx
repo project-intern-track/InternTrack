@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Pencil, AlertCircle, Search, Download, Filter, ChevronDown, Archive } from 'lucide-react';
+import { Pencil, AlertCircle, Search, Download, Filter, Archive } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect from '../../components/DropdownSelect';
+import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users, OJTType } from '../../types/database.types';
@@ -63,7 +64,7 @@ const ManageInterns = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [startDateFilter, setStartDateFilter] = useState('all');
     const [requiredHoursFilter, setRequiredHoursFilter] = useState('all');
-    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Pagination
@@ -402,19 +403,13 @@ const ManageInterns = () => {
             </div>
 
             {/* Filter Section */}
-            <div className="manage-interns-filters flex-col md:flex-row items-stretch md:items-center">
-                <div 
-                    className="flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
-                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                >
-                    <div className="flex flex-row items-center gap-2 min-w-fit">
-                        <Filter size={20} />
-                        <span className="font-semibold">Filters:</span>
-                    </div>
-                    <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+            <div className="manage-interns-filters !hidden items-center gap-4 min-[851px]:!flex">
+                <div className="flex flex-row items-center gap-2 min-w-fit">
+                    <Filter size={20} />
+                    <span className="font-semibold">Filters:</span>
                 </div>
 
-                <div className={`w-full md:w-auto flex-col md:flex-row flex-wrap gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
+                <div className="flex w-full flex-col flex-wrap gap-4 md:w-auto md:flex-row">
                     <div className="filter-dropdown">
                         <DropdownSelect
                             value={sortDirection}
@@ -484,6 +479,101 @@ const ManageInterns = () => {
                     </div>
                 </div>
             </div>
+
+            <MobileFilterDrawer
+                open={isFilterDrawerOpen}
+                onOpen={() => setIsFilterDrawerOpen(true)}
+                onClose={() => setIsFilterDrawerOpen(false)}
+                bodyClassName="space-y-4"
+            >
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Name</label>
+                    <DropdownSelect
+                        value={sortDirection}
+                        onChange={(value) => {
+                            setSortDirection(value as 'asc' | 'desc');
+                            setIsFilterDrawerOpen(false);
+                        }}
+                        options={[
+                            { value: 'asc', label: 'Name: A to Z' },
+                            { value: 'desc', label: 'Name: Z to A' },
+                        ]}
+                        buttonClassName="select w-full pr-4"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Role</label>
+                    <DropdownSelect
+                        value={roleFilter}
+                        onChange={(value) => {
+                            setRoleFilter(value);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                        options={[
+                            { value: 'all', label: 'All Roles' },
+                            ...OJT_ROLES.map((role) => ({ value: role, label: role })),
+                        ]}
+                        buttonClassName="select w-full pr-4"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Start Date</label>
+                    <DropdownSelect
+                        value={startDateFilter}
+                        onChange={(value) => {
+                            setStartDateFilter(value);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                        options={[
+                            { value: 'all', label: 'All Start Date' },
+                            { value: 'newest', label: 'Newest to Oldest' },
+                            { value: 'oldest', label: 'Oldest to Newest' },
+                            { value: 'this-month', label: 'This Month' },
+                            { value: 'this-year', label: 'This Year' },
+                        ]}
+                        buttonClassName="select w-full pr-4"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Required Hours</label>
+                    <DropdownSelect
+                        value={requiredHoursFilter}
+                        onChange={(value) => {
+                            setRequiredHoursFilter(value);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                        options={[
+                            { value: 'all', label: 'All Required Hours' },
+                            { value: '100-200', label: '100-200 hours' },
+                            { value: '201-300', label: '201-300 hours' },
+                            { value: '301-400', label: '301-400 hours' },
+                            { value: 'highest', label: 'Highest to Lowest' },
+                            { value: 'lowest', label: 'Lowest to Highest' },
+                        ]}
+                        buttonClassName="select w-full pr-4"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Status</label>
+                    <DropdownSelect
+                        value={statusFilter}
+                        onChange={(value) => {
+                            setStatusFilter(value);
+                            setIsFilterDrawerOpen(false);
+                        }}
+                        options={[
+                            { value: 'all', label: 'All Status' },
+                            { value: 'active', label: 'Active' },
+                            { value: 'archived', label: 'Archived' },
+                        ]}
+                        buttonClassName="select w-full pr-4"
+                    />
+                </div>
+            </MobileFilterDrawer>
 
             {/* Error Banner */}
             {error && (

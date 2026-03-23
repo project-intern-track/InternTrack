@@ -304,6 +304,7 @@ const ManageTasks = () => {
     const [lastNonCustomDueFilter, setLastNonCustomDueFilter] = useState<'all' | 'today' | 'tomorrow' | 'overdue' | 'this_week' | 'this_month'>('today');
     const [priorityFilter, setPriorityFilter] = useState('All Priority');
     const [statusFilter, setStatusFilter] = useState('All Status');
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
     const [tasks, setTasks] = useState<Tasks[]>([]);
     const [interns, setInterns] = useState<Users[]>([]);
@@ -314,6 +315,7 @@ const ManageTasks = () => {
     const [rejectionReason, setRejectionReason] = useState('');
     const [rejecting, setRejecting] = useState(false);
     const [archiving, setArchiving] = useState(false);
+    const [archiveModalOpen, setArchiveModalOpen] = useState(false);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -459,10 +461,15 @@ const ManageTasks = () => {
     };
 
 
-    const handleArchive = async () => {
+    const handleArchive = () => {
         if (!selectedTask) return;
-        if (!window.confirm('Archive this task? This cannot be undone.')) return;
+        setArchiveModalOpen(true);
+    };
+
+    const confirmArchive = async () => {
+        if (!selectedTask) return;
         setArchiving(true);
+        setArchiveModalOpen(false);
         try {
             await taskService.deleteTask(selectedTask.id);
             setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
@@ -959,14 +966,20 @@ const ManageTasks = () => {
 
             <div className="card manage-tasks-filter-section">
                 <div
-                    className="row manage-tasks-filter-row"
+                    className="row manage-tasks-filter-row flex-col md:flex-row items-stretch md:items-center"
                 >
-                    <div className="manage-tasks-filter-label">
-                        <Filter size={20} />
-                        <span>Filters:</span>
+                    <div 
+                        className="manage-tasks-filter-label flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
+                        onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                    >
+                        <div className="flex flex-row items-center gap-2">
+                            <Filter size={20} />
+                            <span className="font-semibold">Filters:</span>
+                        </div>
+                        <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                     </div>
 
-                    <div className="manage-tasks-filter-selects">
+                    <div className={`manage-tasks-filter-selects w-full md:w-auto flex-col md:flex-row gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
                         <div className="manage-tasks-filter-col">
                             <CustomDropdown
                                 value={dueDateFilter}
@@ -1792,6 +1805,47 @@ const ManageTasks = () => {
                     </div>
                 </div>
         )}
+
+            {/* Archive confirmation modal */}
+            {archiveModalOpen && selectedTask && (
+                <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1100]">
+                    <div
+                        className="bg-white w-[90%] max-w-[420px] rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 mb-1">
+                            <span className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-100 text-[hsl(var(--orange))]">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+                            </span>
+                            <h2 className="m-0 text-xl font-extrabold text-slate-800">Archive Task</h2>
+                        </div>
+                        <p className="mt-3 mb-1 text-slate-600 text-[0.9rem] leading-relaxed">
+                            Are you sure you want to archive{' '}
+                            <strong className="text-slate-800">&ldquo;{selectedTask.title}&rdquo;</strong>?{' '}
+                            This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end gap-3 mt-7">
+                            <button
+                                type="button"
+                                onClick={() => setArchiveModalOpen(false)}
+                                className="px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold cursor-pointer text-sm hover:bg-slate-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmArchive}
+                                disabled={archiving}
+                                className="px-5 py-2.5 rounded-lg border-none bg-[hsl(var(--orange))] text-white font-bold text-sm cursor-pointer transition-opacity"
+                                style={{ opacity: archiving ? 0.7 : 1 }}
+                            >
+                                {archiving ? 'Archiving…' : 'Confirm Archive'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {toast.visible && (
                 <div style={{ ...toastStyles.container, ...(toast.type === 'error' ? toastStyles.error : toastStyles.success) }}>
                     <span>{toast.type === 'error' ? '\u26A0' : '\u2713'}</span>

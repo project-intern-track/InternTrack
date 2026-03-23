@@ -2362,6 +2362,19 @@ textarea,
     grid-template-columns: repeat(3, 1fr) !important;
   }
 
+  .admin-page-shell .manage-users-stats-grid .stat-card {
+    min-width: 0;
+    padding: 0.875rem !important;
+  }
+
+  .admin-page-shell .manage-users-stats-grid .stat-value {
+    font-size: clamp(1.25rem, 5vw, 1.8rem) !important;
+  }
+
+  .admin-page-shell .manage-users-stats-grid .stat-label {
+    font-size: 0.6rem !important;
+  }
+
   .admin-page-shell .manage-interns-header .btn,
   .admin-page-shell .announcements-header .btn,
   .admin-page-shell .attendance-header button {

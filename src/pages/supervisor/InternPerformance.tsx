@@ -34,6 +34,10 @@ const InternPerformance = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -116,6 +120,12 @@ const InternPerformance = () => {
     'Needs Improvement': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
   };
 
+  const totalPages = Math.ceil(interns.length / ITEMS_PER_PAGE);
+  const paginatedInterns = interns.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -132,12 +142,12 @@ const InternPerformance = () => {
         </p>
       </motion.div>
 
-      {/* Performance Table */}
+      {/* Performance Table — desktop */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
-        className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50 overflow-hidden"
+        className="hidden rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50 overflow-hidden min-[851px]:block"
       >
         <div className="flex items-center gap-3 border-b border-gray-200 px-8 py-6 dark:border-white/5">
           <Users className="text-primary" size={20} />
@@ -155,14 +165,14 @@ const InternPerformance = () => {
               </tr>
             </thead>
             <tbody>
-              {interns.length === 0 ? (
+              {paginatedInterns.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-8 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                     No intern data available.
                   </td>
                 </tr>
               ) : (
-                interns.map((intern, index) => {
+                paginatedInterns.map((intern, index) => {
                   const perf = performanceStatus(intern.completed_tasks);
                   return (
                     <motion.tr
@@ -192,6 +202,88 @@ const InternPerformance = () => {
           </table>
         </div>
       </motion.div>
+
+      {/* Mobile card view */}
+      <div className="space-y-3 min-[851px]:hidden">
+        {paginatedInterns.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+            No intern data available.
+          </div>
+        ) : (
+          paginatedInterns.map((intern, index) => {
+            const perf = performanceStatus(intern.completed_tasks);
+            return (
+              <motion.div
+                key={intern.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: 0.03 * index }}
+                className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
+              >
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-white">{intern.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{intern.email}</p>
+                  </div>
+                  <span className={`shrink-0 inline-flex rounded-full px-2.5 py-1 text-[0.65rem] font-bold ${perfBadgeStyles[perf.label] ?? 'bg-gray-100 text-gray-700'}`}>
+                    {perf.label}
+                  </span>
+                </div>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">OJT Role</span>
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{intern.ojt_role}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">Completed</span>
+                    <span className="font-black text-gray-900 dark:text-white">{intern.completed_tasks}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-gray-400">In Progress</span>
+                    <span className="text-gray-700 dark:text-gray-300">{intern.in_progress_tasks}</span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="pagination-controls">
+          <div className="pagination-summary">
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, interns.length)} of {interns.length} interns
+          </div>
+          <div className="pagination-buttons">
+            <button
+              className="pagination-btn pagination-arrow"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >Prev</button>
+            {[...Array(totalPages)].map((_, i) => {
+              const page = i + 1;
+              if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                return (
+                  <button
+                    key={page}
+                    className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                    onClick={() => setCurrentPage(page)}
+                  >{page}</button>
+                );
+              } else if (page === currentPage - 2 || page === currentPage + 2) {
+                return <span key={page} className="pagination-ellipsis">...</span>;
+              }
+              return null;
+            })}
+            <button
+              className="pagination-btn pagination-arrow"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >Next</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

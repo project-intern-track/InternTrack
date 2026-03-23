@@ -17,6 +17,10 @@ const Evaluations = () => {
   const [internMap, setInternMap] = useState<{ [key: number]: string}>({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const [createFormData, setCreateFormData] = useState({
     intern_id: '',
     task_completion: 0,
@@ -162,6 +166,11 @@ const Evaluations = () => {
     );
   });
 
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const totalEvaluated = evaluations.length;
   const averageScore = evaluations.length > 0
     ? Math.round(evaluations.reduce((sum, e) => sum + e.score, 0) / evaluations.length)
@@ -258,19 +267,19 @@ const Evaluations = () => {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage evaluations for interns here.</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-3 gap-4">
         {summaryCards.map((item, idx) => (
           <motion.div
             key={item.label}
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.08, duration: 0.3 }}
-            className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+            className="rounded-[2rem] border border-gray-200 bg-white p-3 md:p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
           >
-            <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${item.iconBg}`}>
-              <item.icon className={item.iconColor} size={24} />
-            </div>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{item.label}</p>
-            <p className="mt-2 text-4xl font-black text-gray-900 dark:text-white">{item.value}</p>
+              <div className={`mb-2 md:mb-4 flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-2xl ${item.iconBg}`}>
+                <item.icon className={item.iconColor} size={20} />
+              </div>
+              <p className="text-[0.55rem] md:text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{item.label}</p>
+              <p className="mt-1 md:mt-2 text-2xl md:text-4xl font-black text-gray-900 dark:text-white">{item.value}</p>
           </motion.div>
         ))}
       </div>
@@ -292,6 +301,7 @@ const Evaluations = () => {
         </div>
       </motion.div>
 
+      {/* Evaluation Records Table */}
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.15 }}
@@ -310,52 +320,159 @@ const Evaluations = () => {
           </button>
         </div>
 
-        <div className="overflow-x-auto px-8 py-6">
-          <table className="min-w-full w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-white/10">
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern ID</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern Name</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Score</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Date</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Feedback</th>
-                <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEvaluations.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                    No evaluations found.
-                  </td>
-                </tr>
+        {/* Desktop table */}
+        <div className="hidden overflow-x-auto px-8 py-6 min-[851px]:block">
+          {(() => {
+            const totalPages = Math.ceil(filteredEvaluations.length / ITEMS_PER_PAGE);
+            const paginatedEvaluations = filteredEvaluations.slice(
+              (currentPage - 1) * ITEMS_PER_PAGE,
+              currentPage * ITEMS_PER_PAGE
+            );
+            return (
+              <>
+                <table className="min-w-full w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-white/10">
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern ID</th>
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern Name</th>
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Score</th>
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Date</th>
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Feedback</th>
+                      <th className="pb-3 font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedEvaluations.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                          No evaluations found.
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedEvaluations.map((evaluation, idx) => (
+                        <motion.tr
+                          key={evaluation.id}
+                          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, delay: idx * 0.04 }}
+                          className="border-b border-gray-100 last:border-none dark:border-white/5"
+                        >
+                          <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.intern_id}</td>
+                          <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{internMap[Number(evaluation.intern_id)] || evaluation.intern_name || `Intern ${evaluation.intern_id}`}</td>
+                          <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.score}/100</td>
+                          <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.evaluation_date}</td>
+                          <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 truncate max-w-xs">{evaluation.feedback || '-'}</td>
+                          <td className="py-3 pr-4">
+                            <button
+                              onClick={() => handleDelete(Number(evaluation.id))}
+                              className="flex items-center gap-1 rounded-lg bg-red-500/10 p-2 text-red-600 hover:bg-red-500/20 dark:text-red-400"
+                            >
+                              <Trash size={16} />
+                            </button>
+                          </td>
+                        </motion.tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+                {totalPages > 1 && (
+                  <div className="pagination-controls">
+                    <div className="pagination-summary">
+                      Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredEvaluations.length)} of {filteredEvaluations.length} evaluations
+                    </div>
+                    <div className="pagination-buttons">
+                      <button className="pagination-btn pagination-arrow" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>Prev</button>
+                      {[...Array(totalPages)].map((_, i) => {
+                        const page = i + 1;
+                        if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                          return <button key={page} className={`pagination-btn ${currentPage === page ? 'active' : ''}`} onClick={() => setCurrentPage(page)}>{page}</button>;
+                        } else if (page === currentPage - 2 || page === currentPage + 2) {
+                          return <span key={page} className="pagination-ellipsis">...</span>;
+                        }
+                        return null;
+                      })}
+                      <button className="pagination-btn pagination-arrow" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</button>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </div>
+
+        {/* Mobile card view */}
+        {(() => {
+          const totalPages = Math.ceil(filteredEvaluations.length / ITEMS_PER_PAGE);
+          const paginatedEvaluations = filteredEvaluations.slice(
+            (currentPage - 1) * ITEMS_PER_PAGE,
+            currentPage * ITEMS_PER_PAGE
+          );
+          return (
+            <div className="space-y-3 px-4 pb-6 pt-2 min-[851px]:hidden">
+              {paginatedEvaluations.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+                  No evaluations found.
+                </div>
               ) : (
-                filteredEvaluations.map((evaluation, idx) => (
-                  <motion.tr
+                paginatedEvaluations.map((evaluation, idx) => (
+                  <motion.div
                     key={evaluation.id}
                     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: idx * 0.04 }}
-                    className="border-b border-gray-100 last:border-none dark:border-white/5"
+                    transition={{ duration: 0.2, delay: idx * 0.03 }}
+                    className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
                   >
-                    <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.intern_id}</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{internMap[Number(evaluation.intern_id)] || evaluation.intern_name || `Intern ${evaluation.intern_id}`}</td>
-                    <td className="py-3 pr-4 font-semibold text-gray-900 dark:text-gray-100">{evaluation.score}/100</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.evaluation_date}</td>
-                    <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 truncate max-w-xs">{evaluation.feedback || '-'}</td>
-                    <td className="py-3 pr-4">
-                      <button
-                        onClick={() => handleDelete(Number(evaluation.id))}
-                        className="flex items-center gap-1 rounded-lg bg-red-500/10 p-2 text-red-600 hover:bg-red-500/20 dark:text-red-400"
-                      >
-                        <Trash size={16} />
-                      </button>
-                    </td>
-                  </motion.tr>
+                    <div className="mb-3 flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {internMap[Number(evaluation.intern_id)] || evaluation.intern_name || `Intern ${evaluation.intern_id}`}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">ID: {evaluation.intern_id}</p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-black text-primary">{evaluation.score}/100</span>
+                    </div>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 dark:text-gray-400">Date</span>
+                        <span className="text-gray-700 dark:text-gray-300">{evaluation.evaluation_date}</span>
+                      </div>
+                      {evaluation.feedback && (
+                        <div>
+                          <span className="block text-xs text-gray-400 dark:text-gray-500 mb-0.5">Feedback</span>
+                          <p className="text-gray-700 dark:text-gray-300 text-xs line-clamp-2">{evaluation.feedback}</p>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleDelete(Number(evaluation.id))}
+                      className="mt-3 flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-500/20 dark:text-red-400"
+                    >
+                      <Trash size={13} /> Delete
+                    </button>
+                  </motion.div>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
+              {totalPages > 1 && (
+                <div className="pagination-controls">
+                  <div className="pagination-summary">
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredEvaluations.length)} of {filteredEvaluations.length} evaluations
+                  </div>
+                  <div className="pagination-buttons">
+                    <button className="pagination-btn pagination-arrow" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>Prev</button>
+                    {[...Array(totalPages)].map((_, i) => {
+                      const page = i + 1;
+                      if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                        return <button key={page} className={`pagination-btn ${currentPage === page ? 'active' : ''}`} onClick={() => setCurrentPage(page)}>{page}</button>;
+                      } else if (page === currentPage - 2 || page === currentPage + 2) {
+                        return <span key={page} className="pagination-ellipsis">...</span>;
+                      }
+                      return null;
+                    })}
+                    <button className="pagination-btn pagination-arrow" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </motion.div>
 
       {/* Create Modal */}

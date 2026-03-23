@@ -62,6 +62,7 @@ const ManageInterns = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [startDateFilter, setStartDateFilter] = useState('all');
     const [requiredHoursFilter, setRequiredHoursFilter] = useState('all');
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Pagination
@@ -364,7 +365,7 @@ const ManageInterns = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="stats-grid">
+            <div className="stats-grid manage-users-stats-grid">
                 <div className="stat-card">
                     <div className="stat-header">
                         <span className="stat-label">Total Interns</span>
@@ -400,13 +401,20 @@ const ManageInterns = () => {
             </div>
 
             {/* Filter Section */}
-            <div className="manage-interns-filters">
-                <div className="row items-center gap-2 min-w-fit">
-                    <Filter size={20} />
-                    <span className="font-semibold">Filters:</span>
+            <div className="manage-interns-filters flex-col md:flex-row items-stretch md:items-center">
+                <div 
+                    className="flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
+                    onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                >
+                    <div className="flex flex-row items-center gap-2 min-w-fit">
+                        <Filter size={20} />
+                        <span className="font-semibold">Filters:</span>
+                    </div>
+                    <ChevronDown size={20} className={`md:hidden transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                 </div>
 
-                <div className="filter-dropdown">
+                <div className={`w-full md:w-auto flex-col md:flex-row flex-wrap gap-4 md:flex ${isFiltersOpen ? 'flex mt-4 md:mt-0' : 'hidden md:mt-0'}`}>
+                    <div className="filter-dropdown">
                     <select
                         className="select pr-10 w-full"
                         value={sortDirection}
@@ -475,6 +483,7 @@ const ManageInterns = () => {
                     </select>
                     <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
+                </div>
             </div>
 
             {/* Error Banner */}
@@ -485,7 +494,7 @@ const ManageInterns = () => {
             )}
 
             {/* Table Container - Scrollable */}
-            <div className="table-container rounded-lg border border-slate-200 overflow-auto bg-white w-full max-w-[100vw] relative">
+            <div className="table-container rounded-lg border border-slate-200 overflow-auto bg-white w-full max-w-[100vw] relative hidden min-[851px]:block">
 
                 <table className="w-full min-w-[1000px] border-collapse text-center">
                     <thead>
@@ -546,6 +555,43 @@ const ManageInterns = () => {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile card view */}
+            <div className="min-[851px]:hidden space-y-3">
+                {paginatedInterns.length === 0 ? (
+                    <div className="text-center py-12 text-slate-500">No interns found.</div>
+                ) : (
+                    paginatedInterns.map((intern) => (
+                        <div key={intern.id} className="rounded-lg border border-gray-200 bg-white p-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="font-semibold text-slate-800">{intern.full_name}</span>
+                                <span className={`text-xs font-medium capitalize ${intern.status === 'active' ? 'text-green-500' : 'text-violet-500'}`}>
+                                    {intern.status}
+                                </span>
+                            </div>
+                            <div className="text-sm text-slate-500 mb-0.5">{intern.ojt_role || '—'}</div>
+                            <div className="text-sm text-slate-500 mb-0.5">{intern.email}</div>
+                            <div className="text-xs text-slate-400 mb-3">
+                                OJT ID: {intern.ojt_id || '—'} &nbsp;·&nbsp; Start: {formatDate(intern.start_date)} &nbsp;·&nbsp; {intern.required_hours ? `${intern.required_hours} hrs` : '— hrs'}
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium bg-orange-50 text-orange-600"
+                                    onClick={() => openEditModal(intern)}
+                                >
+                                    <Pencil size={14} /> Edit
+                                </button>
+                                <button
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium bg-slate-50 text-slate-600"
+                                    onClick={() => handleArchiveToggle(intern)}
+                                >
+                                    <Archive size={14} /> {intern.status === 'active' ? 'Archive' : 'Restore'}
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             {/* Pagination Controls */}

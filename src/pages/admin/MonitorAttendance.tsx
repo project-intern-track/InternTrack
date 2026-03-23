@@ -544,7 +544,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             position: fixed;
             inset: 0;
             background-color: rgba(0, 0, 0, 0.5);
-            z-index: 998;
+            z-index: 35;
           }
 
           .attendance-filter-drawer {
@@ -555,7 +555,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             background: white;
             border-radius: 16px 16px 0 0;
             padding: 1.5rem;
-            z-index: 999;
+            z-index: 36;
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);

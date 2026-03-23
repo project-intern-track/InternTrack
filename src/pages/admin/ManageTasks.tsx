@@ -972,7 +972,7 @@ const ManageTasks = () => {
                         className="manage-tasks-filter-label flex justify-between items-center cursor-pointer md:cursor-default w-full md:w-auto"
                         onClick={() => setIsFiltersOpen(!isFiltersOpen)}
                     >
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-row items-center gap-2">
                             <Filter size={20} />
                             <span className="font-semibold">Filters:</span>
                         </div>

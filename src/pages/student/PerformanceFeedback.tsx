@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Calendar, Star } from 'lucide-react';
+import { Calendar, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { feedbackService, type MyFeedbackPayload } from '../../services/feedbackService';
 
 type SkillScore = {
@@ -75,6 +75,8 @@ const DEFAULT_SKILLS: SkillScore[] = [
 export default function PerformanceFeedback() {
   const [data, setData] = useState<MyFeedbackPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     feedbackService.getMyFeedback()
@@ -105,6 +107,13 @@ export default function PerformanceFeedback() {
     return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [data]);
 
+  const totalPages = Math.ceil(recentFeedback.length / itemsPerPage);
+  
+  const paginatedFeedback = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return recentFeedback.slice(start, start + itemsPerPage);
+  }, [recentFeedback, currentPage]);
+
 
   if (loading) {
     return (
@@ -126,9 +135,9 @@ export default function PerformanceFeedback() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         {/* Skills Overview */}
-        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6" aria-label="Skills Overview">
-          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5">Skills Overview</h2>
-          <div className="space-y-5">
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col h-[600px]" aria-label="Skills Overview">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5 flex-shrink-0">Skills Overview</h2>
+          <div className="space-y-5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
             {skills.map((s) => (
               <SkillBar key={s.key} label={s.label} valuePct={(s as SkillScore & { pct: number }).pct} />
             ))}
@@ -136,42 +145,69 @@ export default function PerformanceFeedback() {
         </section>
 
         {/* Recent Feedback */}
-        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6" aria-label="Recent Feedback">
-          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5">Recent Feedback</h2>
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col h-[600px]" aria-label="Recent Feedback">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5 flex-shrink-0">Recent Feedback</h2>
 
           {recentFeedback.length === 0 && (
-            <div className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
+            <div className="py-8 text-center text-sm text-gray-400 dark:text-gray-500 flex-1">
               No feedback yet. Once your supervisor submits evaluations, they&apos;ll appear here.
             </div>
           )}
 
           {recentFeedback.length > 0 && (
-            <div className="space-y-3">
-              {recentFeedback.map((fb) => (
-                <article
-                  key={fb.id}
-                  className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-800/30 transition-all"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <span className="font-bold text-gray-900 dark:text-white text-sm leading-snug">
-                      {fb.competency}
-                    </span>
-                    <Stars rating={fb.rating} />
-                  </div>
-                  {fb.taskName && (
-                    <p className="text-xs font-semibold text-[#FF8800] mb-1.5">{fb.taskName}</p>
-                  )}
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 mb-2.5">
-                    <Calendar size={12} />
-                    {formatDate(fb.createdAt)}
-                    {fb.reviewerName ? ` · ${fb.reviewerName}` : ''}
-                  </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed m-0">
-                    {fb.comment}
-                  </p>
-                </article>
-              ))}
-            </div>
+            <>
+              <div className="space-y-3 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                {paginatedFeedback.map((fb) => (
+                  <article
+                    key={fb.id}
+                    className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-800/30 transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <span className="font-bold text-gray-900 dark:text-white text-sm leading-snug">
+                        {fb.competency}
+                      </span>
+                      <Stars rating={fb.rating} />
+                    </div>
+                    {fb.taskName && (
+                      <p className="text-xs font-semibold text-[#FF8800] mb-1.5">{fb.taskName}</p>
+                    )}
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 mb-2.5">
+                      <Calendar size={12} />
+                      {formatDate(fb.createdAt)}
+                      {fb.reviewerName ? ` · ${fb.reviewerName}` : ''}
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed m-0">
+                      {fb.comment}
+                    </p>
+                  </article>
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between flex-shrink-0">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Page <span className="font-semibold text-gray-900 dark:text-white">{currentPage}</span> of <span className="font-semibold text-gray-900 dark:text-white">{totalPages}</span>
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
       </div>

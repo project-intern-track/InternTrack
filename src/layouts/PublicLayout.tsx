@@ -11,11 +11,16 @@ const PublicLayout = () => {
                 transition={{ duration: 0.6 }}
                 className="hidden md:block relative overflow-hidden"
             >
-                <img
-                    src="/heroimage.png"
-                    alt="Person typing on laptop"
-                    className="w-full h-full object-cover rounded-r-[2rem]"
-                />
+                <picture>
+                    <source srcSet="/heroimage.webp" type="image/webp" />
+                    <img
+                        src="/heroimage.png"
+                        alt="Person typing on laptop"
+                        loading="eager"
+                        decoding="async"
+                        className="w-full h-full object-cover rounded-r-[2rem]"
+                    />
+                </picture>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </motion.div>
 

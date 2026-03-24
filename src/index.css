@@ -2567,6 +2567,9 @@ textarea,
 
   .admin-page-shell .manage-users-stats-grid .stat-label {
     font-size: 0.6rem !important;
+    letter-spacing: 0 !important;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   .admin-page-shell .manage-interns-header .btn,

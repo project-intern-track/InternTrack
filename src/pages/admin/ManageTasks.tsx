@@ -859,7 +859,7 @@ const ManageTasks = () => {
                         </div>
                     </div>
 
-                    <div className="manage-tasks-filter-selects !hidden w-full flex-col gap-4 min-[851px]:mt-0 min-[851px]:!flex min-[851px]:w-auto min-[851px]:flex-row">
+                    <div className="manage-tasks-filter-selects !hidden w-full flex-col gap-4 min-[851px]:mt-0 min-[851px]:!flex min-[851px]:flex-1 min-[851px]:flex-row">
                         <div className="manage-tasks-filter-col">
                             <DropdownSelect
                                 value={dueDateFilter}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2 } from 'lucide-react';
+import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2, UserCheck, Users as UsersIcon } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import ModalPortal from '../../components/ModalPortal';
@@ -323,14 +323,23 @@ const ManageSupervisors = () => {
             {/* Stats Cards */}
             <div className="stats-grid manage-users-stats-grid">
                 <div className="stat-card">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
+                        <UsersIcon size={20} className="text-blue-600 dark:text-blue-300" />
+                    </div>
                     <div className="stat-label">Total Supervisors</div>
                     <div className="stat-value">{stats.totalSupervisors}</div>
                 </div>
                 <div className="stat-card">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-500/20">
+                        <UserCheck size={20} className="text-green-600 dark:text-green-300" />
+                    </div>
                     <div className="stat-label">Active Supervisors</div>
                     <div className="stat-value">{stats.activeSupervisors}</div>
                 </div>
                 <div className="stat-card">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-500/20">
+                        <Archive size={20} className="text-violet-600 dark:text-violet-300" />
+                    </div>
                     <div className="stat-label">Archived Supervisors</div>
                     <div className="stat-value">{stats.archivedSupervisors}</div>
                 </div>

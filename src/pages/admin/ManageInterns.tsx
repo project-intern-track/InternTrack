@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Pencil, AlertCircle, Search, Download, Filter, Archive } from 'lucide-react';
+import { Pencil, AlertCircle, Search, Download, Filter, Archive, ClipboardList, Users as UsersIcon } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
@@ -371,18 +371,27 @@ const ManageInterns = () => {
             <div className="stats-grid manage-users-stats-grid">
                 <div className="stat-card">
                     <div className="stat-header">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
+                            <UsersIcon size={20} className="text-blue-600 dark:text-blue-300" />
+                        </div>
                         <span className="stat-label">Total Interns</span>
                     </div>
                     <div className="stat-value">{stats.totalInterns}</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-header">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-500/20">
+                            <ClipboardList size={20} className="text-primary dark:text-orange-300" />
+                        </div>
                         <span className="stat-label">Total Roles</span>
                     </div>
                     <div className="stat-value">{stats.totalRoles}</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-header">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-500/20">
+                            <Archive size={20} className="text-violet-600 dark:text-violet-300" />
+                        </div>
                         <span className="stat-label">Archived Interns</span>
                     </div>
                     <div className="stat-value">{stats.archivedInterns}</div>

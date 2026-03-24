@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { UserCheck, Search, Filter, Download, Plus } from 'lucide-react';
+import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
@@ -789,6 +789,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         <div className="stats-grid attendance-stats-grid">
           <div className="stat-card">
             <div className="stat-header">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-500/20">
+                <CheckCircle size={20} className="text-green-600 dark:text-green-300" />
+              </div>
               <span className="stat-label">Completed</span>
             </div>
             <div className="stat-value">{calculatedStats.completed}</div>
@@ -796,6 +799,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
           <div className="stat-card">
             <div className="stat-header">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-500/20">
+                <Clock size={20} className="text-amber-600 dark:text-amber-300" />
+              </div>
               <span className="stat-label">Incomplete</span>
             </div>
             <div className="stat-value">{calculatedStats.incomplete}</div>
@@ -803,6 +809,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
           <div className="stat-card">
             <div className="stat-header">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-500/20">
+                <X size={20} className="text-red-600 dark:text-red-300" />
+              </div>
               <span className="stat-label">No Log</span>
             </div>
             <div className="stat-value">{calculatedStats.noLog}</div>
@@ -810,6 +819,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
           <div className="stat-card">
             <div className="stat-header">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
+                <BarChart size={20} className="text-blue-600 dark:text-blue-300" />
+              </div>
               <span className="stat-label">AVG Hours per day</span>
             </div>
             <div className="stat-value">{calculatedStats.avgHoursPerDay?.toFixed(1) || '0.0'}</div>
@@ -852,7 +864,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
             {/* Filter dropdown */}
             <div className="attendance-filter-selects flex gap-4 flex-wrap">
-              <div className="relative flex-1 min-w-[200px] flex gap-2 items-center">
+              <div className="relative flex min-w-[340px] flex-[1.35] items-center gap-2 max-[1120px]:min-w-full">
                 <label htmlFor="date-filter-input" className="absolute -left-[9999px] w-px h-px overflow-hidden">
                   Filter by date
                 </label>
@@ -866,16 +878,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                     }
                     setDateFilter(e.target.value || 'all');
                   }}
-                  disabled={dateFilter === 'all'}
                   aria-label="Select date to filter attendance records"
-                  aria-disabled={dateFilter === 'all'}
                   className="input"
                   style={{
                     width: '100%',
-                    minWidth: '0',
-                    backgroundColor: dateFilter === 'all' ? '#f5f5f5' : 'white',
-                    cursor: dateFilter === 'all' ? 'not-allowed' : 'text',
-                    flex: '1'
+                    minWidth: '190px',
+                    height: '46px',
+                    backgroundColor: 'white',
+                    color: '#0f172a',
+                    WebkitTextFillColor: '#0f172a',
+                    cursor: 'text',
+                    flex: '1 1 auto'
                   }}
                 />
                 <button
@@ -887,23 +900,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                     setDateFilter(dateFilter === 'all' ? todayDate : 'all');
                   }}
                   aria-label={dateFilter === 'all' ? 'Show today\'s records' : 'Show all dates'}
-                  className={`px-4 py-2.5 text-sm font-medium border-2 border-[hsl(var(--orange))] rounded-md cursor-pointer transition-all whitespace-nowrap ${dateFilter === 'all' ? 'text-white bg-[hsl(var(--orange))]' : 'text-[hsl(var(--orange))] bg-white'}`}
-                  onMouseEnter={(e) => {
-                    if (dateFilter !== 'all') {
-                      e.currentTarget.style.backgroundColor = '#f5f5f5';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (dateFilter !== 'all') {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }
-                  }}
+                  className={`shrink-0 rounded-md border-2 border-[hsl(var(--orange))] px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all ${
+                    dateFilter === 'all'
+                      ? 'bg-orange-50 text-[hsl(var(--orange))] hover:bg-orange-100'
+                      : 'bg-white text-[hsl(var(--orange))] hover:bg-orange-50'
+                  }`}
                 >
                   {dateFilter === 'all' ? 'Show All Dates' : 'Clear Date'}
                 </button>
               </div>
 
-              <div className="relative flex-1 min-w-[150px]">
+              <div className="relative min-w-[180px] flex-1">
                 <DropdownSelect
                   value={statusFilter}
                   onChange={(value) => {
@@ -923,7 +930,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 />
               </div>
 
-              <div style={{ position: 'relative', flex: '1', minWidth: '130px' }}>
+              <div style={{ position: 'relative', flex: '1', minWidth: '180px' }}>
                 <DropdownSelect
                   value={roleFilter}
                   onChange={(value) => {
@@ -957,14 +964,18 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               type="date"
               value={dateFilter === 'all' ? '' : dateFilter}
               onChange={(e) => setDateFilter(e.target.value || 'all')}
-              disabled={dateFilter === 'all'}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:disabled:bg-slate-800"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+              style={{
+                minHeight: '48px',
+                color: '#0f172a',
+                WebkitTextFillColor: '#0f172a',
+              }}
             />
             <button
               type="button"
               className={`mt-3 inline-flex rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${
                 dateFilter === 'all'
-                  ? 'border-orange-500 bg-orange-500 text-white'
+                  ? 'border-orange-500 bg-orange-50 text-orange-600 hover:bg-orange-100'
                   : 'border-orange-200 bg-white text-orange-600 hover:bg-orange-50'
               }`}
               onClick={() => setDateFilter(dateFilter === 'all' ? todayDate : 'all')}

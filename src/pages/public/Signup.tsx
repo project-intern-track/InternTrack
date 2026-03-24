@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DropdownSelect from '../../components/DropdownSelect';
+import DateTimePicker from '../../components/DateTimePicker';
 
 const OJT_ROLES = [
     'UI/UX Designer',
@@ -376,15 +377,15 @@ const Signup = () => {
                                     Start Date
                                 </label>
                                 <div className="relative">
-                                    <input
-                                        id="signup-start-date"
-                                        type="date"
-                                    className="w-full px-3 py-3 border-2 rounded-lg font-medium transition-all duration-200 focus:outline-none text-sm border-gray-300 bg-white focus:border-orange focus:ring-2 focus:ring-orange/10 disabled:opacity-60 disabled:cursor-not-allowed"
-                                        value={startDate}
-                                        min={todayStr}
-                                        onChange={(e) => handleChange('startDate', e.target.value)}
-                                        onBlur={() => handleBlur('startDate')}
+                                    <DateTimePicker
+                                        date={startDate}
+                                        time=""
+                                        minDate={todayStr}
+                                        showTime={false}
+                                        datePlaceholder="Select start date"
                                         disabled={isSubmitting}
+                                        onDateChange={(value) => handleChange('startDate', value)}
+                                        onTimeChange={() => {}}
                                     />
                                 </div>
                                 {touched.startDate && fieldErrors.startDate && (

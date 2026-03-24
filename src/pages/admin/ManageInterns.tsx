@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Pencil, AlertCircle, Search, Download, Filter, Archive } from 'lucide-react';
+import { Pencil, Search, Download, Filter, Archive, ClipboardList, Users as UsersIcon } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import DateTimePicker from '../../components/DateTimePicker';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users, OJTType } from '../../types/database.types';
@@ -371,18 +373,27 @@ const ManageInterns = () => {
             <div className="stats-grid manage-users-stats-grid">
                 <div className="stat-card">
                     <div className="stat-header">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
+                            <UsersIcon size={20} className="text-blue-600 dark:text-blue-300" />
+                        </div>
                         <span className="stat-label">Total Interns</span>
                     </div>
                     <div className="stat-value">{stats.totalInterns}</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-header">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-500/20">
+                            <ClipboardList size={20} className="text-primary dark:text-orange-300" />
+                        </div>
                         <span className="stat-label">Total Roles</span>
                     </div>
                     <div className="stat-value">{stats.totalRoles}</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-header">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 dark:bg-violet-500/20">
+                            <Archive size={20} className="text-violet-600 dark:text-violet-300" />
+                        </div>
                         <span className="stat-label">Archived Interns</span>
                     </div>
                     <div className="stat-value">{stats.archivedInterns}</div>
@@ -734,39 +745,21 @@ const ManageInterns = () => {
             )}
 
             {/* ===== Archive Confirmation Modal ===== */}
-            {archiveTarget && (
-                <ModalPortal>
-                <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px]" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-4">
-                            <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
-                            <h2 className="text-orange-600 m-0 text-xl font-bold">
-                                {archiveTarget.status === 'active' ? 'Archive Intern' : 'Restore Intern'}
-                            </h2>
-                        </div>
-                        <p className="m-0 mb-6 text-slate-700 leading-6">
-                            Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
-                            <strong>{archiveTarget.full_name}</strong>?
-                            {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
-                        </p>
-                        <div className="flex justify-end gap-4">
-                            <button
-                                className="btn bg-white text-orange-600 border-none px-6 py-3"
-                                onClick={() => setArchiveTarget(null)}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-primary border-none px-6 py-3"
-                                onClick={confirmArchive}
-                            >
-                                {archiveTarget.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                </ModalPortal>
-            )}
+            <ConfirmationModal
+                open={Boolean(archiveTarget)}
+                title={archiveTarget?.status === 'active' ? 'Archive Intern' : 'Restore Intern'}
+                message={archiveTarget
+                    ? `Are you sure you want to ${archiveTarget.status === 'active' ? 'archive' : 'restore'} ${archiveTarget.full_name}?`
+                    : ''}
+                note={archiveTarget
+                    ? archiveTarget.status === 'active'
+                        ? 'This will revoke their access to the system.'
+                        : 'This will allow them to access the system again.'
+                    : undefined}
+                confirmLabel={archiveTarget?.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
+                onCancel={() => setArchiveTarget(null)}
+                onConfirm={confirmArchive}
+            />
 
             {/* ===== Edit Intern Modal ===== */}
             {editingIntern && (
@@ -844,12 +837,13 @@ const ManageInterns = () => {
                         <div className="modal-grid-2col">
                             <div>
                                 <label className="block font-semibold mb-2">Start Date:</label>
-                                <input
-                                    className="input w-full bg-white"
-                                    name="start_date"
-                                    type="date"
-                                    value={editForm.start_date}
-                                    onChange={handleEditChange}
+                                <DateTimePicker
+                                    date={editForm.start_date}
+                                    time=""
+                                    showTime={false}
+                                    datePlaceholder="Select start date"
+                                    onDateChange={(value) => setEditForm(prev => ({ ...prev, start_date: value }))}
+                                    onTimeChange={() => {}}
                                 />
                             </div>
                             <div>

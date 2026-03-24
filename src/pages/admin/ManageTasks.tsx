@@ -1,9 +1,11 @@
-import { Filter, Search, Calendar, X, Loader2 } from 'lucide-react';
+import { Filter, Search, X, Loader2 } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import '../../index.css';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
+import ConfirmationModal from '../../components/ConfirmationModal';
+import DateTimePicker from '../../components/DateTimePicker';
 
 import { taskService } from '../../services/taskServices';
 import { userService } from '../../services/userServices';
@@ -264,9 +266,7 @@ const ManageTasks = () => {
         }, 4000);
     };
 
-    const dateInputRef = useRef<HTMLInputElement>(null);
     const internSearchInputRef = useRef<HTMLInputElement>(null);
-
     const fetchTasks = useCallback(async (showLoading = true, signal?: AbortSignal) => {
         if (showLoading) setIsLoadingTasks(true);
         try {
@@ -708,9 +708,6 @@ const ManageTasks = () => {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
-                input[type="datetime-local"]::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
-            input[type="datetime-local"]::-webkit-inner-spin-button,
-                input[type="datetime-local"]::-webkit-clear-button { display: none; -webkit-appearance: none; }
                 
                 /* Task Detail Modal Styles */
                 .task-detail-modal {
@@ -1083,17 +1080,17 @@ const ManageTasks = () => {
                                         onChange={(e) => setTaskDescription(e.target.value)}
                                     />
                                 </div>
-                                <div className="mb-4 relative">
+                                <div className="mb-4">
                                     <label className="label mb-2"><b>Assign to Intern/s:</b></label>
-                                    <div className="relative mb-3">
+                                    <div className="admin-search-wrap mb-3 relative">
                                         <Search
                                             size={20}
-                                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10"
+                                            className="admin-search-icon"
                                         />
                                         <input
                                             ref={internSearchInputRef}
                                             type="text"
-                                            className="input bg-white pl-11"
+                                            className="input bg-white admin-search-input"
                                             placeholder="Search interns by name"
                                             value={internSearch}
                                             onChange={(e) => { setInternSearch(e.target.value); setIsInternSearchFocused(true); }}
@@ -1209,34 +1206,18 @@ const ManageTasks = () => {
                                         </p>
                                     )}
                                     <label className="label mb-2"><b>Due Date:</b></label>
-                                    <div className="relative">
-                                        <input
-                                            ref={dateInputRef}
-                                            type="datetime-local"
-                                            className="input bg-white pr-10"
-                                            value={dueDate && dueTime ? `${dueDate}T${dueTime}` : dueDate ? `${dueDate}T00:00` : ''}
-                                            min={new Date().toISOString().slice(0, 16)}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                if (value) {
-                                                    const [d, t] = value.split('T');
-                                                    setDueDate(d || '');
-                                                    setDueTime(t || '00:00');
-                                                } else {
-                                                    setDueDate('');
-                                                    setDueTime('');
-                                                }
-                                                if (dueDateError) {
-                                                    setDueDateError('');
-                                                }
-                                            }}
-                                            style={{ colorScheme: 'light' }}
-                                        />
-                                        <button type="button" onClick={() => dateInputRef.current?.showPicker?.()}
-                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-1 flex items-center text-muted-foreground">
-                                            <Calendar size={20} />
-                                        </button>
-                                    </div>
+                                    <DateTimePicker
+                                        date={dueDate}
+                                        time={dueTime}
+                                        minDate={new Date().toLocaleDateString('en-CA')}
+                                        onDateChange={setDueDate}
+                                        onTimeChange={setDueTime}
+                                        onInteract={() => {
+                                            if (dueDateError) {
+                                                setDueDateError('');
+                                            }
+                                        }}
+                                    />
                                 </div>
                                 <div className="mb-1">
                                     <label className="label mb-2"><b>Priority:</b></label>
@@ -1483,25 +1464,28 @@ const ManageTasks = () => {
                         <div className="grid grid-cols-2 gap-3.5 mt-4.5">
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[0.85rem] font-bold text-slate-700">Start date</label>
-                                <input
-                                    type="date"
-                                    className="input bg-white"
-                                    value={customDraftStart}
-                                    onChange={(e) => {
-                                        const next = e.target.value;
+                                <DateTimePicker
+                                    date={customDraftStart}
+                                    time=""
+                                    showTime={false}
+                                    datePlaceholder="Select start date"
+                                    onDateChange={(next) => {
                                         setCustomDraftStart(next);
                                         setCustomDraftEnd((prev) => (prev && prev < next ? next : prev));
                                     }}
+                                    onTimeChange={() => {}}
                                 />
                             </div>
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[0.85rem] font-bold text-slate-700">End date</label>
-                                <input
-                                    type="date"
-                                    className="input bg-white"
-                                    value={customDraftEnd}
-                                    min={customDraftStart || undefined}
-                                    onChange={(e) => setCustomDraftEnd(e.target.value)}
+                                <DateTimePicker
+                                    date={customDraftEnd}
+                                    time=""
+                                    minDate={customDraftStart || undefined}
+                                    showTime={false}
+                                    datePlaceholder="Select end date"
+                                    onDateChange={setCustomDraftEnd}
+                                    onTimeChange={() => {}}
                                 />
                             </div>
                         </div>
@@ -1750,47 +1734,17 @@ const ManageTasks = () => {
                 </ModalPortal>
             )}
 
-            {/* Archive confirmation modal */}
-            {archiveModalOpen && selectedTask && (
-                <ModalPortal>
-                    <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1100]">
-                        <div
-                            className="bg-white w-[90%] max-w-[420px] rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                        <div className="flex items-center gap-3 mb-1">
-                            <span className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-100 text-[hsl(var(--orange))]">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-                            </span>
-                            <h2 className="m-0 text-xl font-extrabold text-slate-800">Archive Task</h2>
-                        </div>
-                        <p className="mt-3 mb-1 text-slate-600 text-[0.9rem] leading-relaxed">
-                            Are you sure you want to archive{' '}
-                            <strong className="text-slate-800">&ldquo;{selectedTask.title}&rdquo;</strong>?{' '}
-                            This action cannot be undone.
-                        </p>
-                        <div className="flex justify-end gap-3 mt-7">
-                            <button
-                                type="button"
-                                onClick={() => setArchiveModalOpen(false)}
-                                className="px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold cursor-pointer text-sm hover:bg-slate-50 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={confirmArchive}
-                                disabled={archiving}
-                                className="px-5 py-2.5 rounded-lg border-none bg-[hsl(var(--orange))] text-white font-bold text-sm cursor-pointer transition-opacity"
-                                style={{ opacity: archiving ? 0.7 : 1 }}
-                            >
-                                {archiving ? 'Archiving…' : 'Confirm Archive'}
-                            </button>
-                        </div>
-                        </div>
-                    </div>
-                </ModalPortal>
-            )}
+            <ConfirmationModal
+                open={archiveModalOpen && Boolean(selectedTask)}
+                title="Archive Task"
+                message={selectedTask ? `Are you sure you want to archive "${selectedTask.title}"?` : ''}
+                note="This action cannot be undone."
+                confirmLabel="Confirm Archive"
+                loadingLabel="Archiving..."
+                isLoading={archiving}
+                onCancel={() => setArchiveModalOpen(false)}
+                onConfirm={confirmArchive}
+            />
 
             {toast.visible && (
                 <div style={{ ...toastStyles.container, ...(toast.type === 'error' ? toastStyles.error : toastStyles.success) }}>

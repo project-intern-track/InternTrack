@@ -5,7 +5,6 @@ type MobileFilterDrawerProps = {
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
-  title?: string;
   children: ReactNode;
   triggerLabel?: string;
   triggerClassName?: string;
@@ -17,12 +16,11 @@ const MobileFilterDrawer = ({
   open,
   onOpen,
   onClose,
-  title = 'Filters',
   children,
   triggerLabel = 'Filters',
   triggerClassName = '',
   bodyClassName = '',
-  className = 'min-[851px]:hidden',
+  className = 'w-full min-[851px]:hidden',
 }: MobileFilterDrawerProps) => {
   const handleToggle = () => {
     if (open) {
@@ -57,10 +55,6 @@ const MobileFilterDrawer = ({
           id="mobile-filter-collapse"
           className="mt-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-950"
         >
-          <div className="mb-4 flex items-center gap-2">
-            <Filter size={18} className="text-orange-600" />
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
-          </div>
           <div className={bodyClassName}>
             {children}
           </div>

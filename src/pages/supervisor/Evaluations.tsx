@@ -8,6 +8,7 @@ import { authService } from '../../services/authService';
 import { userService } from '../../services/userServices';
 import { feedbackService } from '../../services/feedbackService';
 import DropdownSelect from '../../components/DropdownSelect';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 const Evaluations = () => {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -577,40 +578,16 @@ const Evaluations = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm !== null && createPortal(
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }} 
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
-          >
-            <div className="mb-4">
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white">Delete Evaluation</h3>
-            </div>
-
-            <p className="mb-6 text-gray-700 dark:text-gray-300">
-              Are you sure you want to delete this evaluation? This action cannot be undone.
-            </p>
-
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={cancelDelete}
-                className="flex-1 rounded-lg border border-gray-300 py-2 font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-slate-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 rounded-lg bg-red-500 py-2 font-semibold text-white hover:bg-red-600"
-              >
-                Delete
-              </button>
-            </div>
-          </motion.div>
-        </div>,
-        document.body
-      )}
+      <ConfirmationModal
+        open={deleteConfirm !== null}
+        title="Delete Evaluation"
+        message="Are you sure you want to delete this evaluation?"
+        note="This action cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        onCancel={cancelDelete}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

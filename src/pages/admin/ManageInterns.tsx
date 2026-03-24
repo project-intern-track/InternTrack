@@ -5,6 +5,7 @@ import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import DateTimePicker from '../../components/DateTimePicker';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users, OJTType } from '../../types/database.types';
@@ -836,12 +837,13 @@ const ManageInterns = () => {
                         <div className="modal-grid-2col">
                             <div>
                                 <label className="block font-semibold mb-2">Start Date:</label>
-                                <input
-                                    className="input w-full bg-white"
-                                    name="start_date"
-                                    type="date"
-                                    value={editForm.start_date}
-                                    onChange={handleEditChange}
+                                <DateTimePicker
+                                    date={editForm.start_date}
+                                    time=""
+                                    showTime={false}
+                                    datePlaceholder="Select start date"
+                                    onDateChange={(value) => setEditForm(prev => ({ ...prev, start_date: value }))}
+                                    onTimeChange={() => {}}
                                 />
                             </div>
                             <div>

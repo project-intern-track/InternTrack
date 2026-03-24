@@ -7,6 +7,7 @@ import '../../index.css';
 import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
+import DateTimePicker from '../../components/DateTimePicker';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -909,29 +910,21 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 <label htmlFor="date-filter-input" className="absolute -left-[9999px] w-px h-px overflow-hidden">
                   Filter by date
                 </label>
-                <input
-                  id="date-filter-input"
-                  type="date"
-                  value={dateFilter === 'all' ? '' : dateFilter}
-                  onChange={(e) => {
-                    if (scrollContainerRef.current) {
-                      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
-                    }
-                    setDateFilter(e.target.value || 'all');
-                  }}
-                  aria-label="Select date to filter attendance records"
-                  className="input"
-                  style={{
-                    width: '100%',
-                    minWidth: '190px',
-                    height: '46px',
-                    backgroundColor: 'white',
-                    color: '#0f172a',
-                    WebkitTextFillColor: '#0f172a',
-                    cursor: 'text',
-                    flex: '1 1 auto'
-                  }}
-                />
+                <div style={{ width: '100%', minWidth: '190px', flex: '1 1 auto' }}>
+                  <DateTimePicker
+                    date={dateFilter === 'all' ? '' : dateFilter}
+                    time=""
+                    showTime={false}
+                    datePlaceholder="Filter by date"
+                    onDateChange={(value) => {
+                      if (scrollContainerRef.current) {
+                        scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+                      }
+                      setDateFilter(value || 'all');
+                    }}
+                    onTimeChange={() => {}}
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -1001,16 +994,13 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         >
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date</label>
-            <input
-              type="date"
-              value={dateFilter === 'all' ? '' : dateFilter}
-              onChange={(e) => setDateFilter(e.target.value || 'all')}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-              style={{
-                minHeight: '48px',
-                color: '#0f172a',
-                WebkitTextFillColor: '#0f172a',
-              }}
+            <DateTimePicker
+              date={dateFilter === 'all' ? '' : dateFilter}
+              time=""
+              showTime={false}
+              datePlaceholder="Select date"
+              onDateChange={(value) => setDateFilter(value || 'all')}
+              onTimeChange={() => {}}
             />
             <button
               type="button"
@@ -1205,13 +1195,13 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
               <div>
                 <label className="block text-sm font-medium mb-2">Date</label>
-                <input 
-                  type="date" 
-                  className="input" 
-                  value={manualEntryForm.date} 
-                  onChange={e => setManualEntryForm({...manualEntryForm, date: e.target.value})}
-                  required
-                  style={{ width: '100%' }}
+                <DateTimePicker
+                  date={manualEntryForm.date}
+                  time=""
+                  showTime={false}
+                  datePlaceholder="Select date"
+                  onDateChange={(value) => setManualEntryForm({ ...manualEntryForm, date: value })}
+                  onTimeChange={() => {}}
                 />
               </div>
 

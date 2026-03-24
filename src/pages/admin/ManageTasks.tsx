@@ -1,10 +1,11 @@
-import { Filter, Search, Calendar, X, Loader2 } from 'lucide-react';
+import { Filter, Search, X, Loader2 } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import '../../index.css';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import DateTimePicker from '../../components/DateTimePicker';
 
 import { taskService } from '../../services/taskServices';
 import { userService } from '../../services/userServices';
@@ -265,9 +266,7 @@ const ManageTasks = () => {
         }, 4000);
     };
 
-    const dateInputRef = useRef<HTMLInputElement>(null);
     const internSearchInputRef = useRef<HTMLInputElement>(null);
-
     const fetchTasks = useCallback(async (showLoading = true, signal?: AbortSignal) => {
         if (showLoading) setIsLoadingTasks(true);
         try {
@@ -709,9 +708,6 @@ const ManageTasks = () => {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
-                input[type="datetime-local"]::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
-            input[type="datetime-local"]::-webkit-inner-spin-button,
-                input[type="datetime-local"]::-webkit-clear-button { display: none; -webkit-appearance: none; }
                 
                 /* Task Detail Modal Styles */
                 .task-detail-modal {
@@ -1084,17 +1080,17 @@ const ManageTasks = () => {
                                         onChange={(e) => setTaskDescription(e.target.value)}
                                     />
                                 </div>
-                                <div className="mb-4 relative">
+                                <div className="mb-4">
                                     <label className="label mb-2"><b>Assign to Intern/s:</b></label>
-                                    <div className="relative mb-3">
+                                    <div className="admin-search-wrap mb-3 relative">
                                         <Search
                                             size={20}
-                                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10"
+                                            className="admin-search-icon"
                                         />
                                         <input
                                             ref={internSearchInputRef}
                                             type="text"
-                                            className="input bg-white pl-11"
+                                            className="input bg-white admin-search-input"
                                             placeholder="Search interns by name"
                                             value={internSearch}
                                             onChange={(e) => { setInternSearch(e.target.value); setIsInternSearchFocused(true); }}
@@ -1210,34 +1206,18 @@ const ManageTasks = () => {
                                         </p>
                                     )}
                                     <label className="label mb-2"><b>Due Date:</b></label>
-                                    <div className="relative">
-                                        <input
-                                            ref={dateInputRef}
-                                            type="datetime-local"
-                                            className="input bg-white pr-10"
-                                            value={dueDate && dueTime ? `${dueDate}T${dueTime}` : dueDate ? `${dueDate}T00:00` : ''}
-                                            min={new Date().toISOString().slice(0, 16)}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                if (value) {
-                                                    const [d, t] = value.split('T');
-                                                    setDueDate(d || '');
-                                                    setDueTime(t || '00:00');
-                                                } else {
-                                                    setDueDate('');
-                                                    setDueTime('');
-                                                }
-                                                if (dueDateError) {
-                                                    setDueDateError('');
-                                                }
-                                            }}
-                                            style={{ colorScheme: 'light' }}
-                                        />
-                                        <button type="button" onClick={() => dateInputRef.current?.showPicker?.()}
-                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-1 flex items-center text-muted-foreground">
-                                            <Calendar size={20} />
-                                        </button>
-                                    </div>
+                                    <DateTimePicker
+                                        date={dueDate}
+                                        time={dueTime}
+                                        minDate={new Date().toLocaleDateString('en-CA')}
+                                        onDateChange={setDueDate}
+                                        onTimeChange={setDueTime}
+                                        onInteract={() => {
+                                            if (dueDateError) {
+                                                setDueDateError('');
+                                            }
+                                        }}
+                                    />
                                 </div>
                                 <div className="mb-1">
                                     <label className="label mb-2"><b>Priority:</b></label>
@@ -1484,25 +1464,28 @@ const ManageTasks = () => {
                         <div className="grid grid-cols-2 gap-3.5 mt-4.5">
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[0.85rem] font-bold text-slate-700">Start date</label>
-                                <input
-                                    type="date"
-                                    className="input bg-white"
-                                    value={customDraftStart}
-                                    onChange={(e) => {
-                                        const next = e.target.value;
+                                <DateTimePicker
+                                    date={customDraftStart}
+                                    time=""
+                                    showTime={false}
+                                    datePlaceholder="Select start date"
+                                    onDateChange={(next) => {
                                         setCustomDraftStart(next);
                                         setCustomDraftEnd((prev) => (prev && prev < next ? next : prev));
                                     }}
+                                    onTimeChange={() => {}}
                                 />
                             </div>
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[0.85rem] font-bold text-slate-700">End date</label>
-                                <input
-                                    type="date"
-                                    className="input bg-white"
-                                    value={customDraftEnd}
-                                    min={customDraftStart || undefined}
-                                    onChange={(e) => setCustomDraftEnd(e.target.value)}
+                                <DateTimePicker
+                                    date={customDraftEnd}
+                                    time=""
+                                    minDate={customDraftStart || undefined}
+                                    showTime={false}
+                                    datePlaceholder="Select end date"
+                                    onDateChange={setCustomDraftEnd}
+                                    onTimeChange={() => {}}
                                 />
                             </div>
                         </div>

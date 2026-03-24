@@ -2618,11 +2618,13 @@ textarea,
 }
 
 /* Shared admin search input with leading icon */
+.admin-search-wrap,
 .admin-page-shell .admin-search-wrap {
   position: relative;
   width: 100%;
 }
 
+.admin-search-icon,
 .admin-page-shell .admin-search-icon {
   position: absolute;
   left: 1rem;
@@ -2633,6 +2635,7 @@ textarea,
   z-index: 1;
 }
 
+.admin-search-input,
 .admin-page-shell .admin-search-input {
   width: 100%;
   padding-left: 3rem;
@@ -2797,6 +2800,188 @@ textarea,
   gap: 1.1rem;
 }
 
+.date-time-picker {
+  position: relative;
+}
+
+.date-time-picker-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0.85rem;
+}
+
+.date-time-picker-row.date-only {
+  grid-template-columns: 1fr;
+}
+
+.date-time-picker-trigger,
+.date-time-picker-time {
+  min-height: 42px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: hsl(var(--foreground));
+}
+
+.date-time-picker-trigger {
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.date-time-picker-trigger.is-disabled,
+.date-time-picker-time.is-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: hsl(var(--muted));
+}
+
+.date-time-picker-trigger:hover {
+  border-color: hsl(var(--orange) / 0.5);
+}
+
+.date-time-picker-trigger:focus-visible {
+  outline: none;
+  border-color: hsl(var(--orange));
+  box-shadow: 0 0 0 3px hsl(var(--orange) / 0.1);
+}
+
+.date-time-picker-leading-icon {
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.date-time-picker-value,
+.date-time-picker-placeholder {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.date-time-picker-placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.date-time-picker-time {
+  gap: 0.45rem;
+}
+
+.date-time-picker-select {
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  outline: none;
+  appearance: none;
+  padding: 0;
+}
+
+.date-time-picker-select:disabled {
+  cursor: not-allowed;
+}
+
+.date-time-picker-period {
+  font-weight: 700;
+  min-width: 3rem;
+}
+
+.date-time-picker-separator {
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+}
+
+.date-time-picker-popover {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 1200;
+  width: min(100%, 330px);
+  padding: 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
+}
+
+.date-time-picker-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.date-time-picker-nav {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.date-time-picker-month-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.date-time-picker-weekdays,
+.date-time-picker-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.date-time-picker-weekdays {
+  margin-bottom: 0.45rem;
+}
+
+.date-time-picker-weekdays span {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.date-time-picker-day {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: #0f172a;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.date-time-picker-day:hover:not(.is-disabled) {
+  background: #fff7ed;
+}
+
+.date-time-picker-day.is-muted {
+  color: #94a3b8;
+}
+
+.date-time-picker-day.is-selected {
+  background: linear-gradient(135deg, #ff8800, #e67a00);
+  color: #fff;
+  font-weight: 700;
+}
+
+.date-time-picker-day.is-disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
 .admin-page-shell .create-task-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -2818,6 +3003,10 @@ textarea,
   }
 
   .admin-page-shell .create-task-modal-content {
+    grid-template-columns: 1fr;
+  }
+
+  .date-time-picker-row {
     grid-template-columns: 1fr;
   }
 }

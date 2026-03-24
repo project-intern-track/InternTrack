@@ -322,6 +322,32 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           font-size: 31px;
           font-weight: 700;
         }
+
+        .attendance-action-group {
+          display: flex;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+        }
+
+        .attendance-action-btn {
+          min-height: 40px;
+          padding: 0.5rem 1rem;
+          font-size: 0.875rem;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .attendance-action-btn-outline {
+          background: #fff;
+          color: hsl(var(--orange));
+          border: 1.5px solid hsl(var(--orange));
+          box-shadow: none;
+        }
+
+        .attendance-action-btn-outline:hover:not(:disabled) {
+          background: rgba(255, 136, 0, 0.06);
+          transform: translateY(-1px);
+        }
         
         .attendance-stats-grid {
           display: grid;
@@ -471,6 +497,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           
           .attendance-header {
             margin-bottom: 1.25rem !important;
+          }
+
+          .attendance-action-group {
+            width: 100%;
           }
           
           .attendance-header h1 {
@@ -632,6 +662,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           .attendance-mobile-record-row {
             font-size: 0.8125rem !important;
           }
+
+          .attendance-action-group {
+            gap: 0.5rem;
+          }
+
+          .attendance-action-btn {
+            flex: 1 1 0;
+            justify-content: center;
+            min-width: 0;
+            padding-inline: 0.875rem;
+          }
         }
         
         .attendance-pagination {
@@ -766,20 +807,20 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         {/* Header */}
         <div className="attendance-header mb-8 flex justify-between items-center flex-wrap gap-4">
           <h1>Monitor Attendance</h1>
-          <div className="flex gap-3">
+          <div className="attendance-action-group">
             <button
               onClick={() => setIsManualEntryOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white text-[hsl(var(--orange))] border-2 border-[hsl(var(--orange))] rounded-lg font-semibold cursor-pointer transition-all"
+              className="btn attendance-action-btn attendance-action-btn-outline"
             >
-              <Plus size={18} />
+              <Plus size={16} />
               Add Manual Entry
             </button>
             <button
               onClick={handleExport}
               disabled={filteredRecords.length === 0}
-              className={`flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--orange))] text-white border-none rounded-lg font-semibold transition-all ${filteredRecords.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+              className={`btn btn-primary attendance-action-btn ${filteredRecords.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
-              <Download size={18} />
+              <Download size={16} />
               Export
             </button>
           </div>

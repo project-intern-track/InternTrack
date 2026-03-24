@@ -726,7 +726,7 @@ const toastStyles = {
   container: {
     position: 'fixed' as const,
     top: '24px',
-    right: '24px',
+    right: 'max(16px, min(24px, 3vw))',
     zIndex: 9999,
     display: 'flex',
     alignItems: 'center',
@@ -736,7 +736,7 @@ const toastStyles = {
     boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
     fontSize: '0.95rem',
     fontWeight: 500,
-    maxWidth: '420px',
+    maxWidth: 'min(420px, calc(100vw - 2rem))',
     animation: 'slideIn 0.3s ease-out',
   },
   error: {

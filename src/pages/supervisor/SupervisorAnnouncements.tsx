@@ -81,7 +81,7 @@ const SupervisorAnnouncements = ({ type = 'company' }: { type?: 'company' | 'int
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
-          className="rounded-[2.5rem] border border-gray-200 bg-white p-16 text-center shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+          className="rounded-[2.5rem] border border-gray-200 bg-white p-6 sm:p-16 text-center shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
         >
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/5">
             <Bell className="text-gray-400 dark:text-gray-500" size={28} />
@@ -96,7 +96,7 @@ const SupervisorAnnouncements = ({ type = 'company' }: { type?: 'company' | 'int
           transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
           className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50 overflow-hidden"
         >
-          <div className="flex items-center gap-3 border-b border-gray-200 px-8 py-6 dark:border-white/5">
+          <div className="flex items-center gap-3 border-b border-gray-200 px-4 sm:px-8 py-4 sm:py-6 dark:border-white/5">
             <TypeIcon className="text-primary" size={20} />
             <h2 className="text-xl font-black text-gray-800 dark:text-white">{title}</h2>
             <span className="ml-auto rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
@@ -111,7 +111,7 @@ const SupervisorAnnouncements = ({ type = 'company' }: { type?: 'company' | 'int
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: 0.1 + index * 0.04, ease: 'easeOut' }}
-                className="px-8 py-6 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                className="px-4 sm:px-8 py-4 sm:py-6 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               >
                 <div className="flex items-start gap-4">
                   <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10">

@@ -8,7 +8,7 @@ const ManageInterns = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: 'easeOut' }}
-                className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2.5rem] p-16 shadow-sm text-center min-h-[500px] flex flex-col items-center justify-center"
+                className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2.5rem] p-6 sm:p-16 shadow-sm text-center min-h-[300px] sm:min-h-[500px] flex flex-col items-center justify-center"
             >
                 <motion.div
                     initial={{ scale: 0.85, opacity: 0 }}
@@ -22,7 +22,7 @@ const ManageInterns = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, delay: 0.14, ease: 'easeOut' }}
-                    className="text-4xl font-black tracking-tight text-gray-900 dark:text-white mb-4"
+                    className="text-2xl sm:text-4xl font-black tracking-tight text-gray-900 dark:text-white mb-4"
                 >
                     Manage Interns
                 </motion.h1>

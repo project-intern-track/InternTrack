@@ -268,7 +268,7 @@ const Evaluations = () => {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage evaluations for interns here.</p>
       </motion.div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {summaryCards.map((item, idx) => (
           <motion.div
             key={item.label}

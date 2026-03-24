@@ -393,7 +393,7 @@ const FeedbackDashboard = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="relative max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-slate-900"
+            className="relative max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 sm:p-8 shadow-xl dark:border-white/10 dark:bg-slate-900"
           >
             <button
               onClick={() => setCompetencyModal(null)}

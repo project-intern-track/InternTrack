@@ -283,6 +283,7 @@ const SupervisorApprovals = () => {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
+        className="mb-6"
       >
         <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Supervisor Approvals</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -393,7 +394,9 @@ const SupervisorApprovals = () => {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1">
                     <h3 className="break-words text-lg font-black leading-snug text-gray-900 dark:text-white">{task.title}</h3>
-                    <p className="mt-1 mb-4 text-sm text-gray-700 dark:text-gray-300">{task.description}</p>
+                    <div className="mt-1 pb-4">
+                      <p className="text-sm leading-6 text-gray-700 dark:text-gray-300">{task.description}</p>
+                    </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       <span className="font-semibold">Assigned to:</span> {assignedNames(task)}
                     </p>

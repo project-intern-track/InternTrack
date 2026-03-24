@@ -1093,7 +1093,7 @@ const ManageTasks = () => {
                                         <input
                                             ref={internSearchInputRef}
                                             type="text"
-                                            className="input bg-white pl-11"
+                                            className="input bg-white !pl-11"
                                             placeholder="Search interns by name"
                                             value={internSearch}
                                             onChange={(e) => { setInternSearch(e.target.value); setIsInternSearchFocused(true); }}

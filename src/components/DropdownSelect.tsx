@@ -98,7 +98,7 @@ function DropdownSelect<T extends string = string>({
                       onChange(option.value);
                       setOpen(false);
                     }}
-                    className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                    className={`flex w-full items-center justify-start rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-all duration-200 ${
                       isActive
                         ? 'bg-[hsl(var(--orange))] text-white'
                         : 'text-slate-700 hover:bg-orange-50 dark:text-slate-200 dark:hover:bg-white/10'

@@ -186,7 +186,7 @@ const SupervisorDashboard = () => {
     : [];
 
   const totalPie = pieData.reduce((acc, d) => acc + d.value, 0);
-  const taskItemsPerPage = 5;
+  const taskItemsPerPage = 6;
   const totalTaskPages = Math.max(1, Math.ceil(recentTasks.length / taskItemsPerPage));
   const safeTaskPage = Math.min(Math.max(1, currentTaskPage), totalTaskPages);
   const paginatedRecentTasks = recentTasks.slice(

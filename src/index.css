@@ -2432,6 +2432,10 @@ textarea,
   gap: 1rem;
 }
 
+.admin-page-shell .manage-users-stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
 .admin-page-shell .stat-card,
 .admin-page-shell .chart-card,
 .admin-page-shell .activity-card,
@@ -2556,6 +2560,11 @@ textarea,
 @media (max-width: 768px) {
   .admin-page-shell {
     padding: 0;
+  }
+
+  .admin-page-shell .stat-header {
+    gap: 0.625rem !important;
+    align-items: flex-start !important;
   }
 
   .admin-page-shell .stats-grid,

@@ -217,7 +217,7 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-4"
+        className="flex flex-col items-start gap-1.5"
       >
         <h1 className="m-0 text-3xl font-black tracking-tight text-gray-900 dark:text-white">
           Settings

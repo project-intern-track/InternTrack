@@ -507,7 +507,7 @@ const ManageAdmins = () => {
             {isAddModalOpen && (
                 <ModalPortal>
                 <div className="modal-overlay" onClick={handleCloseAddModal}>
-                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-5 sm:p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <h2 className="text-orange-600 dark:text-orange-400">{confirmationStep ? 'Confirm Admin Addition' : 'Add New Admin'}</h2>
                         {!confirmationStep ? (
                             <div>
@@ -550,7 +550,7 @@ const ManageAdmins = () => {
             {archiveTarget && (
                 <ModalPortal>
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-5 sm:p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
                             <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
                             <h2 className="text-orange-600 dark:text-orange-400 m-0 text-xl font-bold">

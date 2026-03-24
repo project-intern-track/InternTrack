@@ -545,7 +545,7 @@ const ManageSupervisors = () => {
             {signUpModalOpen && (
                 <ModalPortal>
                 <div className="modal-overlay" onClick={handleCloseSignupModal}>
-                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-5 sm:p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <h2 className="text-orange-600 mb-6">Register New Supervisor</h2>
 
                         {signUpSuccess && (
@@ -630,7 +630,7 @@ const ManageSupervisors = () => {
             {archiveTarget && (
                 <ModalPortal>
                 <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-5 sm:p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
                             <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
                             <h2 className="text-orange-600 m-0 text-xl font-bold">

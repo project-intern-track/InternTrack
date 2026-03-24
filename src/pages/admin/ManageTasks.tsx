@@ -834,6 +834,7 @@ const ManageTasks = () => {
                     .task-detail-actions { flex-direction: column; }
                     .task-detail-actions button { width: 100%; }
                     .task-detail-modal { padding: 1.25rem; max-width: 95vw; }
+                    .tools-checkbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
             }
         `}</style>
 
@@ -1309,6 +1310,7 @@ const ManageTasks = () => {
                                                 }}
                                             >
                                                 <div
+                                                    className="tools-checkbox-grid"
                                                     style={{
                                                         display: 'grid',
                                                         gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',

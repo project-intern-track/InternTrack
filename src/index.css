@@ -309,6 +309,17 @@ h4 {
   background-color: hsl(var(--muted));
 }
 
+.dropdown-select-button {
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+  background-image: none;
+}
+
+.dropdown-select-button.select {
+  padding-right: 0.875rem;
+  background-position: initial;
+}
+
 textarea {
   width: 100%;
   padding: 0.625rem 0.875rem;
@@ -1507,13 +1518,13 @@ textarea,
 .manage-interns-filters .filter-dropdown {
   position: relative;
   min-width: 170px;
-  flex: 0 0 170px;
+  flex: 1 1 170px;
 }
 
 .manage-interns-filters .filter-dropdown-wide {
   position: relative;
   min-width: 190px;
-  flex: 0 0 190px;
+  flex: 1.15 1 190px;
 }
 
 .modal-grid-2col {
@@ -3016,7 +3027,7 @@ textarea,
 
 /* Focused redesign: Reports list page */
 .admin-page-shell.reports-page-shell {
-  padding: 0.5rem;
+  padding: 0;
 }
 
 .reports-header-block {
@@ -3093,11 +3104,15 @@ textarea,
 .reports-status-select {
   height: 40px;
   min-width: 160px;
-  padding: 0 2.2rem 0 0.9rem;
+  padding: 0.625rem 0.875rem 0.625rem 0.875rem;
   border-radius: 0.65rem;
   border: 1px solid #d1d5db;
   font-size: 0.9rem;
   background-color: #fff;
+}
+
+.reports-status-select span.ml-2 {
+  margin-left: 0.625rem;
 }
 
 .dark .reports-status-select {
@@ -3108,7 +3123,7 @@ textarea,
 
 .reports-status-dropdown {
   min-width: 160px;
-  flex: 0 0 160px;
+  flex: 1 1 160px;
 }
 
 .reports-export-btn {
@@ -3178,6 +3193,8 @@ textarea,
   margin: 0;
   color: #6b7280;
   font-size: 0.86rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dark .report-card-email {

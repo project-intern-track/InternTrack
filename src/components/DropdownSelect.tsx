@@ -61,7 +61,7 @@ function DropdownSelect<T extends string = string>({
         whileTap={disabled ? undefined : { scale: 0.985 }}
         onClick={() => !disabled && setOpen((prev) => !prev)}
         disabled={disabled}
-        className={`flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-slate-900 dark:text-white ${buttonClassName} ${open ? 'border-[hsl(var(--orange))] shadow-[0_14px_34px_-22px_rgba(255,136,0,0.85)]' : ''}`}
+        className={`dropdown-select-button flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-slate-900 dark:text-white ${buttonClassName} ${open ? 'border-[hsl(var(--orange))] shadow-[0_14px_34px_-22px_rgba(255,136,0,0.85)]' : ''}`}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -69,7 +69,7 @@ function DropdownSelect<T extends string = string>({
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="ml-3 shrink-0 text-slate-500 dark:text-slate-300"
+          className="ml-2 shrink-0 text-slate-500 dark:text-slate-300"
         >
           <ChevronDown size={18} />
         </motion.span>

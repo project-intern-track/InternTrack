@@ -366,7 +366,7 @@ const ManageSupervisors = () => {
                     <Filter size={20} /> <span className="font-semibold">Filters:</span>
                 </div>
 
-                <div className="flex w-full flex-col flex-wrap gap-4 md:w-auto md:flex-row">
+                <div className="flex w-full flex-col flex-wrap gap-4 min-[851px]:flex-1 min-[851px]:flex-row">
                     <div className="filter-dropdown">
                         <DropdownSelect
                             value={dateSort}

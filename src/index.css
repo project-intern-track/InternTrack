@@ -3016,7 +3016,7 @@ textarea,
 
 /* Focused redesign: Reports list page */
 .admin-page-shell.reports-page-shell {
-  padding: 0.5rem;
+  padding: 0;
 }
 
 .reports-header-block {
@@ -3178,6 +3178,8 @@ textarea,
   margin: 0;
   color: #6b7280;
   font-size: 0.86rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dark .report-card-email {

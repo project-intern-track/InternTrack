@@ -111,6 +111,8 @@ const formatDueDate = (isoDate: string | undefined) => {
 const formatStatus = (status: string) =>
   status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
+const formatTaskCount = (count: number) => `${count} task${count === 1 ? '' : 's'}`;
+
 // ============================
 // Main Component
 // ============================
@@ -124,7 +126,7 @@ const SupervisorDashboard = () => {
   const [detailTask, setDetailTask] = useState<Tasks | null>(null);
   const [finalizingId, setFinalizingId] = useState<number | null>(null);
   const [currentTaskPage, setCurrentTaskPage] = useState(1);
-  const [isMobileTasksView, setIsMobileTasksView] = useState(() => window.innerWidth <= 768);
+  const [isMobileTasksView, setIsMobileTasksView] = useState(() => window.innerWidth <= 1024);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -148,7 +150,7 @@ const SupervisorDashboard = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    const handleResize = () => setIsMobileTasksView(window.innerWidth <= 768);
+    const handleResize = () => setIsMobileTasksView(window.innerWidth <= 1024);
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -284,7 +286,7 @@ const SupervisorDashboard = () => {
           },
           {
             label: 'Top Score',
-            value: stats?.topPerformer ? `${stats.topPerformer.completed_tasks} tasks` : '—',
+            value: stats?.topPerformer ? formatTaskCount(stats.topPerformer.completed_tasks) : '—',
             icon: Star,
             iconColor: 'text-green-500',
             iconBg: 'bg-green-500/10',
@@ -325,7 +327,7 @@ const SupervisorDashboard = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400">No tasks found.</p>
               ) : (
                 <>
-                  <div className="hidden md:block">
+                  <div className="hidden min-[1025px]:block">
                     <table className="w-full text-left text-sm">
                       <thead>
                         <tr className="border-b border-gray-200 dark:border-white/5">
@@ -397,7 +399,7 @@ const SupervisorDashboard = () => {
                     </table>
                   </div>
 
-                  <div className="space-y-3 md:hidden">
+                  <div className="grid grid-cols-1 gap-3 min-[641px]:grid-cols-2 min-[1025px]:hidden">
                     {paginatedRecentTasks.map((task, index) => {
                       const style = statusStyles[task.status] ?? fallbackStyle;
                       const doneCount = task.assigned_interns.filter((i) => i.intern_status === 'completed').length;

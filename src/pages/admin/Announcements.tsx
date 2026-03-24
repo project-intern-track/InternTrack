@@ -222,11 +222,6 @@ const Announcements = () => {
                     onClose={() => setIsFilterDrawerOpen(false)}
                     bodyClassName="space-y-4"
                 >
-                    <div className="flex flex-row items-center gap-2">
-                        <Filter size={20} className="text-orange-600" />
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Adjust announcement filters</span>
-                    </div>
-
                     <div className="announcements-filter-select w-full">
                         <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date Created</label>
                         <DropdownSelect

@@ -135,7 +135,7 @@ export default function PerformanceFeedback() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         {/* Skills Overview */}
-        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col h-fit max-h-[400px] lg:max-h-[600px]" aria-label="Skills Overview">
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-4 sm:p-6 flex flex-col h-fit max-h-[300px] sm:max-h-[400px] lg:max-h-[600px]" aria-label="Skills Overview">
           <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5 flex-shrink-0">Skills Overview</h2>
           <div className="space-y-5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
             {skills.map((s) => (
@@ -145,7 +145,7 @@ export default function PerformanceFeedback() {
         </section>
 
         {/* Recent Feedback */}
-        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col h-[600px]" aria-label="Recent Feedback">
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-4 sm:p-6 flex flex-col h-[400px] sm:h-[500px] lg:h-[600px]" aria-label="Recent Feedback">
           <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5 flex-shrink-0">Recent Feedback</h2>
 
           {recentFeedback.length === 0 && (
@@ -160,9 +160,9 @@ export default function PerformanceFeedback() {
                 {paginatedFeedback.map((fb) => (
                   <article
                     key={fb.id}
-                    className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-800/30 transition-all"
+                    className="p-3 sm:p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-800/30 transition-all"
                   >
-                    <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex flex-col xs:flex-row xs:items-start xs:justify-between gap-1.5 xs:gap-3 mb-2">
                       <span className="font-bold text-gray-900 dark:text-white text-sm leading-snug">
                         {fb.competency}
                       </span>

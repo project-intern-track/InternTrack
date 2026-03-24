@@ -207,20 +207,20 @@ const StudentDashboard: React.FC = () => {
         {/* ── LEFT COLUMN ── */}
         <div className="lg:col-span-3 space-y-5">
           {/* Stats 2×2 Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {/* Tasks Completed */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
               whileHover={{ y: -3 }}
-              className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+              className="bg-white dark:bg-slate-900/50 p-3 sm:p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2 bg-green-100 dark:bg-green-500/20 rounded-xl">
-                  <CheckCircle className="text-green-600 dark:text-green-400" size={20} />
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-500/20 rounded-xl">
+                  <CheckCircle className="text-green-600 dark:text-green-400" size={16} />
                 </div>
-                <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-500/20 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-500/20 px-1.5 sm:px-2 py-0.5 rounded-full">
                   Done
                 </span>
               </div>
@@ -228,12 +228,13 @@ const StudentDashboard: React.FC = () => {
                 key={stats.tasksCompleted}
                 initial={{ scale: 0.85 }}
                 animate={{ scale: 1 }}
-                className="text-4xl font-black text-gray-900 dark:text-white"
+                className="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white"
               >
                 {stats.tasksCompleted}
               </motion.p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
-                Tasks Completed
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
+                <span className="sm:hidden">Tasks Done</span>
+                <span className="hidden sm:inline">Tasks Completed</span>
               </p>
             </motion.div>
 
@@ -243,13 +244,13 @@ const StudentDashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               whileHover={{ y: -3 }}
-              className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+              className="bg-white dark:bg-slate-900/50 p-3 sm:p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-xl">
-                  <Clock className="text-blue-600 dark:text-blue-400" size={20} />
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-500/20 rounded-xl">
+                  <Clock className="text-blue-600 dark:text-blue-400" size={16} />
                 </div>
-                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 px-1.5 sm:px-2 py-0.5 rounded-full">
                   hrs
                 </span>
               </div>
@@ -257,11 +258,11 @@ const StudentDashboard: React.FC = () => {
                 key={stats.hoursLogged}
                 initial={{ scale: 0.85 }}
                 animate={{ scale: 1 }}
-                className="text-4xl font-black text-gray-900 dark:text-white"
+                className="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white"
               >
                 {stats.hoursLogged}
               </motion.p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
                 Hours Logged
               </p>
             </motion.div>
@@ -272,13 +273,13 @@ const StudentDashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
               whileHover={{ y: -3 }}
-              className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+              className="bg-white dark:bg-slate-900/50 p-3 sm:p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2 bg-orange-100 dark:bg-orange-500/20 rounded-xl">
-                  <Target className="text-primary" size={20} />
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-500/20 rounded-xl">
+                  <Target className="text-primary" size={16} />
                 </div>
-                <span className="text-xs font-semibold text-primary bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-xs font-semibold text-primary bg-orange-100 dark:bg-orange-500/20 px-1.5 sm:px-2 py-0.5 rounded-full">
                   Target
                 </span>
               </div>
@@ -286,12 +287,12 @@ const StudentDashboard: React.FC = () => {
                 key={stats.targetHours}
                 initial={{ scale: 0.85 }}
                 animate={{ scale: 1 }}
-                className="text-4xl font-black text-gray-900 dark:text-white"
+                className="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white"
               >
                 {stats.targetHours}
               </motion.p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
-                Required Hours
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
+                Req. Hours
               </p>
             </motion.div>
 
@@ -301,13 +302,13 @@ const StudentDashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               whileHover={{ y: -3 }}
-              className="bg-white dark:bg-slate-900/50 p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
+              className="bg-white dark:bg-slate-900/50 p-3 sm:p-5 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2 bg-purple-100 dark:bg-purple-500/20 rounded-xl">
-                  <CalendarDays className="text-purple-600 dark:text-purple-400" size={20} />
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-500/20 rounded-xl">
+                  <CalendarDays className="text-purple-600 dark:text-purple-400" size={16} />
                 </div>
-                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/20 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/20 px-1.5 sm:px-2 py-0.5 rounded-full">
                   Left
                 </span>
               </div>
@@ -315,12 +316,12 @@ const StudentDashboard: React.FC = () => {
                 key={stats.daysRemaining}
                 initial={{ scale: 0.85 }}
                 animate={{ scale: 1 }}
-                className="text-4xl font-black text-gray-900 dark:text-white"
+                className="text-2xl sm:text-4xl font-black text-gray-900 dark:text-white"
               >
                 {stats.daysRemaining}
               </motion.p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
-                Days Remaining
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold uppercase tracking-wider">
+                Days Left
               </p>
             </motion.div>
           </div>
@@ -354,10 +355,10 @@ const StudentDashboard: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               {/* Donut ring */}
-              <div className="relative w-[120px] h-[120px] flex-shrink-0">
-                <svg width="120" height="120" viewBox="0 0 120 120">
+              <div className="relative w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] flex-shrink-0">
+                <svg width="100%" height="100%" viewBox="0 0 120 120">
                   {/* Track */}
                   <circle
                     cx="60" cy="60" r={RING_R}
@@ -469,12 +470,12 @@ const StudentDashboard: React.FC = () => {
                   <motion.div
                     whileHover={{ y: -3, scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-xl p-4 flex flex-col items-center gap-2 text-center cursor-pointer shadow-sm hover:shadow-md transition-all"
+                    className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-xl p-2.5 sm:p-4 flex flex-col items-center gap-1.5 sm:gap-2 text-center cursor-pointer shadow-sm hover:shadow-md transition-all"
                   >
-                    <div className={`p-2.5 rounded-xl ${action.bgCls}`}>
-                      <ActionIcon size={20} className={action.iconCls} />
+                    <div className={`p-2 sm:p-2.5 rounded-xl ${action.bgCls}`}>
+                      <ActionIcon size={16} className={`sm:w-5 sm:h-5 ${action.iconCls}`} />
                     </div>
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-gray-300">
                       {action.label}
                     </span>
                   </motion.div>

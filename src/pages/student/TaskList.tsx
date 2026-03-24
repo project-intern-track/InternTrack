@@ -414,13 +414,13 @@ export default function TaskList() {
                 </div>
               )}
 
-              <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
-                <div className="text-xs text-gray-400 dark:text-gray-500 space-x-3">
+              <div className="mt-3 flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2">
+                <div className="text-xs text-gray-400 dark:text-gray-500 flex flex-wrap gap-x-3 gap-y-0.5">
                   <span><span className="font-semibold">Created:</span> {fmt(task.created_at)}</span>
                   <span><span className="font-semibold">Due:</span> {fmt(task.due_date)}</span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className={`text-xs font-bold px-3 py-1 rounded-full ${getPillClass(task.status)}`}>
                     {STATUS_LABEL[task.status]}
                   </span>
@@ -491,7 +491,7 @@ export default function TaskList() {
                 )}
 
                 {/* Meta Grid */}
-                <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl mb-4">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-white/5 rounded-xl mb-4">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Priority</p>
                     <p className={`text-sm font-bold ${getPriorityColor(detailTask.priority)}`}>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X } from 'lucide-react';
+import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
@@ -53,6 +53,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [interns, setInterns] = useState<Users[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [manualInternOpen, setManualInternOpen] = useState(false);
+  const [manualInternQuery, setManualInternQuery] = useState('');
+  const manualInternRef = useRef<HTMLDivElement>(null);
   const [manualEntryForm, setManualEntryForm] = useState({
     user_id: '',
     date: todayDate,
@@ -66,6 +69,30 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       userService.fetchInterns().then(setInterns).catch(console.error);
     }
   }, [isManualEntryOpen, interns.length]);
+
+  useEffect(() => {
+    if (!manualInternOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!manualInternRef.current?.contains(event.target as Node)) {
+        setManualInternOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [manualInternOpen]);
+
+  useEffect(() => {
+    if (!isManualEntryOpen) {
+      setManualInternOpen(false);
+      setManualInternQuery('');
+      return;
+    }
+
+    const selectedIntern = interns.find((intern) => String(intern.id) === manualEntryForm.user_id);
+    setManualInternQuery(selectedIntern?.full_name ?? '');
+  }, [isManualEntryOpen, manualEntryForm.user_id, interns]);
 
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -307,6 +334,14 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     }
   };
 
+  const filteredManualInterns = useMemo(() => {
+    const query = manualInternQuery.trim().toLowerCase();
+    if (!query) return interns;
+    return interns.filter((intern) => intern.full_name.toLowerCase().includes(query));
+  }, [interns, manualInternQuery]);
+
+  const selectedManualIntern = interns.find((intern) => String(intern.id) === manualEntryForm.user_id);
+
   return (
     <>
       <style>{`
@@ -490,6 +525,16 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           display: none;
         }
 
+        @media (max-width: 640px) {
+          .attendance-table-wrapper {
+            display: none !important;
+          }
+
+          .attendance-mobile-card {
+            display: block;
+          }
+        }
+
         @media (max-width: 768px) {
           .attendance-container {
             padding: 0;
@@ -549,14 +594,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             display: none !important;
           }
 
-          .attendance-table-wrapper {
-            display: none !important;
-          }
-          
-          .attendance-mobile-card {
-            display: block;
-          }
-          
           .attendance-mobile-record {
             background: white;
             border-radius: 8px;
@@ -1175,22 +1212,77 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       {isManualEntryOpen && (
         <ModalPortal>
           <div className="fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl p-8 w-full max-w-[500px] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl p-8 w-full max-w-[500px] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] overflow-visible">
             <h2 className="text-xl font-bold mb-6 text-slate-900">Add Manual Entry</h2>
             {submitError && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">{submitError}</div>}
             <form onSubmit={handleManualSubmit} className="flex flex-col gap-4">
               
               <div>
                 <label className="block text-sm font-medium mb-2">Intern</label>
-                <DropdownSelect
-                  value={manualEntryForm.user_id}
-                  onChange={(value) => setManualEntryForm({ ...manualEntryForm, user_id: value })}
-                  options={[
-                    { value: '', label: 'Select an intern...' },
-                    ...interns.map((intern) => ({ value: String(intern.id), label: intern.full_name })),
-                  ]}
-                  buttonClassName="select"
-                />
+                <div ref={manualInternRef} className={`relative ${manualInternOpen ? 'z-[160]' : 'z-10'}`}>
+                  <button
+                    type="button"
+                    onClick={() => setManualInternOpen((prev) => !prev)}
+                    className="dropdown-select-button select flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20"
+                  >
+                    <span className={selectedManualIntern ? 'text-slate-900' : 'text-slate-400'}>
+                      {selectedManualIntern?.full_name || 'Select an intern...'}
+                    </span>
+                    <ChevronDown size={18} className={`ml-2 shrink-0 text-slate-500 transition-transform ${manualInternOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {manualInternOpen && (
+                    <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-20 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)]">
+                      <div className="border-b border-gray-100 p-3">
+                        <div className="relative">
+                          <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            value={manualInternQuery}
+                            onChange={(e) => {
+                              setManualInternQuery(e.target.value);
+                              if (!manualInternOpen) setManualInternOpen(true);
+                            }}
+                            placeholder="Search intern"
+                            className="input w-full pl-11"
+                            style={{ paddingLeft: '2.75rem' }}
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+
+                      <div className="max-h-60 overflow-y-auto p-2">
+                        {filteredManualInterns.length === 0 ? (
+                          <div className="rounded-xl px-4 py-3 text-sm text-slate-500">
+                            No interns found.
+                          </div>
+                        ) : (
+                          filteredManualInterns.map((intern) => {
+                            const isSelected = String(intern.id) === manualEntryForm.user_id;
+                            return (
+                              <button
+                                key={intern.id}
+                                type="button"
+                                onClick={() => {
+                                  setManualEntryForm({ ...manualEntryForm, user_id: String(intern.id) });
+                                  setManualInternQuery(intern.full_name);
+                                  setManualInternOpen(false);
+                                }}
+                                className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                                  isSelected
+                                    ? 'bg-[hsl(var(--orange))] text-white'
+                                    : 'text-slate-700 hover:bg-orange-50'
+                                }`}
+                              >
+                                <span className="truncate text-left">{intern.full_name}</span>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>

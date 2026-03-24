@@ -40,13 +40,19 @@ function Stars({ rating, max = 5 }: { rating: number; max?: number }) {
   );
 }
 
-function SkillBar({ label, valuePct }: { label: string; valuePct: number }) {
+function SkillCard({ label, valuePct, score, maxScore }: { label: string; valuePct: number; score: number; maxScore: number }) {
   const pct = clamp(valuePct, 0, 100);
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{label}</span>
-        <span className="text-sm font-bold text-[#FF8800]">{Math.round(pct)}%</span>
+    <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 shadow-sm dark:border-white/5 dark:bg-white/5">
+      <div className="flex items-start justify-between gap-3">
+        <span className="text-sm font-bold text-gray-900 dark:text-white">{label}</span>
+        <span className="text-sm font-black text-[#FF8800]">{Math.round(pct)}%</span>
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <Stars rating={(score / maxScore) * 5} />
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {score}/{maxScore}
+        </span>
       </div>
       <div
         role="progressbar"
@@ -54,7 +60,7 @@ function SkillBar({ label, valuePct }: { label: string; valuePct: number }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(pct)}
-        className="h-2.5 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden"
+        className="mt-3 h-2.5 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10"
       >
         <div
           className="h-full rounded-full bg-gradient-to-r from-[#FF8800] to-orange-400 transition-all duration-700"
@@ -69,7 +75,7 @@ const DEFAULT_SKILLS: SkillScore[] = [
   { key: 'technical_skills', label: 'Technical Skills', score: 0, maxScore: 5 },
   { key: 'communication', label: 'Communication', score: 0, maxScore: 5 },
   { key: 'teamwork', label: 'Team Work', score: 0, maxScore: 5 },
-
+  { key: 'timeliness', label: 'Timeliness', score: 0, maxScore: 5 },
 ];
 
 export default function PerformanceFeedback() {
@@ -135,17 +141,27 @@ export default function PerformanceFeedback() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         {/* Skills Overview */}
-        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col h-fit max-h-[400px] lg:max-h-[600px]" aria-label="Skills Overview">
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col" aria-label="Skills Overview">
           <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5 flex-shrink-0">Skills Overview</h2>
-          <div className="space-y-5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+          <div className="grid grid-cols-1 gap-4">
             {skills.map((s) => (
-              <SkillBar key={s.key} label={s.label} valuePct={(s as SkillScore & { pct: number }).pct} />
+              <SkillCard
+                key={s.key}
+                label={s.label}
+                valuePct={(s as SkillScore & { pct: number }).pct}
+                score={s.score}
+                maxScore={s.maxScore}
+              />
             ))}
+          </div>
+          <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4 text-sm text-gray-600 dark:border-white/5 dark:text-gray-400">
+            <span>Overall skill breakdown</span>
+            <span className="font-semibold text-gray-900 dark:text-white">{skills.length} competencies</span>
           </div>
         </section>
 
         {/* Recent Feedback */}
-        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col h-[600px]" aria-label="Recent Feedback">
+        <section className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-6 flex flex-col" aria-label="Recent Feedback">
           <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5 flex-shrink-0">Recent Feedback</h2>
 
           {recentFeedback.length === 0 && (
@@ -156,7 +172,7 @@ export default function PerformanceFeedback() {
 
           {recentFeedback.length > 0 && (
             <>
-              <div className="space-y-3 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+              <div className="space-y-3">
                 {paginatedFeedback.map((fb) => (
                   <article
                     key={fb.id}

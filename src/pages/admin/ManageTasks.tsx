@@ -25,6 +25,7 @@ const TECH_STACK_CATEGORIES = [
 ] as const;
 
 const TOOLS_PER_PAGE = 9;
+const TASKS_PER_PAGE = 6;
 
 const TOOLS_BY_CATEGORY: Record<(typeof TECH_STACK_CATEGORIES)[number], string[]> = {
     'Frontend Development': [
@@ -224,6 +225,7 @@ const ManageTasks = () => {
     const [editingTask, setEditingTask] = useState<Tasks | null>(null);
     const [selectedTools, setSelectedTools] = useState<string[]>([]);
     const [toolsPage, setToolsPage] = useState(1);
+    const [tasksPage, setTasksPage] = useState(1);
 
     const dueDateOptions: DropdownSelectOption<typeof dueDateFilter>[] = [
         { value: 'all', label: 'All' },
@@ -701,6 +703,24 @@ const ManageTasks = () => {
         });
     }, [tasks, search, priorityFilter, statusFilter, dueDateFilter, customDueStart, customDueEnd]);
 
+    useEffect(() => {
+        setTasksPage(1);
+    }, [search, priorityFilter, statusFilter, dueDateFilter, customDueStart, customDueEnd]);
+
+    const totalTaskPages = Math.max(1, Math.ceil(filteredTasks.length / TASKS_PER_PAGE));
+    const safeTasksPage = Math.min(Math.max(1, tasksPage), totalTaskPages);
+
+    useEffect(() => {
+        if (tasksPage > totalTaskPages) {
+            setTasksPage(1);
+        }
+    }, [tasksPage, totalTaskPages]);
+
+    const paginatedTasks = useMemo(() => {
+        const start = (safeTasksPage - 1) * TASKS_PER_PAGE;
+        return filteredTasks.slice(start, start + TASKS_PER_PAGE);
+    }, [filteredTasks, safeTasksPage]);
+
     return (
         <div className="admin-page-shell w-full space-y-6">
             <style>{`
@@ -803,7 +823,7 @@ const ManageTasks = () => {
                     background-color: #e9e6e1;
                     border-radius: 8px;
                     position: relative;
-                    z-index: 40;
+                    z-index: 1;
                     overflow: visible;
                 }
 
@@ -812,6 +832,10 @@ const ManageTasks = () => {
                 .manage-tasks-filter-col {
                     position: relative;
                     overflow: visible;
+                }
+
+                .manage-tasks-filter-col > div {
+                    z-index: 15 !important;
                 }
                 
                 
@@ -823,6 +847,7 @@ const ManageTasks = () => {
                     .create-task-modal-bottom { grid-template-columns: 1fr !important; }
                     .task-detail-info-grid { grid-template-columns: 1fr; }
                     .task-detail-modal { padding: 1.5rem; }
+                    .manage-tasks-filter-selects { grid-template-columns: 1fr !important; }
                 }
                 @media (max-width: 480px) {
                     .create-task-modal { padding: 1.5rem !important; margin: 0.5rem !important; }
@@ -991,7 +1016,7 @@ const ManageTasks = () => {
                     </div>
                 ) : (
                     <>
-                        {filteredTasks.map((task) => {
+                        {paginatedTasks.map((task) => {
                             const priorityStyle = getPriorityStyle(task.priority);
                             const statusStyle = getStatusStyle(task.status);
                             return (
@@ -1044,6 +1069,49 @@ const ManageTasks = () => {
                     </>
                 )}
             </div>
+
+            {filteredTasks.length > 0 && (
+                <div className="pagination-controls">
+                    <div className="pagination-summary">
+                        Showing {(safeTasksPage - 1) * TASKS_PER_PAGE + 1} to {Math.min(safeTasksPage * TASKS_PER_PAGE, filteredTasks.length)} of {filteredTasks.length} tasks
+                    </div>
+                    <div className="pagination-buttons">
+                        <button
+                            className="pagination-btn pagination-arrow"
+                            onClick={() => setTasksPage((page) => Math.max(1, page - 1))}
+                            disabled={safeTasksPage === 1}
+                        >
+                            Prev
+                        </button>
+                        {Array.from({ length: totalTaskPages }, (_, index) => index + 1).map((page) => {
+                            if (page === 1 || page === totalTaskPages || (page >= safeTasksPage - 1 && page <= safeTasksPage + 1)) {
+                                return (
+                                    <button
+                                        key={page}
+                                        className={`pagination-btn ${safeTasksPage === page ? 'active' : ''}`}
+                                        onClick={() => setTasksPage(page)}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            }
+
+                            if (page === safeTasksPage - 2 || page === safeTasksPage + 2) {
+                                return <span key={page} className="pagination-ellipsis">...</span>;
+                            }
+
+                            return null;
+                        })}
+                        <button
+                            className="pagination-btn pagination-arrow"
+                            onClick={() => setTasksPage((page) => Math.min(totalTaskPages, page + 1))}
+                            disabled={safeTasksPage === totalTaskPages}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Create Task Modal */}
             {isModalOpen && (

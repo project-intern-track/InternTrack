@@ -162,7 +162,7 @@ const FeedbackDashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.08 }}
-        className="rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+        className="relative z-30 overflow-visible rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
           <div className="relative md:col-span-3">

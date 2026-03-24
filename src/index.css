@@ -2432,6 +2432,10 @@ textarea,
   gap: 1rem;
 }
 
+.admin-page-shell .manage-users-stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
 .admin-page-shell .stat-card,
 .admin-page-shell .chart-card,
 .admin-page-shell .activity-card,
@@ -2556,6 +2560,11 @@ textarea,
 @media (max-width: 768px) {
   .admin-page-shell {
     padding: 0;
+  }
+
+  .admin-page-shell .stat-header {
+    gap: 0.625rem !important;
+    align-items: flex-start !important;
   }
 
   .admin-page-shell .stats-grid,
@@ -2732,6 +2741,9 @@ textarea,
 
 .admin-page-shell .manage-tasks-grid {
   margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.35rem;
 }
 
 .admin-page-shell .manage-task-card {
@@ -2741,6 +2753,8 @@ textarea,
   border-radius: 0.95rem !important;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .admin-page-shell .manage-task-card:hover {
@@ -2762,6 +2776,9 @@ textarea,
   color: #0f172a;
   margin: 0;
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dark .admin-page-shell .manage-task-card-title {
@@ -2774,6 +2791,8 @@ textarea,
   line-height: 1.5;
   margin-bottom: 1.5rem;
   flex: 1;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dark .admin-page-shell .manage-task-card-description {
@@ -2788,6 +2807,16 @@ textarea,
   font-size: 0.875rem;
 }
 
+.admin-page-shell .manage-task-card-meta > div {
+  gap: 0.75rem;
+}
+
+.admin-page-shell .manage-task-card-meta > div span:last-child {
+  text-align: right;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .admin-page-shell .manage-task-card-btn {
   margin-top: auto;
   font-size: 0.875rem;
@@ -2795,6 +2824,18 @@ textarea,
 
 .admin-page-shell .create-task-modal {
   background-color: #f5f2ec !important;
+}
+
+@media (max-width: 1200px) {
+  .admin-page-shell .manage-tasks-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page-shell .manage-tasks-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dark .admin-page-shell .create-task-modal {

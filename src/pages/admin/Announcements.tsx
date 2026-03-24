@@ -9,6 +9,7 @@ import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
 
 const Announcements = () => {
+    const ITEMS_PER_PAGE = 9;
     const { user } = useAuth();
     const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,6 +17,7 @@ const Announcements = () => {
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
     const [dateCreatedFilter, setDateCreatedFilter] = useState('all');
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -133,6 +135,24 @@ const Announcements = () => {
 
         return result;
     })();
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, priorityFilter, dateCreatedFilter]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredAnnouncements.length / ITEMS_PER_PAGE));
+    const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(1);
+        }
+    }, [currentPage, totalPages]);
+
+    const paginatedAnnouncements = filteredAnnouncements.slice(
+        (safeCurrentPage - 1) * ITEMS_PER_PAGE,
+        safeCurrentPage * ITEMS_PER_PAGE
+    );
 
     // Formatting
     const formatDate = (dateStr: string) => {
@@ -288,7 +308,7 @@ const Announcements = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(min(400px,100%),1fr))] gap-6">
-                    {filteredAnnouncements.map((announcement) => (
+                    {paginatedAnnouncements.map((announcement) => (
                         <div
                             key={announcement.id}
                             role="button"
@@ -333,6 +353,49 @@ const Announcements = () => {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {filteredAnnouncements.length > 0 && (
+                <div className="pagination-controls">
+                    <div className="pagination-summary">
+                        Showing {(safeCurrentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(safeCurrentPage * ITEMS_PER_PAGE, filteredAnnouncements.length)} of {filteredAnnouncements.length} announcements
+                    </div>
+                    <div className="pagination-buttons">
+                        <button
+                            className="pagination-btn pagination-arrow"
+                            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                            disabled={safeCurrentPage === 1}
+                        >
+                            Prev
+                        </button>
+                        {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => {
+                            if (page === 1 || page === totalPages || (page >= safeCurrentPage - 1 && page <= safeCurrentPage + 1)) {
+                                return (
+                                    <button
+                                        key={page}
+                                        className={`pagination-btn ${safeCurrentPage === page ? 'active' : ''}`}
+                                        onClick={() => setCurrentPage(page)}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            }
+
+                            if (page === safeCurrentPage - 2 || page === safeCurrentPage + 2) {
+                                return <span key={page} className="pagination-ellipsis">...</span>;
+                            }
+
+                            return null;
+                        })}
+                        <button
+                            className="pagination-btn pagination-arrow"
+                            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                            disabled={safeCurrentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             )}
 

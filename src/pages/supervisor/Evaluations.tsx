@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { BarChart, ClipboardList, Search, Users, Trash, X } from 'lucide-react';
+import { BarChart, ChevronDown, ClipboardList, Search, Users, Trash, X } from 'lucide-react';
 import type { Evaluation } from '../../types/database.types';
 import { evaluationService } from '../../services/evaluationService';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userServices';
 import { feedbackService } from '../../services/feedbackService';
-import DropdownSelect from '../../components/DropdownSelect';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
 const Evaluations = () => {
@@ -19,6 +18,9 @@ const Evaluations = () => {
   const [internMap, setInternMap] = useState<{ [key: number]: string}>({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [internDropdownOpen, setInternDropdownOpen] = useState(false);
+  const [internSearchQuery, setInternSearchQuery] = useState('');
+  const internDropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,6 +69,19 @@ const Evaluations = () => {
       });
     }
   };
+
+  const selectedIntern = useMemo(
+    () => allInterns.find((intern) => String(intern.id) === createFormData.intern_id) ?? null,
+    [allInterns, createFormData.intern_id]
+  );
+
+  const filteredInternOptions = useMemo(() => {
+    const query = internSearchQuery.trim().toLowerCase();
+    if (!query) return allInterns;
+    return allInterns.filter((intern) =>
+      String(intern.full_name || intern.name || '').toLowerCase().includes(query)
+    );
+  }, [allInterns, internSearchQuery]);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -173,6 +188,29 @@ const Evaluations = () => {
     setCurrentPage(1);
   }, [searchTerm]);
 
+  useEffect(() => {
+    if (!showCreateModal) {
+      setInternDropdownOpen(false);
+      setInternSearchQuery('');
+      return;
+    }
+
+    setInternSearchQuery(selectedIntern?.full_name || selectedIntern?.name || '');
+  }, [showCreateModal, selectedIntern]);
+
+  useEffect(() => {
+    if (!internDropdownOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!internDropdownRef.current?.contains(event.target as Node)) {
+        setInternDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [internDropdownOpen]);
+
   const totalEvaluated = evaluations.length;
   const averageScore = evaluations.length > 0
     ? Math.round(evaluations.reduce((sum, e) => sum + e.score, 0) / evaluations.length)
@@ -205,6 +243,8 @@ const Evaluations = () => {
   const handleCloseCreateModal = async () => {
     setShowCreateModal(false);
     setIsReadOnly(false);
+    setInternDropdownOpen(false);
+    setInternSearchQuery('');
     setCreateFormData({
       intern_id: '',
       task_completion: 0,
@@ -500,18 +540,69 @@ const Evaluations = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Intern</label>
-                <DropdownSelect
-                  value={createFormData.intern_id}
-                  onChange={handleInternSelect}
-                  options={[
-                    { value: '', label: 'Select an intern...' },
-                    ...allInterns.map((intern) => ({
-                      value: String(intern.id),
-                      label: intern.full_name || intern.name,
-                    })),
-                  ]}
-                  buttonClassName="rounded-lg py-2"
-                />
+                <div ref={internDropdownRef} className={`relative ${internDropdownOpen ? 'z-[140]' : 'z-10'}`}>
+                  <button
+                    type="button"
+                    onClick={() => !isReadOnly && setInternDropdownOpen((prev) => !prev)}
+                    disabled={isReadOnly}
+                    className="dropdown-select-button flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-left text-sm font-medium text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
+                  >
+                    <span className={selectedIntern ? 'text-gray-800 dark:text-white' : 'text-gray-400'}>
+                      {selectedIntern ? (selectedIntern.full_name || selectedIntern.name) : 'Select an intern...'}
+                    </span>
+                    <ChevronDown size={18} className={`ml-2 shrink-0 text-gray-500 transition-transform dark:text-gray-300 ${internDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {internDropdownOpen && !isReadOnly && (
+                    <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-20 overflow-hidden rounded-[1rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-slate-900">
+                      <div className="border-b border-gray-100 p-3 dark:border-white/10">
+                        <div className="relative">
+                          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            value={internSearchQuery}
+                            onChange={(e) => setInternSearchQuery(e.target.value)}
+                            placeholder="Search intern"
+                            className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+
+                      <div className="max-h-64 overflow-y-auto p-2">
+                        {filteredInternOptions.length === 0 ? (
+                          <div className="rounded-xl px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                            No interns found.
+                          </div>
+                        ) : (
+                          filteredInternOptions.map((intern) => {
+                            const isSelected = String(intern.id) === createFormData.intern_id;
+                            const label = intern.full_name || intern.name;
+
+                            return (
+                              <button
+                                key={intern.id}
+                                type="button"
+                                onClick={() => {
+                                  handleInternSelect(String(intern.id));
+                                  setInternSearchQuery(label);
+                                  setInternDropdownOpen(false);
+                                }}
+                                className={`flex w-full items-center justify-start rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-all duration-200 ${
+                                  isSelected
+                                    ? 'bg-[hsl(var(--orange))] text-white'
+                                    : 'text-slate-700 hover:bg-orange-50 dark:text-slate-200 dark:hover:bg-white/10'
+                                }`}
+                              >
+                                <span className="truncate">{label}</span>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>

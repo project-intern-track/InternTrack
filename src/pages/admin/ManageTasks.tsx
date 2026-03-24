@@ -4,6 +4,7 @@ import '../../index.css';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 import { taskService } from '../../services/taskServices';
 import { userService } from '../../services/userServices';
@@ -1750,47 +1751,17 @@ const ManageTasks = () => {
                 </ModalPortal>
             )}
 
-            {/* Archive confirmation modal */}
-            {archiveModalOpen && selectedTask && (
-                <ModalPortal>
-                    <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1100]">
-                        <div
-                            className="bg-white w-[90%] max-w-[420px] rounded-2xl p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                        <div className="flex items-center gap-3 mb-1">
-                            <span className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-100 text-[hsl(var(--orange))]">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-                            </span>
-                            <h2 className="m-0 text-xl font-extrabold text-slate-800">Archive Task</h2>
-                        </div>
-                        <p className="mt-3 mb-1 text-slate-600 text-[0.9rem] leading-relaxed">
-                            Are you sure you want to archive{' '}
-                            <strong className="text-slate-800">&ldquo;{selectedTask.title}&rdquo;</strong>?{' '}
-                            This action cannot be undone.
-                        </p>
-                        <div className="flex justify-end gap-3 mt-7">
-                            <button
-                                type="button"
-                                onClick={() => setArchiveModalOpen(false)}
-                                className="px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold cursor-pointer text-sm hover:bg-slate-50 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={confirmArchive}
-                                disabled={archiving}
-                                className="px-5 py-2.5 rounded-lg border-none bg-[hsl(var(--orange))] text-white font-bold text-sm cursor-pointer transition-opacity"
-                                style={{ opacity: archiving ? 0.7 : 1 }}
-                            >
-                                {archiving ? 'Archiving…' : 'Confirm Archive'}
-                            </button>
-                        </div>
-                        </div>
-                    </div>
-                </ModalPortal>
-            )}
+            <ConfirmationModal
+                open={archiveModalOpen && Boolean(selectedTask)}
+                title="Archive Task"
+                message={selectedTask ? `Are you sure you want to archive "${selectedTask.title}"?` : ''}
+                note="This action cannot be undone."
+                confirmLabel="Confirm Archive"
+                loadingLabel="Archiving..."
+                isLoading={archiving}
+                onCancel={() => setArchiveModalOpen(false)}
+                onConfirm={confirmArchive}
+            />
 
             {toast.visible && (
                 <div style={{ ...toastStyles.container, ...(toast.type === 'error' ? toastStyles.error : toastStyles.success) }}>

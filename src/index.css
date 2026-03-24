@@ -1534,6 +1534,166 @@ textarea,
   overflow-y: auto;
 }
 
+.confirmation-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.confirmation-modal {
+  width: min(100%, 440px);
+  padding: 1.75rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, #fffaf5 0%, #fff 100%);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.24);
+}
+
+.confirmation-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.confirmation-modal-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.confirmation-modal-icon.warning {
+  color: #f59e0b;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+  border: 2px solid rgba(245, 158, 11, 0.35);
+}
+
+.confirmation-modal-icon.danger {
+  color: #dc2626;
+  background: linear-gradient(180deg, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid rgba(220, 38, 38, 0.22);
+}
+
+.confirmation-modal-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.confirmation-modal-title {
+  margin: 0 0 0.6rem;
+  color: #ea580c;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.confirmation-modal-message {
+  margin: 0;
+  color: #334155;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.confirmation-modal-message strong {
+  color: #0f172a;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.confirmation-modal-note {
+  margin: 0.7rem 0 0;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.confirmation-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.confirmation-modal-cancel {
+  min-width: 112px;
+  padding-inline: 1.25rem;
+  background: #fff;
+  color: #ea580c;
+  border: 1px solid rgba(251, 146, 60, 0.28);
+  box-shadow: none;
+}
+
+.confirmation-modal-cancel:hover:not(:disabled) {
+  background: #fff7ed;
+}
+
+.confirmation-modal-confirm {
+  min-width: 144px;
+  padding-inline: 1.25rem;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+}
+
+.confirmation-modal-confirm.warning {
+  background: linear-gradient(135deg, #ff8800, #e67a00);
+  box-shadow: 0 10px 24px rgba(255, 136, 0, 0.24);
+}
+
+.confirmation-modal-confirm.warning:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f68400, #d96f00);
+}
+
+.confirmation-modal-confirm.danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.22);
+}
+
+.confirmation-modal-confirm.danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e53e3e, #c81e1e);
+}
+
+.dark .confirmation-modal {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .confirmation-modal-title {
+  color: #fb923c;
+}
+
+.dark .confirmation-modal-message {
+  color: #e5e7eb;
+}
+
+.dark .confirmation-modal-message strong {
+  color: #ffffff;
+}
+
+.dark .confirmation-modal-note {
+  color: #94a3b8;
+}
+
+.dark .confirmation-modal-cancel {
+  background: rgba(255, 255, 255, 0.03);
+  color: #fed7aa;
+  border-color: rgba(251, 146, 60, 0.22);
+}
+
+.dark .confirmation-modal-cancel:hover:not(:disabled) {
+  background: rgba(251, 146, 60, 0.08);
+}
+
 /* ===== Pagination Controls ===== */
 
 .pagination-controls {
@@ -1630,6 +1790,11 @@ textarea,
     margin: 1rem;
     padding: 1.5rem;
   }
+
+  .confirmation-modal {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
 }
 
 /* Manage Interns responsive – Mobile (480px) */
@@ -1646,6 +1811,35 @@ textarea,
   .edit-modal-panel {
     margin: 0.5rem;
     padding: 1.25rem;
+  }
+
+  .confirmation-modal {
+    margin: 0.75rem;
+    padding: 1.25rem;
+  }
+
+  .confirmation-modal-title {
+    font-size: 1.2rem;
+  }
+
+  .confirmation-modal-header {
+    gap: 0.85rem;
+  }
+
+  .confirmation-modal-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .confirmation-modal-actions {
+    gap: 0.75rem;
+    flex-direction: column-reverse;
+  }
+
+  .confirmation-modal-cancel,
+  .confirmation-modal-confirm {
+    width: 100%;
+    justify-content: center;
   }
 
   .pagination-controls {

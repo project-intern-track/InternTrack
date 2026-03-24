@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Pencil, AlertCircle, Search, Filter, Archive, Plus, Loader2, UserCheck, Users as UsersIcon } from 'lucide-react';
+import { Pencil, Search, Filter, Archive, Plus, Loader2, UserCheck, Users as UsersIcon } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import ModalPortal from '../../components/ModalPortal';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import { userService } from '../../services/userServices';
 import { useRealtime } from '../../hooks/useRealtime';
 import type { Users } from '../../types/database.types';
@@ -636,39 +637,21 @@ const ManageSupervisors = () => {
             )}
 
             {/* ===== Archive Confirmation Modal ===== */}
-            {archiveTarget && (
-                <ModalPortal>
-                <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-4">
-                            <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
-                            <h2 className="text-orange-600 m-0 text-xl font-bold">
-                                {archiveTarget.status === 'active' ? 'Archive Supervisor' : 'Restore Supervisor'}
-                            </h2>
-                        </div>
-                        <p className="m-0 mb-6 text-slate-700 leading-6">
-                            Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
-                            <strong>{archiveTarget.full_name}</strong>?
-                            {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
-                        </p>
-                        <div className="flex justify-end gap-4">
-                            <button
-                                className="btn bg-white text-orange-600 border-none px-6 py-3"
-                                onClick={() => setArchiveTarget(null)}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-primary border-none px-6 py-3"
-                                onClick={confirmArchive}
-                            >
-                                {archiveTarget.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                </ModalPortal>
-            )}
+            <ConfirmationModal
+                open={Boolean(archiveTarget)}
+                title={archiveTarget?.status === 'active' ? 'Archive Supervisor' : 'Restore Supervisor'}
+                message={archiveTarget
+                    ? `Are you sure you want to ${archiveTarget.status === 'active' ? 'archive' : 'restore'} ${archiveTarget.full_name}?`
+                    : ''}
+                note={archiveTarget
+                    ? archiveTarget.status === 'active'
+                        ? 'This will revoke their access to the system.'
+                        : 'This will allow them to access the system again.'
+                    : undefined}
+                confirmLabel={archiveTarget?.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
+                onCancel={() => setArchiveTarget(null)}
+                onConfirm={confirmArchive}
+            />
 
             {/* ===== Edit Supervisor Modal ===== */}
             {editingSupervisor && (

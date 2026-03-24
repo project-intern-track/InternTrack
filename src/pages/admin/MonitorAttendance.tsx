@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { UserCheck, Search, Filter, Download, Plus } from 'lucide-react';
+import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
@@ -7,6 +7,7 @@ import '../../index.css';
 import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
+import DateTimePicker from '../../components/DateTimePicker';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -322,6 +323,32 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           font-size: 31px;
           font-weight: 700;
         }
+
+        .attendance-action-group {
+          display: flex;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+        }
+
+        .attendance-action-btn {
+          min-height: 40px;
+          padding: 0.5rem 1rem;
+          font-size: 0.875rem;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .attendance-action-btn-outline {
+          background: #fff;
+          color: hsl(var(--orange));
+          border: 1.5px solid hsl(var(--orange));
+          box-shadow: none;
+        }
+
+        .attendance-action-btn-outline:hover:not(:disabled) {
+          background: rgba(255, 136, 0, 0.06);
+          transform: translateY(-1px);
+        }
         
         .attendance-stats-grid {
           display: grid;
@@ -471,6 +498,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           
           .attendance-header {
             margin-bottom: 1.25rem !important;
+          }
+
+          .attendance-action-group {
+            width: 100%;
           }
           
           .attendance-header h1 {
@@ -632,6 +663,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           .attendance-mobile-record-row {
             font-size: 0.8125rem !important;
           }
+
+          .attendance-action-group {
+            gap: 0.5rem;
+          }
+
+          .attendance-action-btn {
+            flex: 1 1 0;
+            justify-content: center;
+            min-width: 0;
+            padding-inline: 0.875rem;
+          }
         }
         
         .attendance-pagination {
@@ -766,20 +808,20 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         {/* Header */}
         <div className="attendance-header mb-8 flex justify-between items-center flex-wrap gap-4">
           <h1>Monitor Attendance</h1>
-          <div className="flex gap-3">
+          <div className="attendance-action-group">
             <button
               onClick={() => setIsManualEntryOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white text-[hsl(var(--orange))] border-2 border-[hsl(var(--orange))] rounded-lg font-semibold cursor-pointer transition-all"
+              className="btn attendance-action-btn attendance-action-btn-outline"
             >
-              <Plus size={18} />
+              <Plus size={16} />
               Add Manual Entry
             </button>
             <button
               onClick={handleExport}
               disabled={filteredRecords.length === 0}
-              className={`flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--orange))] text-white border-none rounded-lg font-semibold transition-all ${filteredRecords.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+              className={`btn btn-primary attendance-action-btn ${filteredRecords.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
             >
-              <Download size={18} />
+              <Download size={16} />
               Export
             </button>
           </div>
@@ -789,6 +831,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         <div className="stats-grid attendance-stats-grid">
           <div className="stat-card">
             <div className="stat-header">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-500/20">
+                <CheckCircle size={20} className="text-green-600 dark:text-green-300" />
+              </div>
               <span className="stat-label">Completed</span>
             </div>
             <div className="stat-value">{calculatedStats.completed}</div>
@@ -796,6 +841,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
           <div className="stat-card">
             <div className="stat-header">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-500/20">
+                <Clock size={20} className="text-amber-600 dark:text-amber-300" />
+              </div>
               <span className="stat-label">Incomplete</span>
             </div>
             <div className="stat-value">{calculatedStats.incomplete}</div>
@@ -803,6 +851,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
           <div className="stat-card">
             <div className="stat-header">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-500/20">
+                <X size={20} className="text-red-600 dark:text-red-300" />
+              </div>
               <span className="stat-label">No Log</span>
             </div>
             <div className="stat-value">{calculatedStats.noLog}</div>
@@ -810,6 +861,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
           <div className="stat-card">
             <div className="stat-header">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
+                <BarChart size={20} className="text-blue-600 dark:text-blue-300" />
+              </div>
               <span className="stat-label">AVG Hours per day</span>
             </div>
             <div className="stat-value">{calculatedStats.avgHoursPerDay?.toFixed(1) || '0.0'}</div>
@@ -852,32 +906,25 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
             {/* Filter dropdown */}
             <div className="attendance-filter-selects flex gap-4 flex-wrap">
-              <div className="relative flex-1 min-w-[200px] flex gap-2 items-center">
+              <div className="relative flex min-w-[340px] flex-[1.35] items-center gap-2 max-[1120px]:min-w-full">
                 <label htmlFor="date-filter-input" className="absolute -left-[9999px] w-px h-px overflow-hidden">
                   Filter by date
                 </label>
-                <input
-                  id="date-filter-input"
-                  type="date"
-                  value={dateFilter === 'all' ? '' : dateFilter}
-                  onChange={(e) => {
-                    if (scrollContainerRef.current) {
-                      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
-                    }
-                    setDateFilter(e.target.value || 'all');
-                  }}
-                  disabled={dateFilter === 'all'}
-                  aria-label="Select date to filter attendance records"
-                  aria-disabled={dateFilter === 'all'}
-                  className="input"
-                  style={{
-                    width: '100%',
-                    minWidth: '0',
-                    backgroundColor: dateFilter === 'all' ? '#f5f5f5' : 'white',
-                    cursor: dateFilter === 'all' ? 'not-allowed' : 'text',
-                    flex: '1'
-                  }}
-                />
+                <div style={{ width: '100%', minWidth: '190px', flex: '1 1 auto' }}>
+                  <DateTimePicker
+                    date={dateFilter === 'all' ? '' : dateFilter}
+                    time=""
+                    showTime={false}
+                    datePlaceholder="Filter by date"
+                    onDateChange={(value) => {
+                      if (scrollContainerRef.current) {
+                        scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+                      }
+                      setDateFilter(value || 'all');
+                    }}
+                    onTimeChange={() => {}}
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -887,23 +934,17 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                     setDateFilter(dateFilter === 'all' ? todayDate : 'all');
                   }}
                   aria-label={dateFilter === 'all' ? 'Show today\'s records' : 'Show all dates'}
-                  className={`px-4 py-2.5 text-sm font-medium border-2 border-[hsl(var(--orange))] rounded-md cursor-pointer transition-all whitespace-nowrap ${dateFilter === 'all' ? 'text-white bg-[hsl(var(--orange))]' : 'text-[hsl(var(--orange))] bg-white'}`}
-                  onMouseEnter={(e) => {
-                    if (dateFilter !== 'all') {
-                      e.currentTarget.style.backgroundColor = '#f5f5f5';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (dateFilter !== 'all') {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }
-                  }}
+                  className={`shrink-0 rounded-md border-2 border-[hsl(var(--orange))] px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all ${
+                    dateFilter === 'all'
+                      ? 'bg-orange-50 text-[hsl(var(--orange))] hover:bg-orange-100'
+                      : 'bg-white text-[hsl(var(--orange))] hover:bg-orange-50'
+                  }`}
                 >
                   {dateFilter === 'all' ? 'Show All Dates' : 'Clear Date'}
                 </button>
               </div>
 
-              <div className="relative flex-1 min-w-[150px]">
+              <div className="relative min-w-[180px] flex-1">
                 <DropdownSelect
                   value={statusFilter}
                   onChange={(value) => {
@@ -923,7 +964,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                 />
               </div>
 
-              <div style={{ position: 'relative', flex: '1', minWidth: '130px' }}>
+              <div style={{ position: 'relative', flex: '1', minWidth: '180px' }}>
                 <DropdownSelect
                   value={roleFilter}
                   onChange={(value) => {
@@ -953,18 +994,19 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         >
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date</label>
-            <input
-              type="date"
-              value={dateFilter === 'all' ? '' : dateFilter}
-              onChange={(e) => setDateFilter(e.target.value || 'all')}
-              disabled={dateFilter === 'all'}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:disabled:bg-slate-800"
+            <DateTimePicker
+              date={dateFilter === 'all' ? '' : dateFilter}
+              time=""
+              showTime={false}
+              datePlaceholder="Select date"
+              onDateChange={(value) => setDateFilter(value || 'all')}
+              onTimeChange={() => {}}
             />
             <button
               type="button"
               className={`mt-3 inline-flex rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${
                 dateFilter === 'all'
-                  ? 'border-orange-500 bg-orange-500 text-white'
+                  ? 'border-orange-500 bg-orange-50 text-orange-600 hover:bg-orange-100'
                   : 'border-orange-200 bg-white text-orange-600 hover:bg-orange-50'
               }`}
               onClick={() => setDateFilter(dateFilter === 'all' ? todayDate : 'all')}
@@ -1153,13 +1195,13 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
               <div>
                 <label className="block text-sm font-medium mb-2">Date</label>
-                <input 
-                  type="date" 
-                  className="input" 
-                  value={manualEntryForm.date} 
-                  onChange={e => setManualEntryForm({...manualEntryForm, date: e.target.value})}
-                  required
-                  style={{ width: '100%' }}
+                <DateTimePicker
+                  date={manualEntryForm.date}
+                  time=""
+                  showTime={false}
+                  datePlaceholder="Select date"
+                  onDateChange={(value) => setManualEntryForm({ ...manualEntryForm, date: value })}
+                  onTimeChange={() => {}}
                 />
               </div>
 

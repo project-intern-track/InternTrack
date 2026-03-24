@@ -428,10 +428,11 @@ const FeedbackDashboard = () => {
                       <StarRating rating={e.rating} onChange={val => updateEvaluation(idx, 'rating', val)} />
                     </td>
                     <td className="px-3 py-3">
-                      <input
-                        type="text" value={e.comment}
+                      <textarea
+                        value={e.comment}
                         onChange={ev => updateEvaluation(idx, 'comment', ev.target.value)}
-                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                        rows={2}
+                        className="w-full resize-y rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
                         placeholder="Enter comment..."
                       />
                     </td>

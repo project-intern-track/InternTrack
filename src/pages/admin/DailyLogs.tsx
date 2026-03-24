@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash, Lock, X } from 'lucide-react';
+import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash, Lock } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { useAuth } from '../../context/AuthContext';
 import type { Attendance } from '../../types/database.types';
-import ModalPortal from '../../components/ModalPortal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_HOURS = 8;
@@ -553,42 +553,18 @@ const AdminDailyLogs = () => {
             </div>
 
             {/* Delete Confirm Modal */}
-            {deleteId && (
-                <ModalPortal>
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={cancelDelete}>
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/5 shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
-                        <button className="absolute right-4 top-4 p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-700 transition-all" onClick={cancelDelete} disabled={isDeleting}>
-                            <X size={18}/>
-                        </button>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-500">
-                                <Trash size={20}/>
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Record</h3>
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
-                            Are you sure you want to delete this attendance record? This action cannot be undone.
-                        </p>
-                        <div className="flex justify-end gap-2">
-                            <button
-                                className="px-5 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-50 transition-all"
-                                onClick={cancelDelete}
-                                disabled={isDeleting}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="flex items-center gap-2 px-5 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 disabled:opacity-50 transition-all"
-                                onClick={confirmDelete}
-                                disabled={isDeleting}
-                            >
-                                {isDeleting ? <RefreshCw size={15} className="animate-spin"/> : 'Delete'}
-                            </button>
-                        </div>
-                        </div>
-                    </div>
-                </ModalPortal>
-            )}
+            <ConfirmationModal
+                open={Boolean(deleteId)}
+                title="Delete Record"
+                message="Are you sure you want to delete this attendance record?"
+                note="This action cannot be undone."
+                confirmLabel="Delete"
+                loadingLabel="Deleting..."
+                variant="danger"
+                isLoading={isDeleting}
+                onCancel={cancelDelete}
+                onConfirm={confirmDelete}
+            />
         </div>
     );
 };

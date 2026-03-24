@@ -207,7 +207,7 @@ const Settings = () => {
   return (
     <div className="relative space-y-6">
       {successPopup && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-success text-white px-8 py-4 rounded-lg shadow-lg z-50 flex items-center gap-4 font-bold">
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg z-50 flex items-center gap-4 font-semibold text-sm">
           {successPopup}
           <button onClick={() => setSuccessPopup('')} className="bg-transparent border-none text-white cursor-pointer text-xl hover:text-white/80 transition-colors">&times;</button>
         </div>
@@ -232,19 +232,17 @@ const Settings = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
-        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm text-center"
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm text-center"
       >
-        <h2 className="text-2xl font-black mb-6 text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">
           Profile Information
         </h2>
 
         <div className="flex justify-center mb-5">
-          <div className="p-2 rounded-full bg-white border-[3px] border-gray-800 dark:border-gray-300">
-            <User
-              size={80}
-              className="text-gray-700 dark:text-gray-300"
-              strokeWidth={1.5}
-            />
+          <div className="w-20 h-20 rounded-2xl bg-[#FF8800] flex items-center justify-center shadow-[0_0_20px_rgba(255,136,0,0.25)]">
+            <span className="text-2xl font-black text-white select-none">
+              {formData.name ? formData.name.trim().charAt(0).toUpperCase() : <User size={32} />}
+            </span>
           </div>
         </div>
 
@@ -307,7 +305,7 @@ const Settings = () => {
         </div>
 
         <div className="flex justify-end items-center mt-6 gap-4">
-          {profileErr && <span className="text-danger text-sm font-bold">{profileErr}</span>}
+          {profileErr && <span className="text-red-600 dark:text-red-400 text-sm font-semibold">{profileErr}</span>}
           
           <button 
             onClick={handleSave}
@@ -328,9 +326,9 @@ const Settings = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.14, ease: 'easeOut' }}
-        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-8 shadow-sm"
+        className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm"
       >
-        <h2 className="text-2xl font-black mb-6 text-gray-800 dark:text-white">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">
           Change Password
         </h2>
 
@@ -408,7 +406,7 @@ const Settings = () => {
         </div>
 
         <div className="flex justify-end items-center mt-6 gap-4">
-          {pwdErr && <span className="text-danger text-sm font-bold">{pwdErr}</span>}
+          {pwdErr && <span className="text-red-600 dark:text-red-400 text-sm font-semibold">{pwdErr}</span>}
           
           <button 
             onClick={handleUpdatePassword}

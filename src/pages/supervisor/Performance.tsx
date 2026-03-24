@@ -112,7 +112,7 @@ const Performance = () => {
         className="grid grid-cols-1 gap-4 md:grid-cols-3"
       >
         <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20">
             <Users size={22} className="text-blue-600 dark:text-blue-400" />
           </div>
           <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Total Interns</p>
@@ -120,7 +120,7 @@ const Performance = () => {
         </div>
 
         <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-500/20">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-500/20">
             <ClipboardList size={22} className="text-green-600 dark:text-green-400" />
           </div>
           <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Completed Tasks</p>
@@ -128,7 +128,7 @@ const Performance = () => {
         </div>
 
         <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-slate-900/50">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-500/20">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-500/20">
             <Star size={22} className="text-amber-500 dark:text-amber-400" />
           </div>
           <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Avg. per Intern</p>

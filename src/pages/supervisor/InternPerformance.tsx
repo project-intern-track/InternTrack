@@ -218,7 +218,7 @@ const InternPerformance = () => {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: 0.03 * index }}
-                className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
+                className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
               >
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div>

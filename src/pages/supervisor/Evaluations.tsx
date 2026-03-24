@@ -276,7 +276,7 @@ const Evaluations = () => {
             transition={{ delay: idx * 0.08, duration: 0.3 }}
             className="rounded-[2rem] border border-gray-200 bg-white p-3 md:p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
           >
-              <div className={`mb-2 md:mb-4 flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-2xl ${item.iconBg}`}>
+              <div className={`mb-2 md:mb-4 flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-lg ${item.iconBg}`}>
                 <item.icon className={item.iconColor} size={20} />
               </div>
               <p className="text-[0.55rem] md:text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{item.label}</p>
@@ -419,7 +419,7 @@ const Evaluations = () => {
                     key={evaluation.id}
                     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: idx * 0.03 }}
-                    className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
+                    className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-slate-900/50"
                   >
                     <div className="mb-3 flex items-start justify-between gap-2">
                       <div>
@@ -482,7 +482,7 @@ const Evaluations = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-2xl font-black text-gray-900 dark:text-white">
@@ -583,7 +583,7 @@ const Evaluations = () => {
             initial={{ opacity: 0, scale: 0.9 }} 
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900"
           >
             <div className="mb-4">
               <h3 className="text-2xl font-black text-gray-900 dark:text-white">Delete Evaluation</h3>

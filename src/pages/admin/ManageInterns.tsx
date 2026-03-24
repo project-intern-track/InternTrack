@@ -737,9 +737,9 @@ const ManageInterns = () => {
             {archiveTarget && (
                 <ModalPortal>
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => setArchiveTarget(null)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-white/10 shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-start gap-4 mb-4">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${archiveTarget.status === 'active' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${archiveTarget.status === 'active' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
                                 <AlertCircle size={20} className={archiveTarget.status === 'active' ? 'text-amber-600' : 'text-emerald-600'} />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -776,11 +776,11 @@ const ManageInterns = () => {
             {editingIntern && (
                 <ModalPortal>
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={closeEditModal}>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-white/10 shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b border-gray-100 dark:border-white/10">
                             <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                                <div className="w-9 h-9 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                                     <Pencil size={16} className="text-[#FF8800]" />
                                 </div>
                                 <div>
@@ -795,7 +795,7 @@ const ManageInterns = () => {
 
                         <div className="px-6 py-5 space-y-4">
                             {editError && (
-                                <div className="flex items-start gap-2.5 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl text-sm text-red-700 dark:text-red-400">
+                                <div className="flex items-start gap-2.5 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg text-sm text-red-700 dark:text-red-400">
                                     <AlertCircle size={15} className="shrink-0 mt-0.5" />
                                     {editError}
                                 </div>

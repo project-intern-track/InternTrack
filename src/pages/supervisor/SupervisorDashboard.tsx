@@ -297,7 +297,7 @@ const SupervisorDashboard = () => {
             transition={{ delay: 0.08 * index, duration: 0.35 }}
             className="rounded-[2rem] border border-gray-200 bg-white p-3 md:p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
           >
-            <div className={`mb-2 md:mb-4 flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-2xl ${stat.iconBg}`}>
+            <div className={`mb-2 md:mb-4 flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-lg ${stat.iconBg}`}>
               <stat.icon className={stat.iconColor} size={20} />
             </div>
             <p className="text-[0.55rem] md:text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{stat.label}</p>
@@ -517,14 +517,14 @@ const SupervisorDashboard = () => {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.16 }}
-          className="rounded-[2.5rem] border border-gray-200 bg-white p-8 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+          className="rounded-[2.5rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
         >
           <div className="mb-5 flex items-center gap-3">
             <Star className="text-primary" size={20} />
             <h2 className="text-xl font-black text-gray-800 dark:text-white">Top Performing Intern</h2>
           </div>
           {stats?.topPerformer ? (
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-white/5 dark:bg-white/5">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/5 dark:bg-white/5">
               <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Intern Name</p>
               <p className="mt-1 text-xl font-black text-gray-900 dark:text-white">{stats.topPerformer.name}</p>
               <div className="mt-4 flex items-center justify-between rounded-xl bg-primary px-4 py-3 text-primary-foreground">
@@ -553,7 +553,7 @@ const SupervisorDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, delay: 0.2 }}
-        className="rounded-[2.5rem] border border-gray-200 bg-white p-8 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+        className="rounded-[2.5rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
         <div className="mb-6 flex items-center gap-3">
           <BarChart className="text-primary" size={20} />
@@ -637,7 +637,7 @@ const SupervisorDashboard = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
-                className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                className="relative w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
                 onClick={(e) => e.stopPropagation()}
               >
               <button

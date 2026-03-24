@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Archive, Filter, Loader2, Pencil, Plus, Search, AlertCircle } from 'lucide-react';
+import { Archive, Filter, Loader2, Pencil, Plus, Search, AlertCircle, X } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import SearchableSelect from '../../components/SearchableSelect';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
@@ -506,38 +506,79 @@ const ManageAdmins = () => {
             {/* Add Admin Modal */}
             {isAddModalOpen && (
                 <ModalPortal>
-                <div className="modal-overlay" onClick={handleCloseAddModal}>
-                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-5 sm:p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
-                        <h2 className="text-orange-600 dark:text-orange-400">{confirmationStep ? 'Confirm Admin Addition' : 'Add New Admin'}</h2>
-                        {!confirmationStep ? (
-                            <div>
-                                <label className="block font-semibold mb-2">Select Intern:</label>
-                                {loadingInterns ? (
-                                    <div className="flex items-center gap-2 text-gray-500 text-sm py-2.5">
-                                        <Loader2 size={16} className="spinner" /> Loading eligible users...
-                                    </div>
-                                ) : (
-                                    <SearchableSelect
-                                        options={eligibleInterns.map(i => ({ value: i.id, label: `${i.full_name} (${i.email})` }))}
-                                        value={selectedInternId}
-                                        onChange={setSelectedInternId}
-                                        placeholder="-- Choose an intern --"
-                                        maxVisible={10}
-                                    />
-                                )}
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={handleCloseAddModal}>
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b border-gray-100 dark:border-white/10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                                    <Plus size={16} className="text-[#FF8800]" />
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-bold text-gray-900 dark:text-white m-0 leading-tight">
+                                        {confirmationStep ? 'Confirm Upgrade' : 'Add New Admin'}
+                                    </h2>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 m-0">
+                                        {confirmationStep ? 'Review before confirming' : 'Promote an intern to admin role'}
+                                    </p>
+                                </div>
                             </div>
-                        ) : (
-                            <p>Are you sure you want to upgrade <strong>{selectedInternName}</strong>?</p>
-                        )}
-                        <div className="flex justify-end gap-4 mt-4">
-                            <button className="btn" onClick={!confirmationStep ? handleCloseAddModal : () => setConfirmationStep(false)}>
+                            <button onClick={handleCloseAddModal} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/10 transition-all">
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        <div className="px-6 py-5">
+                            {!confirmationStep ? (
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Select Intern</label>
+                                    {loadingInterns ? (
+                                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm py-3">
+                                            <Loader2 size={15} className="animate-spin" /> Loading eligible users…
+                                        </div>
+                                    ) : (
+                                        <SearchableSelect
+                                            options={eligibleInterns.map(i => ({ value: i.id, label: `${i.full_name} (${i.email})` }))}
+                                            value={selectedInternId}
+                                            onChange={setSelectedInternId}
+                                            placeholder="Search by name or email…"
+                                            maxVisible={10}
+                                        />
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex items-start gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/30 rounded-xl">
+                                    <AlertCircle size={18} className="text-[#FF8800] shrink-0 mt-0.5" />
+                                    <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed m-0">
+                                        Upgrade <span className="font-semibold">{selectedInternName}</span> to admin? They will gain full admin access immediately.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end gap-2 px-6 pb-6 pt-2 border-t border-gray-100 dark:border-white/10">
+                            <button
+                                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-white/10 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-all"
+                                onClick={!confirmationStep ? handleCloseAddModal : () => setConfirmationStep(false)}
+                            >
                                 {confirmationStep ? 'Back' : 'Cancel'}
                             </button>
                             {!confirmationStep ? (
-                                <button className="btn btn-primary" onClick={handleContinue} disabled={!selectedInternId || loadingInterns}>Next</button>
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-[#FF8800] hover:bg-[#E67A00] text-white text-sm font-semibold transition-all disabled:opacity-50"
+                                    onClick={handleContinue}
+                                    disabled={!selectedInternId || loadingInterns}
+                                >
+                                    Continue
+                                </button>
                             ) : (
-                                <button className="btn btn-primary" onClick={handleConfirmUpgrade} disabled={upgrading}>
-                                    {upgrading ? <Loader2 size={18} /> : 'Confirm Upgrade'}
+                                <button
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF8800] hover:bg-[#E67A00] text-white text-sm font-semibold transition-all disabled:opacity-50"
+                                    onClick={handleConfirmUpgrade}
+                                    disabled={upgrading}
+                                >
+                                    {upgrading && <Loader2 size={14} className="animate-spin" />}
+                                    {upgrading ? 'Upgrading…' : 'Confirm Upgrade'}
                                 </button>
                             )}
                         </div>
@@ -549,31 +590,35 @@ const ManageAdmins = () => {
             {/* ===== Archive Confirmation Modal ===== */}
             {archiveTarget && (
                 <ModalPortal>
-                <div className="modal-overlay" onClick={() => setArchiveTarget(null)}>
-                    <div className="manage-interns-modal bg-[#e6ded6] dark:bg-slate-900 rounded-xl p-5 sm:p-8 w-full max-w-[440px] mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-4">
-                            <AlertCircle size={48} className="mx-auto text-amber-500 mb-4" />
-                            <h2 className="text-orange-600 dark:text-orange-400 m-0 text-xl font-bold">
-                                {archiveTarget.status === 'active' ? 'Archive Admin' : 'Restore Admin'}
-                            </h2>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={() => setArchiveTarget(null)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${archiveTarget.status === 'active' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
+                                <AlertCircle size={20} className={archiveTarget.status === 'active' ? 'text-amber-600' : 'text-emerald-600'} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-0.5">
+                                    {archiveTarget.status === 'active' ? 'Archive Admin' : 'Restore Admin'}
+                                </h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                                    Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
+                                    <span className="font-semibold text-gray-700 dark:text-gray-200">{archiveTarget.full_name}</span>?
+                                    {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
+                                </p>
+                            </div>
                         </div>
-                        <p className="m-0 mb-6 text-slate-700 dark:text-slate-200 leading-6">
-                            Are you sure you want to {archiveTarget.status === 'active' ? 'archive' : 'restore'}{' '}
-                            <strong>{archiveTarget.full_name}</strong>?
-                            {archiveTarget.status === 'active' && ' This will revoke their access to the system.'}
-                        </p>
-                        <div className="flex justify-end gap-4">
+                        <div className="flex gap-2 justify-end mt-5">
                             <button
-                                className="btn bg-white text-orange-600 border-none px-6 py-3"
+                                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-white/10 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-all"
                                 onClick={() => setArchiveTarget(null)}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="btn btn-primary border-none px-6 py-3"
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all ${archiveTarget.status === 'active' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
                                 onClick={confirmArchive}
                             >
-                                {archiveTarget.status === 'active' ? 'Confirm Archive' : 'Confirm Restore'}
+                                {archiveTarget.status === 'active' ? 'Archive' : 'Restore'}
                             </button>
                         </div>
                     </div>
@@ -584,59 +629,69 @@ const ManageAdmins = () => {
             {/* ===== Edit Admin Modal ===== */}
             {editingAdmin && (
                 <ModalPortal>
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] backdrop-blur-sm" onClick={closeEditModal}>
-                    <div className="edit-modal-panel" onClick={(e) => e.stopPropagation()}>
-                        {/* Heading */}
-                        <div className="mb-8">
-                            <h2 className="text-orange-600 dark:text-orange-400 m-0 text-2xl font-bold">Edit Admin Information</h2>
-                        </div>
-
-                        {editError && (
-                            <div className="py-3 px-4 mb-6 bg-red-500/10 text-red-600 rounded-lg border border-red-500/20 text-sm">
-                                {editError}
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-4" onClick={closeEditModal}>
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b border-gray-100 dark:border-white/10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                                    <Pencil size={16} className="text-[#FF8800]" />
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-bold text-gray-900 dark:text-white m-0 leading-tight">Edit Admin</h2>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 m-0">{editingAdmin.full_name}</p>
+                                </div>
                             </div>
-                        )}
-
-                        {/* Full Name */}
-                        <div className="mb-6">
-                            <label className="block font-semibold mb-2">Full Name:</label>
-                            <input
-                                className="input w-full bg-white dark:bg-slate-800"
-                                name="full_name"
-                                value={editForm.full_name}
-                                onChange={handleEditChange}
-                                placeholder="Enter full name"
-                            />
+                            <button onClick={closeEditModal} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/10 transition-all">
+                                <X size={16} />
+                            </button>
                         </div>
 
-                        {/* Email */}
-                        <div className="mb-12">
-                            <label className="block font-semibold mb-2">Email Address:</label>
-                            <input
-                                className="input w-full bg-white dark:bg-slate-800"
-                                name="email"
-                                type="email"
-                                value={editForm.email}
-                                onChange={handleEditChange}
-                                placeholder="Enter email address"
-                            />
+                        <div className="px-6 py-5 space-y-4">
+                            {editError && (
+                                <div className="flex items-start gap-2.5 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl text-sm text-red-700 dark:text-red-400">
+                                    <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                                    {editError}
+                                </div>
+                            )}
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
+                                <input
+                                    className="input w-full bg-white dark:bg-slate-800 text-sm"
+                                    name="full_name"
+                                    value={editForm.full_name}
+                                    onChange={handleEditChange}
+                                    placeholder="Enter full name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Email Address</label>
+                                <input
+                                    className="input w-full bg-white dark:bg-slate-800 text-sm"
+                                    name="email"
+                                    type="email"
+                                    value={editForm.email}
+                                    onChange={handleEditChange}
+                                    placeholder="Enter email address"
+                                />
+                            </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="row justify-end gap-4">
+                        <div className="flex justify-end gap-2 px-6 pb-6 pt-2 border-t border-gray-100 dark:border-white/10">
                             <button
-                                className="btn bg-white text-orange-600 border-none px-6 py-3"
+                                className="px-4 py-2 rounded-lg border border-gray-200 dark:border-white/10 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-all disabled:opacity-50"
                                 onClick={closeEditModal}
                                 disabled={saving}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="btn btn-primary border-none px-6 py-3"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF8800] hover:bg-[#E67A00] text-white text-sm font-semibold transition-all disabled:opacity-50"
                                 onClick={handleEditSave}
                                 disabled={saving}
                             >
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {saving && <Loader2 size={14} className="animate-spin" />}
+                                {saving ? 'Saving…' : 'Save Changes'}
                             </button>
                         </div>
                     </div>

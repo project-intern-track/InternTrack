@@ -297,9 +297,9 @@ const SupervisorApprovals = () => {
         transition={{ duration: 0.4, delay: 0.05 }}
         className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
-        {/* Desktop: Segmented status tabs */}
+        {/* Desktop tabs */}
         <div className="mb-6 max-[800px]:hidden">
-          <div className="flex flex-wrap gap-3 rounded-2xl border border-gray-200 bg-gray-50/80 p-3 dark:border-white/10 dark:bg-white/5">
+          <div className="flex flex-wrap gap-2">
             {tabs.map((tab, index) => {
               const isActive = activeTab === tab.key;
               return (
@@ -314,22 +314,17 @@ const SupervisorApprovals = () => {
                     setActiveTab(tab.key);
                     setCurrentPage(1);
                   }}
-                  className={`flex min-w-[180px] flex-1 items-center justify-between rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                     isActive
-                      ? 'border-primary bg-white text-primary shadow-[0_12px_30px_-18px_rgba(249,115,22,0.75)] dark:bg-slate-900'
-                      : 'border-transparent bg-transparent text-gray-700 hover:border-gray-300 hover:bg-white dark:text-gray-300 dark:hover:border-white/10 dark:hover:bg-slate-900/60'
+                      ? 'bg-[#FF8800] text-white shadow-[0_0_12px_rgba(255,136,0,0.3)]'
+                      : 'bg-gray-100 text-gray-600 hover:bg-orange-50 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10'
                   }`}
                 >
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold uppercase tracking-widest">{tab.label}</p>
-                    <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      {tab.count} task{tab.count === 1 ? '' : 's'}
-                    </p>
-                  </div>
-                  <span className={`ml-4 inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-black ${
+                  <span>{tab.label}</span>
+                  <span className={`rounded-full px-1.5 py-0.5 text-xs ${
                     isActive
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-gray-200'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-300'
                   }`}>
                     {tab.count}
                   </span>
@@ -349,7 +344,7 @@ const SupervisorApprovals = () => {
           ))}
         </div>
 
-        <div className="mb-6 hidden max-[800px]:flex rounded-xl bg-gray-100 p-1 dark:bg-white/10">
+        <div className="mb-6 hidden max-[800px]:flex flex-wrap gap-2">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.key;
             return (
@@ -359,13 +354,20 @@ const SupervisorApprovals = () => {
                   setActiveTab(tab.key);
                   setCurrentPage(1);
                 }}
-                className={`flex-1 rounded-lg px-1.5 py-2 text-center text-[0.7rem] font-bold transition-all ${
+                className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-center text-[0.7rem] font-bold transition-all ${
                   isActive
-                    ? 'bg-white text-primary shadow-sm dark:bg-slate-800 dark:text-orange-400'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                    ? 'bg-[#FF8800] text-white shadow-[0_0_12px_rgba(255,136,0,0.3)]'
+                    : 'bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-gray-700 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200'
                 }`}
               >
-                {tab.label}
+                <span>{tab.label}</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[0.65rem] ${
+                  isActive
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-300'
+                }`}>
+                  {tab.count}
+                </span>
               </button>
             );
           })}

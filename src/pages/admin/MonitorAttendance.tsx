@@ -769,7 +769,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           <div className="flex gap-3">
             <button
               onClick={() => setIsManualEntryOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white text-[hsl(var(--orange))] border-2 border-[hsl(var(--orange))] rounded-lg font-semibold cursor-pointer transition-all"
+              className="btn gap-2 bg-white text-[hsl(var(--orange))] border-2 border-[hsl(var(--orange))]"
             >
               <Plus size={18} />
               Add Manual Entry
@@ -777,7 +777,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             <button
               onClick={handleExport}
               disabled={filteredRecords.length === 0}
-              className={`flex items-center gap-2 px-4 py-2.5 bg-[hsl(var(--orange))] text-white border-none rounded-lg font-semibold transition-all ${filteredRecords.length === 0 ? 'cursor-not-allowed opacity-60' : 'cursor-pointer opacity-100'}`}
+              className={`btn btn-primary gap-2 ${filteredRecords.length === 0 ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               <Download size={18} />
               Export
@@ -975,31 +975,53 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Status</label>
-            <DropdownSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={[
-                { value: 'all', label: 'All Status' },
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: 'all', label: 'All' },
                 { value: 'present', label: 'Present' },
                 { value: 'late', label: 'Late' },
                 { value: 'absent', label: 'Absent' },
                 { value: 'excused', label: 'Excused' },
-              ]}
-            />
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setStatusFilter(option.value)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border-none cursor-pointer transition ${
+                    statusFilter === option.value
+                      ? 'bg-[hsl(var(--orange))] text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Role</label>
-            <DropdownSelect
-              value={roleFilter}
-              onChange={setRoleFilter}
-              options={[
-                { value: 'all', label: 'All Roles' },
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: 'all', label: 'All' },
                 { value: 'intern', label: 'Intern' },
                 { value: 'admin', label: 'Admin' },
                 { value: 'supervisor', label: 'Supervisor' },
-              ]}
-            />
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setRoleFilter(option.value)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border-none cursor-pointer transition ${
+                    roleFilter === option.value
+                      ? 'bg-[hsl(var(--orange))] text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
         </MobileFilterDrawer>
 

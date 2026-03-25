@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -183,10 +183,132 @@ const PasswordRecoveryRedirect = () => {
   return null;
 };
 
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+const IDLE_WARNING_MS = 2 * 60 * 1000;
+
+const SessionIdleGuard = () => {
+  const { isAuthenticated, signOut } = useAuth();
+  const [showWarning, setShowWarning] = useState(false);
+  const [countdownMs, setCountdownMs] = useState(IDLE_WARNING_MS);
+  const warningTimeoutRef = useRef<number | null>(null);
+  const logoutTimeoutRef = useRef<number | null>(null);
+  const countdownIntervalRef = useRef<number | null>(null);
+
+  const clearTimers = () => {
+    if (warningTimeoutRef.current) window.clearTimeout(warningTimeoutRef.current);
+    if (logoutTimeoutRef.current) window.clearTimeout(logoutTimeoutRef.current);
+    if (countdownIntervalRef.current) window.clearInterval(countdownIntervalRef.current);
+    warningTimeoutRef.current = null;
+    logoutTimeoutRef.current = null;
+    countdownIntervalRef.current = null;
+  };
+
+  const handleIdleLogout = async () => {
+    clearTimers();
+    setShowWarning(false);
+    sessionStorage.setItem('session_expired', '1');
+    await signOut();
+  };
+
+  const armIdleTimers = () => {
+    clearTimers();
+    setShowWarning(false);
+    setCountdownMs(IDLE_WARNING_MS);
+
+    warningTimeoutRef.current = window.setTimeout(() => {
+      setShowWarning(true);
+      const logoutAt = Date.now() + IDLE_WARNING_MS;
+
+      countdownIntervalRef.current = window.setInterval(() => {
+        const remaining = Math.max(0, logoutAt - Date.now());
+        setCountdownMs(remaining);
+      }, 1000);
+    }, IDLE_TIMEOUT_MS - IDLE_WARNING_MS);
+
+    logoutTimeoutRef.current = window.setTimeout(() => {
+      void handleIdleLogout();
+    }, IDLE_TIMEOUT_MS);
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      clearTimers();
+      setShowWarning(false);
+      return;
+    }
+
+    const activityEvents: Array<keyof WindowEventMap> = [
+      'mousedown',
+      'mousemove',
+      'keydown',
+      'scroll',
+      'touchstart',
+      'focus',
+    ];
+
+    const handleActivity = () => {
+      armIdleTimers();
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        armIdleTimers();
+      }
+    };
+
+    armIdleTimers();
+
+    activityEvents.forEach((eventName) => window.addEventListener(eventName, handleActivity, { passive: true }));
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      activityEvents.forEach((eventName) => window.removeEventListener(eventName, handleActivity));
+      document.removeEventListener('visibilitychange', handleVisibility);
+      clearTimers();
+    };
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated || !showWarning) return null;
+
+  const minutes = Math.floor(countdownMs / 60000);
+  const seconds = Math.floor((countdownMs % 60000) / 1000).toString().padStart(2, '0');
+
+  return (
+    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
+        <h2 className="text-xl font-black text-gray-900 dark:text-white">Session Timeout Warning</h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          You&apos;ve been inactive for a while. You will be logged out in {minutes}:{seconds} unless you stay signed in.
+        </p>
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={() => {
+              clearTimers();
+              setShowWarning(false);
+              sessionStorage.setItem('session_expired', '1');
+              void signOut();
+            }}
+            className="flex-1 rounded-lg border border-gray-300 py-2 font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-slate-800"
+          >
+            Logout
+          </button>
+          <button
+            onClick={armIdleTimers}
+            className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90"
+          >
+            Stay Signed In
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function AppRoutes() {
   return (
     <>
       <PasswordRecoveryRedirect />
+      <SessionIdleGuard />
       <Routes>
         {/* Public routes — share the hero image via PublicLayout */}
         <Route

@@ -65,12 +65,26 @@ jobs:
           V_MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           V_MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         run: |
+          DOMAIN_NO_SCHEME="${V_DOMAIN#https://}"
+          DOMAIN_NO_SCHEME="${DOMAIN_NO_SCHEME#http://}"
+          DOMAIN_NO_SCHEME="${DOMAIN_NO_SCHEME%%/*}"
+
+          BASE_DOMAIN="$DOMAIN_NO_SCHEME"
+          SESSION_DOMAIN="$DOMAIN_NO_SCHEME"
+          STATEFUL_DOMAINS="$DOMAIN_NO_SCHEME"
+
+          if [[ "$DOMAIN_NO_SCHEME" == www.* ]]; then
+            BASE_DOMAIN="${DOMAIN_NO_SCHEME#www.}"
+            SESSION_DOMAIN=".${BASE_DOMAIN}"
+            STATEFUL_DOMAINS="${BASE_DOMAIN},www.${BASE_DOMAIN}"
+          fi
+
           {
             echo "APP_NAME=InternTrack"
             echo "APP_ENV=production"
             echo "APP_DEBUG=false"
             echo "APP_KEY=${V_APP_KEY}"
-            echo "APP_URL=https://${V_DOMAIN}"
+            echo "APP_URL=https://${DOMAIN_NO_SCHEME}"
             echo "APP_TIMEZONE=Asia/Manila"
             echo ""
             echo "DB_CONNECTION=mysql"
@@ -81,8 +95,10 @@ jobs:
             echo "DB_PASSWORD=${V_DB_PASSWORD}"
             echo ""
             echo "SESSION_DRIVER=cookie"
-            echo "SANCTUM_STATEFUL_DOMAINS=${V_DOMAIN}"
-            echo "FRONTEND_URL=https://${V_DOMAIN}"
+            echo "SESSION_SECURE_COOKIE=true"
+            echo "SESSION_DOMAIN=${SESSION_DOMAIN}"
+            echo "SANCTUM_STATEFUL_DOMAINS=${STATEFUL_DOMAINS}"
+            echo "FRONTEND_URL=https://${DOMAIN_NO_SCHEME}"
             echo ""
             echo "MAIL_MAILER=smtp"
             echo "MAIL_HOST=smtp.gmail.com"

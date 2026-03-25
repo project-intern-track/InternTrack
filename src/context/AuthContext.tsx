@@ -168,7 +168,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
          */
         const forceDeactivatedLogout = () => {
             if (!isMounted) return;
-            localStorage.removeItem('auth_token');
             clearLastKnownRole();
             sessionStorage.setItem('account_deactivated', '1');
             setState({
@@ -185,7 +184,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
          */
         const forceSessionExpiredLogout = () => {
             if (!isMounted) return;
-            localStorage.removeItem('auth_token');
             clearLastKnownRole();
             sessionStorage.setItem('session_expired', '1');
             setState({

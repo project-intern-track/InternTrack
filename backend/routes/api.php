@@ -114,5 +114,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/attendance/log',       [AttendanceController::class, 'log']);
     Route::get('/attendance',            [AttendanceController::class, 'index']);
     Route::post('/attendance',           [AttendanceController::class, 'store']);
+    Route::put('/attendance/{id}',       [AttendanceController::class, 'update']);
     Route::delete('/attendance/{id}',    [AttendanceController::class, 'destroy']);
 });

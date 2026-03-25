@@ -88,6 +88,18 @@ export const attendanceService = {
         return response.data;
     },
 
+    /** Admin / Supervisor: update an existing attendance record by id. */
+    async update(id: string | number, payload: {
+        user_id: string | number;
+        date: string;
+        time_in: string;
+        time_out?: string;
+        status?: "present" | "absent" | "late" | "excused";
+    }): Promise<Attendance> {
+        const response = await apiClient.put(`/attendance/${id}`, payload);
+        return response.data;
+    },
+
     /** Delete an attendance record by ID. */
     async deleteAttendance(id: string | number): Promise<void> {
         await apiClient.delete(`/attendance/${id}`);

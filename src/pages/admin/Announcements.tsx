@@ -9,7 +9,7 @@ import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
 
 const Announcements = () => {
-    const ITEMS_PER_PAGE = 9;
+    const ITEMS_PER_PAGE = 10;
     const { user } = useAuth();
     const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);

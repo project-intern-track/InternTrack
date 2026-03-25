@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { BarChart, ChevronDown, ClipboardList, Search, Users, Trash, X } from 'lucide-react';
+import { BarChart, ChevronDown, ClipboardList, Eye, Search, Users, Trash, X } from 'lucide-react';
 import type { Evaluation } from '../../types/database.types';
 import { evaluationService } from '../../services/evaluationService';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userServices';
 import { feedbackService } from '../../services/feedbackService';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import DropdownSelect from '../../components/DropdownSelect';
 
 const Evaluations = () => {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -15,9 +16,11 @@ const Evaluations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name_az' | 'name_za' | 'id_asc' | 'id_desc'>('newest');
   const [internMap, setInternMap] = useState<{ [key: number]: string}>({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [viewEvaluation, setViewEvaluation] = useState<Evaluation | null>(null);
   const [internDropdownOpen, setInternDropdownOpen] = useState(false);
   const [internSearchQuery, setInternSearchQuery] = useState('');
   const internDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -35,19 +38,6 @@ const Evaluations = () => {
   const [allInterns, setAllInterns] = useState<any[]>([]);
 
   const handleInternSelect = async (internId: string) => {
-    const existingEvaluation = evaluations.find(e => String(e.intern_id) === String(internId));
-    if (existingEvaluation) {
-      setIsReadOnly(true);
-      setCreateFormData({
-        intern_id: internId,
-        task_completion: existingEvaluation.task_completion || 0,
-        competency_score: existingEvaluation.competency_score || '',
-        score: existingEvaluation.score || 0,
-        feedback: existingEvaluation.feedback || '',
-      });
-      return;
-    }
-
     setIsReadOnly(false);
     try {
       const scoreData = await feedbackService.getInternFinalScore(Number(internId));
@@ -169,19 +159,45 @@ const Evaluations = () => {
 
   }, [allInterns])
 
-  const filteredEvaluations = evaluations.filter(e => {
-    const internName = internMap[Number(e.intern_id)] || e.intern_name || '';
+  const filteredEvaluations = useMemo(() => {
     const trimmedSearch = searchTerm.trim().toLowerCase();
-    
-    // If search is empty, show all
-    if (!trimmedSearch) return true;
-    
-    return (
-      String(e.intern_id).toLowerCase().includes(trimmedSearch) ||
-      String(e.supervisor_id).toLowerCase().includes(trimmedSearch) ||
-      internName.toLowerCase().includes(trimmedSearch)
-    );
-  });
+
+    const filtered = evaluations.filter((e) => {
+      const internName = internMap[Number(e.intern_id)] || e.intern_name || '';
+
+      if (!trimmedSearch) return true;
+
+      return (
+        String(e.intern_id).toLowerCase().includes(trimmedSearch) ||
+        String(e.supervisor_id).toLowerCase().includes(trimmedSearch) ||
+        internName.toLowerCase().includes(trimmedSearch)
+      );
+    });
+
+    return filtered.sort((a, b) => {
+      const nameA = (internMap[Number(a.intern_id)] || a.intern_name || '').toLowerCase();
+      const nameB = (internMap[Number(b.intern_id)] || b.intern_name || '').toLowerCase();
+      const dateA = new Date(a.evaluation_date).getTime();
+      const dateB = new Date(b.evaluation_date).getTime();
+
+      switch (sortBy) {
+        case 'newest':
+          return dateB - dateA;
+        case 'oldest':
+          return dateA - dateB;
+        case 'id_asc':
+          return Number(a.intern_id) - Number(b.intern_id);
+        case 'id_desc':
+          return Number(b.intern_id) - Number(a.intern_id);
+        case 'name_az':
+          return nameA.localeCompare(nameB);
+        case 'name_za':
+          return nameB.localeCompare(nameA);
+        default:
+          return nameA.localeCompare(nameB);
+      }
+    });
+  }, [evaluations, internMap, searchTerm, sortBy]);
 
   // Reset to page 1 when search changes
   useEffect(() => {
@@ -242,6 +258,7 @@ const Evaluations = () => {
 
   const handleCloseCreateModal = async () => {
     setShowCreateModal(false);
+    setViewEvaluation(null);
     setIsReadOnly(false);
     setInternDropdownOpen(false);
     setInternSearchQuery('');
@@ -252,6 +269,36 @@ const Evaluations = () => {
       score: 0,
       feedback: '',
     });
+  };
+
+  const handleOpenCreateModal = () => {
+    setViewEvaluation(null);
+    setIsReadOnly(false);
+    setInternDropdownOpen(false);
+    setInternSearchQuery('');
+    setCreateFormData({
+      intern_id: '',
+      task_completion: 0,
+      competency_score: '',
+      score: 0,
+      feedback: '',
+    });
+    setShowCreateModal(true);
+  };
+
+  const handleViewEvaluation = (evaluation: Evaluation) => {
+    setViewEvaluation(evaluation);
+    setIsReadOnly(true);
+    setInternDropdownOpen(false);
+    setInternSearchQuery(internMap[Number(evaluation.intern_id)] || evaluation.intern_name || '');
+    setCreateFormData({
+      intern_id: String(evaluation.intern_id),
+      task_completion: evaluation.task_completion || 0,
+      competency_score: evaluation.competency_score || '',
+      score: evaluation.score || 0,
+      feedback: evaluation.feedback || '',
+    });
+    setShowCreateModal(true);
   };
 
   // Updated Handle Deletion
@@ -329,15 +376,32 @@ const Evaluations = () => {
       <motion.div
         initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.1 }}
-        className="rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+        className="relative z-30 rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
-          <div className="relative md:col-span-6">
+          <div className="relative md:col-span-4">
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text" placeholder="Search by Name or ID" value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <DropdownSelect
+              value={sortBy}
+              onChange={(value) => setSortBy(value as typeof sortBy)}
+              options={[
+                { value: 'newest', label: 'Sort by: Newest to Oldest' },
+                { value: 'oldest', label: 'Sort by: Oldest to Newest' },
+                { value: 'name_az', label: 'Sort by: Name A-Z' },
+                { value: 'name_za', label: 'Sort by: Name Z-A' },
+                { value: 'id_asc', label: 'Sort by: ID Ascending' },
+                { value: 'id_desc', label: 'Sort by: ID Descending' },
+              ]}
+              className="!z-40"
+              panelClassName="!z-40"
+              buttonClassName="rounded-xl py-2"
             />
           </div>
         </div>
@@ -347,7 +411,7 @@ const Evaluations = () => {
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.15 }}
-        className="rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
+        className="relative z-10 rounded-[2.5rem] border border-gray-200 bg-white shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
         <div className="flex items-center justify-between border-b border-gray-200 px-8 py-6 dark:border-white/5">
           <div className="flex items-center gap-3">
@@ -355,7 +419,7 @@ const Evaluations = () => {
             <h2 className="text-xl font-black text-gray-800 dark:text-white">Evaluation Records</h2>
           </div>
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={handleOpenCreateModal}
             className="rounded-lg bg-primary px-4 py-2 font-semibold text-white hover:bg-primary/90"
           >
             + Create Evaluation
@@ -404,12 +468,22 @@ const Evaluations = () => {
                           <td className="py-3 pr-4 text-gray-700 dark:text-gray-300">{evaluation.evaluation_date}</td>
                           <td className="py-3 pr-4 text-gray-700 dark:text-gray-300 truncate max-w-xs">{evaluation.feedback || '-'}</td>
                           <td className="py-3 pr-4">
-                            <button
-                              onClick={() => handleDelete(Number(evaluation.id))}
-                              className="flex items-center gap-1 rounded-lg bg-red-500/10 p-2 text-red-600 hover:bg-red-500/20 dark:text-red-400"
-                            >
-                              <Trash size={16} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleViewEvaluation(evaluation)}
+                                className="flex items-center gap-1 rounded-lg bg-primary/10 p-2 text-primary hover:bg-primary/20"
+                                title="View evaluation"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(Number(evaluation.id))}
+                                className="flex items-center gap-1 rounded-lg bg-red-500/10 p-2 text-red-600 hover:bg-red-500/20 dark:text-red-400"
+                                title="Delete evaluation"
+                              >
+                                <Trash size={16} />
+                              </button>
+                            </div>
                           </td>
                         </motion.tr>
                       ))
@@ -484,8 +558,14 @@ const Evaluations = () => {
                       )}
                     </div>
                     <button
+                      onClick={() => handleViewEvaluation(evaluation)}
+                      className="mt-3 mr-2 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/20"
+                    >
+                      <Eye size={13} /> View
+                    </button>
+                    <button
                       onClick={() => handleDelete(Number(evaluation.id))}
-                      className="mt-3 flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-500/20 dark:text-red-400"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-500/20 dark:text-red-400"
                     >
                       <Trash size={13} /> Delete
                     </button>
@@ -527,7 +607,7 @@ const Evaluations = () => {
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-2xl font-black text-gray-900 dark:text-white">
-                {isReadOnly ? 'View Evaluation' : 'Create Evaluation'}
+                {viewEvaluation ? 'View Evaluation' : 'Create Evaluation'}
               </h3>
               <button
                 onClick={handleCloseCreateModal}
@@ -540,69 +620,74 @@ const Evaluations = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Intern</label>
-                <div ref={internDropdownRef} className={`relative ${internDropdownOpen ? 'z-[140]' : 'z-10'}`}>
-                  <button
-                    type="button"
-                    onClick={() => !isReadOnly && setInternDropdownOpen((prev) => !prev)}
-                    disabled={isReadOnly}
-                    className="dropdown-select-button flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-left text-sm font-medium text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
-                  >
-                    <span className={selectedIntern ? 'text-gray-800 dark:text-white' : 'text-gray-400'}>
-                      {selectedIntern ? (selectedIntern.full_name || selectedIntern.name) : 'Select an intern...'}
-                    </span>
-                    <ChevronDown size={18} className={`ml-2 shrink-0 text-gray-500 transition-transform dark:text-gray-300 ${internDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                {isReadOnly ? (
+                  <div className="flex w-full items-center rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 dark:border-white/10 dark:bg-slate-800/50 dark:text-gray-200">
+                    {selectedIntern ? (selectedIntern.full_name || selectedIntern.name) : (viewEvaluation?.intern_name || 'Selected intern')}
+                  </div>
+                ) : (
+                  <div ref={internDropdownRef} className={`relative ${internDropdownOpen ? 'z-[140]' : 'z-10'}`}>
+                    <button
+                      type="button"
+                      onClick={() => setInternDropdownOpen((prev) => !prev)}
+                      className="dropdown-select-button flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-left text-sm font-medium text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
+                    >
+                      <span className={selectedIntern ? 'text-gray-800 dark:text-white' : 'text-gray-400'}>
+                        {selectedIntern ? (selectedIntern.full_name || selectedIntern.name) : 'Select an intern...'}
+                      </span>
+                      <ChevronDown size={18} className={`ml-2 shrink-0 text-gray-500 transition-transform dark:text-gray-300 ${internDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
 
-                  {internDropdownOpen && !isReadOnly && (
-                    <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-20 overflow-hidden rounded-[1rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-slate-900">
-                      <div className="border-b border-gray-100 p-3 dark:border-white/10">
-                        <div className="relative">
-                          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                          <input
-                            type="text"
-                            value={internSearchQuery}
-                            onChange={(e) => setInternSearchQuery(e.target.value)}
-                            placeholder="Search intern"
-                            className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                            autoFocus
-                          />
+                    {internDropdownOpen && (
+                      <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-20 overflow-hidden rounded-[1rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-slate-900">
+                        <div className="border-b border-gray-100 p-3 dark:border-white/10">
+                          <div className="relative">
+                            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                              type="text"
+                              value={internSearchQuery}
+                              onChange={(e) => setInternSearchQuery(e.target.value)}
+                              placeholder="Search intern"
+                              className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
+                              autoFocus
+                            />
+                          </div>
+                        </div>
+
+                        <div className="max-h-64 overflow-y-auto p-2">
+                          {filteredInternOptions.length === 0 ? (
+                            <div className="rounded-xl px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                              No interns found.
+                            </div>
+                          ) : (
+                            filteredInternOptions.map((intern) => {
+                              const isSelected = String(intern.id) === createFormData.intern_id;
+                              const label = intern.full_name || intern.name;
+
+                              return (
+                                <button
+                                  key={intern.id}
+                                  type="button"
+                                  onClick={() => {
+                                    handleInternSelect(String(intern.id));
+                                    setInternSearchQuery(label);
+                                    setInternDropdownOpen(false);
+                                  }}
+                                  className={`flex w-full items-center justify-start rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-all duration-200 ${
+                                    isSelected
+                                      ? 'bg-[hsl(var(--orange))] text-white'
+                                      : 'text-slate-700 hover:bg-orange-50 dark:text-slate-200 dark:hover:bg-white/10'
+                                  }`}
+                                >
+                                  <span className="truncate">{label}</span>
+                                </button>
+                              );
+                            })
+                          )}
                         </div>
                       </div>
-
-                      <div className="max-h-64 overflow-y-auto p-2">
-                        {filteredInternOptions.length === 0 ? (
-                          <div className="rounded-xl px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                            No interns found.
-                          </div>
-                        ) : (
-                          filteredInternOptions.map((intern) => {
-                            const isSelected = String(intern.id) === createFormData.intern_id;
-                            const label = intern.full_name || intern.name;
-
-                            return (
-                              <button
-                                key={intern.id}
-                                type="button"
-                                onClick={() => {
-                                  handleInternSelect(String(intern.id));
-                                  setInternSearchQuery(label);
-                                  setInternDropdownOpen(false);
-                                }}
-                                className={`flex w-full items-center justify-start rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-all duration-200 ${
-                                  isSelected
-                                    ? 'bg-[hsl(var(--orange))] text-white'
-                                    : 'text-slate-700 hover:bg-orange-50 dark:text-slate-200 dark:hover:bg-white/10'
-                                }`}
-                              >
-                                <span className="truncate">{label}</span>
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -610,8 +695,8 @@ const Evaluations = () => {
                 <input
                   type="number" min="0" max="10" value={createFormData.task_completion}
                   onChange={e => setCreateFormData({ ...createFormData, task_completion: Number(e.target.value) })}
-                  disabled={isReadOnly}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
+                  readOnly={isReadOnly}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 read-only:bg-gray-50 read-only:text-gray-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-800/50 dark:read-only:text-gray-300"
                 />
               </div>
 
@@ -620,8 +705,8 @@ const Evaluations = () => {
                 <input
                   type="text" placeholder="e.g., 4.5/5" value={createFormData.competency_score}
                   onChange={e => setCreateFormData({ ...createFormData, competency_score: e.target.value })}
-                  disabled={isReadOnly}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
+                  readOnly={isReadOnly}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 read-only:bg-gray-50 read-only:text-gray-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-800/50 dark:read-only:text-gray-300"
                 />
               </div>
 
@@ -630,8 +715,8 @@ const Evaluations = () => {
                 <input
                   type="number" min="0" max="100" value={createFormData.score}
                   onChange={e => setCreateFormData({ ...createFormData, score: Number(e.target.value) })}
-                  disabled={isReadOnly}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
+                  readOnly={isReadOnly}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 read-only:bg-gray-50 read-only:text-gray-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-800/50 dark:read-only:text-gray-300"
                 />
               </div>
 
@@ -640,8 +725,8 @@ const Evaluations = () => {
                 <textarea
                   value={createFormData.feedback}
                   onChange={e => setCreateFormData({ ...createFormData, feedback: e.target.value })}
-                  disabled={isReadOnly}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-800 dark:text-white dark:disabled:bg-slate-800/50 dark:disabled:text-gray-400"
+                  readOnly={isReadOnly}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 read-only:bg-gray-50 read-only:text-gray-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-800/50 dark:read-only:text-gray-300"
                   rows={3}
                 />
               </div>
@@ -652,9 +737,9 @@ const Evaluations = () => {
                 onClick={handleCloseCreateModal}
                 className="flex-1 rounded-lg border border-gray-300 py-2 font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-slate-800"
               >
-                {isReadOnly ? 'Close' : 'Cancel'}
+                {viewEvaluation ? 'Close' : 'Cancel'}
               </button>
-              {!isReadOnly && (
+              {!viewEvaluation && (
                 <button
                   onClick={handleCreateEvaluation}
                   className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90"

@@ -589,12 +589,12 @@ const SupervisorApprovals = () => {
       {/* ================= REVISION MODAL ================= */}
       {showModal && selectedTask && (
         <ModalPortal>
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
+            className="relative max-h-[92vh] w-full max-w-2xl overflow-visible rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-slate-900"
           >
             <button
               onClick={closeModal}
@@ -604,24 +604,24 @@ const SupervisorApprovals = () => {
               <X size={18} />
             </button>
 
-            <div className="mb-5 flex items-center gap-2">
+            <div className="mb-6 flex items-center gap-2">
               <AlertCircle className="text-amber-500" size={18} />
               <h2 className="text-xl font-black text-gray-900 dark:text-white">Request Revision</h2>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-5">
               <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 Revision Reason
               </label>
               <textarea
-                className="min-h-[100px] w-full resize-y rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                className="min-h-[170px] max-h-56 w-full resize-none overflow-y-auto rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
                 placeholder="Explain what needs to be revised..."
                 value={revisionReason}
                 onChange={e => setRevisionReason(e.target.value)}
               />
             </div>
 
-            <div className="mb-4">
+            <div className="mb-5">
               <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 Revision Category
               </label>
@@ -629,11 +629,13 @@ const SupervisorApprovals = () => {
                 value={revisionCategory}
                 onChange={setRevisionCategory}
                 options={REVISION_CATEGORIES.map((category) => ({ value: category, label: category }))}
+                className="z-[140]"
+                panelClassName="max-h-64 overflow-y-auto"
                 buttonClassName="rounded-xl"
               />
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-8 flex justify-end gap-2">
               <button
                 onClick={closeModal}
                 className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/10"
@@ -681,7 +683,7 @@ const SupervisorApprovals = () => {
                 Reason for Rejection
               </label>
               <textarea
-                className="min-h-[100px] w-full resize-y rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                className="min-h-[100px] max-h-40 w-full resize-none overflow-y-auto rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
                 placeholder="Explain why this task is being rejected..."
                 value={rejectReason}
                 onChange={e => setRejectReason(e.target.value)}

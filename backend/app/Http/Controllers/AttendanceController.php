@@ -84,6 +84,49 @@ class AttendanceController extends Controller
         return response()->json($attendance, 201);
     }
 
+    // PUT /api/attendance/{id}
+    // Admin / Supervisor: update a specific attendance record.
+    public function update(Request $request, int $id)
+    {
+        $attendance = Attendance::findOrFail($id);
+
+        $validated = $request->validate([
+            'user_id'  => 'required|exists:users,id',
+            'date'     => 'required|date_format:Y-m-d',
+            'time_in'  => ['required', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'time_out' => ['nullable', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', 'after:time_in'],
+            'status'   => 'nullable|in:present,absent,late,excused',
+        ]);
+
+        $duplicateQuery = Attendance::where('user_id', $validated['user_id'])
+            ->where('date', $validated['date'])
+            ->where('id', '!=', $attendance->id);
+
+        if ($duplicateQuery->exists()) {
+            return response()->json([
+                'message' => 'An attendance record for this intern and date already exists.',
+            ], 422);
+        }
+
+        $totalHours = 0;
+        if (!empty($validated['time_out'])) {
+            $totalHours = $this->computeHours($validated['time_in'], $validated['time_out']);
+        }
+
+        $attendance->update([
+            'user_id'     => $validated['user_id'],
+            'date'        => $validated['date'],
+            'time_in'     => $validated['time_in'],
+            'time_out'    => $validated['time_out'] ?? null,
+            'total_hours' => $totalHours,
+            'status'      => $validated['status'] ?? 'present',
+        ]);
+
+        $attendance->load('user:id,full_name,email,role');
+
+        return response()->json($attendance);
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // POST /api/attendance/log
     // Intern self-logs an entry (date + time_in + time_out all at once).

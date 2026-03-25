@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown } from 'lucide-react';
+import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown, Pencil, Trash } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
@@ -8,6 +8,7 @@ import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
 import DateTimePicker from '../../components/DateTimePicker';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -53,6 +54,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [interns, setInterns] = useState<Users[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AttendanceRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [editingRecordId, setEditingRecordId] = useState<string | number | null>(null);
+  const [editingInternName, setEditingInternName] = useState('');
   const [manualInternOpen, setManualInternOpen] = useState(false);
   const [manualInternQuery, setManualInternQuery] = useState('');
   const manualInternRef = useRef<HTMLDivElement>(null);
@@ -63,6 +68,26 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     time_out: '',
     status: 'present'
   });
+
+  const resetManualEntryForm = () => {
+    setManualEntryForm({
+      user_id: '',
+      date: todayDate,
+      time_in: '',
+      time_out: '',
+      status: 'present'
+    });
+    setEditingRecordId(null);
+    setEditingInternName('');
+    setSubmitError(null);
+    setManualInternOpen(false);
+    setManualInternQuery('');
+  };
+
+  const loadAttendanceRecords = async () => {
+    const records = await attendanceService.getAttendance();
+    setAttendanceRecords(records as unknown as AttendanceRecord[]);
+  };
 
   useEffect(() => {
     if (isManualEntryOpen && interns.length === 0) {
@@ -99,18 +124,64 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     try {
       setSubmitting(true);
       setSubmitError(null);
-      await attendanceService.store(manualEntryForm as any);
+      if (editingRecordId !== null) {
+        await attendanceService.update(editingRecordId, manualEntryForm as any);
+      } else {
+        await attendanceService.store(manualEntryForm as any);
+      }
       setIsManualEntryOpen(false);
-      // Refresh attendances
-      const records = await attendanceService.getAttendance();
-      setAttendanceRecords(records as unknown as AttendanceRecord[]);
-      setManualEntryForm({
-         user_id: '', date: todayDate, time_in: '', time_out: '', status: 'present'
-      });
+      await loadAttendanceRecords();
+      resetManualEntryForm();
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to submit entry');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleOpenCreateModal = () => {
+    resetManualEntryForm();
+    setIsManualEntryOpen(true);
+  };
+
+  const handleOpenEditModal = (record: AttendanceRecord) => {
+    setEditingRecordId(record.id);
+    setEditingInternName(record.user?.full_name ?? '');
+    setSubmitError(null);
+    setManualEntryForm({
+      user_id: String(record.user_id),
+      date: record.date,
+      time_in: record.time_in ?? '',
+      time_out: record.time_out ?? '',
+      status: record.status ?? 'present'
+    });
+    setManualInternQuery(record.user?.full_name ?? '');
+    setManualInternOpen(false);
+    setIsManualEntryOpen(true);
+  };
+
+  const handleCloseManualModal = () => {
+    setIsManualEntryOpen(false);
+    resetManualEntryForm();
+  };
+
+  const handleDeleteClick = (record: AttendanceRecord) => {
+    setDeleteTarget(record);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      setDeleting(true);
+      setSubmitError(null);
+      await attendanceService.deleteAttendance(deleteTarget.id);
+      await loadAttendanceRecords();
+      setDeleteTarget(null);
+    } catch (err: any) {
+      setSubmitError(err.message || 'Failed to delete attendance record');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -341,6 +412,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   }, [interns, manualInternQuery]);
 
   const selectedManualIntern = interns.find((intern) => String(intern.id) === manualEntryForm.user_id);
+  const manualInternListId = 'manual-entry-intern-options';
+  const manualInternHasScrollableList = filteredManualInterns.length > 6;
 
   return (
     <>
@@ -432,97 +505,155 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           background-color: white;
           border-radius: 8px;
           overflow: hidden;
+          border: 1px solid rgba(15, 23, 42, 0.08);
         }
-        
-        .attendance-table-header {
+
+        .attendance-table-scroll {
           width: 100%;
+          overflow-x: auto;
+          overflow-y: auto;
+          max-height: calc(70vh - 2rem);
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .attendance-table-scroll::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+
+        .attendance-table-scroll::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+
+        .attendance-table-scroll::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 4px;
+        }
+
+        .attendance-table-scroll::-webkit-scrollbar-thumb:hover {
+          background: #a8a8a8;
+        }
+
+        .attendance-table {
+          width: 100%;
+          min-width: 860px;
           table-layout: fixed;
           border-collapse: separate;
           border-spacing: 0;
-          background-color: hsl(var(--orange));
+          background-color: white;
         }
-        
-        .attendance-table-header th {
+
+        .attendance-table thead th {
           text-align: center;
           padding: 1rem;
           font-weight: 600;
           color: white;
           background-color: hsl(var(--orange));
+          position: sticky;
+          top: 0;
+          z-index: 2;
+          white-space: nowrap;
         }
-        
-        .attendance-table-header th:first-child {
+
+        .attendance-table thead th:first-child {
           border-top-left-radius: 8px;
         }
-        
-        .attendance-table-header th:last-child {
+
+        .attendance-table thead th:last-child {
           border-top-right-radius: 8px;
         }
-        
-        .attendance-table-body-wrapper {
-          overflow-y: auto;
-          overflow-x: auto;
-          max-height: calc(70vh - 2rem);
-          width: 100%;
-        }
-        
-        .attendance-table-body-wrapper::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        
-        .attendance-table-body-wrapper::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 4px;
-        }
-        
-        .attendance-table-body-wrapper::-webkit-scrollbar-thumb {
-          background: #c1c1c1;
-          border-radius: 4px;
-        }
-        
-        .attendance-table-body-wrapper::-webkit-scrollbar-thumb:hover {
-          background: #a8a8a8;
-        }
-        
-        .attendance-table-body {
-          width: 100%;
-          table-layout: fixed;
-          border-collapse: separate;
-          border-spacing: 0;
-          background-color: white;
-        }
-        
-        .attendance-table-body td {
+
+        .attendance-table td {
           text-align: center;
           padding: 0.875rem 1rem;
           border-bottom: 1px solid rgba(0, 0, 0, 0.05);
           vertical-align: middle;
+          white-space: nowrap;
         }
-        
-        .attendance-table-body td strong {
+
+        .attendance-table td strong {
           display: inline-block;
           text-align: center;
         }
-        
-        .attendance-table-body td .badge {
+
+        .attendance-table td .badge {
           display: inline-block;
           margin: 0 auto;
         }
-        
-        .attendance-table-body tr {
+
+        .attendance-table td:first-child,
+        .attendance-table th:first-child {
+          min-width: 210px;
+        }
+
+        .attendance-table td:nth-child(4),
+        .attendance-table td:nth-child(5),
+        .attendance-table th:nth-child(4),
+        .attendance-table th:nth-child(5) {
+          min-width: 130px;
+        }
+
+        .attendance-table td:last-child,
+        .attendance-table th:last-child {
+          min-width: 150px;
+        }
+
+        .attendance-table tr {
           background-color: white;
         }
-        
-        .attendance-table-body tr:hover {
+
+        .attendance-table tr:hover {
           background-color: #f5f5f5;
         }
-        
-        .attendance-table-body tr:last-child td {
+
+        .attendance-table tbody tr:last-child td {
           border-bottom: none;
         }
         
         .attendance-mobile-card {
           display: none;
+        }
+
+        .attendance-actions-cell {
+          white-space: nowrap;
+        }
+
+        .attendance-action-buttons {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .attendance-row-action {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.25rem;
+          height: 2.25rem;
+          border-radius: 9999px;
+          border: 1px solid #e2e8f0;
+          background: #fff;
+          color: #475569;
+          transition: all 0.2s ease;
+        }
+
+        .attendance-row-action:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px -12px rgba(15, 23, 42, 0.45);
+        }
+
+        .attendance-row-action.edit:hover {
+          border-color: #fdba74;
+          background: #fff7ed;
+          color: #c2410c;
+        }
+
+        .attendance-row-action.delete:hover {
+          border-color: #fca5a5;
+          background: #fef2f2;
+          color: #b91c1c;
         }
 
         @media (max-width: 640px) {
@@ -624,6 +755,15 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             display: grid;
             gap: 0.625rem;
           }
+
+          .attendance-mobile-record-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 0.875rem;
+            padding-top: 0.875rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+          }
           
           .attendance-mobile-record-row {
             display: flex;
@@ -643,11 +783,11 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             text-align: right;
           }
           
-          .attendance-table-body-wrapper {
+          .attendance-table-scroll {
             max-height: calc(60vh - 1.5rem) !important;
           }
-          
-          .attendance-table-body-wrapper::-webkit-scrollbar {
+
+          .attendance-table-scroll::-webkit-scrollbar {
             width: 6px;
           }
           
@@ -847,7 +987,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           <h1>Monitor Attendance</h1>
           <div className="attendance-action-group">
             <button
-              onClick={() => setIsManualEntryOpen(true)}
+              onClick={handleOpenCreateModal}
               className="btn attendance-action-btn attendance-action-btn-outline"
             >
               <Plus size={16} />
@@ -1103,24 +1243,20 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           ) : (
             <>
               <div className="attendance-table-wrapper">
-                {/* Fixed Header */}
-                <table className="attendance-table-header">
-                  <thead>
-                    <tr>
-                      <th className="w-[18%]">NAME</th>
-                      <th className="w-[10%]">ROLE</th>
-                      <th className="w-[11%]">DATE</th>
-                      <th className="w-[13%]">TIME IN</th>
-                      <th className="w-[13%]">TIME OUT</th>
-                      <th className="w-[15%]">TOTAL HOURS</th>
-                      <th className="w-[20%]">STATUS</th>
-                    </tr>
-                  </thead>
-                </table>
-                
-                {/* Scrollable Body */}
-                <div className="attendance-table-body-wrapper" ref={scrollContainerRef}>
-                  <table className="attendance-table-body">
+                <div className="attendance-table-scroll" ref={scrollContainerRef}>
+                  <table className="attendance-table">
+                    <thead>
+                      <tr>
+                        <th className="w-[18%]">NAME</th>
+                        <th className="w-[10%]">ROLE</th>
+                        <th className="w-[11%]">DATE</th>
+                        <th className="w-[13%]">TIME IN</th>
+                        <th className="w-[13%]">TIME OUT</th>
+                        <th className="w-[15%]">TOTAL HOURS</th>
+                        <th className="w-[12%]">STATUS</th>
+                        <th className="w-[8%]">ACTIONS</th>
+                      </tr>
+                    </thead>
                     <tbody>
                       {paginatedRecords.map((record, index) => (
                         <tr key={`${record.id}-${record.date}-${index}`}>
@@ -1132,7 +1268,29 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                           <td className="w-[13%]">{formatTime(record.time_in)}</td>
                           <td className="w-[13%]">{formatTime(record.time_out)}</td>
                           <td className="w-[15%]">{formatHours(record.total_hours)}</td>
-                          <td className="w-[20%]">{getStatusBadge(record.status)}</td>
+                          <td className="w-[12%]">{getStatusBadge(record.status)}</td>
+                          <td className="w-[8%] attendance-actions-cell">
+                            <div className="attendance-action-buttons">
+                              <button
+                                type="button"
+                                className="attendance-row-action edit"
+                                onClick={() => handleOpenEditModal(record)}
+                                title="Edit"
+                                aria-label={`Edit attendance for ${record.user?.full_name ?? 'user'}`}
+                              >
+                                <Pencil size={15} />
+                              </button>
+                              <button
+                                type="button"
+                                className="attendance-row-action delete"
+                                onClick={() => handleDeleteClick(record)}
+                                title="Delete"
+                                aria-label={`Delete attendance for ${record.user?.full_name ?? 'user'}`}
+                              >
+                                <Trash size={15} />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1168,6 +1326,26 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                       <div className="attendance-mobile-record-row">
                         <span className="attendance-mobile-record-label">Total Hours</span>
                         <span className="attendance-mobile-record-value">{formatHours(record.total_hours)}</span>
+                      </div>
+                      <div className="attendance-mobile-record-actions">
+                        <button
+                          type="button"
+                          className="attendance-row-action edit"
+                          onClick={() => handleOpenEditModal(record)}
+                          title="Edit"
+                          aria-label={`Edit attendance for ${record.user?.full_name ?? 'user'}`}
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="attendance-row-action delete"
+                          onClick={() => handleDeleteClick(record)}
+                          title="Delete"
+                          aria-label={`Delete attendance for ${record.user?.full_name ?? 'user'}`}
+                        >
+                          <Trash size={15} />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1213,77 +1391,98 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         <ModalPortal>
           <div className="fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
             <div className="bg-white rounded-xl p-8 w-full max-w-[500px] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] overflow-visible">
-            <h2 className="text-xl font-bold mb-6 text-slate-900">Add Manual Entry</h2>
+            <h2 className="text-xl font-bold mb-6 text-slate-900">{editingRecordId !== null ? 'Edit Attendance Entry' : 'Add Manual Entry'}</h2>
             {submitError && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">{submitError}</div>}
             <form onSubmit={handleManualSubmit} className="flex flex-col gap-4">
               
-              <div>
-                <label className="block text-sm font-medium mb-2">Intern</label>
-                <div ref={manualInternRef} className={`relative ${manualInternOpen ? 'z-[160]' : 'z-10'}`}>
-                  <button
-                    type="button"
-                    onClick={() => setManualInternOpen((prev) => !prev)}
-                    className="dropdown-select-button select flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20"
-                  >
-                    <span className={selectedManualIntern ? 'text-slate-900' : 'text-slate-400'}>
-                      {selectedManualIntern?.full_name || 'Select an intern...'}
-                    </span>
-                    <ChevronDown size={18} className={`ml-2 shrink-0 text-slate-500 transition-transform ${manualInternOpen ? 'rotate-180' : ''}`} />
-                  </button>
+              {editingRecordId !== null ? (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Intern</label>
+                  <div className="select flex w-full items-center rounded-[1.15rem] border border-gray-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+                    {editingInternName || selectedManualIntern?.full_name || manualInternQuery || 'Selected intern'}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Intern</label>
+                  <div ref={manualInternRef} className={`relative ${manualInternOpen ? 'z-[160]' : 'z-10'}`}>
+                    <button
+                      type="button"
+                      onClick={() => setManualInternOpen((prev) => !prev)}
+                      role="combobox"
+                      aria-expanded={manualInternOpen}
+                      aria-controls={manualInternListId}
+                      aria-haspopup="listbox"
+                      className="dropdown-select-button select flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20"
+                    >
+                      <span className={selectedManualIntern ? 'text-slate-900' : 'text-slate-400'}>
+                        {selectedManualIntern?.full_name || 'Select an intern...'}
+                      </span>
+                      <ChevronDown size={18} className={`ml-2 shrink-0 text-slate-500 transition-transform ${manualInternOpen ? 'rotate-180' : ''}`} />
+                    </button>
 
-                  {manualInternOpen && (
-                    <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-20 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)]">
-                      <div className="border-b border-gray-100 p-3">
-                        <div className="relative">
-                          <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                          <input
-                            type="text"
-                            value={manualInternQuery}
-                            onChange={(e) => {
-                              setManualInternQuery(e.target.value);
-                              if (!manualInternOpen) setManualInternOpen(true);
-                            }}
-                            placeholder="Search intern"
-                            className="input w-full pl-11"
-                            style={{ paddingLeft: '2.75rem' }}
-                            autoFocus
-                          />
+                    {manualInternOpen && (
+                      <div className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-20 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)]">
+                        <div className="border-b border-gray-100 p-3">
+                          <div className="relative">
+                            <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                              type="text"
+                              value={manualInternQuery}
+                              onChange={(e) => {
+                                setManualInternQuery(e.target.value);
+                                if (!manualInternOpen) setManualInternOpen(true);
+                              }}
+                              placeholder="Search intern"
+                              role="searchbox"
+                              aria-controls={manualInternListId}
+                              className="input w-full pl-11"
+                              style={{ paddingLeft: '2.75rem' }}
+                              autoFocus
+                            />
+                          </div>
+                        </div>
+
+                        <div
+                          id={manualInternListId}
+                          role="listbox"
+                          className={`${manualInternHasScrollableList ? 'max-h-60 overflow-y-auto' : 'overflow-y-visible'} p-2`}
+                        >
+                          {filteredManualInterns.length === 0 ? (
+                            <div className="rounded-xl px-4 py-3 text-sm text-slate-500">
+                              No interns found.
+                            </div>
+                          ) : (
+                            filteredManualInterns.map((intern) => {
+                              const isSelected = String(intern.id) === manualEntryForm.user_id;
+                              return (
+                                <button
+                                  key={intern.id}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={isSelected}
+                                  onClick={() => {
+                                    setManualEntryForm({ ...manualEntryForm, user_id: String(intern.id) });
+                                    setManualInternQuery(intern.full_name);
+                                    setManualInternOpen(false);
+                                  }}
+                                  className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                                    isSelected
+                                      ? 'bg-[hsl(var(--orange))] text-white'
+                                      : 'text-slate-700 hover:bg-orange-50'
+                                  }`}
+                                >
+                                  <span className="truncate text-left">{intern.full_name}</span>
+                                </button>
+                              );
+                            })
+                          )}
                         </div>
                       </div>
-
-                      <div className="max-h-60 overflow-y-auto p-2">
-                        {filteredManualInterns.length === 0 ? (
-                          <div className="rounded-xl px-4 py-3 text-sm text-slate-500">
-                            No interns found.
-                          </div>
-                        ) : (
-                          filteredManualInterns.map((intern) => {
-                            const isSelected = String(intern.id) === manualEntryForm.user_id;
-                            return (
-                              <button
-                                key={intern.id}
-                                type="button"
-                                onClick={() => {
-                                  setManualEntryForm({ ...manualEntryForm, user_id: String(intern.id) });
-                                  setManualInternQuery(intern.full_name);
-                                  setManualInternOpen(false);
-                                }}
-                                className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
-                                  isSelected
-                                    ? 'bg-[hsl(var(--orange))] text-white'
-                                    : 'text-slate-700 hover:bg-orange-50'
-                                }`}
-                              >
-                                <span className="truncate text-left">{intern.full_name}</span>
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium mb-2">Date</label>
@@ -1341,7 +1540,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               <div className="flex justify-end gap-3 mt-4">
                 <button
                   type="button"
-                  onClick={() => setIsManualEntryOpen(false)}
+                  onClick={handleCloseManualModal}
                   className="px-4 py-2 rounded-md border border-slate-300 bg-white font-medium cursor-pointer"
                   disabled={submitting}
                 >
@@ -1353,7 +1552,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   style={{ opacity: submitting ? 0.7 : 1 }}
                   disabled={submitting}
                 >
-                  {submitting ? 'Saving...' : 'Save Entry'}
+                  {submitting ? 'Saving...' : editingRecordId !== null ? 'Save Changes' : 'Save Entry'}
                 </button>
               </div>
             </form>
@@ -1361,6 +1560,19 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           </div>
         </ModalPortal>
       )}
+
+      <ConfirmationModal
+        open={deleteTarget !== null}
+        title="Delete Attendance Record"
+        message="Are you sure you want to delete this attendance record?"
+        note={deleteTarget ? `${deleteTarget.user?.full_name ?? 'Intern'} on ${formatDate(deleteTarget.date)}` : undefined}
+        confirmLabel="Delete"
+        isLoading={deleting}
+        loadingLabel="Deleting..."
+        onCancel={() => !deleting && setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        variant="danger"
+      />
     </>
   );
 };

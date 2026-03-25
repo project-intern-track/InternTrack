@@ -341,6 +341,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   }, [interns, manualInternQuery]);
 
   const selectedManualIntern = interns.find((intern) => String(intern.id) === manualEntryForm.user_id);
+  const manualInternListId = 'manual-entry-intern-options';
+  const manualInternHasScrollableList = filteredManualInterns.length > 6;
 
   return (
     <>
@@ -432,92 +434,104 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           background-color: white;
           border-radius: 8px;
           overflow: hidden;
+          border: 1px solid rgba(15, 23, 42, 0.08);
         }
-        
-        .attendance-table-header {
+
+        .attendance-table-scroll {
           width: 100%;
+          overflow-x: auto;
+          overflow-y: auto;
+          max-height: calc(70vh - 2rem);
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .attendance-table-scroll::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+
+        .attendance-table-scroll::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+
+        .attendance-table-scroll::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 4px;
+        }
+
+        .attendance-table-scroll::-webkit-scrollbar-thumb:hover {
+          background: #a8a8a8;
+        }
+
+        .attendance-table {
+          width: 100%;
+          min-width: 860px;
           table-layout: fixed;
           border-collapse: separate;
           border-spacing: 0;
-          background-color: hsl(var(--orange));
+          background-color: white;
         }
-        
-        .attendance-table-header th {
+
+        .attendance-table thead th {
           text-align: center;
           padding: 1rem;
           font-weight: 600;
           color: white;
           background-color: hsl(var(--orange));
+          position: sticky;
+          top: 0;
+          z-index: 2;
+          white-space: nowrap;
         }
-        
-        .attendance-table-header th:first-child {
+
+        .attendance-table thead th:first-child {
           border-top-left-radius: 8px;
         }
-        
-        .attendance-table-header th:last-child {
+
+        .attendance-table thead th:last-child {
           border-top-right-radius: 8px;
         }
-        
-        .attendance-table-body-wrapper {
-          overflow-y: auto;
-          overflow-x: auto;
-          max-height: calc(70vh - 2rem);
-          width: 100%;
-        }
-        
-        .attendance-table-body-wrapper::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        
-        .attendance-table-body-wrapper::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 4px;
-        }
-        
-        .attendance-table-body-wrapper::-webkit-scrollbar-thumb {
-          background: #c1c1c1;
-          border-radius: 4px;
-        }
-        
-        .attendance-table-body-wrapper::-webkit-scrollbar-thumb:hover {
-          background: #a8a8a8;
-        }
-        
-        .attendance-table-body {
-          width: 100%;
-          table-layout: fixed;
-          border-collapse: separate;
-          border-spacing: 0;
-          background-color: white;
-        }
-        
-        .attendance-table-body td {
+
+        .attendance-table td {
           text-align: center;
           padding: 0.875rem 1rem;
           border-bottom: 1px solid rgba(0, 0, 0, 0.05);
           vertical-align: middle;
+          white-space: nowrap;
         }
-        
-        .attendance-table-body td strong {
+
+        .attendance-table td strong {
           display: inline-block;
           text-align: center;
         }
-        
-        .attendance-table-body td .badge {
+
+        .attendance-table td .badge {
           display: inline-block;
           margin: 0 auto;
         }
-        
-        .attendance-table-body tr {
+
+        .attendance-table td:first-child,
+        .attendance-table th:first-child {
+          min-width: 210px;
+        }
+
+        .attendance-table td:nth-child(4),
+        .attendance-table td:nth-child(5),
+        .attendance-table th:nth-child(4),
+        .attendance-table th:nth-child(5) {
+          min-width: 130px;
+        }
+
+        .attendance-table tr {
           background-color: white;
         }
-        
-        .attendance-table-body tr:hover {
+
+        .attendance-table tr:hover {
           background-color: #f5f5f5;
         }
-        
-        .attendance-table-body tr:last-child td {
+
+        .attendance-table tbody tr:last-child td {
           border-bottom: none;
         }
         
@@ -643,11 +657,11 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
             text-align: right;
           }
           
-          .attendance-table-body-wrapper {
+          .attendance-table-scroll {
             max-height: calc(60vh - 1.5rem) !important;
           }
-          
-          .attendance-table-body-wrapper::-webkit-scrollbar {
+
+          .attendance-table-scroll::-webkit-scrollbar {
             width: 6px;
           }
           
@@ -1103,24 +1117,19 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           ) : (
             <>
               <div className="attendance-table-wrapper">
-                {/* Fixed Header */}
-                <table className="attendance-table-header">
-                  <thead>
-                    <tr>
-                      <th className="w-[18%]">NAME</th>
-                      <th className="w-[10%]">ROLE</th>
-                      <th className="w-[11%]">DATE</th>
-                      <th className="w-[13%]">TIME IN</th>
-                      <th className="w-[13%]">TIME OUT</th>
-                      <th className="w-[15%]">TOTAL HOURS</th>
-                      <th className="w-[20%]">STATUS</th>
-                    </tr>
-                  </thead>
-                </table>
-                
-                {/* Scrollable Body */}
-                <div className="attendance-table-body-wrapper" ref={scrollContainerRef}>
-                  <table className="attendance-table-body">
+                <div className="attendance-table-scroll" ref={scrollContainerRef}>
+                  <table className="attendance-table">
+                    <thead>
+                      <tr>
+                        <th className="w-[18%]">NAME</th>
+                        <th className="w-[10%]">ROLE</th>
+                        <th className="w-[11%]">DATE</th>
+                        <th className="w-[13%]">TIME IN</th>
+                        <th className="w-[13%]">TIME OUT</th>
+                        <th className="w-[15%]">TOTAL HOURS</th>
+                        <th className="w-[20%]">STATUS</th>
+                      </tr>
+                    </thead>
                     <tbody>
                       {paginatedRecords.map((record, index) => (
                         <tr key={`${record.id}-${record.date}-${index}`}>
@@ -1223,6 +1232,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   <button
                     type="button"
                     onClick={() => setManualInternOpen((prev) => !prev)}
+                    role="combobox"
+                    aria-expanded={manualInternOpen}
+                    aria-controls={manualInternListId}
+                    aria-haspopup="listbox"
                     className="dropdown-select-button select flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20"
                   >
                     <span className={selectedManualIntern ? 'text-slate-900' : 'text-slate-400'}>
@@ -1244,6 +1257,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                               if (!manualInternOpen) setManualInternOpen(true);
                             }}
                             placeholder="Search intern"
+                            role="searchbox"
+                            aria-controls={manualInternListId}
                             className="input w-full pl-11"
                             style={{ paddingLeft: '2.75rem' }}
                             autoFocus
@@ -1251,7 +1266,11 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                         </div>
                       </div>
 
-                      <div className="max-h-60 overflow-y-auto p-2">
+                      <div
+                        id={manualInternListId}
+                        role="listbox"
+                        className={`${manualInternHasScrollableList ? 'max-h-60 overflow-y-auto' : 'overflow-y-visible'} p-2`}
+                      >
                         {filteredManualInterns.length === 0 ? (
                           <div className="rounded-xl px-4 py-3 text-sm text-slate-500">
                             No interns found.
@@ -1263,6 +1282,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                               <button
                                 key={intern.id}
                                 type="button"
+                                role="option"
+                                aria-selected={isSelected}
                                 onClick={() => {
                                   setManualEntryForm({ ...manualEntryForm, user_id: String(intern.id) });
                                   setManualInternQuery(intern.full_name);

@@ -504,6 +504,9 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           padding: 1.25rem;
           background-color: #e9e6e1;
           border-radius: 8px;
+          position: relative;
+          z-index: 20;
+          overflow: visible;
         }
         
         .attendance-filter-row {
@@ -526,9 +529,12 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           flex-wrap: wrap;
           flex: 1;
           min-width: 300px;
+          overflow: visible;
         }
         
         .attendance-table-wrapper {
+          position: relative;
+          z-index: 0;
           width: 100%;
           background-color: white;
           border-radius: 8px;

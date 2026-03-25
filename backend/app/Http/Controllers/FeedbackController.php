@@ -156,7 +156,9 @@ class FeedbackController extends Controller
         if ($feedback->isEmpty()) {
             return response()->json([
                 'data' => [
+                    'hasFeedback' => false,
                     'avgTaskCompletion' => 0,
+                    'avgCompetency' => '0/5',
                     'avgCompetencyScore' => '0/5',
                     'finalScore' => 0,
                 ]
@@ -181,8 +183,10 @@ class FeedbackController extends Controller
 
         return response()->json([
             'data' => [
+                'hasFeedback' => true,
                 'avgTaskCompletion' => round($avgCompetency),
                 'avgCompetency' => number_format($avgCompetency, 1) . '/5',
+                'avgCompetencyScore' => number_format($avgCompetency, 1) . '/5',
                 'finalScore' => $finalScore,
             ]
         ]);

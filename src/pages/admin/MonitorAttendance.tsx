@@ -26,6 +26,7 @@ interface AttendanceStats {
 }
 
 const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
+  const ATTENDANCE_TABLE_MIN_WIDTH = 1080;
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -45,8 +46,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(10);
+  const attendanceContainerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
+  const [useCardLayout, setUseCardLayout] = useState(false);
 
   // Manual Entry State
   const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
@@ -318,6 +321,31 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useLayoutEffect(() => {
+    const updateResponsiveLayout = () => {
+      const containerWidth = attendanceContainerRef.current?.clientWidth ?? window.innerWidth;
+      setUseCardLayout(containerWidth < ATTENDANCE_TABLE_MIN_WIDTH);
+    };
+
+    updateResponsiveLayout();
+
+    const observer =
+      typeof ResizeObserver !== 'undefined' && attendanceContainerRef.current
+        ? new ResizeObserver(() => updateResponsiveLayout())
+        : null;
+
+    if (observer && attendanceContainerRef.current) {
+      observer.observe(attendanceContainerRef.current);
+    }
+
+    window.addEventListener('resize', updateResponsiveLayout);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', updateResponsiveLayout);
+    };
+  }, []);
+
   // Restore scroll position after filtered records update
   useLayoutEffect(() => {
     const container = scrollContainerRef.current;
@@ -537,7 +565,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
         .attendance-table {
           width: 100%;
-          min-width: 860px;
+          min-width: 1080px;
           table-layout: fixed;
           border-collapse: separate;
           border-spacing: 0;
@@ -577,6 +605,13 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           text-align: center;
         }
 
+        .attendance-name-cell,
+        .attendance-name-cell strong {
+          white-space: normal !important;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
+
         .attendance-table td .badge {
           display: inline-block;
           margin: 0 auto;
@@ -587,11 +622,26 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           min-width: 210px;
         }
 
+        .attendance-table td:nth-child(3),
+        .attendance-table th:nth-child(3) {
+          min-width: 165px;
+        }
+
         .attendance-table td:nth-child(4),
         .attendance-table td:nth-child(5),
         .attendance-table th:nth-child(4),
         .attendance-table th:nth-child(5) {
-          min-width: 130px;
+          min-width: 170px;
+        }
+
+        .attendance-table td:nth-child(3),
+        .attendance-table td:nth-child(4),
+        .attendance-table td:nth-child(5),
+        .attendance-table th:nth-child(3),
+        .attendance-table th:nth-child(4),
+        .attendance-table th:nth-child(5) {
+          padding-left: 1.25rem;
+          padding-right: 1.25rem;
         }
 
         .attendance-table td:last-child,
@@ -613,6 +663,84 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
         
         .attendance-mobile-card {
           display: none;
+        }
+
+        .attendance-card-view .attendance-table-wrapper {
+          display: none !important;
+        }
+
+        .attendance-card-view .attendance-mobile-card {
+          display: grid;
+          gap: 1rem;
+        }
+
+        .attendance-card-view .attendance-filter-section {
+          display: none !important;
+        }
+
+        .attendance-mobile-record {
+          background: white;
+          border-radius: 14px;
+          padding: 1rem;
+          box-shadow: 0 10px 30px -24px rgba(0, 0, 0, 0.22);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .attendance-mobile-record-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 0.75rem;
+          margin-bottom: 0.75rem;
+          padding-bottom: 0.75rem;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .attendance-mobile-record-name {
+          flex: 1;
+          min-width: 0;
+          font-weight: 700;
+          font-size: 1rem;
+          color: #1a1a1a;
+          overflow-wrap: anywhere;
+        }
+
+        .attendance-mobile-record-details {
+          display: grid;
+          gap: 0.625rem;
+        }
+
+        .attendance-mobile-record-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
+          font-size: 0.875rem;
+        }
+
+        .attendance-mobile-record-label {
+          color: hsl(var(--muted-foreground));
+          font-weight: 600;
+          font-size: 0.75rem;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+        }
+
+        .attendance-mobile-record-value {
+          min-width: 0;
+          color: #1a1a1a;
+          font-weight: 500;
+          text-align: right;
+          overflow-wrap: anywhere;
+        }
+
+        .attendance-mobile-record-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 0.5rem;
+          margin-top: 0.875rem;
+          padding-top: 0.875rem;
+          border-top: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         .attendance-actions-cell {
@@ -654,16 +782,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           border-color: #fca5a5;
           background: #fef2f2;
           color: #b91c1c;
-        }
-
-        @media (max-width: 640px) {
-          .attendance-table-wrapper {
-            display: none !important;
-          }
-
-          .attendance-mobile-card {
-            display: block;
-          }
         }
 
         @media (max-width: 768px) {
@@ -726,61 +844,31 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           }
 
           .attendance-mobile-record {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
             margin-bottom: 0.875rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(0, 0, 0, 0.05);
           }
           
           .attendance-mobile-record-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            gap: 0.5rem;
           }
           
           .attendance-mobile-record-name {
-            font-weight: 600;
             font-size: 0.9375rem;
-            color: #1a1a1a;
-            flex: 1;
-            margin-right: 0.5rem;
           }
           
           .attendance-mobile-record-details {
-            display: grid;
             gap: 0.625rem;
           }
 
           .attendance-mobile-record-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
             margin-top: 0.875rem;
-            padding-top: 0.875rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.08);
           }
           
           .attendance-mobile-record-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             font-size: 0.875rem;
           }
           
           .attendance-mobile-record-label {
-            color: hsl(var(--muted-foreground));
-            font-weight: 500;
-          }
-          
-          .attendance-mobile-record-value {
-            color: #1a1a1a;
-            font-weight: 500;
-            text-align: right;
+            font-size: 0.75rem;
           }
           
           .attendance-table-scroll {
@@ -981,7 +1069,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           }
         }
       `}</style>
-      <div className="attendance-container admin-page-shell w-full space-y-6">
+      <div
+        ref={attendanceContainerRef}
+        className={`attendance-container admin-page-shell w-full space-y-6 ${useCardLayout ? 'attendance-card-view' : ''}`}
+      >
         {/* Header */}
         <div className="attendance-header mb-8 flex justify-between items-center flex-wrap gap-4">
           <h1>Monitor Attendance</h1>
@@ -1073,7 +1164,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           </div>
         </div>
 
-        <div className="card attendance-filter-section mb-6 !hidden min-[851px]:!block">
+        <div className={`card attendance-filter-section mb-6 ${useCardLayout ? '!hidden' : '!block'}`}>
           <div className="row attendance-filter-row gap-4 items-center flex-wrap">
             {/* Filter label */}
             <div className="row attendance-filter-label gap-2 items-center">
@@ -1168,6 +1259,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           onOpen={() => setIsFilterDrawerOpen(true)}
           onClose={() => setIsFilterDrawerOpen(false)}
           bodyClassName="space-y-4"
+          className={useCardLayout ? 'w-full' : 'hidden'}
         >
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Date</label>
@@ -1260,7 +1352,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                     <tbody>
                       {paginatedRecords.map((record, index) => (
                         <tr key={`${record.id}-${record.date}-${index}`}>
-                          <td className="w-[18%]">
+                          <td className="w-[18%] attendance-name-cell">
                             <strong>{record.user?.full_name || 'Unknown User'}</strong>
                           </td>
                           <td className="w-[10%]">{getRoleBadge(record.user?.role)}</td>

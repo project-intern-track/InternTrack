@@ -116,5 +116,8 @@ class DatabaseSeeder extends Seeder
 
         // 7. Seed temporary supervisor feedback verification data
         $this->call(SupervisorFeedbackTempSeeder::class);
+
+        // 8. Seed focused evaluation modal QA scenarios
+        $this->call(EvaluationModalTestSeeder::class);
     }
 }

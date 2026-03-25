@@ -630,7 +630,7 @@ const SupervisorApprovals = () => {
                 onChange={setRevisionCategory}
                 options={REVISION_CATEGORIES.map((category) => ({ value: category, label: category }))}
                 className="z-[140]"
-                panelClassName="max-h-64 overflow-y-auto"
+                optionsContainerClassName="max-h-64"
                 buttonClassName="rounded-xl"
               />
             </div>

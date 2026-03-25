@@ -20,6 +20,8 @@ const Evaluations = () => {
   const [internMap, setInternMap] = useState<{ [key: number]: string}>({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [hasFeedbackData, setHasFeedbackData] = useState(false);
+  const [scoreLoading, setScoreLoading] = useState(false);
   const [viewEvaluation, setViewEvaluation] = useState<Evaluation | null>(null);
   const [internDropdownOpen, setInternDropdownOpen] = useState(false);
   const [internSearchQuery, setInternSearchQuery] = useState('');
@@ -39,8 +41,10 @@ const Evaluations = () => {
 
   const handleInternSelect = async (internId: string) => {
     setIsReadOnly(false);
+    setScoreLoading(true);
     try {
       const scoreData = await feedbackService.getInternFinalScore(Number(internId));
+      setHasFeedbackData(scoreData.hasFeedback);
       setCreateFormData({
         intern_id: internId,
         task_completion: scoreData.avgTaskCompletion,
@@ -50,6 +54,7 @@ const Evaluations = () => {
       });
     } catch (err) {
       console.log('Error Message: ', err);
+      setHasFeedbackData(false);
       setCreateFormData({
         intern_id: internId,
         task_completion: 0,
@@ -57,6 +62,8 @@ const Evaluations = () => {
         score: 0,
         feedback: '',
       });
+    } finally {
+      setScoreLoading(false);
     }
   };
 
@@ -235,6 +242,7 @@ const Evaluations = () => {
 
   const handleCreateEvaluation = async () => {
     if (!currentUser) return;
+    if (!createFormData.intern_id || !hasFeedbackData) return;
     try {
       const selectedInternName = internMap[Number(createFormData.intern_id)] || 'Unknown Intern';
 
@@ -260,6 +268,8 @@ const Evaluations = () => {
     setShowCreateModal(false);
     setViewEvaluation(null);
     setIsReadOnly(false);
+    setHasFeedbackData(false);
+    setScoreLoading(false);
     setInternDropdownOpen(false);
     setInternSearchQuery('');
     setCreateFormData({
@@ -274,6 +284,8 @@ const Evaluations = () => {
   const handleOpenCreateModal = () => {
     setViewEvaluation(null);
     setIsReadOnly(false);
+    setHasFeedbackData(false);
+    setScoreLoading(false);
     setInternDropdownOpen(false);
     setInternSearchQuery('');
     setCreateFormData({
@@ -289,6 +301,8 @@ const Evaluations = () => {
   const handleViewEvaluation = (evaluation: Evaluation) => {
     setViewEvaluation(evaluation);
     setIsReadOnly(true);
+    setHasFeedbackData(true);
+    setScoreLoading(false);
     setInternDropdownOpen(false);
     setInternSearchQuery(internMap[Number(evaluation.intern_id)] || evaluation.intern_name || '');
     setCreateFormData({
@@ -694,8 +708,7 @@ const Evaluations = () => {
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Task Completion</label>
                 <input
                   type="number" min="0" max="10" value={createFormData.task_completion}
-                  onChange={e => setCreateFormData({ ...createFormData, task_completion: Number(e.target.value) })}
-                  readOnly={isReadOnly}
+                  readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 read-only:bg-gray-50 read-only:text-gray-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-800/50 dark:read-only:text-gray-300"
                 />
               </div>
@@ -704,8 +717,7 @@ const Evaluations = () => {
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Competency Score</label>
                 <input
                   type="text" placeholder="e.g., 4.5/5" value={createFormData.competency_score}
-                  onChange={e => setCreateFormData({ ...createFormData, competency_score: e.target.value })}
-                  readOnly={isReadOnly}
+                  readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 read-only:bg-gray-50 read-only:text-gray-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-800/50 dark:read-only:text-gray-300"
                 />
               </div>
@@ -714,11 +726,29 @@ const Evaluations = () => {
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Score (0-100)</label>
                 <input
                   type="number" min="0" max="100" value={createFormData.score}
-                  onChange={e => setCreateFormData({ ...createFormData, score: Number(e.target.value) })}
-                  readOnly={isReadOnly}
+                  readOnly
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 read-only:bg-gray-50 read-only:text-gray-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-800/50 dark:read-only:text-gray-300"
                 />
+                {!viewEvaluation && (
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    These values are auto-generated from submitted task feedback.
+                  </p>
+                )}
               </div>
+
+              {!viewEvaluation && createFormData.intern_id && (
+                <div className={`rounded-lg border px-3 py-2 text-sm ${
+                  hasFeedbackData
+                    ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-300'
+                    : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300'
+                }`}>
+                  {scoreLoading
+                    ? 'Loading feedback-based scores...'
+                    : hasFeedbackData
+                    ? 'This intern has submitted feedback data. Evaluation scores are locked to the computed values.'
+                    : 'This intern has no submitted feedback yet, so an evaluation cannot be created yet.'}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Feedback</label>
@@ -742,7 +772,8 @@ const Evaluations = () => {
               {!viewEvaluation && (
                 <button
                   onClick={handleCreateEvaluation}
-                  className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90"
+                  disabled={!createFormData.intern_id || !hasFeedbackData || scoreLoading}
+                  className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Create
                 </button>

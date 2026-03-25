@@ -59,6 +59,7 @@ export const feedbackService = {
 
 
   async getInternFinalScore(internId: number): Promise<{
+      hasFeedback: boolean;
       avgTaskCompletion: number;
       avgCompetency: string;
       finalScore: number;
@@ -69,6 +70,7 @@ export const feedbackService = {
       } catch (error) {
           console.error('Error getting intern final score:', error);
           return {
+              hasFeedback: false,
               avgTaskCompletion: 0,
               avgCompetency: '0/5',
               finalScore: 0

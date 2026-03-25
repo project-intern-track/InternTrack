@@ -14,6 +14,7 @@ type DropdownSelectProps<T extends string = string> = {
   className?: string;
   buttonClassName?: string;
   panelClassName?: string;
+  optionsContainerClassName?: string;
   disabled?: boolean;
 };
 
@@ -24,14 +25,30 @@ function DropdownSelect<T extends string = string>({
   className = '',
   buttonClassName = '',
   panelClassName = '',
+  optionsContainerClassName = '',
   disabled = false,
 }: DropdownSelectProps<T>) {
   const [open, setOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
 
   useEffect(() => {
     if (!open) return;
+
+    const updatePanelDirection = () => {
+      const rect = dropdownRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const viewportHeight = window.innerHeight;
+      const estimatedPanelHeight = 288; // menu + padding + border
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      setOpenUpward(spaceBelow < estimatedPanelHeight && spaceAbove > spaceBelow);
+    };
+
+    updatePanelDirection();
 
     const handleClickOutside = (event: MouseEvent) => {
       if (!dropdownRef.current?.contains(event.target as Node)) {
@@ -45,10 +62,14 @@ function DropdownSelect<T extends string = string>({
       }
     };
 
+    window.addEventListener('resize', updatePanelDirection);
+    window.addEventListener('scroll', updatePanelDirection, true);
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
 
     return () => {
+      window.removeEventListener('resize', updatePanelDirection);
+      window.removeEventListener('scroll', updatePanelDirection, true);
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
@@ -78,14 +99,18 @@ function DropdownSelect<T extends string = string>({
       <AnimatePresence>
         {open && !disabled && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            initial={{ opacity: 0, y: openUpward ? 8 : -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: openUpward ? 8 : -8 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className={`absolute left-0 right-0 top-[calc(100%+0.55rem)] z-10 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-slate-900 ${panelClassName}`}
+            className={`absolute left-0 right-0 z-10 overflow-hidden rounded-[1.15rem] border border-gray-200 bg-white shadow-[0_24px_55px_-24px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-slate-900 ${
+              openUpward
+                ? 'bottom-[calc(100%+0.55rem)] [transform-origin:bottom_center]'
+                : 'top-[calc(100%+0.55rem)] [transform-origin:top_center]'
+            } ${panelClassName}`}
             role="listbox"
           >
-            <div className="p-2">
+            <div className={`max-h-64 overflow-y-auto p-2 ${optionsContainerClassName}`}>
               {options.map((option) => {
                 const isActive = option.value === value;
 
@@ -98,7 +123,7 @@ function DropdownSelect<T extends string = string>({
                       onChange(option.value);
                       setOpen(false);
                     }}
-                    className={`flex w-full items-center justify-start rounded-2xl px-4 py-3 text-left text-sm font-semibold transition-all duration-200 ${
+                    className={`flex min-h-[48px] w-full items-center justify-start rounded-2xl px-4 py-3 text-left text-sm font-semibold leading-5 transition-all duration-200 ${
                       isActive
                         ? 'bg-[hsl(var(--orange))] text-white'
                         : 'text-slate-700 hover:bg-orange-50 dark:text-slate-200 dark:hover:bg-white/10'

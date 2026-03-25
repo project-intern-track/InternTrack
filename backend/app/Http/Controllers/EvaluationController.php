@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Evaluation;
+use App\Models\TaskFeedback;
 use Illuminate\Http\Request;
 
 class EvaluationController extends Controller
@@ -60,11 +61,38 @@ class EvaluationController extends Controller
                 'supervisor_id' => 'required|numeric',
                 'task_completion' => 'nullable|numeric',
                 'competency_score' => 'nullable|string',
-                'score' => 'required|numeric|min:0|max:100',
+                'score' => 'nullable|numeric|min:0|max:100',
                 'feedback' => 'nullable|string',
                 'evaluation_date' => 'required|date',
                 'intern_name' => 'nullable|string',
             ]);
+
+            $feedbackEntries = TaskFeedback::where('intern_id', $validated['intern_id'])->get();
+
+            if ($feedbackEntries->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot create evaluation because this intern has no submitted feedback yet.',
+                    'errors' => [
+                        'intern_id' => ['This intern has no submitted feedback yet.'],
+                    ],
+                ], 422);
+            }
+
+            $allRatings = [];
+            foreach ($feedbackEntries as $entry) {
+                foreach ($entry->competency_ratings as $rating) {
+                    $allRatings[] = (int) ($rating['rating'] ?? 0);
+                }
+            }
+
+            $avgCompetency = !empty($allRatings)
+                ? array_sum($allRatings) / count($allRatings)
+                : 0;
+
+            $validated['task_completion'] = round($avgCompetency);
+            $validated['competency_score'] = number_format($avgCompetency, 1) . '/5';
+            $validated['score'] = round(($avgCompetency / 5) * 100);
 
             $evaluation = Evaluation::create($validated);
 

@@ -113,5 +113,8 @@ class DatabaseSeeder extends Seeder
 
         // 6. Seed broader dashboard-focused demo data for testing
         $this->call(DashboardTestDataSeeder::class);
+
+        // 7. Seed temporary supervisor feedback verification data
+        $this->call(SupervisorFeedbackTempSeeder::class);
     }
 }

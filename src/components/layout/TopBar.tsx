@@ -8,7 +8,7 @@ const TopBar = () => {
     if (!user) return null;
 
     return (
-        <div className="hidden lg:flex sticky top-0 z-10 bg-white dark:bg-slate-900/50 border-b border-gray-200 dark:border-white/5 h-16 px-6 items-center justify-between backdrop-blur-md">
+        <div className="hidden lg:flex sticky top-0 z-50 bg-white dark:bg-slate-900/50 border-b border-gray-200 dark:border-white/5 h-16 px-6 items-center justify-between backdrop-blur-md">
             {/* Left side - spacing */}
             <div className="flex-1" />
 

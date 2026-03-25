@@ -186,14 +186,11 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // Revoke old tokens (single active session)
-        $user->tokens()->delete();
-
-        $token = $user->createToken('auth_token')->plainTextToken;
+        Auth::guard('web')->login($user, false);
+        $request->session()->regenerate();
 
         return response()->json([
             'user'  => $this->formatUser($user),
-            'token' => $token,
         ]);
     }
 
@@ -203,7 +200,15 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()?->currentAccessToken();
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
+
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Logged out successfully.']);
     }

@@ -1,60 +1,80 @@
 import axios from "axios";
 
-// ========================
-// Environmental Variables
-// ========================
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const API_ORIGIN = API_URL.replace(/\/api\/?$/, "");
+
+const csrfClient = axios.create({
+    baseURL: API_ORIGIN,
+    withCredentials: true,
+});
+
+let csrfReady = false;
+let csrfPromise: Promise<void> | null = null;
+
+async function ensureCsrfCookie(force = false): Promise<void> {
+    if (csrfReady && !force) return;
+    if (csrfPromise && !force) return csrfPromise;
+
+    csrfPromise = csrfClient.get("/sanctum/csrf-cookie").then(() => {
+        csrfReady = true;
+    }).finally(() => {
+        csrfPromise = null;
+    });
+
+    return csrfPromise;
+}
 
 /**
  * Enhanced Axios Client for Laravel API
- * Automatically handles CSRF and Authorization Tokens
+ * Uses Sanctum stateful session cookies instead of localStorage bearer tokens.
  */
 export const apiClient = axios.create({
     baseURL: API_URL,
     headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
     },
-    withCredentials: true, // Required for Sanctum CSRF cookies if tracking stateful sessions
+    withCredentials: true,
+    withXSRFToken: true,
+    xsrfCookieName: "XSRF-TOKEN",
+    xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
-// Interceptor to attach Authorization Bearer token to every request
 apiClient.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem("auth_token");
-        if (token) {
-            config.headers["Authorization"] = `Bearer ${token}`;
+    async (config) => {
+        const method = (config.method || "get").toLowerCase();
+        if (!["get", "head", "options"].includes(method)) {
+            await ensureCsrfCookie();
         }
+
         return config;
     },
     (error) => Promise.reject(error),
 );
 
-// Optional: Interceptor to handle global 401 Unauthorized errors
 apiClient.interceptors.response.use(
     (response) => response,
-    (error) => {
-        // Handle expired/revoked tokens — clear the token and flag session expiry.
-        // AuthContext's polling will detect the cleared token and redirect.
-        if (error.response?.status === 401) {
-            const token = localStorage.getItem('auth_token');
-            if (token) {
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('last_known_user_role');
-                sessionStorage.setItem('session_expired', '1');
+    async (error) => {
+        const status = error.response?.status;
+
+        if (status === 419) {
+            try {
+                await ensureCsrfCookie(true);
+            } catch {
+                // Let the original 419 propagate if CSRF refresh fails.
             }
         }
 
-        // Handle archived/deactivated users — backend returns 403 with ACCOUNT_DEACTIVATED
         if (
-            error.response?.status === 403 &&
-            error.response?.data?.error === 'ACCOUNT_DEACTIVATED'
+            status === 403 &&
+            error.response?.data?.error === "ACCOUNT_DEACTIVATED"
         ) {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('last_known_user_role');
-            sessionStorage.setItem('account_deactivated', '1');
+            sessionStorage.setItem("account_deactivated", "1");
         }
 
         return Promise.reject(error);
     },
 );
+
+export { ensureCsrfCookie, API_ORIGIN };

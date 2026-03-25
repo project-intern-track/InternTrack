@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsActive
@@ -17,7 +18,17 @@ class EnsureUserIsActive
 
         if ($user && $user->status === 'archived') {
             // Revoke the current token so subsequent requests also fail
-            $user->currentAccessToken()->delete();
+            $token = $user->currentAccessToken();
+            if ($token && method_exists($token, 'delete')) {
+                $token->delete();
+            }
+
+            Auth::guard('web')->logout();
+
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
 
             return response()->json([
                 'error' => 'ACCOUNT_DEACTIVATED',

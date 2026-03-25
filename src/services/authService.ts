@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { apiClient, ensureCsrfCookie } from "./apiClient";
 import type { UserRole } from "../types/database.types";
 
 // ========================
@@ -96,13 +96,13 @@ export const authService = {
 
     async signIn(email: string, password: string): Promise<AuthResult> {
         try {
+            await ensureCsrfCookie();
+
             const response = await apiClient.post("/auth/login", {
                 email,
                 password,
             });
-            const { user, token } = response.data;
-
-            localStorage.setItem("auth_token", token);
+            const { user } = response.data;
 
             const authUser: AuthUser = {
                 id: user.id.toString(),
@@ -117,7 +117,7 @@ export const authService = {
 
             return {
                 user: authUser,
-                session: { user: authUser, access_token: token },
+                session: { user: authUser, access_token: "session-cookie" },
                 error: null,
             };
         } catch (err: any) {
@@ -131,11 +131,10 @@ export const authService = {
 
     async signOut(): Promise<{ error: string | null }> {
         try {
+            await ensureCsrfCookie();
             await apiClient.post("/auth/logout");
-            localStorage.removeItem("auth_token");
             return { error: null };
         } catch (err: any) {
-            localStorage.removeItem("auth_token");
             return { error: err.response?.data?.error || err.message };
         }
     },
@@ -173,9 +172,6 @@ export const authService = {
         { session: AuthSession | null; error: string | null }
     > {
         try {
-            const token = localStorage.getItem("auth_token");
-            if (!token) return { session: null, error: null };
-
             const response = await apiClient.get("/auth/user");
             const user = response.data.user;
 
@@ -191,10 +187,13 @@ export const authService = {
             };
 
             return {
-                session: { user: authUser, access_token: token },
+                session: { user: authUser, access_token: "session-cookie" },
                 error: null,
             };
         } catch (err: any) {
+            if (err.response?.status === 401) {
+                return { session: null, error: null };
+            }
             return {
                 session: null,
                 error: err.response?.data?.error || err.message,

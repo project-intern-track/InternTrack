@@ -589,12 +589,12 @@ const SupervisorApprovals = () => {
       {/* ================= REVISION MODAL ================= */}
       {showModal && selectedTask && (
         <ModalPortal>
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
+            className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900"
           >
             <button
               onClick={closeModal}
@@ -614,7 +614,7 @@ const SupervisorApprovals = () => {
                 Revision Reason
               </label>
               <textarea
-                className="min-h-[100px] w-full resize-y rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                className="min-h-[100px] max-h-40 w-full resize-none overflow-y-auto rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
                 placeholder="Explain what needs to be revised..."
                 value={revisionReason}
                 onChange={e => setRevisionReason(e.target.value)}
@@ -629,6 +629,7 @@ const SupervisorApprovals = () => {
                 value={revisionCategory}
                 onChange={setRevisionCategory}
                 options={REVISION_CATEGORIES.map((category) => ({ value: category, label: category }))}
+                panelClassName="max-h-56 overflow-y-auto"
                 buttonClassName="rounded-xl"
               />
             </div>
@@ -681,7 +682,7 @@ const SupervisorApprovals = () => {
                 Reason for Rejection
               </label>
               <textarea
-                className="min-h-[100px] w-full resize-y rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                className="min-h-[100px] max-h-40 w-full resize-none overflow-y-auto rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
                 placeholder="Explain why this task is being rejected..."
                 value={rejectReason}
                 onChange={e => setRejectReason(e.target.value)}

@@ -50,10 +50,9 @@ export const userService = {
             params.append("role", "intern");
 
             if (filters?.search) params.append("search", filters.search);
-            // Map frontend concept "role" back to "ojt_role" endpoint parameter
+            // Map the Manage Interns "role" filter to the backend's ojt_role query param.
             if (filters?.role && filters.role !== "all") {
-               // params.append("ojt_role", filters.role);
-               console.log('Skipping role filter for now since backend is still using ojt_role instead of role');
+                params.append("ojt_role", filters.role);
             }
             if (filters?.status && filters.status !== "all") {
                 params.append("status", filters.status);

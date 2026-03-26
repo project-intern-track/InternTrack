@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown, Pencil, Trash } from 'lucide-react';
+import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown, Pencil } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
@@ -8,7 +8,6 @@ import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
 import DateTimePicker from '../../components/DateTimePicker';
-import ConfirmationModal from '../../components/ConfirmationModal';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -27,6 +26,11 @@ interface AttendanceStats {
 
 const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const ATTENDANCE_TABLE_MIN_WIDTH = 1080;
+  const normalizeAttendanceStatus = (status?: string | null) => {
+    const normalized = (status ?? '').toLowerCase();
+    return ['late', 'incomplete'].includes(normalized) ? 'absent' : normalized;
+  };
+
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -57,8 +61,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [interns, setInterns] = useState<Users[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<AttendanceRecord | null>(null);
-  const [deleting, setDeleting] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | number | null>(null);
   const [editingInternName, setEditingInternName] = useState('');
   const [manualInternOpen, setManualInternOpen] = useState(false);
@@ -156,7 +158,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       date: record.date,
       time_in: record.time_in ?? '',
       time_out: record.time_out ?? '',
-      status: record.status ?? 'present'
+      status: normalizeAttendanceStatus(record.status) || 'present'
     });
     setManualInternQuery(record.user?.full_name ?? '');
     setManualInternOpen(false);
@@ -166,26 +168,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const handleCloseManualModal = () => {
     setIsManualEntryOpen(false);
     resetManualEntryForm();
-  };
-
-  const handleDeleteClick = (record: AttendanceRecord) => {
-    setDeleteTarget(record);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-
-    try {
-      setDeleting(true);
-      setSubmitError(null);
-      await attendanceService.deleteAttendance(deleteTarget.id);
-      await loadAttendanceRecords();
-      setDeleteTarget(null);
-    } catch (err: any) {
-      setSubmitError(err.message || 'Failed to delete attendance record');
-    } finally {
-      setDeleting(false);
-    }
   };
 
   const handleExport = () => {
@@ -199,7 +181,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       r.time_in ? formatTime(r.time_in) : '',
       r.time_out ? formatTime(r.time_out) : '',
       r.total_hours || 0,
-      r.status
+      normalizeAttendanceStatus(r.status)
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
@@ -254,7 +236,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       const searchTermLower = searchTerm.trim().toLowerCase();
       const matchesSearch = searchTermLower === '' || record.user.full_name.toLowerCase().includes(searchTermLower);
 
-      const matchesStatus = statusFilter === 'all' || record.status.toLowerCase() === statusFilter.toLowerCase();
+      const matchesStatus =
+        statusFilter === 'all' || normalizeAttendanceStatus(record.status) === statusFilter.toLowerCase();
 
       const matchesRole = roleFilter === 'all' || (record.user.role ?? 'intern').toLowerCase() === roleFilter.toLowerCase();
 
@@ -365,8 +348,12 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
   const calculatedStats: AttendanceStats = {
     completed: stats?.completed ?? completedRecords.length,
-    incomplete: stats?.incomplete ?? attendanceRecords.filter((r) => r.status === 'late').length,
-    noLog: stats?.noLog ?? attendanceRecords.filter((r) => r.status === 'absent').length,
+    incomplete:
+      stats?.incomplete ??
+      attendanceRecords.filter((r) => (r.status ?? '').toLowerCase() === 'incomplete').length,
+    noLog:
+      stats?.noLog ??
+      attendanceRecords.filter((r) => ['absent', 'late'].includes((r.status ?? '').toLowerCase())).length,
     avgHoursPerDay: stats?.avgHoursPerDay ?? Math.round(avgHoursPerDay * 10) / 10,
   };
 
@@ -416,13 +403,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     }
   };
 
-  const getStatusBadge = (status: string) => {    switch (status.toLowerCase()) {
+  const getStatusBadge = (status: string) => {    switch (normalizeAttendanceStatus(status)) {
       case 'present':
       case 'completed':
         return <span className="badge badge-success px-2 py-1 rounded bg-green-100 text-green-800 font-semibold text-xs capitalize">Present</span>;
-      case 'late':
-      case 'incomplete':
-        return <span className="badge badge-warning px-2 py-1 rounded bg-yellow-200 text-yellow-900 font-semibold text-xs capitalize">Late</span>;
       case 'absent':
       case 'no_log':
         return <span className="badge badge-danger px-2 py-1 rounded bg-red-100 text-red-800 font-semibold text-xs capitalize">Absent</span>;
@@ -764,24 +748,19 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 2.25rem;
-          height: 2.25rem;
-          border-radius: 9999px;
-          border: 1px solid #e2e8f0;
-          background: #fff;
+          padding: 0.25rem;
+          border: none;
+          background: transparent;
           color: #475569;
           transition: all 0.2s ease;
         }
 
         .attendance-row-action:hover {
           transform: translateY(-1px);
-          box-shadow: 0 6px 18px -12px rgba(15, 23, 42, 0.45);
         }
 
         .attendance-row-action.edit:hover {
-          border-color: #fdba74;
-          background: #fff7ed;
-          color: #c2410c;
+          color: hsl(var(--orange));
         }
 
         .attendance-row-action.delete:hover {
@@ -1230,7 +1209,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   options={[
                     { value: 'all', label: 'All Status' },
                     { value: 'present', label: 'Present' },
-                    { value: 'late', label: 'Late' },
                     { value: 'absent', label: 'Absent' },
                     { value: 'excused', label: 'Excused' },
                   ]}
@@ -1298,7 +1276,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               options={[
                 { value: 'all', label: 'All Status' },
                 { value: 'present', label: 'Present' },
-                { value: 'late', label: 'Late' },
                 { value: 'absent', label: 'Absent' },
                 { value: 'excused', label: 'Excused' },
               ]}
@@ -1378,15 +1355,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                               >
                                 <Pencil size={15} />
                               </button>
-                              <button
-                                type="button"
-                                className="attendance-row-action delete"
-                                onClick={() => handleDeleteClick(record)}
-                                title="Delete"
-                                aria-label={`Delete attendance for ${record.user?.full_name ?? 'user'}`}
-                              >
-                                <Trash size={15} />
-                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1434,15 +1402,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                           aria-label={`Edit attendance for ${record.user?.full_name ?? 'user'}`}
                         >
                           <Pencil size={15} />
-                        </button>
-                        <button
-                          type="button"
-                          className="attendance-row-action delete"
-                          onClick={() => handleDeleteClick(record)}
-                          title="Delete"
-                          aria-label={`Delete attendance for ${record.user?.full_name ?? 'user'}`}
-                        >
-                          <Trash size={15} />
                         </button>
                       </div>
                     </div>
@@ -1627,7 +1586,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   onChange={(value) => setManualEntryForm({ ...manualEntryForm, status: value })}
                   options={[
                     { value: 'present', label: 'Present' },
-                    { value: 'late', label: 'Late' },
                     { value: 'absent', label: 'Absent' },
                     { value: 'excused', label: 'Excused' },
                   ]}
@@ -1658,19 +1616,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           </div>
         </ModalPortal>
       )}
-
-      <ConfirmationModal
-        open={deleteTarget !== null}
-        title="Delete Attendance Record"
-        message="Are you sure you want to delete this attendance record?"
-        note={deleteTarget ? `${deleteTarget.user?.full_name ?? 'Intern'} on ${formatDate(deleteTarget.date)}` : undefined}
-        confirmLabel="Delete"
-        isLoading={deleting}
-        loadingLabel="Deleting..."
-        onCancel={() => !deleting && setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        variant="danger"
-      />
     </>
   );
 };

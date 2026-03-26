@@ -344,7 +344,7 @@ const SupervisorApprovals = () => {
           ))}
         </div>
 
-        <div className="mb-6 hidden max-[800px]:flex flex-wrap gap-2">
+        <div className="mb-6 hidden max-[800px]:grid max-[800px]:grid-cols-2 gap-2">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.key;
             return (
@@ -354,14 +354,14 @@ const SupervisorApprovals = () => {
                   setActiveTab(tab.key);
                   setCurrentPage(1);
                 }}
-                className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-center text-[0.7rem] font-bold transition-all ${
+                className={`flex min-w-0 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-center text-[0.7rem] font-bold transition-all ${
                   isActive
                     ? 'bg-[#FF8800] text-white shadow-[0_0_12px_rgba(255,136,0,0.3)]'
                     : 'bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-gray-700 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200'
                 }`}
               >
-                <span>{tab.label}</span>
-                <span className={`rounded-full px-1.5 py-0.5 text-[0.65rem] ${
+                <span className="truncate">{tab.label}</span>
+                <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[0.65rem] ${
                   isActive
                     ? 'bg-white/20 text-white'
                     : 'bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-300'

@@ -56,6 +56,16 @@ const TAB_KEYS: TabKey[] = [
   "overdue",
 ];
 
+const TASKS_PER_PAGE = 10;
+
+const INITIAL_TAB_PAGES: Record<TabKey, number> = {
+  all: 1,
+  not_started: 1,
+  in_progress: 1,
+  completed: 1,
+  overdue: 1,
+};
+
 function getPriorityColor(priority: string): string {
   if (priority === "high") return "text-red-500";
   if (priority === "medium") return "text-amber-500";
@@ -102,6 +112,8 @@ function fmtDateTime(date: string): string {
 
 export default function TaskList() {
   const [tab, setTab] = useState<TabKey>("all");
+  const [tabPages, setTabPages] =
+    useState<Record<TabKey, number>>(INITIAL_TAB_PAGES);
   const [tasks, setTasks] = useState<Tasks[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileTabMenuOpen, setMobileTabMenuOpen] = useState(false);
@@ -253,7 +265,35 @@ export default function TaskList() {
     };
   }, [tasks]);
 
+  useEffect(() => {
+    setTabPages((prev) => {
+      let changed = false;
+      const next = { ...prev };
+
+      TAB_KEYS.forEach((key) => {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(grouped[key].length / TASKS_PER_PAGE),
+        );
+        const safePage = Math.min(Math.max(1, prev[key]), totalPages);
+
+        if (safePage !== prev[key]) {
+          next[key] = safePage;
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
+    });
+  }, [grouped]);
+
   const list = grouped[tab];
+  const totalPages = Math.max(1, Math.ceil(list.length / TASKS_PER_PAGE));
+  const currentPage = Math.min(Math.max(1, tabPages[tab]), totalPages);
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * TASKS_PER_PAGE;
+    return list.slice(start, start + TASKS_PER_PAGE);
+  }, [currentPage, list]);
 
   const TAB_LABELS: Record<TabKey, string> = {
     all: "All Tasks",
@@ -382,7 +422,7 @@ export default function TaskList() {
           </div>
         )}
 
-        {!loading && list.map((task, index) => (
+        {!loading && paginatedList.map((task, index) => (
           <motion.div
             key={task.id}
             initial={{ opacity: 0, y: 10 }}
@@ -436,6 +476,92 @@ export default function TaskList() {
           </motion.div>
         ))}
       </div>
+
+      {!loading && list.length > 0 && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/5 dark:bg-slate-900/50 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Showing {(currentPage - 1) * TASKS_PER_PAGE + 1} to{" "}
+            {Math.min(currentPage * TASKS_PER_PAGE, list.length)} of{" "}
+            {list.length} tasks
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                setTabPages((prev) => ({
+                  ...prev,
+                  [tab]: Math.max(1, currentPage - 1),
+                }))
+              }
+              disabled={currentPage === 1}
+              className="rounded-full border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition-all duration-200 hover:border-[#FF8800] hover:text-[#FF8800] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-gray-300 dark:hover:border-[#FF8800]"
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (page) => {
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() =>
+                        setTabPages((prev) => ({
+                          ...prev,
+                          [tab]: page,
+                        }))
+                      }
+                      className={`min-w-9 rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 ${
+                        currentPage === page
+                          ? "bg-[#FF8800] text-white shadow-[0_0_12px_rgba(255,136,0,0.25)]"
+                          : "border border-gray-200 text-gray-600 hover:border-[#FF8800] hover:text-[#FF8800] dark:border-white/10 dark:text-gray-300 dark:hover:border-[#FF8800]"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                }
+
+                if (
+                  page === currentPage - 2 ||
+                  page === currentPage + 2
+                ) {
+                  return (
+                    <span
+                      key={page}
+                      className="px-1 text-sm font-semibold text-gray-400 dark:text-gray-500"
+                    >
+                      ...
+                    </span>
+                  );
+                }
+
+                return null;
+              },
+            )}
+
+            <button
+              type="button"
+              onClick={() =>
+                setTabPages((prev) => ({
+                  ...prev,
+                  [tab]: Math.min(totalPages, currentPage + 1),
+                }))
+              }
+              disabled={currentPage === totalPages}
+              className="rounded-full border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition-all duration-200 hover:border-[#FF8800] hover:text-[#FF8800] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-gray-300 dark:hover:border-[#FF8800]"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       <AnimatePresence>

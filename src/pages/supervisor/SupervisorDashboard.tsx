@@ -113,6 +113,8 @@ const formatStatus = (status: string) =>
 
 const formatTaskCount = (count: number) => `${count} task${count === 1 ? '' : 's'}`;
 
+const RADIAN = Math.PI / 180;
+
 // ============================
 // Main Component
 // ============================
@@ -127,6 +129,7 @@ const SupervisorDashboard = () => {
   const [finalizingId, setFinalizingId] = useState<number | null>(null);
   const [currentTaskPage, setCurrentTaskPage] = useState(1);
   const [isMobileTasksView, setIsMobileTasksView] = useState(() => window.innerWidth <= 1024);
+  const [isCompactPieView, setIsCompactPieView] = useState(() => window.innerWidth <= 640);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -150,7 +153,10 @@ const SupervisorDashboard = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    const handleResize = () => setIsMobileTasksView(window.innerWidth <= 1024);
+    const handleResize = () => {
+      setIsMobileTasksView(window.innerWidth <= 1024);
+      setIsCompactPieView(window.innerWidth <= 640);
+    };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -186,6 +192,7 @@ const SupervisorDashboard = () => {
     : [];
 
   const totalPie = pieData.reduce((acc, d) => acc + d.value, 0);
+  const pieOuterRadius = isCompactPieView ? 82 : 120;
   const taskItemsPerPage = 6;
   const totalTaskPages = Math.max(1, Math.ceil(recentTasks.length / taskItemsPerPage));
   const safeTaskPage = Math.min(Math.max(1, currentTaskPage), totalTaskPages);
@@ -212,6 +219,53 @@ const SupervisorDashboard = () => {
       setCurrentTaskPage(1);
     }
   }, [currentTaskPage, totalTaskPages]);
+
+  const renderPieLabel = useCallback((props: {
+    cx?: number;
+    cy?: number;
+    midAngle?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    percent?: number;
+    value?: number;
+  }) => {
+    const {
+      cx = 0,
+      cy = 0,
+      midAngle = 0,
+      innerRadius = 0,
+      outerRadius = 0,
+      percent = 0,
+      value = 0,
+    } = props;
+
+    if (!value || totalPie === 0) return null;
+
+    const percentage = Math.round(percent * 100);
+
+    if (isCompactPieView) {
+      if (percentage < 8) return null;
+
+      const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+      return (
+        <text
+          x={x}
+          y={y}
+          fill="#ffffff"
+          textAnchor="middle"
+          dominantBaseline="central"
+          className="text-[11px] font-bold"
+        >
+          {percentage}%
+        </text>
+      );
+    }
+
+    return `${percentage}%`;
+  }, [isCompactPieView, totalPie]);
 
   // ── Loading / Error states ────────────────────────────────────────────────
   if (loading) {
@@ -244,6 +298,14 @@ const SupervisorDashboard = () => {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        .task-status-pie-chart .recharts-sector,
+        .task-status-pie-chart .recharts-sector:focus,
+        .task-status-pie-chart .recharts-sector:focus-visible {
+          outline: none !important;
+          -webkit-tap-highlight-color: transparent;
+        }
+      `}</style>
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -563,7 +625,7 @@ const SupervisorDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-          <div className="h-[340px]">
+          <div className="task-status-pie-chart h-[280px] sm:h-[340px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -572,22 +634,20 @@ const SupervisorDashboard = () => {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={120}
-                  label={({ value }) => {
-                    if (!value || totalPie === 0) return '0%';
-                    return `${((value / totalPie) * 100).toFixed(0)}%`;
-                  }}
-                  labelLine={false}
+                  outerRadius={pieOuterRadius}
+                  label={renderPieLabel}
+                  labelLine={!isCompactPieView}
                 >
                   {pieData.map((entry) => (
                     <Cell key={entry.name} fill={chartColors[entry.name] ?? '#94a3b8'} />
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number | undefined) => {
+                  formatter={(value: number | undefined, name?: string | number) => {
                     const v = value ?? 0;
-                    if (totalPie === 0) return ['0%', 'Share'];
-                    return [`${((v / totalPie) * 100).toFixed(0)}% (${v})`, 'Tasks'];
+                    const label = typeof name === 'string' ? name : 'Status';
+                    if (totalPie === 0) return ['0% (0)', label];
+                    return [`${((v / totalPie) * 100).toFixed(0)}% (${v})`, label];
                   }}
                 />
               </PieChart>
@@ -611,9 +671,9 @@ const SupervisorDashboard = () => {
                   transition={{ delay: 0.05 * index, duration: 0.25 }}
                   className={`rounded-xl border border-gray-200 px-4 py-3 dark:border-white/5 ${row.soft}`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <p className={`text-sm font-bold ${row.colorClass}`}>{row.label}</p>
-                    <p className="text-sm font-black text-gray-900 dark:text-white">
+                    <p className="text-sm font-black text-gray-900 dark:text-white sm:text-right">
                       {row.value} ({percent}%)
                     </p>
                   </div>

@@ -395,7 +395,7 @@ const FeedbackDashboard = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="relative max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-slate-900"
+            className="relative max-h-full w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-5 shadow-xl md:p-8 dark:border-white/10 dark:bg-slate-900"
           >
             <button
               onClick={() => setCompetencyModal(null)}
@@ -404,44 +404,65 @@ const FeedbackDashboard = () => {
               <X size={20} />
             </button>
 
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white">
-              Intern: {competencyModal.row.internName}
-            </h2>
-            <p className="mt-0.5 text-sm font-semibold text-gray-500 dark:text-gray-400">
-              Role: {competencyModal.row.internRole}
-            </p>
-            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-              Task: {competencyModal.row.taskName}
-            </p>
+            <div className="pr-8">
+              <h2 className="text-xl font-black text-gray-900 md:text-2xl dark:text-white">
+                Intern: {competencyModal.row.internName}
+              </h2>
+              <p className="mt-0.5 text-sm font-semibold text-gray-500 dark:text-gray-400">
+                Role: {competencyModal.row.internRole}
+              </p>
+            </div>
 
-            <table className="mt-5 w-full text-sm">
-              <thead className="bg-primary text-primary-foreground">
-                <tr>
-                  <th className="px-3 py-2 text-left">Competency</th>
-                  <th className="px-3 py-2 text-left">Rating</th>
-                  <th className="px-3 py-2 text-left">Comment</th>
-                </tr>
-              </thead>
-              <tbody>
-                {competencyModal.evaluations.map((e, idx) => (
-                  <tr key={idx} className="border-b border-gray-100 last:border-none dark:border-white/10">
-                    <td className="px-3 py-3 text-gray-800 dark:text-gray-200">{e.competency}</td>
-                    <td className="px-3 py-3">
-                      <StarRating rating={e.rating} onChange={val => updateEvaluation(idx, 'rating', val)} />
-                    </td>
-                    <td className="px-3 py-3">
-                      <textarea
-                        value={e.comment}
-                        onChange={ev => updateEvaluation(idx, 'comment', ev.target.value)}
-                        rows={2}
-                        className="w-full resize-y rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-                        placeholder="Enter comment..."
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50/80 p-4 dark:border-white/10 dark:bg-white/5">
+              <p className="text-[0.7rem] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                Task
+              </p>
+              <p className="mt-1 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                {competencyModal.row.taskName}
+              </p>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              {competencyModal.evaluations.map((e, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/40"
+                >
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <p className="text-[0.7rem] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                        Competency
+                      </p>
+                      <h3 className="mt-1 text-base font-black text-gray-900 dark:text-white">
+                        {e.competency}
+                      </h3>
+                    </div>
+
+                    <div className="rounded-xl bg-amber-50 px-3 py-2 dark:bg-amber-500/10">
+                      <p className="text-[0.7rem] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-300">
+                        Rating
+                      </p>
+                      <div className="mt-1">
+                        <StarRating rating={e.rating} onChange={val => updateEvaluation(idx, 'rating', val)} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="mb-2 block text-[0.7rem] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                      Comment
+                    </label>
+                    <textarea
+                      value={e.comment}
+                      onChange={ev => updateEvaluation(idx, 'comment', ev.target.value)}
+                      rows={4}
+                      className="min-h-[120px] w-full resize-y rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                      placeholder="Enter comment..."
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
 
             <div className="mt-5 flex justify-end gap-2">
               <button

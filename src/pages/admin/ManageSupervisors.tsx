@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Pencil, Search, Filter, Archive, Plus, Loader2, UserCheck, Users as UsersIcon } from 'lucide-react';
+import { Pencil, Search, Filter, Archive, Plus, Loader2, UserCheck, Users as UsersIcon, Eye, EyeOff } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect, { type DropdownSelectOption } from '../../components/DropdownSelect';
 import ModalPortal from '../../components/ModalPortal';
@@ -56,6 +56,8 @@ const ManageSupervisors = () => {
     const [signUpError, setSignUpError] = useState<string | null>(null);
     const [signUpLoading, setSignUpLoading] = useState(false)
     const [signUpSuccess, setSignUpSuccess] = useState(false)
+    const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+    const [showSignUpPasswordConfirmation, setShowSignUpPasswordConfirmation] = useState(false);
 
 
     // Edit Supervisor Modal States
@@ -156,6 +158,8 @@ const ManageSupervisors = () => {
         setSignUpForm({ full_name: '', email: '', password: '', password_confirmation: '' });
         setSignUpError(null);
         setSignUpSuccess(false);
+        setShowSignUpPassword(false);
+        setShowSignUpPasswordConfirmation(false);
     };
 
     const handleCloseSignupModal =() => {
@@ -163,6 +167,8 @@ const ManageSupervisors = () => {
         setSignUpForm({ full_name: '', email: '', password: '', password_confirmation: '' });
         setSignUpError(null);
         setSignUpSuccess(false);
+        setShowSignUpPassword(false);
+        setShowSignUpPasswordConfirmation(false);
     }
 
     const handleSignUpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,8 +199,13 @@ const ManageSupervisors = () => {
             setSignUpError('Password is required.');
             return;
         }
-        if (signUpForm.password.length < 8) {
-            setSignUpError('Password must be at least 8 characters long.');
+        const passwordRequirements: string[] = [];
+        if (signUpForm.password.length < 8) passwordRequirements.push('be at least 8 characters');
+        if (!/[A-Z]/.test(signUpForm.password)) passwordRequirements.push('contain a capital letter');
+        if (!/[0-9]/.test(signUpForm.password)) passwordRequirements.push('contain a number');
+        if (!/[^a-zA-Z0-9]/.test(signUpForm.password)) passwordRequirements.push('contain a special symbol');
+        if (passwordRequirements.length > 0) {
+            setSignUpError(`Password must ${passwordRequirements.join(', ')}.`);
             return;
         }
         if (signUpForm.password !== signUpForm.password_confirmation) {
@@ -554,7 +565,7 @@ const ManageSupervisors = () => {
             {/* Add Supervisor Modal */}
             {signUpModalOpen && (
                 <ModalPortal>
-                <div className="modal-overlay" onClick={handleCloseSignupModal}>
+                <div className="modal-overlay">
                     <div className="manage-interns-modal bg-[#e6ded6] rounded-xl p-8 w-full max-w-[500px] mx-4" onClick={(e) => e.stopPropagation()}>
                         <h2 className="text-orange-600 mb-6">Register New Supervisor</h2>
 
@@ -597,26 +608,51 @@ const ManageSupervisors = () => {
 
                                 <div>
                                     <label className="block font-semibold mb-2">Password:</label>
-                                    <input
-                                        className="input w-full"
-                                        name="password"
-                                        type="password"
-                                        value={signUpForm.password}
-                                        onChange={handleSignUpChange}
-                                        placeholder="Min 8 characters"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            className="input w-full pr-11"
+                                            name="password"
+                                            type={showSignUpPassword ? 'text' : 'password'}
+                                            value={signUpForm.password}
+                                            onChange={handleSignUpChange}
+                                            placeholder="Min 8 characters"
+                                            autoComplete="new-password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowSignUpPassword((prev) => !prev)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 border-none bg-transparent p-0 text-slate-500"
+                                            aria-label={showSignUpPassword ? 'Hide password' : 'Show password'}
+                                        >
+                                            {showSignUpPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                    <p className="mt-2 text-xs text-slate-500">
+                                        Use 8+ characters with a capital letter, number, and special symbol.
+                                    </p>
                                 </div>
 
                                 <div className="mb-6">
                                     <label className="block font-semibold mb-2">Confirm Password:</label>
-                                    <input
-                                        className="input w-full"
-                                        name="password_confirmation"
-                                        type="password"
-                                        value={signUpForm.password_confirmation}
-                                        onChange={handleSignUpChange}
-                                        placeholder="Confirm password"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            className="input w-full pr-11"
+                                            name="password_confirmation"
+                                            type={showSignUpPasswordConfirmation ? 'text' : 'password'}
+                                            value={signUpForm.password_confirmation}
+                                            onChange={handleSignUpChange}
+                                            placeholder="Confirm password"
+                                            autoComplete="new-password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowSignUpPasswordConfirmation((prev) => !prev)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 border-none bg-transparent p-0 text-slate-500"
+                                            aria-label={showSignUpPasswordConfirmation ? 'Hide password confirmation' : 'Show password confirmation'}
+                                        >
+                                            {showSignUpPasswordConfirmation ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

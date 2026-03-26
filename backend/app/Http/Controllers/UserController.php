@@ -101,6 +101,9 @@ class UserController extends Controller
             'role' => 'nullable|string',
             'status' => 'nullable|in:active,archived,completed',
             'ojt_role' => 'nullable|string',
+            'start_date' => 'nullable|date',
+            'required_hours' => 'nullable|integer|min:1',
+            'ojt_type' => 'nullable|in:required,voluntary',
             'avatar_url' => 'nullable|url',
 
             // Password Fields

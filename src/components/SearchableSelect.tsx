@@ -32,6 +32,8 @@ const SearchableSelect = ({
     const searchRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLUListElement>(null);
     const [activeIndex, setActiveIndex] = useState(-1);
+    const [openUpward, setOpenUpward] = useState(false);
+    const [listMaxHeight, setListMaxHeight] = useState(ITEM_HEIGHT_PX * maxVisible);
 
     const filtered = options.filter((o) =>
         o.label.toLowerCase().includes(query.trim().toLowerCase())
@@ -59,6 +61,42 @@ const SearchableSelect = ({
             setActiveIndex(-1);
         }
     }, [open]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const updatePanelLayout = () => {
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (!rect) return;
+
+            const viewportPadding = 16;
+            const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
+            const spaceAbove = rect.top - viewportPadding;
+            const footerHeight = query ? 30 : 0;
+            const panelChromeHeight = 62 + footerHeight;
+            const preferredListHeight = ITEM_HEIGHT_PX * maxVisible;
+
+            const shouldOpenUpward = spaceBelow < panelChromeHeight + preferredListHeight && spaceAbove > spaceBelow;
+            const availableSpace = shouldOpenUpward ? spaceAbove : spaceBelow;
+            const nextListMaxHeight = Math.max(
+                ITEM_HEIGHT_PX * 3,
+                Math.min(preferredListHeight, availableSpace - panelChromeHeight),
+            );
+
+            setOpenUpward(shouldOpenUpward);
+            setListMaxHeight(nextListMaxHeight);
+        };
+
+        updatePanelLayout();
+
+        window.addEventListener('resize', updatePanelLayout);
+        window.addEventListener('scroll', updatePanelLayout, true);
+
+        return () => {
+            window.removeEventListener('resize', updatePanelLayout);
+            window.removeEventListener('scroll', updatePanelLayout, true);
+        };
+    }, [open, maxVisible, query]);
 
     const handleSelect = useCallback((optValue: string) => {
         onChange(optValue);
@@ -111,8 +149,6 @@ const SearchableSelect = ({
             item?.scrollIntoView({ block: 'nearest' });
         }
     }, [activeIndex]);
-
-    const dropdownMaxHeight = ITEM_HEIGHT_PX * maxVisible;
 
     return (
         <div
@@ -185,7 +221,8 @@ const SearchableSelect = ({
                 <div
                     style={{
                         position: 'absolute',
-                        top: 'calc(100% + 4px)',
+                        top: openUpward ? 'auto' : 'calc(100% + 4px)',
+                        bottom: openUpward ? 'calc(100% + 4px)' : 'auto',
                         left: 0,
                         right: 0,
                         backgroundColor: 'white',
@@ -242,7 +279,7 @@ const SearchableSelect = ({
                             listStyle: 'none',
                             margin: 0,
                             padding: '0.25rem 0',
-                            maxHeight: `${dropdownMaxHeight}px`,
+                            maxHeight: `${listMaxHeight}px`,
                             overflowY: 'auto',
                         }}
                     >

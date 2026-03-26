@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Pencil, Search, Download, Filter, Archive, ClipboardList, Users as UsersIcon } from 'lucide-react';
+import { Pencil, Search, Download, Filter, Archive, ClipboardList, Users as UsersIcon, Lock } from 'lucide-react';
 import PageLoader from '../../components/PageLoader';
 import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
@@ -305,7 +305,6 @@ const ManageInterns = () => {
                 full_name: editForm.full_name.trim(),
                 email: editForm.email.trim(),
                 ojt_role: editForm.ojt_role.trim() || undefined,
-                ojt_id: editForm.ojt_id ? parseInt(editForm.ojt_id, 10) : undefined,
                 start_date: editForm.start_date || undefined,
                 required_hours: editForm.required_hours ? parseInt(editForm.required_hours, 10) : undefined,
                 ojt_type: (editForm.ojt_type as OJTType) || undefined,
@@ -820,16 +819,23 @@ const ManageInterns = () => {
                             </div>
                             <div>
                                 <label className="block font-semibold mb-2">OJT ID:</label>
-                                <input
-                                    className="input w-full bg-white"
-                                    name="ojt_id"
-                                    type="text"
-                                    inputMode="numeric"
-                                    maxLength={4}
-                                    value={editForm.ojt_id}
-                                    onChange={handleEditChange}
-                                    placeholder="e.g. 1101"
-                                />
+                                <div className="relative">
+                                    <input
+                                        className="input w-full cursor-not-allowed border-slate-200 bg-slate-100 pr-11 text-slate-500"
+                                        name="ojt_id"
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={4}
+                                        value={editForm.ojt_id}
+                                        readOnly
+                                        aria-readonly="true"
+                                        placeholder="e.g. 1101"
+                                    />
+                                    <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                                        <Lock size={16} />
+                                    </span>
+                                </div>
+                                <p className="mt-2 text-xs font-medium text-slate-500">Locked field. OJT ID is read-only.</p>
                             </div>
                         </div>
 

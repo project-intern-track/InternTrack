@@ -64,7 +64,7 @@ const InternCard = ({ id, name, email, role, hours, attendance, status, lastUpda
 };
 
 const Reports = () => {
-    const ITEMS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = 9;
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [isExporting, setIsExporting] = useState(false);

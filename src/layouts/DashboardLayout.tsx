@@ -45,7 +45,7 @@ const DashboardLayout = () => {
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
                             transition={{ type: 'tween', duration: 0.3 }}
-                            className="fixed left-0 top-0 h-screen w-[260px] bg-[#0a0a0a] z-[250] rounded-tr-[25px] rounded-br-[25px]"
+                            className="fixed left-0 top-0 h-[100dvh] max-h-[100dvh] w-[260px] overflow-hidden bg-[#0a0a0a] z-[250] rounded-tr-[25px] rounded-br-[25px]"
                         >
                             <Sidebar
                                 isOpen={sidebarOpen}

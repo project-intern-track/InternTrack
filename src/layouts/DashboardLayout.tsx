@@ -37,7 +37,7 @@ const DashboardLayout = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setSidebarOpen(false)}
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[130] lg:hidden"
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[240] lg:hidden"
                         />
                         {/* Mobile Sidebar */}
                         <motion.div
@@ -45,7 +45,7 @@ const DashboardLayout = () => {
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
                             transition={{ type: 'tween', duration: 0.3 }}
-                            className="fixed left-0 top-0 h-screen w-[260px] bg-[#0a0a0a] z-[140] rounded-tr-[25px] rounded-br-[25px]"
+                            className="fixed left-0 top-0 h-screen w-[260px] bg-[#0a0a0a] z-[250] rounded-tr-[25px] rounded-br-[25px]"
                         >
                             <Sidebar
                                 isOpen={sidebarOpen}

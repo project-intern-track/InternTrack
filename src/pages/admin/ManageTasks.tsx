@@ -837,6 +837,35 @@ const ManageTasks = () => {
                 .manage-tasks-filter-col > div {
                     z-index: 15 !important;
                 }
+
+                .create-task-modal {
+                    max-width: 820px !important;
+                    max-height: min(88dvh, 820px) !important;
+                    overflow-y: auto !important;
+                }
+
+                .create-task-modal-content {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                    gap: 1rem;
+                    align-items: start;
+                }
+
+                .create-task-modal-bottom {
+                    display: grid;
+                    gap: 0.85rem;
+                    align-content: start;
+                }
+
+                .create-task-modal-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 0.75rem;
+                    margin-top: 1.25rem;
+                    padding-top: 1rem;
+                    border-top: 1px solid #e5e7eb;
+                }
                 
                 
                 @media (max-width: 768px) {
@@ -1117,7 +1146,7 @@ const ManageTasks = () => {
             {isModalOpen && (
                 <ModalPortal>
                     <div className="modal-overlay" onClick={closeModal}>
-                        <div className="modal create-task-modal max-w-[900px] w-full p-5 m-3 relative"
+                        <div className="modal create-task-modal w-full p-5 m-3 relative"
                             onClick={(e) => e.stopPropagation()}
                         >
                         <div className="mb-5 flex justify-between items-center">
@@ -1211,11 +1240,13 @@ const ManageTasks = () => {
                                             backgroundColor: '#fff',
                                             border: '1px solid hsl(var(--input))',
                                             borderRadius: 'var(--radius-md)',
-                                            minHeight: '170px',
+                                            minHeight: '120px',
+                                            maxHeight: '180px',
                                             padding: '0.75rem',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '0.5rem',
+                                            overflowY: 'auto',
                                         }}
                                     >
                                         {selectedInterns.length === 0 ? (
@@ -1318,7 +1349,7 @@ const ManageTasks = () => {
                                             backgroundColor: '#fff',
                                             border: '1px solid hsl(var(--input))',
                                             borderRadius: 'var(--radius-md)',
-                                            minHeight: '185px',
+                                            minHeight: '150px',
                                             padding: '0.75rem 0.9rem',
                                             display: 'flex',
                                             flexDirection: 'column',

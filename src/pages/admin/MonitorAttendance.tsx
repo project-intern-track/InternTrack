@@ -26,6 +26,11 @@ interface AttendanceStats {
 
 const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const ATTENDANCE_TABLE_MIN_WIDTH = 1080;
+  const normalizeAttendanceStatus = (status?: string | null) => {
+    const normalized = (status ?? '').toLowerCase();
+    return ['late', 'incomplete'].includes(normalized) ? 'absent' : normalized;
+  };
+
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -153,7 +158,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       date: record.date,
       time_in: record.time_in ?? '',
       time_out: record.time_out ?? '',
-      status: record.status ?? 'present'
+      status: normalizeAttendanceStatus(record.status) || 'present'
     });
     setManualInternQuery(record.user?.full_name ?? '');
     setManualInternOpen(false);
@@ -176,7 +181,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       r.time_in ? formatTime(r.time_in) : '',
       r.time_out ? formatTime(r.time_out) : '',
       r.total_hours || 0,
-      r.status
+      normalizeAttendanceStatus(r.status)
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
@@ -231,7 +236,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       const searchTermLower = searchTerm.trim().toLowerCase();
       const matchesSearch = searchTermLower === '' || record.user.full_name.toLowerCase().includes(searchTermLower);
 
-      const matchesStatus = statusFilter === 'all' || record.status.toLowerCase() === statusFilter.toLowerCase();
+      const matchesStatus =
+        statusFilter === 'all' || normalizeAttendanceStatus(record.status) === statusFilter.toLowerCase();
 
       const matchesRole = roleFilter === 'all' || (record.user.role ?? 'intern').toLowerCase() === roleFilter.toLowerCase();
 
@@ -342,8 +348,12 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
 
   const calculatedStats: AttendanceStats = {
     completed: stats?.completed ?? completedRecords.length,
-    incomplete: stats?.incomplete ?? attendanceRecords.filter((r) => r.status === 'late').length,
-    noLog: stats?.noLog ?? attendanceRecords.filter((r) => r.status === 'absent').length,
+    incomplete:
+      stats?.incomplete ??
+      attendanceRecords.filter((r) => (r.status ?? '').toLowerCase() === 'incomplete').length,
+    noLog:
+      stats?.noLog ??
+      attendanceRecords.filter((r) => ['absent', 'late'].includes((r.status ?? '').toLowerCase())).length,
     avgHoursPerDay: stats?.avgHoursPerDay ?? Math.round(avgHoursPerDay * 10) / 10,
   };
 
@@ -393,13 +403,10 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     }
   };
 
-  const getStatusBadge = (status: string) => {    switch (status.toLowerCase()) {
+  const getStatusBadge = (status: string) => {    switch (normalizeAttendanceStatus(status)) {
       case 'present':
       case 'completed':
         return <span className="badge badge-success px-2 py-1 rounded bg-green-100 text-green-800 font-semibold text-xs capitalize">Present</span>;
-      case 'late':
-      case 'incomplete':
-        return <span className="badge badge-warning px-2 py-1 rounded bg-yellow-200 text-yellow-900 font-semibold text-xs capitalize">Late</span>;
       case 'absent':
       case 'no_log':
         return <span className="badge badge-danger px-2 py-1 rounded bg-red-100 text-red-800 font-semibold text-xs capitalize">Absent</span>;
@@ -741,24 +748,19 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 2.25rem;
-          height: 2.25rem;
-          border-radius: 9999px;
-          border: 1px solid #e2e8f0;
-          background: #fff;
+          padding: 0.25rem;
+          border: none;
+          background: transparent;
           color: #475569;
           transition: all 0.2s ease;
         }
 
         .attendance-row-action:hover {
           transform: translateY(-1px);
-          box-shadow: 0 6px 18px -12px rgba(15, 23, 42, 0.45);
         }
 
         .attendance-row-action.edit:hover {
-          border-color: #fdba74;
-          background: #fff7ed;
-          color: #c2410c;
+          color: hsl(var(--orange));
         }
 
         .attendance-row-action.delete:hover {
@@ -1207,7 +1209,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   options={[
                     { value: 'all', label: 'All Status' },
                     { value: 'present', label: 'Present' },
-                    { value: 'late', label: 'Late' },
                     { value: 'absent', label: 'Absent' },
                     { value: 'excused', label: 'Excused' },
                   ]}
@@ -1275,7 +1276,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               options={[
                 { value: 'all', label: 'All Status' },
                 { value: 'present', label: 'Present' },
-                { value: 'late', label: 'Late' },
                 { value: 'absent', label: 'Absent' },
                 { value: 'excused', label: 'Excused' },
               ]}
@@ -1586,7 +1586,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                   onChange={(value) => setManualEntryForm({ ...manualEntryForm, status: value })}
                   options={[
                     { value: 'present', label: 'Present' },
-                    { value: 'late', label: 'Late' },
                     { value: 'absent', label: 'Absent' },
                     { value: 'excused', label: 'Excused' },
                   ]}

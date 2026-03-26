@@ -60,7 +60,7 @@ const DashboardLayout = () => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Mobile Header */}
-                <div className="lg:hidden sticky top-0 z-20 grid h-16 grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-gray-200 bg-white px-4 backdrop-blur-md dark:border-white/5 dark:bg-slate-900">
+                <div className="lg:hidden sticky top-0 z-[200] grid h-16 grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-gray-200 bg-white px-4 backdrop-blur-md dark:border-white/5 dark:bg-slate-900">
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -78,7 +78,7 @@ const DashboardLayout = () => {
 
                 <TopBar />
 
-                <main className="flex-1 p-4 md:p-6 lg:p-8 w-full overflow-y-auto">
+                <main className="relative z-0 flex-1 w-full overflow-y-auto p-4 md:p-6 lg:p-8">
                     <AnimatePresence mode="wait" initial={false}>
                         <motion.div
                             key={location.pathname}

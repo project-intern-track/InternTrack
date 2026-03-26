@@ -76,17 +76,17 @@ function DropdownSelect<T extends string = string>({
   }, [open]);
 
   return (
-    <div ref={dropdownRef} className={`relative ${open ? 'z-[120]' : 'z-20'} ${className}`}>
+    <div ref={dropdownRef} className={`relative min-w-0 max-w-full ${open ? 'z-[120]' : 'z-20'} ${className}`}>
       <motion.button
         type="button"
         whileTap={disabled ? undefined : { scale: 0.985 }}
         onClick={() => !disabled && setOpen((prev) => !prev)}
         disabled={disabled}
-        className={`dropdown-select-button flex w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-slate-900 dark:text-white ${buttonClassName} ${open ? 'border-[hsl(var(--orange))] shadow-[0_14px_34px_-22px_rgba(255,136,0,0.85)]' : ''}`}
+        className={`dropdown-select-button flex w-full min-w-0 max-w-full items-center justify-between rounded-[1.15rem] border border-gray-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 outline-none transition-all duration-200 focus:border-[hsl(var(--orange))] focus:ring-2 focus:ring-[hsl(var(--orange))]/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-slate-900 dark:text-white ${buttonClassName} ${open ? 'border-[hsl(var(--orange))] shadow-[0_14px_34px_-22px_rgba(255,136,0,0.85)]' : ''}`}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="truncate">{selectedOption?.label ?? value}</span>
+        <span className="min-w-0 flex-1 truncate">{selectedOption?.label ?? value}</span>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.2 }}

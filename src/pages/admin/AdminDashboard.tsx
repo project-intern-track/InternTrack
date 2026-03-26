@@ -326,22 +326,23 @@ const AdminDashboard = () => {
                     transition={{ duration: 0.4, delay: 0.12 }}
                     className="rounded-[2.5rem] border border-gray-200 bg-white p-5 shadow-sm dark:border-white/5 dark:bg-slate-900/50 md:p-8 lg:col-span-2"
                 >
-                    <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div className="flex items-center gap-3">
+                    <div className="mb-6 flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="flex min-w-0 items-center gap-3">
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-500/20">
                                 <UserPlus className="text-primary dark:text-orange-300" size={20} />
                             </div>
-                            <div>
-                                <h2 className="text-xl font-black text-gray-900 dark:text-white">New Registers</h2>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Recent signup trends</p>
+                            <div className="min-w-0">
+                                <h2 className="truncate text-xl font-black text-gray-900 dark:text-white">New Registers</h2>
+                                <p className="truncate text-sm text-gray-500 dark:text-gray-400">Recent signup trends</p>
                             </div>
                         </div>
-                        <div className="w-full md:w-[180px]">
+                        <div className="min-w-0 w-full self-stretch sm:w-[180px] sm:self-start md:self-auto">
                             <DropdownSelect
                                 value={chartRange}
                                 onChange={setChartRange}
                                 options={chartRangeOptions}
-                                buttonClassName="bg-gray-50 dark:bg-slate-950/40"
+                                className="min-w-0 max-w-full"
+                                buttonClassName="w-full min-w-0 max-w-full bg-gray-50 dark:bg-slate-950/40"
                             />
                         </div>
                     </div>

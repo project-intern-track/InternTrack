@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown, Pencil, Trash } from 'lucide-react';
+import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown, Pencil } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
@@ -8,7 +8,6 @@ import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
 import DateTimePicker from '../../components/DateTimePicker';
-import ConfirmationModal from '../../components/ConfirmationModal';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -57,8 +56,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [interns, setInterns] = useState<Users[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<AttendanceRecord | null>(null);
-  const [deleting, setDeleting] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | number | null>(null);
   const [editingInternName, setEditingInternName] = useState('');
   const [manualInternOpen, setManualInternOpen] = useState(false);
@@ -166,26 +163,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const handleCloseManualModal = () => {
     setIsManualEntryOpen(false);
     resetManualEntryForm();
-  };
-
-  const handleDeleteClick = (record: AttendanceRecord) => {
-    setDeleteTarget(record);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-
-    try {
-      setDeleting(true);
-      setSubmitError(null);
-      await attendanceService.deleteAttendance(deleteTarget.id);
-      await loadAttendanceRecords();
-      setDeleteTarget(null);
-    } catch (err: any) {
-      setSubmitError(err.message || 'Failed to delete attendance record');
-    } finally {
-      setDeleting(false);
-    }
   };
 
   const handleExport = () => {
@@ -1378,15 +1355,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                               >
                                 <Pencil size={15} />
                               </button>
-                              <button
-                                type="button"
-                                className="attendance-row-action delete"
-                                onClick={() => handleDeleteClick(record)}
-                                title="Delete"
-                                aria-label={`Delete attendance for ${record.user?.full_name ?? 'user'}`}
-                              >
-                                <Trash size={15} />
-                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1434,15 +1402,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                           aria-label={`Edit attendance for ${record.user?.full_name ?? 'user'}`}
                         >
                           <Pencil size={15} />
-                        </button>
-                        <button
-                          type="button"
-                          className="attendance-row-action delete"
-                          onClick={() => handleDeleteClick(record)}
-                          title="Delete"
-                          aria-label={`Delete attendance for ${record.user?.full_name ?? 'user'}`}
-                        >
-                          <Trash size={15} />
                         </button>
                       </div>
                     </div>
@@ -1658,19 +1617,6 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           </div>
         </ModalPortal>
       )}
-
-      <ConfirmationModal
-        open={deleteTarget !== null}
-        title="Delete Attendance Record"
-        message="Are you sure you want to delete this attendance record?"
-        note={deleteTarget ? `${deleteTarget.user?.full_name ?? 'Intern'} on ${formatDate(deleteTarget.date)}` : undefined}
-        confirmLabel="Delete"
-        isLoading={deleting}
-        loadingLabel="Deleting..."
-        onCancel={() => !deleting && setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        variant="danger"
-      />
     </>
   );
 };

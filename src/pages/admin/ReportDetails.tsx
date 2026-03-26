@@ -73,32 +73,32 @@ const ReportDetails = () => {
                     </button>
                 </div>
 
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                    <div className="space-y-4">
+                <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="min-w-0 flex-1 space-y-4">
                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white m-0">
                             <span className="text-primary">{profile.name}</span>&apos;s Report
                         </h1>
-                        <div className="flex flex-wrap gap-6">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                             {profile.ojtId && (
-                                <div>
+                                <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50/80 p-4 dark:border-white/10 dark:bg-white/5">
                                     <div className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-1">OJT ID</div>
-                                    <div className="text-base font-semibold text-gray-900 dark:text-white">
+                                    <div className="break-words text-base font-semibold text-gray-900 dark:text-white">
                                         {profile.ojtId}
                                     </div>
                                 </div>
                             )}
                             {profile.department && (
-                                <div>
+                                <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50/80 p-4 dark:border-white/10 dark:bg-white/5">
                                     <div className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-1">Department</div>
-                                    <div className="text-base font-semibold text-gray-900 dark:text-white">
+                                    <div className="break-words text-base font-semibold text-gray-900 dark:text-white">
                                         {profile.department}
                                     </div>
                                 </div>
                             )}
                             {profile.supervisor && (
-                                <div>
+                                <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50/80 p-4 dark:border-white/10 dark:bg-white/5">
                                     <div className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-1">Supervisor</div>
-                                    <div className="text-base font-semibold text-gray-900 dark:text-white">
+                                    <div className="break-words text-base font-semibold text-gray-900 dark:text-white">
                                         {profile.supervisor}
                                     </div>
                                 </div>
@@ -106,7 +106,7 @@ const ReportDetails = () => {
                         </div>
                     </div>
 
-                    <div className="self-start lg:self-center flex flex-col items-center min-w-[180px]">
+                    <div className="flex w-full flex-col items-center rounded-2xl border border-gray-200 bg-gray-50/80 p-5 text-center dark:border-white/10 dark:bg-white/5 xl:w-[220px] xl:flex-shrink-0">
                         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center text-2xl font-bold shadow-md mb-3">
                             {profile.name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
@@ -124,24 +124,24 @@ const ReportDetails = () => {
             </div>
 
             <div className="report-details-card bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-white/5 rounded-2xl p-5 md:p-6">
-                <div className="flex flex-wrap gap-3 mb-6">
+                <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <button
                         onClick={() => setSelectedTab('weekly')}
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'weekly' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
+                        className={`inline-flex w-full items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'weekly' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
                     >
                         <Calendar size={16} />
                         Weekly Summary
                     </button>
                     <button
                         onClick={() => setSelectedTab('monthly')}
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'monthly' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
+                        className={`inline-flex w-full items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'monthly' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
                     >
                         <FileText size={16} />
                         Monthly Summary
                     </button>
                     <button
                         onClick={() => setSelectedTab('full')}
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'full' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
+                        className={`inline-flex w-full items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${selectedTab === 'full' ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
                     >
                         <BarChart size={16} />
                         Full Report
@@ -178,12 +178,12 @@ const ReportDetails = () => {
                                         <div className="text-sm italic text-gray-500 dark:text-gray-400 p-4 rounded-lg bg-gray-100 dark:bg-slate-800">No activities logged this week.</div>
                                     ) : (
                                         weekly.daily_activities.map((activity: any, idx: number) => (
-                                            <div key={idx} className="grid grid-cols-1 md:grid-cols-[130px_1fr_110px] gap-2 md:gap-4 items-start md:items-center p-3 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800/70">
+                                            <div key={idx} className="grid grid-cols-1 gap-2 p-3 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800/70 lg:grid-cols-[130px_minmax(0,1fr)_110px] lg:gap-4 lg:items-center">
                                                 <div className="text-sm font-semibold text-gray-900 dark:text-white">{activity.day}</div>
                                                 <div className="text-sm text-gray-600 dark:text-gray-300">
                                                     {activity.description}
                                                 </div>
-                                                <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 md:text-right">{activity.hours}</div>
+                                                <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 lg:text-right">{activity.hours}</div>
                                             </div>
                                         ))
                                     )}
@@ -270,13 +270,13 @@ const ReportDetails = () => {
                                 <h4 className="m-0 mb-5 text-lg font-semibold text-gray-900 dark:text-white">Projects</h4>
                                 <div className="space-y-3">
                                     {monthly.projects && monthly.projects.length > 0 ? monthly.projects.map((proj: any, idx: number) => (
-                                        <div key={idx} className="bg-cyan-50/40 dark:bg-cyan-500/10 rounded-lg p-4 border border-gray-200 dark:border-white/10 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
-                                            <div>
+                                        <div key={idx} className="bg-cyan-50/40 dark:bg-cyan-500/10 rounded-lg p-4 border border-gray-200 dark:border-white/10 flex flex-col gap-3 lg:flex-row lg:justify-between lg:items-center">
+                                            <div className="min-w-0">
                                                 <h5 className="m-0 mb-1.5 text-base font-semibold text-gray-900 dark:text-white">{proj.title}</h5>
                                                 <p className="m-0 mb-2 text-sm text-gray-600 dark:text-gray-300 leading-6">{proj.description}</p>
                                                 <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Role: {proj.role}</div>
                                             </div>
-                                            <span className="inline-flex self-start md:self-auto bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full">{proj.status}</span>
+                                            <span className="inline-flex self-start bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full lg:self-auto">{proj.status}</span>
                                         </div>
                                     )) : <p className="text-sm italic text-gray-500 dark:text-gray-400">No completed projects to display.</p>}
                                 </div>
@@ -288,7 +288,7 @@ const ReportDetails = () => {
                                 <h4 className="m-0 mb-5 text-lg font-semibold text-gray-900 dark:text-white">Supervisor Feedback</h4>
                                 {monthly.supervisor_feedback ? (
                                     <div className="bg-cyan-50/40 dark:bg-cyan-500/10 rounded-lg p-5 border border-gray-200 dark:border-white/10">
-                                        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
+                                        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                             <div className="text-sm font-semibold text-gray-900 dark:text-white">Supervisor: {monthly.supervisor_feedback.supervisor_name}</div>
                                             <div className="flex gap-1">
                                                 {Array.from({ length: 5 }).map((_, i) => (
@@ -298,7 +298,7 @@ const ReportDetails = () => {
                                                 ))}
                                             </div>
                                         </div>
-                                        <p className="m-0 text-sm text-gray-700 dark:text-gray-200 leading-6 italic md:text-center">
+                                        <p className="m-0 text-sm text-gray-700 dark:text-gray-200 leading-6 italic lg:text-center">
                                             "{monthly.supervisor_feedback.comment}"
                                         </p>
                                     </div>

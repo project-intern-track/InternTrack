@@ -3318,8 +3318,40 @@ textarea,
 }
 
 @media (max-width: 1024px) {
+  .reports-filter-bar {
+    align-items: stretch;
+  }
+
+  .reports-search-wrap,
+  .reports-status-dropdown,
+  .reports-export-btn {
+    width: 100%;
+  }
+
+  .reports-status-dropdown {
+    flex: 1 1 100%;
+  }
+
+  .reports-status-select {
+    width: 100%;
+  }
+
   .report-intern-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .report-card-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .report-status-badge {
+    align-self: flex-start;
+  }
+
+  .report-card-meta-row {
+    gap: 0.5rem;
+    flex-wrap: wrap;
   }
 }
 

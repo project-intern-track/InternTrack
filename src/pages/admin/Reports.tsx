@@ -64,9 +64,11 @@ const InternCard = ({ id, name, email, role, hours, attendance, status, lastUpda
 };
 
 const Reports = () => {
+    const ITEMS_PER_PAGE = 10;
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [isExporting, setIsExporting] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
     const statusOptions: DropdownSelectOption<typeof filterStatus>[] = [
         { value: 'all', label: 'All Status' },
         { value: 'active', label: 'Active' },
@@ -133,6 +135,23 @@ const Reports = () => {
         return matchesStatus && matchesSearch;
     });
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterStatus, searchTerm]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredInterns.length / ITEMS_PER_PAGE));
+    const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+    const paginatedInterns = filteredInterns.slice(
+        (safeCurrentPage - 1) * ITEMS_PER_PAGE,
+        safeCurrentPage * ITEMS_PER_PAGE
+    );
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(1);
+        }
+    }, [currentPage, totalPages]);
+
     return (
         <div className="admin-page-shell reports-page-shell w-full space-y-6">
             <div className="reports-header-block">
@@ -175,11 +194,55 @@ const Reports = () => {
             ) : filteredInterns.length === 0 ? (
                 <div className="reports-empty-state">No interns found matching the filters.</div>
             ) : (
+                <>
                 <div className="report-intern-grid">
-                    {filteredInterns.map((intern, index) => (
+                    {paginatedInterns.map((intern, index) => (
                         <InternCard key={intern.id || index} {...intern} />
                     ))}
                 </div>
+                {filteredInterns.length > 0 && (
+                    <div className="pagination-controls">
+                        <div className="pagination-summary">
+                            Showing {((safeCurrentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(safeCurrentPage * ITEMS_PER_PAGE, filteredInterns.length)} of {filteredInterns.length} reports
+                        </div>
+                        <div className="pagination-buttons">
+                            <button
+                                className="pagination-btn pagination-arrow"
+                                onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                                disabled={safeCurrentPage === 1}
+                            >
+                                Prev
+                            </button>
+                            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => {
+                                if (page === 1 || page === totalPages || (page >= safeCurrentPage - 1 && page <= safeCurrentPage + 1)) {
+                                    return (
+                                        <button
+                                            key={page}
+                                            className={`pagination-btn ${safeCurrentPage === page ? 'active' : ''}`}
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </button>
+                                    );
+                                }
+
+                                if (page === safeCurrentPage - 2 || page === safeCurrentPage + 2) {
+                                    return <span key={page} className="pagination-ellipsis">...</span>;
+                                }
+
+                                return null;
+                            })}
+                            <button
+                                className="pagination-btn pagination-arrow"
+                                onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                                disabled={safeCurrentPage === totalPages}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
+                </>
             )}
         </div>
     );

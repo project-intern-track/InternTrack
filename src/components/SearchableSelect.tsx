@@ -4,6 +4,7 @@ import { Search, ChevronDown, X } from 'lucide-react';
 export interface SearchableSelectOption {
     value: string;
     label: string;
+    subtitle?: string;
 }
 
 interface SearchableSelectProps {
@@ -16,7 +17,7 @@ interface SearchableSelectProps {
     maxVisible?: number;
 }
 
-const ITEM_HEIGHT_PX = 40; // approximate height of each option row
+const ITEM_HEIGHT_PX = 56; // approximate height of each option row
 
 const SearchableSelect = ({
     options,
@@ -35,11 +36,16 @@ const SearchableSelect = ({
     const [openUpward, setOpenUpward] = useState(false);
     const [listMaxHeight, setListMaxHeight] = useState(ITEM_HEIGHT_PX * maxVisible);
 
-    const filtered = options.filter((o) =>
-        o.label.toLowerCase().includes(query.trim().toLowerCase())
-    );
+    const filtered = options.filter((o) => {
+        const search = query.trim().toLowerCase();
+        if (!search) return true;
+        return (
+            o.label.toLowerCase().includes(search) ||
+            (o.subtitle ?? '').toLowerCase().includes(search)
+        );
+    });
 
-    const selectedLabel = options.find((o) => o.value === value)?.label ?? '';
+    const selectedOption = options.find((o) => o.value === value) ?? null;
 
     // Close on outside click
     useEffect(() => {
@@ -181,10 +187,26 @@ const SearchableSelect = ({
                     boxShadow: open ? '0 0 0 3px rgba(255,140,66,0.15)' : 'none',
                     borderColor: open ? '#ff8c42' : '#d1d5db',
                     opacity: disabled ? 0.6 : 1,
+                    minHeight: selectedOption?.subtitle ? '56px' : undefined,
                 }}
             >
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {value ? selectedLabel : placeholder}
+                <span style={{ flex: 1, overflow: 'hidden' }}>
+                    {value && selectedOption ? (
+                        <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#111827', fontWeight: 600 }}>
+                                {selectedOption.label}
+                            </span>
+                            {selectedOption.subtitle && (
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#6b7280', fontSize: '0.75rem', fontWeight: 400 }}>
+                                    {selectedOption.subtitle}
+                                </span>
+                            )}
+                        </span>
+                    ) : (
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {placeholder}
+                        </span>
+                    )}
                 </span>
 
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
@@ -306,7 +328,7 @@ const SearchableSelect = ({
                                         onClick={() => handleSelect(opt.value)}
                                         style={{
                                             padding: '0 1rem',
-                                            height: `${ITEM_HEIGHT_PX}px`,
+                                            minHeight: `${ITEM_HEIGHT_PX}px`,
                                             display: 'flex',
                                             alignItems: 'center',
                                             fontSize: '0.875rem',
@@ -321,12 +343,20 @@ const SearchableSelect = ({
                                             borderLeft: isSelected ? '3px solid #ff8c42' : '3px solid transparent',
                                             transition: 'background-color 0.1s ease',
                                             overflow: 'hidden',
-                                            whiteSpace: 'nowrap',
-                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'normal',
                                         }}
                                         onMouseEnter={() => setActiveIndex(idx)}
                                     >
-                                        {opt.label}
+                                        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: opt.subtitle ? '0.125rem' : 0 }}>
+                                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {opt.label}
+                                            </span>
+                                            {opt.subtitle && (
+                                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.75rem', color: isSelected ? '#fb923c' : '#6b7280', fontWeight: 400 }}>
+                                                    {opt.subtitle}
+                                                </span>
+                                            )}
+                                        </div>
                                     </li>
                                 );
                             })

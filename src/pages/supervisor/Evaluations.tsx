@@ -616,7 +616,7 @@ const Evaluations = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
+            className="w-[480px] max-w-[calc(100vw-2rem)] rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-2xl font-black text-gray-900 dark:text-white">
@@ -761,10 +761,10 @@ const Evaluations = () => {
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3">
+            <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={handleCloseCreateModal}
-                className="flex-1 rounded-lg border border-gray-300 py-2 font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-slate-800"
+                className="min-w-[120px] rounded-lg border border-gray-300 px-6 py-2 font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-slate-800"
               >
                 {viewEvaluation ? 'Close' : 'Cancel'}
               </button>
@@ -772,7 +772,7 @@ const Evaluations = () => {
                 <button
                   onClick={handleCreateEvaluation}
                   disabled={!createFormData.intern_id || !hasFeedbackData || scoreLoading}
-                  className="flex-1 rounded-lg bg-primary py-2 font-semibold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-w-[140px] rounded-lg bg-primary px-6 py-2 font-semibold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Create
                 </button>

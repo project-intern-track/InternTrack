@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Lock } from 'lucide-react';
+import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Lock, Download } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { useAuth } from '../../context/AuthContext';
 import type { Attendance } from '../../types/database.types';
@@ -40,6 +40,11 @@ function formatElapsed(seconds: number): string {
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
     return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+}
+
+function escapeCsv(value: string | number | null | undefined): string {
+    const text = String(value ?? '');
+    return `"${text.replace(/"/g, '""')}"`;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -239,6 +244,34 @@ const AdminDailyLogs = () => {
         loading     ? 'Loading your attendance data…' :
         null;
 
+    const handleExportLogs = () => {
+        if (logs.length === 0) return;
+
+        const headers = ['Date', 'Time In', 'Time Out', 'Total Hours', 'Status', 'Created At'];
+        const rows = logs.map((log) => [
+            log.date,
+            formatTimeFull(log.time_in),
+            log.time_out ? formatTimeFull(log.time_out) : '',
+            log.total_hours,
+            log.status ?? '',
+            log.created_at ?? '',
+        ]);
+
+        const csvContent = [headers, ...rows]
+            .map((row) => row.map((cell) => escapeCsv(cell)).join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `my-time-logs-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
     // ──────────────────────────────────────────────────────────────────────
     return (
         <div className="space-y-6">
@@ -434,14 +467,23 @@ const AdminDailyLogs = () => {
 
                 {/* Recent Entries */}
                 <div className="bg-white dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm p-5 flex flex-col">
-                    <div className="flex items-center justify-between mb-4 shrink-0">
+                    <div className="mb-4 flex shrink-0 items-center justify-between gap-3">
                         <p className="font-bold text-gray-900 dark:text-white">Recent Entries</p>
-                        <button
-                            className="flex items-center gap-1.5 text-xs font-bold text-[#FF8800] hover:bg-orange-50 dark:hover:bg-orange-900/20 px-2.5 py-1.5 rounded-lg transition-all"
-                            onClick={refresh}
-                        >
-                            <RefreshCw size={13}/> Refresh
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-gray-600 transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:hover:bg-white/10"
+                                onClick={handleExportLogs}
+                                disabled={logs.length === 0}
+                            >
+                                <Download size={13}/> Export All
+                            </button>
+                            <button
+                                className="flex items-center gap-1.5 text-xs font-bold text-[#FF8800] hover:bg-orange-50 dark:hover:bg-orange-900/20 px-2.5 py-1.5 rounded-lg transition-all"
+                                onClick={refresh}
+                            >
+                                <RefreshCw size={13}/> Refresh
+                            </button>
+                        </div>
                     </div>
 
                     {loading ? (

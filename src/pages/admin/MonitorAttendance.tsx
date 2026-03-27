@@ -138,7 +138,12 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
       await loadAttendanceRecords();
       resetManualEntryForm();
     } catch (err: any) {
-      setSubmitError(err.message || 'Failed to submit entry');
+      if (err.response?.status === 422 && err.response?.data?.errors) {
+        const messages = Object.values(err.response.data.errors).flat().join('\n');
+        setSubmitError(messages);
+      } else {
+        setSubmitError(err.response?.data?.message || err.message || 'Failed to submit entry');
+      }
     } finally {
       setSubmitting(false);
     }

@@ -36,6 +36,20 @@ interface EditFormData {
 }
 
 const ManageInterns = () => {
+    const toDateOnly = (value?: string | null) => {
+        if (!value) return '';
+        const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+        return match ? match[1] : value;
+    };
+
+    const parseDateOnly = (value?: string | null) => {
+        const dateOnly = toDateOnly(value);
+        if (!dateOnly) return null;
+        const [y, m, d] = dateOnly.split('-').map(Number);
+        if (!y || !m || !d) return null;
+        return new Date(y, m - 1, d);
+    };
+
     const [interns, setInterns] = useState<Users[] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -142,27 +156,29 @@ const ManageInterns = () => {
             const now = new Date();
             result = result.filter(i => {
                 if (!i.start_date) return false;
-                const d = new Date(i.start_date);
+                const d = parseDateOnly(i.start_date);
+                if (!d) return false;
                 return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
             });
         } else if (startDateFilter === 'this-year') {
             const year = new Date().getFullYear();
             result = result.filter(i => {
                 if (!i.start_date) return false;
-                return new Date(i.start_date).getFullYear() === year;
+                const d = parseDateOnly(i.start_date);
+                return d ? d.getFullYear() === year : false;
             });
         }
         // Sort by start date
         if (startDateFilter === 'newest') {
             result.sort((a, b) => {
-                const da = a.start_date ? new Date(a.start_date).getTime() : 0;
-                const db = b.start_date ? new Date(b.start_date).getTime() : 0;
+                const da = parseDateOnly(a.start_date)?.getTime() ?? 0;
+                const db = parseDateOnly(b.start_date)?.getTime() ?? 0;
                 return db - da;
             });
         } else if (startDateFilter === 'oldest') {
             result.sort((a, b) => {
-                const da = a.start_date ? new Date(a.start_date).getTime() : 0;
-                const db = b.start_date ? new Date(b.start_date).getTime() : 0;
+                const da = parseDateOnly(a.start_date)?.getTime() ?? 0;
+                const db = parseDateOnly(b.start_date)?.getTime() ?? 0;
                 return da - db;
             });
         }
@@ -222,7 +238,7 @@ const ManageInterns = () => {
             email: intern.email ?? '',
             ojt_role: intern.ojt_role ?? '',
             ojt_id: intern.ojt_id?.toString() ?? '',
-            start_date: intern.start_date ?? '',
+            start_date: toDateOnly(intern.start_date),
             required_hours: intern.required_hours?.toString() ?? '',
             ojt_type: intern.ojt_type ?? '',
         });
@@ -351,7 +367,8 @@ const ManageInterns = () => {
     // Format the date for display
     const formatDate = (dateStr?: string) => {
         if (!dateStr) return '—';
-        const d = new Date(dateStr);
+        const d = parseDateOnly(dateStr);
+        if (!d) return '—';
         return d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 

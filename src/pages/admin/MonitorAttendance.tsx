@@ -8,6 +8,7 @@ import DropdownSelect from '../../components/DropdownSelect';
 import MobileFilterDrawer from '../../components/MobileFilterDrawer';
 import ModalPortal from '../../components/ModalPortal';
 import DateTimePicker from '../../components/DateTimePicker';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 interface AttendanceRecord extends Omit<Attendance, 'id'> {
   id: string | number; // Laravel ids are numbers, but we often treat as string in frontend
@@ -63,6 +64,8 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [editingRecordId, setEditingRecordId] = useState<string | number | null>(null);
   const [editingInternName, setEditingInternName] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<AttendanceRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [manualInternOpen, setManualInternOpen] = useState(false);
   const [manualInternQuery, setManualInternQuery] = useState('');
   const manualInternRef = useRef<HTMLDivElement>(null);
@@ -170,19 +173,28 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     setIsManualEntryOpen(true);
   };
 
-  const handleDeleteRecord = async (record: AttendanceRecord) => {
-    const confirmed = window.confirm(
-      `Delete attendance record for ${record.user?.full_name ?? 'this user'} on ${formatDate(record.date)}?`
-    );
+  const handleDeleteRecord = (record: AttendanceRecord) => {
+    setDeleteTarget(record);
+  };
 
-    if (!confirmed) return;
+  const handleCancelDelete = () => {
+    if (deleting) return;
+    setDeleteTarget(null);
+  };
+
+  const confirmDeleteRecord = async () => {
+    if (!deleteTarget) return;
 
     try {
-      await attendanceService.deleteAttendance(record.id);
+      setDeleting(true);
+      await attendanceService.deleteAttendance(deleteTarget.id);
+      setDeleteTarget(null);
       await loadAttendanceRecords();
     } catch (err) {
       console.error('Failed to delete attendance record', err);
-      window.alert('Failed to delete attendance record.');
+      setSubmitError('Failed to delete attendance record.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -1655,6 +1667,21 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
           </div>
         </ModalPortal>
       )}
+
+      <ConfirmationModal
+        open={Boolean(deleteTarget)}
+        title="Delete Attendance Record"
+        message={deleteTarget
+          ? `Are you sure you want to delete the attendance record for ${deleteTarget.user?.full_name ?? 'this user'} on ${formatDate(deleteTarget.date)}?`
+          : ''}
+        note="This action cannot be undone."
+        confirmLabel="Delete"
+        loadingLabel="Deleting..."
+        variant="danger"
+        isLoading={deleting}
+        onCancel={handleCancelDelete}
+        onConfirm={confirmDeleteRecord}
+      />
     </>
   );
 };

@@ -64,6 +64,9 @@ class AttendanceController extends Controller
             'time_in'  => ['required', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
             'time_out' => ['nullable', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', 'after:time_in'],
             'status'   => 'nullable|in:present,absent,late,excused',
+        ], [
+            'user_id.required' => 'The intern field is required.',
+            'user_id.exists'   => 'The selected intern is invalid.',
         ]);
 
         $totalHours = 0;
@@ -96,6 +99,9 @@ class AttendanceController extends Controller
             'time_in'  => ['required', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
             'time_out' => ['nullable', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', 'after:time_in'],
             'status'   => 'nullable|in:present,absent,late,excused',
+        ], [
+            'user_id.required' => 'The intern field is required.',
+            'user_id.exists'   => 'The selected intern is invalid.',
         ]);
 
         $duplicateQuery = Attendance::where('user_id', $validated['user_id'])

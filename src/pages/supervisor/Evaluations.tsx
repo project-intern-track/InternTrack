@@ -97,8 +97,7 @@ const Evaluations = () => {
     // All intern Data from Feedback
     const fetchInterns = async () => {
       try {
-        const params = { role: 'intern' };
-        const interns = await userService.fetchInterns(params);
+        const interns = await userService.fetchInterns();
         if (Array.isArray(interns)) {
           setAllInterns(interns);
         } else {

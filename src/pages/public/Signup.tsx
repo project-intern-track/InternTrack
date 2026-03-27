@@ -267,7 +267,13 @@ const Signup = () => {
                                     value={role}
                                     onChange={(value) => {
                                         handleChange('role', value);
-                                        handleBlur('role');
+                                        setTouched((prev) => ({ ...prev, role: true }));
+                                        setFieldErrors((prev) => {
+                                            const next = { ...prev };
+                                            if (value) delete next.role;
+                                            else next.role = 'Please select a role.';
+                                            return next;
+                                        });
                                     }}
                                     options={[
                                         { value: '', label: 'Select role' },

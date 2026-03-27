@@ -257,7 +257,7 @@ const ManageAdmins = () => {
         });
     };
 
-    const selectedInternName = eligibleInterns.find(u => u.id === selectedInternId)?.full_name || 'Selected User';
+    const selectedInternName = eligibleInterns.find(u => String(u.id) === selectedInternId)?.full_name || 'Selected User';
 
     // Guard Check
     if (!admins || !stats) return <PageLoader message="Loading admins..." />;
@@ -528,7 +528,11 @@ const ManageAdmins = () => {
                                     </div>
                                 ) : (
                                     <SearchableSelect
-                                        options={eligibleInterns.map(i => ({ value: i.id, label: `${i.full_name} (${i.email})` }))}
+                                        options={eligibleInterns.map(i => ({
+                                            value: String(i.id),
+                                            label: i.full_name || 'Unnamed Intern',
+                                            subtitle: i.email || 'No email available',
+                                        }))}
                                         value={selectedInternId}
                                         onChange={setSelectedInternId}
                                         placeholder="-- Choose an intern --"

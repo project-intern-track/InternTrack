@@ -79,7 +79,7 @@ const StudentDashboard: React.FC = () => {
 
         setStats({
           tasksCompleted: tasksCompleted || 0,
-          hoursLogged: Math.round(hoursLogged * 10) / 10,
+          hoursLogged: Math.min(Math.round(hoursLogged * 10) / 10, targetHours),
           targetHours,
           daysRemaining,
         });

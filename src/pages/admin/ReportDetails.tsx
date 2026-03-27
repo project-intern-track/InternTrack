@@ -73,7 +73,7 @@ const ReportDetails = () => {
                     </button>
                 </div>
 
-                <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
                     <div className="min-w-0 flex-1 space-y-4">
                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white m-0">
                             <span className="text-primary">{profile.name}</span>&apos;s Report
@@ -106,7 +106,7 @@ const ReportDetails = () => {
                         </div>
                     </div>
 
-                    <div className="flex w-full flex-col items-center rounded-2xl border border-gray-200 bg-gray-50/80 p-5 text-center dark:border-white/10 dark:bg-white/5 xl:w-[220px] xl:flex-shrink-0">
+                    <div className="mx-auto flex w-full flex-col items-center rounded-2xl border border-gray-200 bg-gray-50/80 p-5 text-center dark:border-white/10 dark:bg-white/5 xl:mx-0 xl:w-[220px] xl:flex-shrink-0">
                         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center text-2xl font-bold shadow-md mb-3">
                             {profile.name.split(' ').map((n: string) => n[0]).join('')}
                         </div>

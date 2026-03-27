@@ -392,13 +392,13 @@ const Evaluations = () => {
         transition={{ duration: 0.35, delay: 0.1 }}
         className="relative z-30 rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm backdrop-blur-md dark:border-white/5 dark:bg-slate-900/50"
       >
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
+        <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-6">
           <div className="relative md:col-span-4">
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text" placeholder="Search by Name or ID" value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+              className="h-11 w-full rounded-xl border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div className="md:col-span-2">
@@ -415,7 +415,7 @@ const Evaluations = () => {
               ]}
               className="!z-40"
               panelClassName="!z-40"
-              buttonClassName="rounded-xl py-2"
+              buttonClassName="h-11 min-h-[44px] rounded-xl"
             />
           </div>
         </div>

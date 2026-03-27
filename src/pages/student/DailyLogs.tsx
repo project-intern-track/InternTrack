@@ -1,8 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Trash, Lock } from 'lucide-react';
+import { Clock, Calendar, FileText, LogIn, LogOut, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import type { Attendance } from '../../types/database.types';
-import ConfirmationModal from '../../components/ConfirmationModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_HOURS = 8;
@@ -61,10 +60,6 @@ const DailyLogs = () => {
     const [elapsed, setElapsed] = useState(0);
     const [cappedBanner, setCappedBanner] = useState(false);
     
-    // Modal state
-    const [deleteId, setDeleteId] = useState<string | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 4;
@@ -184,34 +179,6 @@ const DailyLogs = () => {
         } finally {
             setActing(false);
         }
-    };
-
-    // ── Delete entry ──────────────────────────────────────────────────────
-    const handleDeleteClick = (id: string) => {
-        setDeleteId(id);
-    };
-
-    const confirmDelete = async () => {
-        if (!deleteId) return;
-        setIsDeleting(true);
-        try {
-            await attendanceService.deleteAttendance(deleteId);
-            setLogs(prev => prev.filter(l => l.id !== deleteId));
-            if (todayRecord?.id === deleteId) {
-                setTodayRecord(null);
-                setSessionState('idle');
-                setElapsed(0);
-            }
-        } catch (err: any) {
-            setError(err.message ?? 'Failed to delete record.');
-        } finally {
-            setIsDeleting(false);
-            setDeleteId(null);
-        }
-    };
-
-    const cancelDelete = () => {
-        setDeleteId(null);
     };
 
     // ── Derived stats ──────────────────────────────────────────────────────
@@ -513,13 +480,6 @@ const DailyLogs = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <button
-                                                className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0"
-                                                onClick={() => handleDeleteClick(log.id)}
-                                                title="Delete"
-                                            >
-                                                <Trash size={14}/>
-                                            </button>
                                         </div>
                                     );
                                 })}
@@ -549,20 +509,6 @@ const DailyLogs = () => {
                     )}
                 </div>
             </div>
-
-            {/* Delete Confirm Modal */}
-            <ConfirmationModal
-                open={Boolean(deleteId)}
-                title="Delete Record"
-                message="Are you sure you want to delete this attendance record?"
-                note="This action cannot be undone."
-                confirmLabel="Delete"
-                loadingLabel="Deleting..."
-                variant="danger"
-                isLoading={isDeleting}
-                onCancel={cancelDelete}
-                onConfirm={confirmDelete}
-            />
         </div>
     );
 };

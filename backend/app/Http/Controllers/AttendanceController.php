@@ -68,7 +68,7 @@ class AttendanceController extends Controller
 
         $totalHours = 0;
         if (!empty($validated['time_out'])) {
-            $totalHours = $this->computeHours($validated['time_in'], $validated['time_out']);
+            $totalHours = $this->capHours($this->computeHours($validated['time_in'], $validated['time_out']));
         }
 
         $attendance = Attendance::updateOrCreate(
@@ -110,7 +110,7 @@ class AttendanceController extends Controller
 
         $totalHours = 0;
         if (!empty($validated['time_out'])) {
-            $totalHours = $this->computeHours($validated['time_in'], $validated['time_out']);
+            $totalHours = $this->capHours($this->computeHours($validated['time_in'], $validated['time_out']));
         }
 
         $attendance->update([
@@ -361,5 +361,10 @@ class AttendanceController extends Controller
         
         $diff = $in->diffInMinutes($out); // positive value
         return max(0, round($diff / 60, 2));
+    }
+
+    private function capHours(float $hours, float $max = 8.0): float
+    {
+        return min($hours, $max);
     }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown, Pencil } from 'lucide-react';
+import { BarChart, CheckCircle, Clock, Search, Filter, Download, Plus, UserCheck, X, ChevronDown, Pencil, Trash } from 'lucide-react';
 import { attendanceService } from '../../services/attendanceServices';
 import { userService } from '../../services/userServices';
 import type { Attendance, Users } from '../../types/database.types';
@@ -168,6 +168,22 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
     setManualInternQuery(record.user?.full_name ?? '');
     setManualInternOpen(false);
     setIsManualEntryOpen(true);
+  };
+
+  const handleDeleteRecord = async (record: AttendanceRecord) => {
+    const confirmed = window.confirm(
+      `Delete attendance record for ${record.user?.full_name ?? 'this user'} on ${formatDate(record.date)}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await attendanceService.deleteAttendance(record.id);
+      await loadAttendanceRecords();
+    } catch (err) {
+      console.error('Failed to delete attendance record', err);
+      window.alert('Failed to delete attendance record.');
+    }
   };
 
   const handleCloseManualModal = () => {
@@ -1360,6 +1376,15 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                               >
                                 <Pencil size={15} />
                               </button>
+                              <button
+                                type="button"
+                                className="attendance-row-action delete"
+                                onClick={() => handleDeleteRecord(record)}
+                                title="Delete"
+                                aria-label={`Delete attendance for ${record.user?.full_name ?? 'user'}`}
+                              >
+                                <Trash size={15} />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1407,6 +1432,15 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                           aria-label={`Edit attendance for ${record.user?.full_name ?? 'user'}`}
                         >
                           <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="attendance-row-action delete"
+                          onClick={() => handleDeleteRecord(record)}
+                          title="Delete"
+                          aria-label={`Delete attendance for ${record.user?.full_name ?? 'user'}`}
+                        >
+                          <Trash size={15} />
                         </button>
                       </div>
                     </div>

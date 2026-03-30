@@ -287,6 +287,7 @@ const Login = () => {
                                     onBlur={() => handleBlur('email')}
                                     disabled={formDisabled}
                                     autoComplete="email"
+                                    maxLength={254}
                                 />
                             </div>
                             {touched.email && fieldErrors.email && (
@@ -328,6 +329,7 @@ const Login = () => {
                                     onBlur={() => handleBlur('password')}
                                     disabled={formDisabled}
                                     autoComplete="current-password"
+                                    maxLength={128}
                                 />
                                 <button
                                     type="button"

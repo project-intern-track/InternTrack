@@ -2871,13 +2871,13 @@ textarea,
 
 .date-time-picker-trigger,
 .date-time-picker-time {
-  min-height: 42px;
+  min-height: 46px;
   width: 100%;
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid hsl(var(--input));
+  padding: 0.75rem 1rem;
+  border: 2px solid hsl(var(--input));
   border-radius: var(--radius-md);
   background: #fff;
   color: hsl(var(--foreground));

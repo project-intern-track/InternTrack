@@ -167,6 +167,16 @@ const Settings = () => {
         return;
       }
 
+      if (newPassword.length > 128) {
+        setPwdErr("New password must not exceed 128 characters.");
+        return;
+      }
+
+      if (newPasswordConfirmation.length > 128) {
+        setPwdErr("Confirm password must not exceed 128 characters.");
+        return;
+      }
+
       if (currentPassword === newPassword) {
         setPwdErr("New password cannot be the same as your current password.");
         return;
@@ -208,7 +218,7 @@ const Settings = () => {
   return (
     <div className="relative space-y-4">
       {successPopup && (
-        <div className="fixed top-5 right-5 bg-green-600 text-white px-8 py-3.5 rounded-xl shadow-lg z-50 flex items-center gap-4 font-bold text-sm">
+        <div className="fixed top-20 right-5 bg-green-600 text-white px-8 py-3.5 rounded-xl shadow-lg z-[300] flex items-center gap-4 font-bold text-sm">
           {successPopup}
           <button onClick={() => setSuccessPopup('')} className="bg-transparent border-none text-white cursor-pointer text-xl hover:text-white/80 transition-colors">&times;</button>
         </div>

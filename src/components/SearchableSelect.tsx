@@ -15,6 +15,8 @@ interface SearchableSelectProps {
     disabled?: boolean;
     /** How many items to show before the list becomes scrollable. Default: 10 */
     maxVisible?: number;
+    /** Max length for the search input inside the dropdown */
+    searchMaxLength?: number;
 }
 
 const ITEM_HEIGHT_PX = 56; // approximate height of each option row
@@ -26,6 +28,7 @@ const SearchableSelect = ({
     placeholder = '-- Choose an option --',
     disabled = false,
     maxVisible = 10,
+    searchMaxLength,
 }: SearchableSelectProps) => {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
@@ -280,6 +283,7 @@ const SearchableSelect = ({
                             value={query}
                             onChange={(e) => { setQuery(e.target.value); setActiveIndex(0); }}
                             placeholder="Search..."
+                            maxLength={searchMaxLength}
                             style={{
                                 width: '100%',
                                 padding: '0.4rem 0.5rem 0.4rem 2.25rem',

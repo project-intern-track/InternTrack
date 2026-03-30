@@ -1547,6 +1547,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
                               aria-controls={manualInternListId}
                               className="input w-full pl-11"
                               style={{ paddingLeft: '2.75rem' }}
+                              maxLength={256}
                               autoFocus
                             />
                           </div>

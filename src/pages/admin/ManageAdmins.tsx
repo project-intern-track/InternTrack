@@ -538,6 +538,7 @@ const ManageAdmins = () => {
                                         onChange={setSelectedInternId}
                                         placeholder="-- Choose an intern --"
                                         maxVisible={10}
+                                        searchMaxLength={256}
                                     />
                                 )}
                             </div>

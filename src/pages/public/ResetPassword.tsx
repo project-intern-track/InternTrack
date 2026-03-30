@@ -21,6 +21,7 @@ const ResetPassword = () => {
     const validateField = (field: string): string | undefined => {
         if (field === 'newPassword') {
             if (!newPassword) return 'New password is required.';
+            if (newPassword.length > 128) return 'Password must not exceed 128 characters.';
             {
                 const missing = [];
                 if (newPassword.length < 6) missing.push('be at least 6 characters');
@@ -33,6 +34,7 @@ const ResetPassword = () => {
         }
         if (field === 'confirmPassword') {
             if (!confirmPassword) return 'Please confirm your password.';
+            if (confirmPassword.length > 128) return 'Password must not exceed 128 characters.';
             if (confirmPassword !== newPassword) return 'Passwords do not match.';
         }
         return undefined;
@@ -242,6 +244,7 @@ const ResetPassword = () => {
                                     onBlur={() => handleBlur('newPassword')}
                                     disabled={isSubmitting}
                                     autoComplete="new-password"
+                                    maxLength={128}
                                 />
                                 <button
                                     type="button"
@@ -292,6 +295,7 @@ const ResetPassword = () => {
                                     onBlur={() => handleBlur('confirmPassword')}
                                     disabled={isSubmitting}
                                     autoComplete="new-password"
+                                    maxLength={128}
                                 />
                             </div>
                             {touched.confirmPassword && fieldErrors.confirmPassword && (

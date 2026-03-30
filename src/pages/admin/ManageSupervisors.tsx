@@ -366,6 +366,7 @@ const ManageSupervisors = () => {
                         className="input admin-search-input"
                         placeholder="Search by name or email"
                         value={searchTerm}
+                        maxLength={256}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
@@ -591,6 +592,7 @@ const ManageSupervisors = () => {
                                         value={signUpForm.full_name}
                                         onChange={handleSignUpChange}
                                         placeholder="Enter full name"
+                                        maxLength={100}
                                     />
                                 </div>
 
@@ -603,6 +605,7 @@ const ManageSupervisors = () => {
                                         value={signUpForm.email}
                                         onChange={handleSignUpChange}
                                         placeholder="Enter email"
+                                        maxLength={254}
                                     />
                                 </div>
 
@@ -617,6 +620,7 @@ const ManageSupervisors = () => {
                                             onChange={handleSignUpChange}
                                             placeholder="Min 8 characters"
                                             autoComplete="new-password"
+                                            maxLength={128}
                                         />
                                         <button
                                             type="button"
@@ -643,6 +647,7 @@ const ManageSupervisors = () => {
                                             onChange={handleSignUpChange}
                                             placeholder="Confirm password"
                                             autoComplete="new-password"
+                                            maxLength={128}
                                         />
                                         <button
                                             type="button"
@@ -714,6 +719,7 @@ const ManageSupervisors = () => {
                                 value={editForm.full_name}
                                 onChange={handleEditChange}
                                 placeholder="Enter full name"
+                                maxLength={100}
                             />
                         </div>
 
@@ -727,6 +733,7 @@ const ManageSupervisors = () => {
                                 value={editForm.email}
                                 onChange={handleEditChange}
                                 placeholder="Enter email address"
+                                maxLength={254}
                             />
                         </div>
 

@@ -209,6 +209,7 @@ const Announcements = () => {
                         className="input admin-search-input w-full"
                         placeholder="Search announcements"
                         value={searchTerm}
+                        maxLength={254}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
@@ -474,6 +475,7 @@ const Announcements = () => {
                                 className="input w-full bg-white"
                                 placeholder="Enter task title"
                                 value={formData.title}
+                                maxLength={200}
                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
                             />
                         </div>
@@ -484,6 +486,7 @@ const Announcements = () => {
                                 className="input w-full h-[120px] resize-none bg-white"
                                 placeholder="Brief description of the task"
                                 value={formData.content}
+                                maxLength={2000}
                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
                             />
                         </div>

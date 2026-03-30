@@ -613,7 +613,7 @@ const ManageSupervisors = () => {
                                     <label className="block font-semibold mb-2">Password:</label>
                                     <div className="relative">
                                         <input
-                                            className="input w-full pr-11"
+                                            className="input w-full"
                                             name="password"
                                             type={showSignUpPassword ? 'text' : 'password'}
                                             value={signUpForm.password}
@@ -621,6 +621,7 @@ const ManageSupervisors = () => {
                                             placeholder="Min 8 characters"
                                             autoComplete="new-password"
                                             maxLength={128}
+                                            style={{ paddingRight: '2.75rem' }}
                                         />
                                         <button
                                             type="button"
@@ -640,7 +641,7 @@ const ManageSupervisors = () => {
                                     <label className="block font-semibold mb-2">Confirm Password:</label>
                                     <div className="relative">
                                         <input
-                                            className="input w-full pr-11"
+                                            className="input w-full"
                                             name="password_confirmation"
                                             type={showSignUpPasswordConfirmation ? 'text' : 'password'}
                                             value={signUpForm.password_confirmation}
@@ -648,6 +649,7 @@ const ManageSupervisors = () => {
                                             placeholder="Confirm password"
                                             autoComplete="new-password"
                                             maxLength={128}
+                                            style={{ paddingRight: '2.75rem' }}
                                         />
                                         <button
                                             type="button"

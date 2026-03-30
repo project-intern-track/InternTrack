@@ -207,7 +207,7 @@ const Settings = () => {
   return (
     <div className="relative space-y-6">
       {successPopup && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-success text-white px-8 py-4 rounded-lg shadow-lg z-50 flex items-center gap-4 font-bold">
+        <div className="fixed top-5 right-5 bg-success text-white px-8 py-4 rounded-lg shadow-lg z-50 flex items-center gap-4 font-bold">
           {successPopup}
           <button onClick={() => setSuccessPopup('')} className="bg-transparent border-none text-white cursor-pointer text-xl hover:text-white/80 transition-colors">&times;</button>
         </div>
@@ -260,6 +260,7 @@ const Settings = () => {
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
+                maxLength={100}
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
             </div>
@@ -288,6 +289,7 @@ const Settings = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
+                maxLength={254}
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
             </div>
@@ -348,6 +350,7 @@ const Settings = () => {
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
                   autoComplete="new-password"
+                  maxLength={128}
                   className="w-full px-4 py-2.5 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
                 />
                 <button
@@ -370,6 +373,7 @@ const Settings = () => {
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
+                  maxLength={128}
                   className="w-full px-4 py-2.5 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
                 />
                 <button
@@ -394,6 +398,7 @@ const Settings = () => {
                 name="newPasswordConfirmation"
                 value={passwordData.newPasswordConfirmation}
                 onChange={handlePasswordChange}
+                maxLength={128}
                 className="w-full px-4 py-2.5 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
               />
               <button

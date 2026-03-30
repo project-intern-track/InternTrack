@@ -170,6 +170,7 @@ const FeedbackDashboard = () => {
             <input
               type="text" placeholder="Search task or intern..."
               value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+              maxLength={254}
               className="h-11 w-full rounded-xl border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             />
           </div>
@@ -456,6 +457,7 @@ const FeedbackDashboard = () => {
                       value={e.comment}
                       onChange={ev => updateEvaluation(idx, 'comment', ev.target.value)}
                       rows={4}
+                      maxLength={2000}
                       className="min-h-[120px] w-full resize-y rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
                       placeholder="Enter comment..."
                     />

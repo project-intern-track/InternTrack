@@ -1168,6 +1168,7 @@ const MonitorAttendance = ({ stats }: { stats?: AttendanceStats }) => {
               type="text"
               placeholder="Search by name"
               value={searchTerm}
+              maxLength={256}
               onChange={(e) => {
                 if (scrollContainerRef.current) {
                   scrollPositionRef.current = scrollContainerRef.current.scrollTop;

@@ -167,6 +167,7 @@ const Reports = () => {
                         className="reports-search-input"
                         placeholder="Search by name or email"
                         value={searchTerm}
+                        maxLength={256}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>

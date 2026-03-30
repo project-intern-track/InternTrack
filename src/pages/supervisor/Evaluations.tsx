@@ -397,6 +397,7 @@ const Evaluations = () => {
             <input
               type="text" placeholder="Search by Name or ID" value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
+              maxLength={254}
               className="h-11 w-full rounded-xl border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
             />
           </div>
@@ -655,11 +656,12 @@ const Evaluations = () => {
                         <div className="border-b border-gray-100 p-3 dark:border-white/10">
                           <div className="relative">
                             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
+                              <input
                               type="text"
                               value={internSearchQuery}
                               onChange={(e) => setInternSearchQuery(e.target.value)}
                               placeholder="Search intern"
+                              maxLength={254}
                               className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-800 dark:text-white"
                               autoFocus
                             />
@@ -755,6 +757,7 @@ const Evaluations = () => {
                   value={createFormData.feedback}
                   onChange={e => setCreateFormData({ ...createFormData, feedback: e.target.value })}
                   readOnly={isReadOnly}
+                  maxLength={2000}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 read-only:bg-gray-50 read-only:text-gray-700 dark:border-white/10 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-800/50 dark:read-only:text-gray-300"
                   rows={3}
                 />

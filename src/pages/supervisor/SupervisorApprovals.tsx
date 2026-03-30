@@ -617,6 +617,7 @@ const SupervisorApprovals = () => {
                 className="min-h-[170px] max-h-56 w-full resize-none overflow-y-auto rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
                 placeholder="Explain what needs to be revised..."
                 value={revisionReason}
+                maxLength={2000}
                 onChange={e => setRevisionReason(e.target.value)}
               />
             </div>

@@ -899,7 +899,7 @@ const ManageTasks = () => {
                 <div className="input-group manage-tasks-search-group">
                     <Search size={20} className="manage-tasks-search-icon" />
                     <input type="text" className="input manage-tasks-search-input" placeholder="Search Task"
-                        value={search} onChange={(e) => setSearch(e.target.value)}
+                        value={search} maxLength={254} onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
             </div>
@@ -1165,6 +1165,7 @@ const ManageTasks = () => {
                                         className="input bg-white"
                                         placeholder="Enter task title"
                                         value={taskTitle}
+                                        maxLength={200}
                                         onChange={(e) => setTaskTitle(e.target.value)}
                                     />
                                 </div>
@@ -1174,6 +1175,7 @@ const ManageTasks = () => {
                                         className="input bg-white min-h-[100px] resize-y"
                                         placeholder="Brief description of the task"
                                         value={taskDescription}
+                                        maxLength={2000}
                                         onChange={(e) => setTaskDescription(e.target.value)}
                                     />
                                 </div>

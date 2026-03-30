@@ -165,15 +165,23 @@ const Signup = () => {
         });
 
         if (result.error) {
-            const msg = result.error;
+            const raw = result.error.toLowerCase();
 
-            // If this is a duplicate email error, highlight the email field too
-            if (msg.toLowerCase().includes('email already exists') || msg.toLowerCase().includes('taken')) {
-                setFieldErrors((prev) => ({ ...prev, email: "Email is already used." }));
+            if (raw.includes('email already exists') || raw.includes('taken') || raw.includes('already been taken') || raw.includes('already registered')) {
+                const friendlyEmailMsg = 'This email address is already registered. Please sign in or use a different email.';
+                setFieldErrors((prev) => ({ ...prev, email: friendlyEmailMsg }));
                 setTouched((prev) => ({ ...prev, email: true }));
+                setError(friendlyEmailMsg);
+            } else if (raw.includes('network') || raw.includes('timeout') || raw.includes('503') || raw.includes('502') || raw.includes('500')) {
+                setError('Unable to complete registration. Please check your connection and try again.');
+            } else if (raw.includes('invalid email') || raw.includes('email format')) {
+                const friendlyEmailMsg = 'Please enter a valid email address.';
+                setFieldErrors((prev) => ({ ...prev, email: friendlyEmailMsg }));
+                setTouched((prev) => ({ ...prev, email: true }));
+                setError(friendlyEmailMsg);
+            } else {
+                setError('Registration failed. Please check your details and try again.');
             }
-
-            setError(msg);
             setIsSubmitting(false);
         } else {
             // Navigate immediately on success
@@ -239,6 +247,7 @@ const Signup = () => {
                                     onBlur={() => handleBlur('fullName')}
                                     disabled={isSubmitting}
                                     autoComplete="name"
+                                    maxLength={100}
                                 />
                             </div>
                             {touched.fullName && fieldErrors.fullName && (
@@ -315,6 +324,7 @@ const Signup = () => {
                                     onBlur={() => handleBlur('email')}
                                     disabled={isSubmitting}
                                     autoComplete="email"
+                                    maxLength={254}
                                 />
                             </div>
                             {touched.email && fieldErrors.email && (
@@ -349,6 +359,7 @@ const Signup = () => {
                                     onBlur={() => handleBlur('password')}
                                     disabled={isSubmitting}
                                     autoComplete="new-password"
+                                    maxLength={128}
                                 />
                                 <button
                                     type="button"

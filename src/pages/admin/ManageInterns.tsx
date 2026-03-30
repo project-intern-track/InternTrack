@@ -425,6 +425,7 @@ const ManageInterns = () => {
                         className="input admin-search-input"
                         placeholder="Search by name, role, email, or OJT ID"
                         value={searchInput}
+                        maxLength={256}
                         onChange={(e) => setSearchInput(e.target.value)}
                     />
                 </div>
@@ -802,6 +803,7 @@ const ManageInterns = () => {
                                 value={editForm.full_name}
                                 onChange={handleEditChange}
                                 placeholder="Enter full name"
+                                maxLength={100}
                             />
                         </div>
 
@@ -815,6 +817,7 @@ const ManageInterns = () => {
                                 value={editForm.email}
                                 onChange={handleEditChange}
                                 placeholder="Enter email address"
+                                maxLength={254}
                             />
                         </div>
 

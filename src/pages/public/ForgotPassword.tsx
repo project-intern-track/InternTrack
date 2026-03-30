@@ -182,6 +182,7 @@ const ForgotPassword = () => {
                                     onBlur={handleBlur}
                                     disabled={isSubmitting}
                                     autoComplete="email"
+                                    maxLength={254}
                                 />
                             </div>
                             {touched && fieldError && (

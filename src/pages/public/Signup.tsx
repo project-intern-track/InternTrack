@@ -399,7 +399,7 @@ const Signup = () => {
                                         time=""
                                         minDate={todayStr}
                                         showTime={false}
-                                        datePlaceholder="Select start date"
+                                        datePlaceholder="Start date"
                                         disabled={isSubmitting}
                                         onDateChange={(value) => handleChange('startDate', value)}
                                         onTimeChange={() => {}}

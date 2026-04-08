@@ -2913,8 +2913,13 @@ textarea,
 
 .date-time-picker-value,
 .date-time-picker-placeholder {
+  min-width: 0;
+  flex: 1;
   font-size: 0.875rem;
   line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .date-time-picker-placeholder {
